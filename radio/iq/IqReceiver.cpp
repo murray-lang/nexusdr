@@ -1,5 +1,5 @@
 #include "IqReceiver.h"
-#include "../../io/iq/audio/IqSampleCursor.h"
+#include "../../io/audio/IqSampleCursor.h"
 #include <qdebug.h>
 #include <cstdlib>
 #include <complex>
@@ -16,7 +16,7 @@ IqReceiver::IqReceiver(int32_t sampleRate, size_t fftSize, AudioOutput* audioOut
     m_signal3(sampleRate, lo + 2700),
 //    m_decimator(sampleRate, 24000, fftSize, 0),
     m_myDecimator(sampleRate, 48000),
-    m_ifBuffers(PING_PONG_LENGTH),
+//    m_ifBuffers(PING_PONG_LENGTH),
     m_afBuffers(PING_PONG_LENGTH),
     m_debugOscillator(sampleRate, 32000),
     m_ifFilter(fftSize),
@@ -31,20 +31,6 @@ IqReceiver::IqReceiver(int32_t sampleRate, size_t fftSize, AudioOutput* audioOut
   m_iqStages.push_back(&m_myDecimator);
   m_iqStages.push_back(&m_ifFilter);
 
-  // connect(
-  //     &m_fftThread,
-  //     &FftThread::signalRealFftAvailable,
-  //     this,
-  //     &IqReceiver::signalRealFftAvailable,
-  //     Qt::QueuedConnection
-  // );
-//  connect(
-//      &m_fftThread,
-//      &FftThread::signalComplexTimeseriesAvailable,
-//      this,
-//      &IqReceiver::signalComplexTimeseriesAvailable,
-//      Qt::QueuedConnection
-//  );
   uint32_t decimatorOutputRate = m_myDecimator.getOutputSampleRate();
 
   m_ifFilter.getKernel().configure(
@@ -65,24 +51,24 @@ IqReceiver::IqReceiver(int32_t sampleRate, size_t fftSize, AudioOutput* audioOut
   // m_fftThread.start();
 }
 
+//void
+//IqReceiver::sink(sdrreal i, sdrreal q)
+//{
+//  sdrcomplex next(i, q);
+//  m_ifBuffers.input()[m_inputCount++] = next;
+//
+//  if (m_inputCount == PING_PONG_LENGTH) {
+//      processSamples(m_ifBuffers, PING_PONG_LENGTH);
+//      m_inputCount = 0;
+//      m_ifBuffers.reset();
+//  }
+//}
+
 void
-IqReceiver::sink(sdrreal i, sdrreal q)
-{
-  sdrcomplex next(i, q);
-  m_ifBuffers.input()[m_inputCount++] = next;
-
-  if (m_inputCount == PING_PONG_LENGTH) {
-      processSamples(m_ifBuffers, PING_PONG_LENGTH);
-      m_inputCount = 0;
-      m_ifBuffers.reset();
-  }
-}
-
-uint32_t
-IqReceiver::processSamples(ComplexPingPongBuffers& buffers, uint32_t inputLength)
+IqReceiver::sink(ComplexPingPongBuffers& buffers, uint32_t inputLength)
 {
   // qDebug() << inputLength;
-  emitComplexSignal("input_signal", buffers.input(), inputLength);
+  emitComplexSignal(SignalEmitter::eSIGNAL_INPUT, buffers.input(), inputLength);
   uint32_t outputLength = inputLength;
 
   for (auto stage : m_iqStages) {
@@ -98,19 +84,10 @@ IqReceiver::processSamples(ComplexPingPongBuffers& buffers, uint32_t inputLength
 // //    audiosamples.at(i) = buffers.output().at(i).real();
 //   }
   // qDebug() << "Have " << outputLength << " audio samples";
-  emitTimeseries(m_afBuffers.input(), outputLength);
+  //emitTimeseries(m_afBuffers.input(), outputLength);
   //emitAudioData(m_afBuffers.input(), outputLength);
+  emitRealSignal(SignalEmitter::eSIGNAL_DEMODULATED, m_afBuffers.input(), outputLength);
   m_audioOutput->addAudioData(m_afBuffers.input(), outputLength);
   // m_fftThread.add(audiosamples, outputLength, true);
   //const vsdrcomplex& sincPulse = m_afFilter.getKernel().getComplexSincPulse();
-
-  return outputLength;
-}
-
-void
-IqReceiver::emitAudioData(const vsdrreal& samples, uint32_t length)
-{
-  auto * audioData = new vsdrreal(samples.begin(), samples.begin() + length);
-  SharedRealSeriesData sharedTimeseries = SharedRealSeriesData(audioData);
-  emit signalAudioDataAvailable(sharedTimeseries);
 }

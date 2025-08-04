@@ -89,7 +89,7 @@ public:
 //  uint32_t _processSamples(
 //      PingPongBuffers<sampleType>& sampleBuffers,
 //      uint32_t inputLength,
-//      DiagnosticSignaller* chartSignaller
+//      SignalEmitter* chartSignaller
 //  )
 //  {
 //    uint32_t outPos = 0;
@@ -122,7 +122,7 @@ private:
 //    std::copy(input.begin(), input.end(), output.begin());
   }
 
-//  void applyFilter(PingPongBuffers<sdrreal>& buffers, DiagnosticSignaller* chartSignaller)
+//  void applyFilter(PingPongBuffers<sdrreal>& buffers, SignalEmitter* chartSignaller)
 //  {
 //    applyConvolution(buffers, chartSignaller);
 //  }

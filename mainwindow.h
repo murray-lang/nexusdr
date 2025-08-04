@@ -7,7 +7,7 @@
 #include <QAudioSource>
 #include <QAudioSink>
 //#include "dsp/IqReceiver.h"
-#include "io/iq/audio/IqAudioDevice.h"
+#include "io/audio/IqAudioDevice.h"
 #include "radio/iq/IqReceiver.h"
 #include <QLineSeries>
 #include <QAreaSeries>
@@ -28,15 +28,8 @@ public:
   ~MainWindow() override;
 
 public slots:
-  void newRealFft(const SharedRealSeriesData& fftData);
-  void newComplexFft(const SharedComplexSeriesData& fftData);
-  void newRealTimeseries(const SharedRealSeriesData& timeseriesData);
-  void newComplexTimeseries(const SharedComplexSeriesData& timeseriesData);
-  void newAudioData(const SharedRealSeriesData& audioData) const;
-     //void newFft(fftw_complex* fftOut, size_t length);
-
-  void newRealSignal(const std::string& contextId, const SharedRealSeriesData& timeseriesData, uint32_t length);
-  void newComplexSignal(const std::string& contextId, const SharedComplexSeriesData& timeseriesData, uint32_t length);
+  void newRealSignal(SignalEmitter::SignalStage stage, const SharedRealSeriesData& timeseriesData, uint32_t length);
+  void newComplexSignal(SignalEmitter::SignalStage stage, const SharedComplexSeriesData& timeseriesData, uint32_t length);
 
 protected:
   static void powerSpectrum(const std::vector<sdrcomplex>& timeSeries, uint32_t timeSeriesLength, vsdrreal& spectrumOut);
@@ -76,8 +69,6 @@ private:
   QAreaSeries m_spectrumAreaSeries;
 
   QLineSeries m_timeseriesLineSeries;
-
-  QMutex m_chartMutex;
 
   uint32_t m_panadapterXmin;
   uint32_t m_panadapterXmax;

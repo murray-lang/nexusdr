@@ -10,7 +10,8 @@
 class IqSink
 {
 public:
-  virtual void sink(sdrreal i, sdrreal q) = 0;
+//  virtual void sink(sdrreal i, sdrreal q) = 0;
+  virtual void sink(ComplexPingPongBuffers& iqBuffers, uint32_t length) = 0;
 };
 
 #endif //CUTESDR_VK6HL_IQSINK_H
