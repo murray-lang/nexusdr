@@ -24,6 +24,12 @@ public:
   PingPongBuffers& flip() { m_flip = !m_flip; return *this; }
   PingPongBuffers& reset() { m_flip = false; return *this; }
 
+  PingPongBuffers& resize(uint32_t length) {
+    m_ping.resize(length);
+    m_pong.resize(length);
+    return *this;
+  }
+
 private:
   std::vector<T> m_ping;
   std::vector<T> m_pong;

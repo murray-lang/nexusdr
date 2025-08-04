@@ -16,9 +16,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --enable-threads")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --enable-threads")
 
-set(CMAKE_PREFIX_PATH "/home/murray/Qt/6.9.1/gcc_64/lib/cmake")
+#set(CMAKE_PREFIX_PATH "/home/murray/Qt/6.9.1/gcc_64/lib/cmake")
 #set(CMAKE_PREFIX_PATH "/home/murray/Qt6.5/6.5.3/gcc_64/lib/cmake")
-#set(CMAKE_PREFIX_PATH "/home/murray/Qt/6.5.0/gcc_64/lib/cmake")
+set(CMAKE_PREFIX_PATH "/home/murray/Qt/6.5.0/gcc_64/lib/cmake")
 #set(CMAKE_PREFIX_PATH "/usr/lib/aarch-linux-gnu/cmake")
 
 
@@ -68,10 +68,9 @@ set(PROJECT_SOURCES
         mainwindow.h mainwindow.cpp
         mainwindow.ui
         SampleTypes.h
-        io/iq/audio/IqAudioDevice.h
-        io/iq/audio/IqSampleCursor.h
+        io/audio/IqAudioDevice.h
+        io/audio/IqSampleCursor.h
         dsp/utils/FilterCoefficients.h
-        dsp/utils/FftThread.h dsp/utils/FftThread.cpp
         dsp/utils/FftData.h
         dsp/blocks/Oscillator.h dsp/blocks/Oscillator.cpp
         dsp/utils/constants.h
@@ -109,9 +108,9 @@ set(PROJECT_SOURCES
         radio/settings/ReceiverSettings.h
         radio/settings/RadioSettings.h
         radio/settings/TransmitterSettings.h
-        io/iq/IqIoException.h
-        io/iq/IqIoException.cpp
-        io/iq/IqSink.h
+        io/audio/IqIoException.h
+        io/audio/IqIoException.cpp
+        io/audio/IqSink.h
         dsp/stages/demodulators/DemodulatorSettings.h
         dsp/stages/demodulators/AmDemodulator.cpp
         dsp/stages/filters/kernels/FirKernel.h
@@ -121,7 +120,7 @@ set(PROJECT_SOURCES
         dsp/stages/filters/kernels/BandStopFirKernel.h
         dsp/stages/filters/kernels/LowPassFirKernel.cpp
         dsp/stages/filters/kernels/LowPassFirKernel.h
-        DiagnosticSignaller.h
+        SignalEmitter.h
         dsp/stages/filters/OverlapBuffers.h
         dsp/utils/window.h
         dsp/utils/OverlapBuffers.h
@@ -167,7 +166,6 @@ target_include_directories(cutesdr-vk6hl PUBLIC
     /home/murray/Qt/Examples/Qt-6.5.0/multimedia/shared
     ${VOLK_INCLUDE_DIRS}
     /usr/include/hidapi/
-    /home/murray/dev/json/include
 )
 target_link_directories(cutesdr-vk6hl PRIVATE ${DSPL_DIR})
 

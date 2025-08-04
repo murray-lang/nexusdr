@@ -6,7 +6,7 @@
 #include <QtGlobal>
 #include <QtEndian>
 #include <QAudioFormat>
-#include "../../../SampleTypes.h"
+#include "../../SampleTypes.h"
 
 class IqSampleCursor
 {

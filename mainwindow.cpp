@@ -6,7 +6,7 @@
 #include <QValueAxis>
 #include <QLogValueAxis>
 #include <QThreadPool>
-#include "io/iq/audio/IqAudioDevice.h"
+#include "io/audio/IqAudioDevice.h"
 #include <cmath>
 #include "io/control/usb/UsbException.h"
 #include "io/control/device/FunCubeDongle/FunCubeDongle.h"
@@ -26,7 +26,6 @@ MainWindow::MainWindow(RadioConfig& radioConfig, QWidget *parent)
     , m_spectrumLineSeries()
     , m_spectrumAreaSeries()
     , m_timeseriesLineSeries()
-    , m_chartMutex()
     , ui(new Ui::MainWindow)
     , m_panadapterXmin(0)
     , m_panadapterXmax(FFT_SIZE)
@@ -83,11 +82,6 @@ MainWindow::~MainWindow()
   m_audioSink->stop();
   m_audioOutput->stop();
   if (m_pIqReceiver != nullptr) {
-    disconnect(m_pIqReceiver, &IqReceiver::signalRealFftAvailable, this, &MainWindow::newRealFft);
-    disconnect(m_pIqReceiver, &IqReceiver::signalComplexFftAvailable, this, &MainWindow::newComplexFft);
-    disconnect(m_pIqReceiver, &IqReceiver::signalRealTimeseriesAvailable, this, &MainWindow::newRealTimeseries);
-    disconnect(m_pIqReceiver, &IqReceiver::signalComplexTimeseriesAvailable, this, &MainWindow::newComplexTimeseries);
-    disconnect(m_pIqReceiver, &IqReceiver::signalAudioDataAvailable, this, &MainWindow::newAudioData);
     disconnect(m_pIqReceiver, &IqReceiver::signalComplexSignal, this, &MainWindow::newComplexSignal);
     disconnect(m_pIqReceiver, &IqReceiver::signalRealSignal, this, &MainWindow::newRealSignal);
     delete m_pIqReceiver;
@@ -187,100 +181,65 @@ MainWindow::setTimeSeriesX(uint32_t xMin, uint32_t xMax)
     pChart->axes(Qt::Horizontal).first()->setRange(m_timeSeriesXmin, m_timeSeriesXmax);
 }
 
+
+//void
+//MainWindow::newRealTimeseries(const SharedRealSeriesData& timeseries)
+//{
+//    //if (timeseries.data()->size() != m_timeSeriesXmax) {
+//        setTimeSeriesX(0, timeseries.data()->size());
+////  setTimeSeriesX(0, 48);
+//
+//    //}
+//  QList<QPointF> timeseriesPoints;
+//  uint32_t plotX = 0;
+//  size_t seriesSize = timeseries->size();
+//  for (size_t i = 0; i < seriesSize; i++) {
+//      timeseriesPoints.append(QPointF(plotX++, timeseries->at(i)));
+//  }
+//
+//  m_timeseriesLineSeries.replace(timeseriesPoints);
+//}
+
+//void
+//MainWindow::newComplexTimeseries(const SharedComplexSeriesData& timeseries)
+//{
+//  uint32_t seriesSize = timeseries->size();
+//  //if (timeseries.data()->size() != m_timeSeriesXmax) {
+//    setTimeSeriesX(0, seriesSize);
+////  setTimeSeriesX(2038, 2058);
+////  setTimeSeriesX(2048 - 1952, 2048 - 1904);
+////  qDebug() << timeseries.data()->size() << ", ";
+//
+//  //}
+//  QList<QPointF> timeseriesPoints;
+//  uint32_t plotX = 0;
+//  for (size_t i = 0; i < seriesSize; i++) {
+//    const sdrcomplex& cpx = timeseries->at(i);
+//    timeseriesPoints.append(QPointF(plotX++, std::hypot(cpx.real(), cpx.imag())));
+////    timeseriesPoints.append(QPointF(plotX++, cpx.real()));
+//
+//  }
+//
+//  m_timeseriesLineSeries.replace(timeseriesPoints);
+//}
+
 void
-MainWindow::newRealFft(const SharedRealSeriesData& fftData)
+MainWindow::newRealSignal(SignalEmitter::SignalStage stage, const SharedRealSeriesData& timeseriesData, uint32_t length)
 {
-
-    //m_chartMutex.lock();
-    //m_fftSeries.clear();
-    if (fftData.data()->size() != m_panadapterXmax) {
-      setPanadapterX(0, fftData.data()->size());
-    }
-    calcSpectrumSeries(fftData.data(), m_spectrumLineSeries);
-//    QPen pen = m_fftSeries.pen();
-//    pen.setWidth(0);
-    //QChart* pChart = ui->panadapterView->chart();
-    //pChart->createDefaultAxes();
-
-    //m_chartMutex.unlock();
-    //m_iqProcessor.recycleFftOutput(fftOut);
-
-}
-
-void
-MainWindow::newComplexFft(const SharedComplexSeriesData& fftData)
-{
-
-  //m_chartMutex.lock();
-  //m_fftSeries.clear();
-  if (fftData.data()->size() != m_panadapterXmax) {
-    setPanadapterX(0, fftData.data()->size());
-  }
-  calcSpectrumSeries(fftData.data(), m_spectrumLineSeries);
-//    QPen pen = m_fftSeries.pen();
-//    pen.setWidth(0);
-  //QChart* pChart = ui->panadapterView->chart();
-  //pChart->createDefaultAxes();
-
-  //m_chartMutex.unlock();
-  //m_iqProcessor.recycleFftOutput(fftOut);
-
-}
-
-void
-MainWindow::newRealTimeseries(const SharedRealSeriesData& timeseries)
-{
-    //if (timeseries.data()->size() != m_timeSeriesXmax) {
-        setTimeSeriesX(0, timeseries.data()->size());
+  setTimeSeriesX(0, length);
 //  setTimeSeriesX(0, 48);
-
-    //}
-  QList<QPointF> timeseriesPoints;
-  uint32_t plotX = 0;
-  size_t seriesSize = timeseries->size();
-  for (size_t i = 0; i < seriesSize; i++) {
-      timeseriesPoints.append(QPointF(plotX++, timeseries->at(i)));
-  }
-
-  m_timeseriesLineSeries.replace(timeseriesPoints);
-}
-
-void
-MainWindow::newComplexTimeseries(const SharedComplexSeriesData& timeseries)
-{
-  uint32_t seriesSize = timeseries->size();
-  //if (timeseries.data()->size() != m_timeSeriesXmax) {
-    setTimeSeriesX(0, seriesSize);
-//  setTimeSeriesX(2038, 2058);
-//  setTimeSeriesX(2048 - 1952, 2048 - 1904);
-//  qDebug() << timeseries.data()->size() << ", ";
 
   //}
   QList<QPointF> timeseriesPoints;
   uint32_t plotX = 0;
-  for (size_t i = 0; i < seriesSize; i++) {
-    const sdrcomplex& cpx = timeseries->at(i);
-    timeseriesPoints.append(QPointF(plotX++, std::hypot(cpx.real(), cpx.imag())));
-//    timeseriesPoints.append(QPointF(plotX++, cpx.real()));
-
+  for (uint32_t i = 0; i < length; i++) {
+    timeseriesPoints.append(QPointF(plotX++, timeseriesData->at(i)));
   }
 
   m_timeseriesLineSeries.replace(timeseriesPoints);
 }
-
 void
-MainWindow::newAudioData(const SharedRealSeriesData& audioData) const
-{
-  m_audioOutput->addAudioData(*audioData.data(), audioData.data()->size());
-}
-
-void
-MainWindow::newRealSignal(const std::string& contextId, const SharedRealSeriesData& timeseriesData, uint32_t length)
-{
-
-}
-void
-MainWindow::newComplexSignal(const std::string& contextId, const SharedComplexSeriesData& timeseriesData, uint32_t length)
+MainWindow::newComplexSignal(SignalEmitter::SignalStage stage, const SharedComplexSeriesData& timeseriesData, uint32_t length)
 {
   vsdrreal spectrum(length);
   powerSpectrum(*timeseriesData, length, spectrum);
@@ -401,12 +360,6 @@ void MainWindow::initializeWindow()
 void MainWindow::initializeAudio()
 {
   if (m_pIqReceiver != nullptr) {
-    disconnect(m_pIqReceiver, &IqReceiver::signalRealFftAvailable, this, &MainWindow::newRealFft);
-    disconnect(m_pIqReceiver, &IqReceiver::signalComplexFftAvailable, this, &MainWindow::newComplexFft);
-    disconnect(m_pIqReceiver, &IqReceiver::signalRealTimeseriesAvailable, this, &MainWindow::newRealTimeseries);
-    disconnect(m_pIqReceiver, &IqReceiver::signalComplexTimeseriesAvailable, this, &MainWindow::newComplexTimeseries);
-    disconnect(m_pIqReceiver, &IqReceiver::signalAudioDataAvailable, this, &MainWindow::newAudioData);
-
     disconnect(m_pIqReceiver, &IqReceiver::signalComplexSignal, this, &MainWindow::newComplexSignal);
     disconnect(m_pIqReceiver, &IqReceiver::signalRealSignal, this, &MainWindow::newRealSignal);
 
@@ -442,11 +395,6 @@ void MainWindow::initializeAudio()
     //format.setSampleFormat(QAudioFormat::Int16);
 
     m_pIqReceiver = new IqReceiver(SAMPLE_RATE, FFT_SIZE, m_audioOutput.data());
-    connect(m_pIqReceiver, &IqReceiver::signalRealFftAvailable, this, &MainWindow::newRealFft);
-    connect(m_pIqReceiver, &IqReceiver::signalComplexFftAvailable, this, &MainWindow::newComplexFft);
-    connect(m_pIqReceiver, &IqReceiver::signalRealTimeseriesAvailable, this, &MainWindow::newRealTimeseries);
-    connect(m_pIqReceiver, &IqReceiver::signalComplexTimeseriesAvailable, this, &MainWindow::newComplexTimeseries);
-    connect(m_pIqReceiver, &IqReceiver::signalAudioDataAvailable, this, &MainWindow::newAudioData, Qt::DirectConnection);
 
     connect(m_pIqReceiver, &IqReceiver::signalComplexSignal, this, &MainWindow::newComplexSignal);
     connect(m_pIqReceiver, &IqReceiver::signalRealSignal, this, &MainWindow::newRealSignal);
@@ -568,7 +516,7 @@ MainWindow::initialiseRadio()
   FunCubeDongle fcd;
   RadioSettings radioSettings;
   radioSettings.rxSettings.push_back({
-   .rfSettings = { .frequency = 10000000, .gain = 10.0 },
+   .rfSettings = { .frequency = 10000000, .gain = 0.0 },
    .ifSettings = { .bandwidth = 200000, .gain = 0.0 }
   });
   try {

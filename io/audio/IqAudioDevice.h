@@ -4,13 +4,16 @@
 #include <QAudioSource>
 #include <QMediaDevices>
 #include <QWidget>
+#include <QThread>
 #include <regex>
 //#include "../dsp/IqReceiver.h"
-#include "../../../radio/iq/IqReceiver.h"
-#include "../../../dsp/blocks/Oscillator.h"
-#include "../IqSink.h"
+#include "../../radio/iq/IqReceiver.h"
+#include "../../dsp/blocks/Oscillator.h"
+#include "IqSink.h"
 #include "IqSampleCursor.h"
-#include "../IqIoException.h"
+#include "IqIoException.h"
+
+#define PING_PONG_LENGTH 8192
 
 class IqAudioDevice : public QIODevice
 {
@@ -20,10 +23,14 @@ public:
   IqAudioDevice(const QAudioFormat &format, IqSink* pSink)
       : m_format(format),
         m_sampleCursor(format),
-        m_pSink(pSink)
+        m_pSink(pSink),
+        m_iqBuffers(PING_PONG_LENGTH),
+        m_inputBufferBytes(0)
   {
-
+    m_inputBufferSize = PING_PONG_LENGTH * format.bytesPerFrame();
+    m_inputBuffer.resize(m_inputBufferSize);
   }
+
   ~IqAudioDevice() override = default;
 
   void start() {
@@ -38,19 +45,57 @@ public:
     return 0;
   }
 
+//  qint64 writeData(const char *data, qint64 length) override
+//  {
+////    QThread::currentThread()->setPriority(QThread::TimeCriticalPriority);
+//
+//    m_sampleCursor.reset((const int8_t *) data, length, false);
+//    size_t numFrames = length/m_format.bytesPerFrame();
+//
+//    for (size_t j = 0; j < numFrames; j++) {
+//      m_pSink->sink(m_sampleCursor.getNormalisedLeft(), m_sampleCursor.getNormalisedRight());
+//      ++m_sampleCursor;
+//    }
+//    return length;
+//  }
+
   qint64 writeData(const char *data, qint64 length) override
   {
-    // QThread::currentThread()->setPriority(QThread::HighestPriority);
+//    QThread::currentThread()->setPriority(QThread::HighestPriority);
+    size_t bytesRead = 0;
+    while (bytesRead < length)
+    {
+      size_t remainingBytes = length - bytesRead;
+      size_t bytesToCopy = std::min(remainingBytes, m_inputBufferSize - m_inputBufferBytes);
+      std::memcpy(m_inputBuffer.data() + m_inputBufferBytes, data + bytesRead, bytesToCopy);
+      bytesRead += bytesToCopy;
+      m_inputBufferBytes += bytesToCopy;
+      if (m_inputBufferBytes == m_inputBufferSize)
+      {
+        writeBuffer(m_inputBuffer, m_inputBufferSize);
+        m_inputBufferBytes = 0;
+      }
+    }
+    return bytesRead;
 
-    m_sampleCursor.reset((const int8_t *) data, length, false);
+  }
+
+  size_t writeBuffer(std::vector<int8_t>& buffer, size_t length)
+  {
+    m_iqBuffers.reset();
+    m_sampleCursor.reset(buffer.data(), length, false);
     size_t numFrames = length/m_format.bytesPerFrame();
 
+    vsdrcomplex& input = m_iqBuffers.input();
     for (size_t j = 0; j < numFrames; j++) {
-      m_pSink->sink(m_sampleCursor.getNormalisedLeft(), m_sampleCursor.getNormalisedRight());
+      input.at(j) = sdrcomplex(m_sampleCursor.getNormalisedLeft(), m_sampleCursor.getNormalisedRight());
       ++m_sampleCursor;
     }
+    m_pSink->sink(m_iqBuffers, static_cast<uint32_t>(numFrames));
+    m_iqBuffers.reset();
     return length;
   }
+
 
   static QAudioDevice findDevice(const std::string& descriptionRegex)
   {
@@ -83,6 +128,9 @@ private:
   const QAudioFormat m_format;
   IqSampleCursor m_sampleCursor;
   IqSink* m_pSink;
+  ComplexPingPongBuffers m_iqBuffers;
+  std::vector<int8_t> m_inputBuffer;
+  size_t m_inputBufferSize;
+  size_t m_inputBufferBytes;
 };
-
 #endif //IQAUDIODEVICE_H_
