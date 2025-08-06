@@ -10,15 +10,15 @@
 #include "../../../../radio/settings/RadioSettings.h"
 #include "FCDHidCmd.h"
 
-class FunCubeDongle : UsbDeviceControl<HidUsbControl> {
+class FunCubeDongle : public UsbDeviceControl<HidUsbControl> {
 public:
     FunCubeDongle();
-    ~FunCubeDongle();
+    ~FunCubeDongle() override;
 
     void applySettings(const RadioSettings& radioSettings) override;
     void readSettings(RadioSettings& radioSettings) override;
 
-    void initialise() override;
+    void initialise(const nlohmann::json& json) override;
     bool discover() override;
     void open() override;
     void close() override;

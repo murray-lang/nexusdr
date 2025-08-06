@@ -12,12 +12,16 @@ class AudioConfig : public JsonConfig
   friend class ReceiverConfig;
 public:
   explicit AudioConfig() :
+    m_isInput(false),
+    m_isIq(false),
     m_sampleRate(0),
     m_channelCount(0)
   {
   }
 
   AudioConfig(const AudioConfig& rhs) :
+    m_isInput(false),
+    m_isIq(rhs.m_isIq),
     m_searchExpression(rhs.m_searchExpression),
     m_sampleRate(rhs.m_sampleRate),
     m_channelCount(rhs.m_channelCount)
@@ -27,6 +31,8 @@ public:
 
   AudioConfig& operator=(const AudioConfig& rhs)
   {
+    m_isInput = rhs.m_isInput;
+    m_isIq = rhs.m_isIq;
     m_searchExpression = rhs.m_searchExpression;
     m_sampleRate = rhs.m_sampleRate;
     m_channelCount = rhs.m_channelCount;
@@ -36,6 +42,12 @@ public:
   static AudioConfig fromJson(const nlohmann::json& json)
   {
     AudioConfig result;
+    if (json.contains("isInput")) {
+      result.m_isIq = json["isInput"].get<bool>();
+    }
+    if (json.contains("isIq")) {
+      result.m_isIq = json["isIq"].get<bool>();
+    }
     if (json.contains("searchExpression")) {
       result.m_searchExpression = json["searchExpression"].get<std::string>();
     }
@@ -48,11 +60,14 @@ public:
     return result;
   }
 
+  [[nodiscard]] bool isIq() const { return m_isIq; }
   [[nodiscard]] const std::string& getSearchExpression() const { return m_searchExpression; }
   [[nodiscard]] uint32_t getSampleRate() const { return m_sampleRate; }
   [[nodiscard]] uint32_t getChannelCount() const { return m_channelCount; }
 
 protected:
+  bool m_isInput;
+  bool m_isIq;
   std::string m_searchExpression;
   uint32_t m_sampleRate;
   uint32_t m_channelCount;

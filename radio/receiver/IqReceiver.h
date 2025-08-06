@@ -16,23 +16,36 @@
 #include "../../dsp/stages/filters/kernels/BandPassFirKernel.h"
 #include "../../SignalEmitter.h"
 #include "../../dsp/stages/metering/MeteringStage.h"
+#include "../../io/audio/device/AudioOutputDevice.h"
+#include "../../io/audio/IqAudioInput.h"
 #include "../../io/audio/AudioOutput.h"
+#include "../config/ReceiverConfig.h"
+#include "../../../io/control/device/DeviceControl.h"
 
 //#define PING_PONG_LENGTH 2048
 #define PING_PONG_LENGTH 8192
 
 class IqReceiver : public IqSink , public SignalEmitter {
 public:
-  IqReceiver(int32_t sampleRate, size_t defaultFftSize, AudioOutput* audioOutput);
+  IqReceiver(int32_t sampleRate, size_t defaultFftSize, QObject *eventTarget = nullptr);
 
-  ~IqReceiver() override = default;
+  ~IqReceiver() override
+  {
+    delete m_pIqInput;
+  }
+
+  void configure(const ReceiverConfig& config);
+  void start() const;
+  void stop() const;
+
+  void applySettings(const RadioSettings& radioSettings) const;
+
 
 //  void sink(sdrreal i, sdrreal q) override;
   void sink(ComplexPingPongBuffers& iqBuffers, uint32_t length) override;
   //void processData(const char *data, uint64_t length);
 
 protected:
-  //QAudioFormat m_audioFormat;
   std::vector<IqStage*> m_iqStages;
   size_t m_inputCount;
   DcShift m_dcShift;
@@ -49,7 +62,13 @@ protected:
   AmDemodulator* m_pDemodulator;
   // MeteringStage m_timeseriesEmitter;
   // MeteringStage m_spectrumEmitter;
-  AudioOutput* m_audioOutput;
+  // AudioOutputDevice* m_audioOutput;
+
+  QObject* m_eventTarget;
+  IqAudioInput* m_pIqInput;
+  AudioOutput* m_pAudioOutput;
+  std::vector<DeviceControl*> m_deviceControllers;
+  ReceiverConfig m_config;
 };
 
 #endif //__SDR_H__

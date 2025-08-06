@@ -41,7 +41,7 @@ FunCubeDongle::readSettings(RadioSettings& radioSettings)
 }
 
 void
-FunCubeDongle::initialise()
+FunCubeDongle::initialise(const nlohmann::json& json)
 {
     control.initialise();
 }

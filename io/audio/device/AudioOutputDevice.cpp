@@ -2,29 +2,28 @@
 // Created by murray on 18/07/25.
 //
 
-#include "AudioOutput.h"
+#include "AudioOutputDevice.h"
 
 
-AudioOutput::AudioOutput(const QAudioFormat &format, qsizetype bufferSize) :
+AudioOutputDevice::AudioOutputDevice(const QAudioFormat &format, qsizetype bufferSize) :
+  AudioDevice(format),
   m_audioBuffer(bufferSize * format.bytesPerSample(), 0 ),
-  m_bytesAvailable(0),
-  // m_queueSize(queueSize),
-  m_format(format)
+  m_bytesAvailable(0)
 {
 }
 
-void AudioOutput::start()
+void AudioOutputDevice::start()
 {
   open(QIODevice::ReadOnly);
 }
 
-void AudioOutput::stop()
+void AudioOutputDevice::stop()
 {
   close();
 }
 
 qint64
-AudioOutput::readData(char *data, qint64 len)
+AudioOutputDevice::readData(char *data, qint64 len)
 {
   qint64 maxBytes = std::min(m_bytesAvailable, len);
   if (maxBytes > 0)
@@ -35,7 +34,7 @@ AudioOutput::readData(char *data, qint64 len)
 }
 
 qint64
-AudioOutput::writeData(const char *data, qint64 len)
+AudioOutputDevice::writeData(const char *data, qint64 len)
 {
   Q_UNUSED(data);
   Q_UNUSED(len);
@@ -44,20 +43,20 @@ AudioOutput::writeData(const char *data, qint64 len)
 }
 
 qint64
-AudioOutput::bytesAvailable() const
+AudioOutputDevice::bytesAvailable() const
 {
   return m_audioBuffer.size() + QIODevice::bytesAvailable();
 }
 
 qint64
-AudioOutput::size() const
+AudioOutputDevice::size() const
 {
   size_t bufferSize = m_audioBuffer.size();
   return static_cast<qint64>(bufferSize);
 }
 
 uint32_t
-AudioOutput::addAudioData(const vsdrreal& data, const uint32_t length)
+AudioOutputDevice::addAudioData(const vsdrreal& data, const uint32_t length)
 {
   qint64 numWritten = 0;
   char * bufferData = m_audioBuffer.data();

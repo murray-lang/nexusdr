@@ -35,7 +35,7 @@ public:
     return result;
   }
 
-  ReceiverConfig& getReceiver() { return m_receiver; }
+  const ReceiverConfig& getReceiver() { return m_receiver; }
 
 protected:
   ReceiverConfig m_receiver;

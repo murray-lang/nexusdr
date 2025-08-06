@@ -6,7 +6,7 @@
 #include <QValueAxis>
 #include <QLogValueAxis>
 #include <QThreadPool>
-#include "io/audio/IqAudioDevice.h"
+#include "io/audio/device/IqAudioInputDevice.h"
 #include <cmath>
 #include "io/control/usb/UsbException.h"
 #include "io/control/device/FunCubeDongle/FunCubeDongle.h"
@@ -14,14 +14,15 @@
 #include "radio/config/AudioConfig.h"
 #include <volk/volk.h>
 
+#include "radio/receiver/ReceiverAudioEvent.h"
+#include "radio/receiver/ReceiverIqEvent.h"
+
 #define FFT_SIZE 2048
 #define SAMPLE_RATE 192000
 
 MainWindow::MainWindow(RadioConfig& radioConfig, QWidget *parent)
     : QMainWindow(parent)
     , m_radioConfig(radioConfig)
-    , m_mediaDevices(new QMediaDevices(this))
-//    , m_iqProcessor(2048)
     , m_pIqReceiver(nullptr)
     , m_spectrumLineSeries()
     , m_spectrumAreaSeries()
@@ -74,18 +75,11 @@ MainWindow::MainWindow(RadioConfig& radioConfig, QWidget *parent)
     //pChart->setTitle("FunCube FFT");
     configurePanadapter();
     configureTimeseriesChart();
-//    connect(&m_iqProcessor, &IqReceiver::signalFftAvailable, this, &MainWindow::newFft, Qt::QueuedConnection);
 }
 
 MainWindow::~MainWindow()
 {
-  m_audioSink->stop();
-  m_audioOutput->stop();
-  if (m_pIqReceiver != nullptr) {
-    disconnect(m_pIqReceiver, &IqReceiver::signalComplexSignal, this, &MainWindow::newComplexSignal);
-    disconnect(m_pIqReceiver, &IqReceiver::signalRealSignal, this, &MainWindow::newRealSignal);
-    delete m_pIqReceiver;
-  }
+  delete m_pIqReceiver;
   delete ui;
 }
 
@@ -182,71 +176,46 @@ MainWindow::setTimeSeriesX(uint32_t xMin, uint32_t xMax)
 }
 
 
-//void
-//MainWindow::newRealTimeseries(const SharedRealSeriesData& timeseries)
-//{
-//    //if (timeseries.data()->size() != m_timeSeriesXmax) {
-//        setTimeSeriesX(0, timeseries.data()->size());
-////  setTimeSeriesX(0, 48);
-//
-//    //}
-//  QList<QPointF> timeseriesPoints;
-//  uint32_t plotX = 0;
-//  size_t seriesSize = timeseries->size();
-//  for (size_t i = 0; i < seriesSize; i++) {
-//      timeseriesPoints.append(QPointF(plotX++, timeseries->at(i)));
-//  }
-//
-//  m_timeseriesLineSeries.replace(timeseriesPoints);
-//}
-
-//void
-//MainWindow::newComplexTimeseries(const SharedComplexSeriesData& timeseries)
-//{
-//  uint32_t seriesSize = timeseries->size();
-//  //if (timeseries.data()->size() != m_timeSeriesXmax) {
-//    setTimeSeriesX(0, seriesSize);
-////  setTimeSeriesX(2038, 2058);
-////  setTimeSeriesX(2048 - 1952, 2048 - 1904);
-////  qDebug() << timeseries.data()->size() << ", ";
-//
-//  //}
-//  QList<QPointF> timeseriesPoints;
-//  uint32_t plotX = 0;
-//  for (size_t i = 0; i < seriesSize; i++) {
-//    const sdrcomplex& cpx = timeseries->at(i);
-//    timeseriesPoints.append(QPointF(plotX++, std::hypot(cpx.real(), cpx.imag())));
-////    timeseriesPoints.append(QPointF(plotX++, cpx.real()));
-//
-//  }
-//
-//  m_timeseriesLineSeries.replace(timeseriesPoints);
-//}
+void
+MainWindow::customEvent(QEvent* event)
+{
+  if (event->type() == ReceiverIqEvent::RxIqEvent)
+  {
+    auto* iqEvent = dynamic_cast<ReceiverIqEvent*>(event);
+    handleReceiverIqEvent(iqEvent->buffer.get(), iqEvent->dataLength);
+  }
+  else if (event->type() == ReceiverAudioEvent::RxAudioEvent)
+  {
+    auto* audioEvent = dynamic_cast<ReceiverAudioEvent*>(event);
+    handleReceiverAudioEvent(audioEvent->buffer.get(), audioEvent->dataLength);
+  }
+}
 
 void
-MainWindow::newRealSignal(SignalEmitter::SignalStage stage, const SharedRealSeriesData& timeseriesData, uint32_t length)
+MainWindow::handleReceiverIqEvent(const vsdrcomplex* data, uint32_t length)
+{
+  vsdrreal spectrum(length);
+  powerSpectrum(*data, length, spectrum);
+  if (spectrum.size() != m_panadapterXmax) {
+    setPanadapterX(0, spectrum.size());
+  }
+  calcSpectrumSeries(&spectrum, m_spectrumLineSeries, true);
+}
+
+void
+MainWindow::handleReceiverAudioEvent(const vsdrreal* data, uint32_t length)
 {
   setTimeSeriesX(0, length);
-//  setTimeSeriesX(0, 48);
+  //  setTimeSeriesX(0, 48);
 
   //}
   QList<QPointF> timeseriesPoints;
   uint32_t plotX = 0;
   for (uint32_t i = 0; i < length; i++) {
-    timeseriesPoints.append(QPointF(plotX++, timeseriesData->at(i)));
+    timeseriesPoints.append(QPointF(plotX++, data->at(i)));
   }
 
   m_timeseriesLineSeries.replace(timeseriesPoints);
-}
-void
-MainWindow::newComplexSignal(SignalEmitter::SignalStage stage, const SharedComplexSeriesData& timeseriesData, uint32_t length)
-{
-  vsdrreal spectrum(length);
-  powerSpectrum(*timeseriesData, length, spectrum);
-  if (spectrum.size() != m_panadapterXmax) {
-    setPanadapterX(0, spectrum.size());
-  }
-  calcSpectrumSeries(&spectrum, m_spectrumLineSeries, true);
 }
 
 void
@@ -359,130 +328,14 @@ void MainWindow::initializeWindow()
 
 void MainWindow::initializeAudio()
 {
-  if (m_pIqReceiver != nullptr) {
-    disconnect(m_pIqReceiver, &IqReceiver::signalComplexSignal, this, &MainWindow::newComplexSignal);
-    disconnect(m_pIqReceiver, &IqReceiver::signalRealSignal, this, &MainWindow::newRealSignal);
 
-    delete m_pIqReceiver;
-    m_pIqReceiver = nullptr;
-  }
-  try {
-    const QAudioDevice outputDeviceInfo = QMediaDevices::defaultAudioOutput();
-    QAudioFormat outputFormat = outputDeviceInfo.preferredFormat();
+// //    QAudioSource* newSource = new QAudioSource(deviceInfo, format);
+// //    m_audioInput.reset(newSource);
+// //    qreal initialVolume = QAudio::convertVolume(m_audioInput->volume(), QAudio::LinearVolumeScale,
+// //                                                QAudio::LogarithmicVolumeScale);
+// //    ui->volumeSlider->setValue(qRound(initialVolume * 100));
 
-    m_audioOutput.reset(new AudioOutput(outputFormat));
-    m_audioSink.reset(new QAudioSink(outputDeviceInfo, outputFormat));
-    m_audioOutput->start();
-    m_audioSink->start(m_audioOutput.data());
-    m_audioSink->setVolume(1.0);
-
-    AudioConfig& iqAudioConfig = m_radioConfig.getReceiver().getIqInput();
-    std::string searchExpression = iqAudioConfig.getSearchExpression();
-    QAudioDevice deviceInfo = IqAudioDevice::findDevice(searchExpression);
-    // QAudioDevice deviceInfo = IqAudioDevice::findDevice("Built-in");
-    QAudioFormat format;
-    //format.setSampleRate(8000);
-    //format.setChannelCount(1);
-    // format.setSampleRate(deviceInfo.preferredFormat().sampleRate());
-    qDebug() << "Preferred sample rate: " << deviceInfo.preferredFormat().sampleRate();
-    // format.setChannelCount(deviceInfo.preferredFormat().channelCount());
-    format.setSampleRate(static_cast<int>(iqAudioConfig.getSampleRate()));
-    qDebug() << "Sample rate after setting: " << format.sampleRate();
-    format.setChannelCount(static_cast<int>(iqAudioConfig.getChannelCount()));
-    format.setSampleFormat(deviceInfo.preferredFormat().sampleFormat());
-    // format.setSampleFormat(QAudioFormat::Int16);
-    format.setChannelConfig(QAudioFormat::ChannelConfigStereo);
-    //format.setSampleFormat(QAudioFormat::Int16);
-
-    m_pIqReceiver = new IqReceiver(SAMPLE_RATE, FFT_SIZE, m_audioOutput.data());
-
-    connect(m_pIqReceiver, &IqReceiver::signalComplexSignal, this, &MainWindow::newComplexSignal);
-    connect(m_pIqReceiver, &IqReceiver::signalRealSignal, this, &MainWindow::newRealSignal);
-
-    //IqAudioDevice* newInfo = new IqAudioDevice(format, &m_iqProcessor);
-    auto *newInfo = new IqAudioDevice(format, m_pIqReceiver);
-    m_audioDevice.reset(newInfo);
-
-    QAudioSource* newSource = new QAudioSource(deviceInfo, format);
-    // qDebug() << "Source format:" << newSource->format();
-    m_audioInput.reset(newSource);
-
-//    QAudioSource* newSource = new QAudioSource(deviceInfo, format);
-//    m_audioInput.reset(newSource);
-//    qreal initialVolume = QAudio::convertVolume(m_audioInput->volume(), QAudio::LinearVolumeScale,
-//                                                QAudio::LogarithmicVolumeScale);
-//    ui->volumeSlider->setValue(qRound(initialVolume * 100));
-
-    //m_pDemodulator->start();
-    m_audioDevice->start();
-    m_audioInput->stop();
-    m_audioInput->start(m_audioDevice.data());
-    //toggleMode();
-  }
-  catch (const IqIoException &ex) {
-
-  }
 }
-
-//void MainWindow::toggleMode()
-//{
-//    m_audioInput->stop();
-//    toggleSuspend();
-
-    // Change between pull and push modes
-//    if (m_pullMode) {
-//        ui->modeButton->setText(tr("Enable push mode"));
-//        m_audioInput->start(m_audioDevice.data());
-//    } else {
-//        ui->modeButton->setText(tr("Enable pull mode"));
-//        auto *io = m_audioInput->start();
-//        if (!io)
-//            return;
-//
-//        connect(io, &QIODevice::readyRead, [this, io]() {
-//            static const qint64 BufferSize = 4096;
-//            const qint64 bytesAvailable = m_audioInput->bytesAvailable();
-//            const qint64 len = qMin(bytesAvailable, BufferSize);
-//
-//            QByteArray buffer(len, 0);
-//            qint64 l = io->read(buffer.data(), len);
-////            if (l > 0) {
-////                const qreal level = m_audioDevice->calculateLevel(buffer.constData(), l);
-////                m_canvas->setLevel(level);
-////            }
-//        });
-//    }
-
-//    m_pullMode = !m_pullMode;
-//}
-
-//void MainWindow::toggleSuspend()
-//{
-    // toggle suspend/resume
-//    switch (m_audioInput->state()) {
-//    case QAudio::SuspendedState:
-//    case QAudio::StoppedState:
-//        m_audioInput->resume();
-//        ui->suspendButton->setText(tr("Suspend recording"));
-//        break;
-//    case QAudio::ActiveState:
-//        m_audioInput->suspend();
-//        ui->suspendButton->setText(tr("Resume recording"));
-//        break;
-//    case QAudio::IdleState:
-//        // no-op
-//        break;
-//    }
-//}
-
-//void MainWindow::deviceChanged(int index)
-//{
-//    m_audioDevice->stop();
-//    m_audioInput->stop();
-//    m_audioInput->disconnect(this);
-//
-//    initializeAudio(ui->deviceList->itemData(index).value<QAudioDevice>());
-//}
 
 //void
 //MainWindow::sliderChanged(int value)
@@ -496,46 +349,69 @@ void MainWindow::initializeAudio()
 void
 MainWindow::initialiseRadio()
 {
-  const QList<QAudioDevice> inputs = QMediaDevices::audioInputs();
-  for (const QAudioDevice &device : inputs) {
-    qDebug() << "Device:" << device.description() << device.id();
+  // const QList<QAudioDevice> inputs = QMediaDevices::audioOutputs();
+  // for (const QAudioDevice &device : inputs) {
+  //   qDebug() << "Device:" << device.description() << device.id();
+  //
+  //   qDebug() << "  Minimum sample rate:" << device.minimumSampleRate();
+  //   qDebug() << "  Maximum sample rate:" << device.maximumSampleRate();
+  //
+  //   qDebug() << "  Minimum channel count:" << device.minimumChannelCount();
+  //   qDebug() << "  Maximum channel count:" << device.maximumChannelCount();
+  //   qDebug() << "  Channel Config:" << device.channelConfiguration();
+  //
+  //   qDebug() << "  Sample formats supported:";
+  //   for (auto format : device.supportedSampleFormats()) {
+  //     qDebug() << "    " << format;
+  //   }
+  // }
 
-    qDebug() << "  Minimum sample rate:" << device.minimumSampleRate();
-    qDebug() << "  Maximum sample rate:" << device.maximumSampleRate();
-
-    qDebug() << "  Minimum channel count:" << device.minimumChannelCount();
-    qDebug() << "  Maximum channel count:" << device.maximumChannelCount();
-    qDebug() << "  Channel Config:" << device.channelConfiguration();
-
-    qDebug() << "  Sample formats supported:";
-    for (auto format : device.supportedSampleFormats()) {
-      qDebug() << "    " << format;
-    }
+  if (m_pIqReceiver != nullptr) {
+    m_pIqReceiver->stop();
+    delete m_pIqReceiver;
+    m_pIqReceiver = nullptr;
+  }
+  try
+  {
+    m_pIqReceiver = new IqReceiver(SAMPLE_RATE, FFT_SIZE, this);
+    const ReceiverConfig& receiverConfig = m_radioConfig.getReceiver();
+    m_pIqReceiver->configure(receiverConfig);
+    m_pIqReceiver->start();
+    RadioSettings radioSettings;
+    radioSettings.rxSettings.push_back({
+     .rfSettings = { .frequency = 10000000, .gain = 0.0 },
+     .ifSettings = { .bandwidth = 200000, .gain = 0.0 }
+    });
+    m_pIqReceiver->applySettings(radioSettings);
+  }
+  catch (std::runtime_error& error)
+  {
+    qDebug() << "Error initialising receiver: " << error.what();
   }
 
-  FunCubeDongle fcd;
-  RadioSettings radioSettings;
-  radioSettings.rxSettings.push_back({
-   .rfSettings = { .frequency = 10000000, .gain = 0.0 },
-   .ifSettings = { .bandwidth = 200000, .gain = 0.0 }
-  });
-  try {
-    fcd.initialise();
-    if (fcd.discover()) {
-        qDebug() << "Discovered!";
-    } else {
-        qDebug() << "NOT discovered!";
-    }
-    fcd.open();
-
-    fcd.applySettings(radioSettings);
-
-    fcd.close();
-  } catch(UsbException& usbEx) {
-    qDebug() << "USB Error: " << usbEx.what();
-  } catch(DeviceControlException& deviceEx) {
-    qDebug() << "DeviceControl Error: " << deviceEx.what();
-  }
+  // FunCubeDongle fcd;
+  // RadioSettings radioSettings;
+  // radioSettings.rxSettings.push_back({
+  //  .rfSettings = { .frequency = 10000000, .gain = 0.0 },
+  //  .ifSettings = { .bandwidth = 200000, .gain = 0.0 }
+  // });
+  // try {
+  //   fcd.initialise();
+  //   if (fcd.discover()) {
+  //       qDebug() << "Discovered!";
+  //   } else {
+  //       qDebug() << "NOT discovered!";
+  //   }
+  //   fcd.open();
+  //
+  //   fcd.applySettings(radioSettings);
+  //
+  //   fcd.close();
+  // } catch(UsbException& usbEx) {
+  //   qDebug() << "USB Error: " << usbEx.what();
+  // } catch(DeviceControlException& deviceEx) {
+  //   qDebug() << "DeviceControl Error: " << deviceEx.what();
+  // }
 }
 
 //#include "moc_mainwindow.cpp"

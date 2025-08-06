@@ -7,12 +7,12 @@
 #include <QAudioSource>
 #include <QAudioSink>
 //#include "dsp/IqReceiver.h"
-#include "io/audio/IqAudioDevice.h"
-#include "radio/iq/IqReceiver.h"
+// #include "io/audio/IqAudioInputDevice.h"
+#include "radio/receiver/IqReceiver.h"
 #include <QLineSeries>
 #include <QAreaSeries>
 
-#include "io/audio/AudioOutput.h"
+#include "io/audio/device/AudioOutputDevice.h"
 #include "radio/config/RadioConfig.h"
 
 QT_BEGIN_NAMESPACE
@@ -27,11 +27,11 @@ public:
   MainWindow(RadioConfig& radioConfig, QWidget *parent = nullptr);
   ~MainWindow() override;
 
-public slots:
-  void newRealSignal(SignalEmitter::SignalStage stage, const SharedRealSeriesData& timeseriesData, uint32_t length);
-  void newComplexSignal(SignalEmitter::SignalStage stage, const SharedComplexSeriesData& timeseriesData, uint32_t length);
+  void customEvent(QEvent* event) override;
 
 protected:
+  void handleReceiverIqEvent(const vsdrcomplex* data, uint32_t length);
+  void handleReceiverAudioEvent(const vsdrreal* data, uint32_t length);
   static void powerSpectrum(const std::vector<sdrcomplex>& timeSeries, uint32_t timeSeriesLength, vsdrreal& spectrumOut);
 
   static void calcSpectrumSeries(const vsdrreal* spectrumData, QLineSeries& spectrumSeries, bool shuffle = true);
@@ -57,11 +57,6 @@ private:
   RadioConfig m_radioConfig;
   Ui::MainWindow *ui;
 
-  QMediaDevices * m_mediaDevices;
-  QScopedPointer<IqAudioDevice> m_audioDevice;
-  QScopedPointer<QAudioSource> m_audioInput;
-  QScopedPointer<QAudioSink> m_audioSink;
-  QScopedPointer<AudioOutput> m_audioOutput;
 //    bool m_pullMode = true;
 //    IqReceiver m_iqProcessor;
   IqReceiver* m_pIqReceiver;
