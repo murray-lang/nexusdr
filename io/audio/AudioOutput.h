@@ -1,38 +1,81 @@
 //
-// Created by murray on 18/07/25.
+// Created by murray on 5/08/25.
 //
 
 #ifndef AUDIOOUTPUT_H
 #define AUDIOOUTPUT_H
-#include <QAudioFormat>
-#include <QIODevice>
-#include <queue>
-#include "../../SampleTypes.h"
+#include <QAudioSink>
 
+#include "AudioIo.h"
+#include "device/AudioOutputDevice.h"
 
-class AudioOutput : public QIODevice
+class AudioOutput : public AudioIo
 {
-  Q_OBJECT
-public:
-  explicit AudioOutput(const QAudioFormat &format, qsizetype bufferSize = 2048);
+  public:
+  AudioOutput() : AudioIo(), m_pDevice(nullptr), m_pSink(nullptr)
+  {
+  }
 
-  void start();
-  void stop();
+  ~AudioOutput() override
+  {
+    delete m_pDevice;
+    delete m_pSink;
+  }
 
-  qint64 readData(char *data, qint64 maxlen) override;
-  qint64 writeData(const char *data, qint64 len) override;
-  qint64 bytesAvailable() const override;
-  qint64 size() const override;
+  void initialise(const AudioConfig& config)
+  {
+    configure(config);
+    m_pDevice = new AudioOutputDevice(m_format);
+    m_pSink = new QAudioSink(m_deviceInfo, m_format);
+    // m_pSource->setBufferSize(m_format.sampleRate() / 5);
+    // m_pSource->start();
+  }
 
-  uint32_t addAudioData(const vsdrreal& data, uint32_t length);
+  void start() const override
+  {
+    if (m_pDevice == nullptr || m_pSink == nullptr)
+    {
+      throw AudioException("AudioOutput not initialised");
+    }
+    m_pDevice->start();
+    m_pSink->stop();
+    m_pSink->start(m_pDevice);
+    m_pSink->setVolume(1.0);
+  }
 
-private:
-  QAudioFormat m_format;
-  // qint64 m_bufferSize;
-  // qint64 m_queueSize;
-  // std::queue<int32_t> m_inputQueue;
-  QByteArray m_audioBuffer;
-  qsizetype m_bytesAvailable;
+  void stop() const override
+  {
+    if (m_pSink != nullptr)
+    {
+      m_pSink->stop();
+    }
+    if (m_pDevice != nullptr)
+    {
+      m_pDevice->stop();
+    }
+  }
+
+  [[nodiscard]] uint32_t addAudioData(const vsdrreal& data, uint32_t length) const
+  {
+    if (m_pDevice == nullptr)
+    {
+      return 0;
+      // throw AudioException("AudioOutput not initialised");
+    }
+    return m_pDevice->addAudioData(data, length);
+  }
+
+protected:
+  QAudioDevice findDevice(const std::string& searchExpression) override
+  {
+    return AudioDevice::findOutputDevice(searchExpression);
+  }
+  QAudioDevice getDefaultDevice() override { return QMediaDevices::defaultAudioOutput(); }
+
+protected:
+  AudioOutputDevice* m_pDevice;
+  QAudioSink * m_pSink;
+
 };
 
 #endif //AUDIOOUTPUT_H

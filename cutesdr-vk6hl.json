@@ -1,0 +1,21 @@
+{
+  "radio": {
+    "receiver": {
+      "iqInput": {
+        "searchExpression": "FUNcube",
+        "sampleRate": 192000,
+        "channelCount": 2
+      },
+      "audioOutput": {
+        "searchExpression": "Built-in"
+      },
+      "controllers": [
+        {
+          "type": "funcube",
+          "config": {
+          }
+        }
+      ]
+    }
+  }
+}

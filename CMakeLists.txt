@@ -16,9 +16,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --enable-threads")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --enable-threads")
 
-#set(CMAKE_PREFIX_PATH "/home/murray/Qt/6.9.1/gcc_64/lib/cmake")
+set(CMAKE_PREFIX_PATH "/home/murray/Qt/6.9.1/gcc_64/lib/cmake")
 #set(CMAKE_PREFIX_PATH "/home/murray/Qt6.5/6.5.3/gcc_64/lib/cmake")
-set(CMAKE_PREFIX_PATH "/home/murray/Qt/6.5.0/gcc_64/lib/cmake")
+#set(CMAKE_PREFIX_PATH "/home/murray/Qt/6.5.0/gcc_64/lib/cmake")
 #set(CMAKE_PREFIX_PATH "/usr/lib/aarch-linux-gnu/cmake")
 
 
@@ -68,8 +68,7 @@ set(PROJECT_SOURCES
         mainwindow.h mainwindow.cpp
         mainwindow.ui
         SampleTypes.h
-        io/audio/IqAudioDevice.h
-        io/audio/IqSampleCursor.h
+
         dsp/utils/FilterCoefficients.h
         dsp/utils/FftData.h
         dsp/blocks/Oscillator.h dsp/blocks/Oscillator.cpp
@@ -77,7 +76,7 @@ set(PROJECT_SOURCES
         dsp/utils/PingPongBuffers.h
         dsp/utils/VectorAssembler.h
         dsp/utils/pocketfft/pocketfft_hdronly.h
-        radio/iq/IqReceiver.h radio/iq/IqReceiver.cpp
+        radio/receiver/IqReceiver.h radio/receiver/IqReceiver.cpp
         dsp/stages/IqStage.h
         dsp/stages/oscillators/OscillatorStage.h
         dsp/stages/oscillators/OscillatorMixer.h
@@ -108,9 +107,7 @@ set(PROJECT_SOURCES
         radio/settings/ReceiverSettings.h
         radio/settings/RadioSettings.h
         radio/settings/TransmitterSettings.h
-        io/audio/IqIoException.h
-        io/audio/IqIoException.cpp
-        io/audio/IqSink.h
+
         dsp/stages/demodulators/DemodulatorSettings.h
         dsp/stages/demodulators/AmDemodulator.cpp
         dsp/stages/filters/kernels/FirKernel.h
@@ -126,8 +123,7 @@ set(PROJECT_SOURCES
         dsp/utils/OverlapBuffers.h
         dsp/stages/decimator/Decimator.h
         dsp/stages/decimator/MyFirCoefficients.h
-        io/audio/AudioOutput.cpp
-        io/audio/AudioOutput.h
+
         dsp/stages/metering/MeteringStage.h
         radio/config/RadioConfig.h
         radio/config/ReceiverConfig.h
@@ -135,6 +131,25 @@ set(PROJECT_SOURCES
         radio/config/AudioConfig.h
         radio/config/JsonConfig.h
         radio/config/ConfigException.h
+
+        io/audio/device/AudioDevice.h
+        io/audio/IqAudioInput.h
+        io/audio/device/AudioOutputDevice.cpp
+        io/audio/device/AudioOutputDevice.h
+        io/audio/device/IqAudioInputDevice.h
+        io/audio/IqSampleCursor.h
+        io/audio/AudioException.h
+        io/audio/AudioException.cpp
+        io/audio/IqSink.h
+        io/audio/AudioIo.h
+        io/audio/AudioOutput.h
+        radio/receiver/ReceiverIqEvent.h
+        radio/receiver/ReceiverIqEvent.cpp
+        radio/receiver/ReceiverAudioEvent.cpp
+        radio/receiver/ReceiverAudioEvent.h
+        radio/config/ControlConfig.h
+        io/control/device/DeviceControlFactory.h
+        io/control/device/DeviceControlFactory.cpp
 
 )
 
