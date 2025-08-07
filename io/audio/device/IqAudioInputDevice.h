@@ -59,8 +59,9 @@ public:
       QMutexLocker locker(&m_mutex);
       if (m_bufferQueue.length() < 4) {
         m_bufferQueue.enqueue(next);
+        m_dataAvailable.wakeOne();
       }
-      m_dataAvailable.wakeOne();
+
     }
     return length;
 
