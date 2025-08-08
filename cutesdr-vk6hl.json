@@ -7,7 +7,8 @@
         "channelCount": 2
       },
       "audioOutput": {
-        "searchExpression": "Built-in"
+        "searchExpression": "HDMI 0",
+        "sampleRate": 48000
       },
       "controllers": [
         {

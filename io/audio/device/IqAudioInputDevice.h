@@ -1,8 +1,6 @@
 #ifndef IQAUDIOINPUTDEVICE_H_
 #define IQAUDIOINPUTDEVICE_H_
 
-#include <QAudioSource>
-#include <QMediaDevices>
 #include <QWidget>
 #include <QThread>
 #include <regex>
@@ -11,7 +9,6 @@
 #include "../../../radio/receiver/IqReceiver.h"
 #include "../../../dsp/blocks/Oscillator.h"
 #include "../IqSink.h"
-#include "../IqSampleCursor.h"
 #include "../AudioException.h"
 #include <QQueue>
 #include <QMutex>
@@ -24,125 +21,141 @@ class IqAudioInputDevice : public AudioDevice, public QThread
 {
 
 public:
-  IqAudioInputDevice(const QAudioFormat &format, IqSink* pSink)
-  : AudioDevice(format),
-    m_sampleCursor(format),
+  IqAudioInputDevice(const RtAudio::DeviceInfo& deviceInfo, const Format& format, IqSink* pSink)
+  : AudioDevice(deviceInfo, format),
+    m_running(false),
+    // m_sampleCursor(format),
     m_pSink(pSink),
     m_iqBuffers(PING_PONG_LENGTH),
-    m_inputBufferBytes(0),
-    m_stopped(false)
+    m_numCurrentSamples(0)
   {
-    m_inputBufferSize = PING_PONG_LENGTH * format.bytesPerFrame();
-    m_inputBuffer.resize(m_inputBufferSize);
+    m_params.deviceId = m_deviceInfo.ID;
+    m_params.nChannels = 2;
+    m_params.firstChannel = 0;
   }
 
-  ~IqAudioInputDevice() override = default;
+  ~IqAudioInputDevice() override
+  {
+    stop();
+    wait();
+  }
 
   void start() {
-    QThread::start();
-    bool opened = open(QIODevice::WriteOnly);
+    if (!m_running) {
+      unsigned int bufferFrames = PING_PONG_LENGTH;
+
+      RtAudioErrorType rc = m_rtAudio.openStream(
+          nullptr,              // no output
+          &m_params,            // input params
+          m_format.sampleFormat,      // sample format
+          m_format.sampleRate,
+          &bufferFrames,
+          &rtCallback,
+          this
+      );
+      rc = m_rtAudio.startStream();
+      m_running = true;
+      QThread::start();
+    }
+
   }
   void stop() {
-    m_stopped = true;
-    close();
+    if (m_running) {
+      m_rtAudio.stopStream();
+      m_rtAudio.closeStream();
+      m_running = false;
+      m_dataAvailable.wakeOne();
+    }
   }
 
-  qint64 readData(char *data, qint64 maxlen) override
-  {
-    return 0;
+  static int rtCallback(void *, void *inputBuffer, unsigned int nframes, double,
+                                   RtAudioStreamStatus, void *userData) {
+    return static_cast<IqAudioInputDevice*>(userData)->handleCallback(inputBuffer, nframes);
   }
 
-  qint64 writeData(const char *data, qint64 length) override
+
+  size_t getSamples(std::vector<sdrreal>& dest);
+
+  int handleCallback(void *inputBuffer, unsigned int nframes)
   {
-    {
-      QByteArray next(data, static_cast<int>(length));
+    if (inputBuffer) {
+      sdrreal* in = static_cast<sdrreal*>(inputBuffer);
+      // std::lock_guard<std::mutex> lock(m_mutex);
       QMutexLocker locker(&m_mutex);
-      if (m_bufferQueue.length() < 4) {
-        m_bufferQueue.enqueue(next);
-        m_dataAvailable.wakeOne();
-      }
-
+      // Append nframes * m_channels samples
+      m_iqBuffer.insert(m_iqBuffer.end(), in, in + nframes * 2);
+      m_dataAvailable.wakeOne();
     }
-    return length;
-
-    // QThread::currentThread()->setPriority(QThread::HighestPriority);
-    qint64 bytesRead = 0;
-    while (bytesRead < length)
-    {
-      qint64 remainingBytes = length - bytesRead;
-      qint64 bytesToCopy = std::min(remainingBytes, m_inputBufferSize - m_inputBufferBytes);
-      std::memcpy(m_inputBuffer.data() + m_inputBufferBytes, data + bytesRead, bytesToCopy);
-      bytesRead += bytesToCopy;
-      m_inputBufferBytes += bytesToCopy;
-      if (m_inputBufferBytes == m_inputBufferSize)
-      {
-        writeBuffer(m_inputBuffer, m_inputBufferSize);
-        m_inputBufferBytes = 0;
-      }
-    }
-    return bytesRead;
+    return 0;
 
   }
 
-  size_t writeBuffer(std::vector<int8_t>& buffer, qint64 length)
-  {
-    m_iqBuffers.reset();
-    m_sampleCursor.reset(buffer.data(), length, false);
-    size_t numFrames = length/m_format.bytesPerFrame();
 
-    vsdrcomplex& input = m_iqBuffers.input();
-    for (size_t j = 0; j < numFrames; j++) {
-      input.at(j) = sdrcomplex(m_sampleCursor.getNormalisedLeft(), m_sampleCursor.getNormalisedRight());
-      ++m_sampleCursor;
-    }
-    m_pSink->sink(m_iqBuffers, static_cast<uint32_t>(numFrames));
-    m_iqBuffers.reset();
-    return length;
-  }
+
+  // size_t writeBuffer(std::vector<int8_t>& buffer, qint64 length)
+  // {
+  //   m_iqBuffers.reset();
+  //   m_sampleCursor.reset(buffer.data(), length, false);
+  //   size_t numFrames = length/m_format.bytesPerFrame();
+  //
+  //   vsdrcomplex& input = m_iqBuffers.input();
+  //   for (size_t j = 0; j < numFrames; j++) {
+  //     input.at(j) = sdrcomplex(m_sampleCursor.getNormalisedLeft(), m_sampleCursor.getNormalisedRight());
+  //     ++m_sampleCursor;
+  //   }
+  //   m_pSink->sink(m_iqBuffers, static_cast<uint32_t>(numFrames));
+  //   m_iqBuffers.reset();
+  //   return length;
+  // }
 
   void run() override
   {
-    while (!m_stopped) {
-      QByteArray dataChunk;
+    while (m_running) {
+      vsdrcomplex& input = m_iqBuffers.input();
       {
         QMutexLocker locker(&m_mutex);
-        if (m_bufferQueue.isEmpty())
+        if (m_iqBuffer.empty()) {
           m_dataAvailable.wait(&m_mutex);
-        if (!m_bufferQueue.isEmpty())
-          dataChunk = m_bufferQueue.dequeue();
-      }
-      if (!dataChunk.isEmpty()) {
-        qint64 bytesRead = 0;
-        qint64 length = dataChunk.length();
-        while (bytesRead < length)
-        {
-          qint64 remainingBytes = length - bytesRead;
-          qint64 bytesToCopy = std::min(remainingBytes, m_inputBufferSize - m_inputBufferBytes);
-          std::memcpy(m_inputBuffer.data() + m_inputBufferBytes, dataChunk.data() + bytesRead, bytesToCopy);
-          bytesRead += bytesToCopy;
-          m_inputBufferBytes += bytesToCopy;
-          if (m_inputBufferBytes == m_inputBufferSize)
-          {
-            writeBuffer(m_inputBuffer, m_inputBufferSize);
-            m_inputBufferBytes = 0;
+        }
+        if (!m_iqBuffer.empty()) {
+          size_t requiredSamples = m_iqBuffers.current().size() - m_numCurrentSamples;
+          size_t numIncomingSamples = m_iqBuffer.size() / 2;
+          size_t samplesToRead = std::min(requiredSamples, numIncomingSamples);
+          for (size_t i = 0; i < samplesToRead; i++) {
+            input.at(i) = sdrcomplex(m_iqBuffer.at(i*2), m_iqBuffer.at(i*2+1));
           }
+          m_iqBuffer.erase(m_iqBuffer.begin(), m_iqBuffer.begin() + samplesToRead*2);
+          m_numCurrentSamples += samplesToRead;
         }
       }
+      if (m_numCurrentSamples == input.size()) {
+        m_pSink->sink(m_iqBuffers, static_cast<uint32_t>(m_numCurrentSamples));
+        m_iqBuffers.reset();
+        m_numCurrentSamples = 0;
+      }
     }
-
   }
 
 private:
-  IqSampleCursor m_sampleCursor;
+  std::atomic<bool> m_running;
+  // std::mutex m_mutex;
+  std::deque<sdrreal> m_iqBuffer;
+  RtAudio::StreamParameters m_params;
+
+  // IqSampleCursor m_sampleCursor;
   IqSink* m_pSink;
   ComplexPingPongBuffers m_iqBuffers;
-  std::vector<int8_t> m_inputBuffer;
-  qint64 m_inputBufferSize;
-  qint64 m_inputBufferBytes;
-  QQueue<QByteArray> m_bufferQueue;
+  // std::vector<int8_t> m_inputBuffer;
+  // qint64 m_inputBufferSize;
+  // qint64 m_inputBufferBytes;
+  // QQueue<QByteArray> m_bufferQueue;
+  size_t m_numCurrentSamples;
+  // QByteArray dataChunk;
+  // size_t m_inputBufferSize;
+  // std::vector<int8_t> m_inputBuffer;
   QMutex m_mutex;
   QWaitCondition m_dataAvailable;
-  bool m_stopped;
+  // bool m_stopped;
 
 };
 #endif //IQAUDIOINPUTDEVICE_H_

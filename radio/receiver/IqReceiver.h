@@ -2,7 +2,6 @@
 #define __SDR_H__
 
 #include <QObject>
-#include <QAudioFormat>
 #include "../../SampleTypes.h"
 #include "../../dsp/stages/oscillators/OscillatorMixer.h"
 #include "../../dsp/stages/oscillators/OscillatorInjector.h"

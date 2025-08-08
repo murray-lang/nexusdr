@@ -1,8 +1,6 @@
 #ifndef OSCILLATOR_H
 #define OSCILLATOR_H
 
-#include <QAudioFormat>
-//#include <fftw3.h>
 #include "../../SampleTypes.h"
 
 class Oscillator

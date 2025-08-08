@@ -5,102 +5,89 @@
 #include "AudioOutputDevice.h"
 
 
-AudioOutputDevice::AudioOutputDevice(const QAudioFormat &format, qsizetype bufferSize) :
-  AudioDevice(format),
-  m_audioBuffer(bufferSize * format.bytesPerSample(), 0 ),
-  m_bytesAvailable(0)
+AudioOutputDevice::AudioOutputDevice(const RtAudio::DeviceInfo& deviceInfo, const Format& format) :
+  AudioDevice(deviceInfo, format),
+  m_running(false),
+  m_audioBuffer()
 {
 }
 
 void AudioOutputDevice::start()
 {
-  open(QIODevice::ReadOnly);
+  if (!m_running) {
+    m_running = true;
+    RtAudio::StreamParameters parameters;
+    parameters.deviceId = m_deviceInfo.ID;
+    parameters.nChannels = std::min(m_deviceInfo.outputChannels, static_cast<unsigned int>(2));
+    parameters.firstChannel = 0;
+
+    RtAudio::StreamOptions options{
+      .flags = RTAUDIO_NONINTERLEAVED,
+      .numberOfBuffers = 2
+    };
+    // Set options as needed
+
+    unsigned int sampleRate = m_format.sampleRate;
+    unsigned int bufferFrames = 512;
+
+    RtAudioCallback rtCallback = [](void *outputBuffer, void *, unsigned int nFrames,
+                         double, RtAudioStreamStatus, void *userData) -> int {
+      auto *self = static_cast<AudioOutputDevice *>(userData);
+      return self->pullSamples(outputBuffer, nFrames);
+    };
+
+    RtAudioErrorType rc = m_rtAudio.openStream(
+      &parameters,
+      nullptr,
+      m_format.sampleFormat,
+      sampleRate,
+      &bufferFrames, rtCallback, this, &options);
+
+    rc = m_rtAudio.startStream();
+  }
+
 }
 
 void AudioOutputDevice::stop()
 {
-  close();
-}
-
-qint64
-AudioOutputDevice::readData(char *data, qint64 len)
-{
-  qint64 maxBytes = std::min(m_bytesAvailable, len);
-  if (maxBytes > 0)
-  {
-    memcpy(data, m_audioBuffer.data(), maxBytes);
+  if (m_running) {
+    if (m_rtAudio.isStreamOpen()) {
+      m_rtAudio.stopStream();
+      m_rtAudio.closeStream();
+      m_running = false;
+    }
   }
-  return maxBytes;
 }
 
-qint64
-AudioOutputDevice::writeData(const char *data, qint64 len)
+int AudioOutputDevice::pullSamples(void *outputBuffer, unsigned int nFrames)
 {
-  Q_UNUSED(data);
-  Q_UNUSED(len);
-
-  return 0;
+  sdrreal* out = static_cast<sdrreal*>(outputBuffer);
+  std::lock_guard<std::mutex> lock(m_mutex);
+  for (unsigned int i = 0; i < nFrames; ++i) {
+    if (!m_audioBuffer.empty()) {
+      out[i] = m_audioBuffer.front();
+      m_audioBuffer.pop_front();
+    } else {
+      out[i] = 0.0f; // silence if no data
+    }
+  }
+  return 0; // 0: continue, nonzero: stop
 }
 
-qint64
-AudioOutputDevice::bytesAvailable() const
-{
-  return m_audioBuffer.size() + QIODevice::bytesAvailable();
-}
 
-qint64
-AudioOutputDevice::size() const
-{
-  size_t bufferSize = m_audioBuffer.size();
-  return static_cast<qint64>(bufferSize);
-}
 
 uint32_t
 AudioOutputDevice::addAudioData(const vsdrreal& data, const uint32_t length)
 {
-  qint64 numWritten = 0;
-  char * bufferData = m_audioBuffer.data();
-  // std::for_each(data.begin(), data.end(), [this, bufferData, numWritten](const sdrreal& sample) mutable
-  for (uint32_t i = 0; i < length; ++i)
-  {
-    const sdrreal& sample = data.at(i);
-    sdrreal scaled;
-    switch (m_format.sampleFormat())
+  std::lock_guard<std::mutex> lock(m_mutex);
+  std::transform(
+    data.begin(),
+    data.begin() + length,
+    std::back_inserter(m_audioBuffer),
+    [](const sdrreal& value)
     {
-    case QAudioFormat::UInt8:
-      scaled = sample * static_cast<sdrreal>(INT8_MAX);
-      bufferData[numWritten++] = static_cast<char>(scaled);
-      break;
-    case QAudioFormat::Int16:
-      {
-        scaled = sample * static_cast<sdrreal>(INT16_MAX);
-        auto scaledInt16 = static_cast<qint16>(scaled);
-        memcpy(bufferData + numWritten, &scaledInt16, sizeof(scaledInt16));
-        numWritten += sizeof(scaledInt16);
-        break;
-      }
-    case QAudioFormat::Int32:
-      {
-        scaled = sample * static_cast<sdrreal>(INT32_MAX);
-        auto scaledInt32 = static_cast<qint32>(scaled);
-        memcpy(bufferData + numWritten, &scaledInt32, sizeof(scaledInt32));
-        numWritten += sizeof(scaledInt32);
-        break;
-      }
-    case QAudioFormat::Float:
-      {
-      scaled = static_cast<float>(sample);
-      memcpy(bufferData + numWritten, &scaled, sizeof(float));
-      numWritten += sizeof(float);
-      break;
-      }
-    default: ;
+      return static_cast<float>(value);
     }
-  }
-  if (numWritten > 0)
-  {
-    emit readyRead();
-  }
-  m_bytesAvailable = numWritten;
-  return numWritten;
+  );
+  return length;
 }

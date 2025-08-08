@@ -1,5 +1,4 @@
 #include "IqReceiver.h"
-#include "../../io/audio/IqSampleCursor.h"
 #include <qdebug.h>
 #include <cstdlib>
 #include <complex>

@@ -2,10 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QMediaDevices>
 #include <QScopedPointer>
-#include <QAudioSource>
-#include <QAudioSink>
 //#include "dsp/IqReceiver.h"
 // #include "io/audio/IqAudioInputDevice.h"
 #include "radio/receiver/IqReceiver.h"
