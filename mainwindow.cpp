@@ -301,7 +301,7 @@ MainWindow::calcSpectrumSeries(const std::vector<sdrcomplex> * spectrumData, QLi
 
 void MainWindow::initializeWindow()
 {
-    const QAudioDevice &defaultOutputDeviceInfo = QMediaDevices::defaultAudioOutput();
+    // const QAudioDevice &defaultOutputDeviceInfo = QMediaDevices::defaultAudioOutput();
 //
 //    ui->deviceList->addItem(defaultDeviceInfo.description(), QVariant::fromValue(defaultDeviceInfo));
 //    for (auto &deviceInfo : m_devices->audioInputs()) {

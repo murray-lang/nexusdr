@@ -25,11 +25,17 @@ set(CMAKE_PREFIX_PATH "/home/murray/Qt/6.9.1/gcc_64/lib/cmake")
 
 set(VOLK_MIN_VERSION "2.4.1")         ## first version with CPU features
 
-list(INSERT CMAKE_MODULE_PATH 0 "${CMAKE_SOURCE_DIR}/cmake/modules")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
+list(APPEND CMAKE_MODULE_PATH "/home/murray/dev/tools/rtaudio/_build_")
+
+find_package(RtAudio REQUIRED)
+
+include(CMakeLists_AudioLibs.txt)
+message(STATUS "${AUDIO_LINK_LIBS}")
 
 find_package(nlohmann_json 3.11.3 REQUIRED)
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui Multimedia Widgets Charts Multimedia)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui Widgets Charts Multimedia)
 find_library(HIDAPI_LIBRARY hidapi-libusb)
 
 message(STATUS "")
@@ -137,7 +143,6 @@ set(PROJECT_SOURCES
         io/audio/device/AudioOutputDevice.cpp
         io/audio/device/AudioOutputDevice.h
         io/audio/device/IqAudioInputDevice.h
-        io/audio/IqSampleCursor.h
         io/audio/AudioException.h
         io/audio/AudioException.cpp
         io/audio/IqSink.h
@@ -177,8 +182,8 @@ else()
 endif()
 
 target_include_directories(cutesdr-vk6hl PUBLIC
-    /usr/local/include
-    /home/murray/Qt/Examples/Qt-6.5.0/multimedia/shared
+    /usl/local/include
+    /usr/local/include/rtaudio
     ${VOLK_INCLUDE_DIRS}
     /usr/include/hidapi/
 )
@@ -188,10 +193,10 @@ target_link_libraries(cutesdr-vk6hl
     PRIVATE
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Gui
-    Qt${QT_VERSION_MAJOR}::Multimedia
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::Charts
-    #fftw3
+    /usr/local/lib/librtaudio.so
+    ${AUDIO_LINK_LIBS}
     ${VOLK_LIBRARIES}
     usb-1.0
     hidapi-libusb

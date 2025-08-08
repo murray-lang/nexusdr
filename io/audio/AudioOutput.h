@@ -4,7 +4,6 @@
 
 #ifndef AUDIOOUTPUT_H
 #define AUDIOOUTPUT_H
-#include <QAudioSink>
 
 #include "AudioIo.h"
 #include "device/AudioOutputDevice.h"
@@ -12,45 +11,34 @@
 class AudioOutput : public AudioIo
 {
   public:
-  AudioOutput() : AudioIo(), m_pDevice(nullptr), m_pSink(nullptr)
+  AudioOutput() : AudioIo(), m_pDevice(nullptr)
   {
   }
 
   ~AudioOutput() override
   {
     delete m_pDevice;
-    delete m_pSink;
   }
 
   void initialise(const AudioConfig& config)
   {
     configure(config);
-    m_pDevice = new AudioOutputDevice(m_format);
-    m_pSink = new QAudioSink(m_deviceInfo, m_format);
-    // m_pSource->setBufferSize(m_format.sampleRate() / 5);
-    // m_pSource->start();
+    m_pDevice = new AudioOutputDevice(m_deviceInfo, m_format);
   }
 
   void start() const override
   {
-    if (m_pDevice == nullptr || m_pSink == nullptr)
+    if (m_pDevice == nullptr)
     {
       throw AudioException("AudioOutput not initialised");
     }
     m_pDevice->start();
-    m_pSink->stop();
-    m_pSink->start(m_pDevice);
-    m_pSink->setVolume(1.0);
+    // m_pSink->setVolume(1.0); How to do this with RtAudio???
   }
 
   void stop() const override
   {
-    if (m_pSink != nullptr)
-    {
-      m_pSink->stop();
-    }
-    if (m_pDevice != nullptr)
-    {
+    if (m_pDevice != nullptr) {
       m_pDevice->stop();
     }
   }
@@ -66,15 +54,14 @@ class AudioOutput : public AudioIo
   }
 
 protected:
-  QAudioDevice findDevice(const std::string& searchExpression) override
+  RtAudio::DeviceInfo findDevice(const std::string& searchExpression) override
   {
     return AudioDevice::findOutputDevice(searchExpression);
   }
-  QAudioDevice getDefaultDevice() override { return QMediaDevices::defaultAudioOutput(); }
+  RtAudio::DeviceInfo getDefaultDevice() override { return AudioDevice::findDefaultOutputDevice(); }
 
 protected:
   AudioOutputDevice* m_pDevice;
-  QAudioSink * m_pSink;
 
 };
 

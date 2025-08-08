@@ -4,70 +4,132 @@
 
 #ifndef AUDIODEVICE_H
 #define AUDIODEVICE_H
-#include <QAudioSource>
-#include <QMediaDevices>
-#include <QAudioFormat>
-#include <QIODevice>
+// #include <QAudioSource>
+// #include <QMediaDevices>
+// #include <QAudioFormat>
+// #include <QIODevice>
+#include <rtaudio/RtAudio.h>
+#include <string>
+#include <algorithm>
+#include <optional>
+
 #include <regex>
 #include "../AudioException.h"
 
 
-class AudioDevice : public QIODevice
+class AudioDevice
 {
 protected:
-  Q_OBJECT
+  // Q_OBJECT
+  ~AudioDevice() = default;
 
 public:
-  explicit AudioDevice(const QAudioFormat &format)
-  : m_format(format)
+  struct Format
   {
+    int sampleRate;
+    int channelCount;
+    int bytesPerFrame;
+    RtAudioFormat sampleFormat;
+  };
 
+  explicit AudioDevice(const RtAudio::DeviceInfo& deviceInfo, const Format& format) :
+    m_format(format),
+    m_deviceInfo(deviceInfo)
+  {
   }
 
-  static QAudioDevice findInputDevice(const std::string& descriptionRegex)
+  static RtAudio::DeviceInfo findInputDevice(const std::string& searchExpression)
   {
-    const QList<QAudioDevice>& devices = QMediaDevices::audioInputs();
-    if (devices.isEmpty())
+    RtAudio audio(RtAudio::Api::LINUX_ALSA);
+    auto deviceIds = audio.getDeviceIds();
+    if (deviceIds.size() == 0)
     {
       throw AudioException("No audio input devices were found");
     }
-    const qsizetype deviceIndex = findDeviceIndex(devices, descriptionRegex);
-    return devices.at(deviceIndex);
+    std::basic_regex<char> regex(searchExpression, std::regex_constants::ECMAScript | std::regex_constants::icase);
+    for (auto& deviceId : deviceIds) {
+      RtAudio::DeviceInfo info = audio.getDeviceInfo(deviceId);
+      // Only consider devices with input channels
+      if (info.inputChannels > 0) {
+        std::string name = info.name;
+        std::smatch match;
+        std::regex_search(name, match, regex);
+        if (std::regex_search(name, match, regex)) {
+          return info;
+        }
+      }
+    }
+    std::ostringstream stringStream;
+    stringStream << "An audio device with a name matched by '" << searchExpression << "' was not found";
+    std::string copyOfStr = stringStream.str();
+    throw AudioException(copyOfStr);
   }
 
-  static QAudioDevice findOutputDevice(const std::string& descriptionRegex)
+  static RtAudio::DeviceInfo findOutputDevice(const std::string& searchExpression)
   {
-    const QList<QAudioDevice>& devices = QMediaDevices::audioOutputs();
-    if (devices.isEmpty())
+    RtAudio audio(RtAudio::Api::LINUX_ALSA);
+     auto deviceIds = audio.getDeviceIds();
+    if (deviceIds.size() == 0)
+    {
+      throw AudioException("No audio input devices were found");
+    }
+    std::basic_regex<char> regex(searchExpression, std::regex_constants::ECMAScript | std::regex_constants::icase);
+    for (auto& deviceId : deviceIds) {
+      RtAudio::DeviceInfo info = audio.getDeviceInfo(deviceId);
+      // Only consider devices with input channels
+      if (info.outputChannels > 0) {
+        std::string name = info.name;
+        std::smatch match;
+        std::regex_search(name, match, regex);
+        if (std::regex_search(name, match, regex)) {
+          return info;
+        }
+      }
+    }
+    std::ostringstream stringStream;
+    stringStream << "An audio device with a name matched by '" << searchExpression << "' was not found";
+    std::string copyOfStr = stringStream.str();
+    throw AudioException(copyOfStr);
+  }
+
+  static RtAudio::DeviceInfo findDefaultInputDevice()
+  {
+    RtAudio audio(RtAudio::Api::LINUX_ALSA);
+    auto deviceIds = audio.getDeviceIds();
+    if (deviceIds.size() == 0)
+    {
+      throw AudioException("No audio input devices were found");
+    }
+    for (auto& deviceId : deviceIds) {
+      RtAudio::DeviceInfo info = audio.getDeviceInfo(deviceId);
+      if (info.isDefaultInput) {
+        return info;
+      }
+    }
+    throw AudioException("No default audio input device found");
+  }
+
+  static RtAudio::DeviceInfo findDefaultOutputDevice()
+  {
+    RtAudio audio(RtAudio::Api::LINUX_ALSA);
+    auto deviceIds = audio.getDeviceIds();
+    if (deviceIds.size() == 0)
     {
       throw AudioException("No audio output devices were found");
     }
-    const qsizetype deviceIndex = findDeviceIndex(devices, descriptionRegex);
-    return devices.at(deviceIndex);
-  }
-
-  static qsizetype findDeviceIndex(const QList<QAudioDevice>& devices, const std::string& descriptionRegex)
-  {
-    const QList<QAudioDevice>::const_iterator deviceIter = std::find_if(
-        devices.begin(), devices.end(),
-        [&descriptionRegex](const QAudioDevice& device) -> bool {
-          std::basic_regex<char> regex(descriptionRegex, std::regex_constants::ECMAScript | std::regex_constants::icase);
-          std::smatch match;
-          std::string description = device.description().toStdString();
-          return std::regex_search(description, match, regex);
-        }
-    );
-    if (deviceIter == devices.end()) {
-      std::ostringstream stringStream;
-      stringStream << "An audio device with a name matched by '" << descriptionRegex << "' was not found";
-      std::string copyOfStr = stringStream.str();
-      throw AudioException(copyOfStr);
+    for (auto& deviceId : deviceIds) {
+      RtAudio::DeviceInfo info = audio.getDeviceInfo(deviceId);
+      if (info.isDefaultOutput) {
+        return info;
+      }
     }
-    return std::distance(devices.begin(), deviceIter);
+    throw AudioException("No default audio output device found");
   }
 
 protected:
-  const QAudioFormat m_format;
+  RtAudio m_rtAudio;
+  Format m_format;
+  RtAudio::DeviceInfo m_deviceInfo;
 };
 
 #endif //AUDIODEVICE_H

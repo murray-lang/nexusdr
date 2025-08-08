@@ -10,6 +10,7 @@
 class AudioIo
 {
 public:
+
   AudioIo() = default;
 
   virtual ~AudioIo() = default;
@@ -31,30 +32,30 @@ public:
     }
     if (config.getSampleRate() == 0)
     {
-      m_format.setSampleRate(m_deviceInfo.preferredFormat().sampleRate());
+      m_format.sampleRate = m_deviceInfo.preferredSampleRate;
     } else
     {
-      m_format.setSampleRate(static_cast<int>(config.getSampleRate()));
+      m_format.sampleRate = static_cast<int>(config.getSampleRate());
     }
     if (config.getChannelCount() == 0)
     {
-      m_format.setChannelCount(m_deviceInfo.preferredFormat().channelCount());
+      m_format.channelCount = m_deviceInfo.outputChannels;
     } else
     {
-      m_format.setChannelCount(static_cast<int>(config.getChannelCount()));
+      m_format.channelCount = static_cast<int>(config.getChannelCount());
     }
-    m_format.setSampleFormat(m_deviceInfo.preferredFormat().sampleFormat());
-    m_format.setChannelConfig(QAudioFormat::ChannelConfigStereo);
+    m_format.sampleFormat = RTAUDIO_FLOAT32;
+    m_format.bytesPerFrame = sizeof(float) * m_format.channelCount;
   };
 
 protected:
-  virtual QAudioDevice findDevice(const std::string& searchExpression) = 0;
-  virtual QAudioDevice getDefaultDevice() = 0;
+  virtual RtAudio::DeviceInfo findDevice(const std::string& searchExpression) = 0;
+  virtual RtAudio::DeviceInfo getDefaultDevice() = 0;
 
 protected:
   AudioConfig m_config;
-  QAudioDevice m_deviceInfo;
-  QAudioFormat m_format;
+  RtAudio::DeviceInfo m_deviceInfo;
+  AudioDevice::Format m_format;
 };
 
 #endif //AUDIOIO_H
