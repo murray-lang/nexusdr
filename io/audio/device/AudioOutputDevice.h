@@ -17,20 +17,22 @@ class AudioOutputDevice : public AudioDevice
 public:
 
   AudioOutputDevice(const RtAudio::DeviceInfo& deviceInfo, const Format& format);
-  virtual ~AudioOutputDevice() {};
+  ~AudioOutputDevice() override
+  {
+    AudioOutputDevice::stop();
+  };
 
-  void start();
-  void stop();
+  void start() override;
+  void stop() override;
 
   uint32_t addAudioData(const vsdrreal& data, uint32_t length);
 
   int pullSamples(void *outputBuffer, unsigned int nFrames);
 
-
 private:
   std::atomic<bool> m_running;
 
-  std::deque<float> m_audioBuffer;
+  std::deque<int16_t> m_audioBuffer;
   std::mutex m_mutex;
 
 };
