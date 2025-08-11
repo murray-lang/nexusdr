@@ -18,13 +18,13 @@ void AudioOutputDevice::start()
     m_running = true;
     RtAudio::StreamParameters parameters;
     parameters.deviceId = m_deviceInfo.ID;
-    parameters.nChannels = std::min(m_deviceInfo.outputChannels, static_cast<unsigned int>(2));
+    parameters.nChannels = 2; //std::min(m_deviceInfo.outputChannels, static_cast<unsigned int>(2));
     parameters.firstChannel = 0;
 
-    RtAudio::StreamOptions options{
-      .flags = RTAUDIO_NONINTERLEAVED,
-      .numberOfBuffers = 2
-    };
+    // RtAudio::StreamOptions options{
+    //   .flags = 0, //RTAUDIO_NONINTERLEAVED,
+    //   .numberOfBuffers = 2
+    // };
     // Set options as needed
 
     unsigned int sampleRate = m_format.sampleRate;
@@ -41,7 +41,7 @@ void AudioOutputDevice::start()
       nullptr,
       m_format.sampleFormat,
       sampleRate,
-      &bufferFrames, rtCallback, this, &options);
+      &bufferFrames, rtCallback, this /*, &options*/);
 
     rc = m_rtAudio.startStream();
   }
@@ -61,14 +61,16 @@ void AudioOutputDevice::stop()
 
 int AudioOutputDevice::pullSamples(void *outputBuffer, unsigned int nFrames)
 {
-  sdrreal* out = static_cast<sdrreal*>(outputBuffer);
+  auto* out = static_cast<int16_t*>(outputBuffer);
   std::lock_guard<std::mutex> lock(m_mutex);
-  for (unsigned int i = 0; i < nFrames; ++i) {
+  for (unsigned int i = 0; i < nFrames * 2; i += 2) {
     if (!m_audioBuffer.empty()) {
       out[i] = m_audioBuffer.front();
+      out[i+1] = out[i];
       m_audioBuffer.pop_front();
     } else {
-      out[i] = 0.0f; // silence if no data
+      out[i] = 0; // silence if no data
+      out[i+1] = 0;
     }
   }
   return 0; // 0: continue, nonzero: stop
@@ -86,7 +88,9 @@ AudioOutputDevice::addAudioData(const vsdrreal& data, const uint32_t length)
     std::back_inserter(m_audioBuffer),
     [](const sdrreal& value)
     {
-      return static_cast<float>(value);
+      sdrreal scaled = value * static_cast<int16_t>(INT16_MAX);
+      return static_cast<int16_t>(scaled);
+      // return static_cast<float>(value);
     }
   );
   return length;
