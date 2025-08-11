@@ -6,7 +6,8 @@
 #define AUDIOOUTPUT_H
 
 #include "AudioIo.h"
-#include "device/AudioOutputDevice.h"
+#include "./device/AudioOutputDevice.h"
+#include "./device/AudioDeviceFactory.h"
 
 class AudioOutput : public AudioIo
 {
@@ -20,10 +21,10 @@ class AudioOutput : public AudioIo
     delete m_pDevice;
   }
 
-  void initialise(const AudioConfig& config)
+  void initialise(const AudioConfig& config) override
   {
-    configure(config);
-    m_pDevice = new AudioOutputDevice(m_deviceInfo, m_format);
+    delete m_pDevice;
+    m_pDevice = AudioDeviceFactory::createOutputDevice(config);
   }
 
   void start() const override
@@ -52,14 +53,6 @@ class AudioOutput : public AudioIo
     }
     return m_pDevice->addAudioData(data, length);
   }
-
-protected:
-  RtAudio::DeviceInfo findDevice(const std::string& searchExpression) override
-  {
-    return AudioDevice::findOutputDevice(searchExpression);
-  }
-  RtAudio::DeviceInfo getDefaultDevice() override { return AudioDevice::findDefaultOutputDevice(); }
-
 protected:
   AudioOutputDevice* m_pDevice;
 

@@ -66,8 +66,8 @@ void
 IqReceiver::configure(const ReceiverConfig& config)
 {
   const AudioConfig& iqInputConfig = config.getIqInput();
-  m_pIqInput = new IqAudioInput();
-  m_pIqInput->initialise(iqInputConfig, this);
+  m_pIqInput = new IqAudioInput(this);
+  m_pIqInput->initialise(iqInputConfig);
 
   const AudioConfig& audioOutputConfig = config.getAudioOutput();
   m_pAudioOutput = new AudioOutput();

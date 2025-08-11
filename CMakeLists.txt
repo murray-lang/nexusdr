@@ -155,6 +155,7 @@ set(PROJECT_SOURCES
         radio/config/ControlConfig.h
         io/control/device/DeviceControlFactory.h
         io/control/device/DeviceControlFactory.cpp
+        io/audio/device/AudioDeviceFactory.h
 
 )
 

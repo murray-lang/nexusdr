@@ -36,11 +36,11 @@ public:
 
   ~IqAudioInputDevice() override
   {
-    stop();
+    IqAudioInputDevice::stop();
     wait();
   }
 
-  void start() {
+  void start() override {
     if (!m_running) {
       unsigned int bufferFrames = PING_PONG_LENGTH;
 
@@ -59,7 +59,7 @@ public:
     }
 
   }
-  void stop() {
+  void stop() override {
     if (m_running) {
       m_rtAudio.stopStream();
       m_rtAudio.closeStream();
@@ -74,7 +74,7 @@ public:
   }
 
 
-  size_t getSamples(std::vector<sdrreal>& dest);
+  // size_t getSamples(std::vector<sdrreal>& dest);
 
   int handleCallback(void *inputBuffer, unsigned int nframes)
   {
