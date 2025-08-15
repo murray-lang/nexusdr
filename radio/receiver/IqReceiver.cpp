@@ -107,7 +107,7 @@ IqReceiver::start() const
     pDeviceController->open();
   }
   if (m_pAudioOutput != nullptr) {
-    // m_pAudioOutput->start();
+    m_pAudioOutput->start();
   }
   if (m_pIqInput != nullptr) {
     m_pIqInput->start();
@@ -164,7 +164,7 @@ IqReceiver::sink(ComplexPingPongBuffers& buffers, uint32_t inputLength)
   //emitAudioData(m_afBuffers.input(), outputLength);
   // emitRealSignal(SignalEmitter::eSIGNAL_DEMODULATED, m_afBuffers.input(), outputLength);
   QCoreApplication::postEvent(m_eventTarget, new ReceiverAudioEvent(m_afBuffers.input(), outputLength));
-  // outputLength = m_pAudioOutput->addAudioData(m_afBuffers.input(), outputLength);
+  outputLength = m_pAudioOutput->addAudioData(m_afBuffers.input(), outputLength);
   // m_fftThread.add(audiosamples, outputLength, true);
   //const vsdrcomplex& sincPulse = m_afFilter.getKernel().getComplexSincPulse();
 }
