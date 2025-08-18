@@ -8,7 +8,14 @@
 #include <cstdint>
 
 struct IfSettings {
-    uint32_t bandwidth;
-    float gain;
+  enum Changed
+  {
+    NONE = 0,
+    BANDWIDTH = 0x01,
+    GAIN = 0x02
+  };
+  uint32_t bandwidth;
+  float gain;
+  uint32_t changed;
 };
 #endif //FUNCUBEPLAY_IFSETTINGS_H

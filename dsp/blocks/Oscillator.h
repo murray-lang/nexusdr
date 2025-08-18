@@ -1,18 +1,19 @@
 #ifndef OSCILLATOR_H
 #define OSCILLATOR_H
 
+#include <cstdint>
 #include "../../SampleTypes.h"
 
 class Oscillator
 {
 public:
   Oscillator();
-  Oscillator(int32_t sampleRate, int32_t frequency);
+  Oscillator(uint32_t sampleRate, int32_t frequency);
 
-  Oscillator& init(int32_t sampleRate, int32_t frequency);
+  Oscillator& initialise(uint32_t sampleRate, int32_t frequency);
   Oscillator& setSampleRate(int32_t sampleRate);
   Oscillator& setFrequency(int32_t frequency);
-  int32_t     getFrequency() const { return m_frequency; }
+  [[nodiscard]] int32_t     getFrequency() const { return m_frequency; }
   Oscillator& increment();
   Oscillator& reset();
 
@@ -43,10 +44,10 @@ public:
 
 
 protected:
-    Oscillator& init();
+    Oscillator& initialise();
 
 protected:
-  int32_t m_sampleRate;
+  uint32_t m_sampleRate;
   int32_t m_frequency;
   sdrcomplex m_state;
   sdrreal m_theta;

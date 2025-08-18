@@ -20,13 +20,15 @@
 #include "../../io/audio/AudioOutput.h"
 #include "../config/ReceiverConfig.h"
 #include "../../../io/control/device/DeviceControl.h"
+#include "../../radio/settings/sink/ReceiverSettingsSink.h"
 
 //#define PING_PONG_LENGTH 2048
 #define PING_PONG_LENGTH 8192
 
-class IqReceiver : public IqSink , public SignalEmitter {
+class IqReceiver : public IqSink, public ReceiverSettingsSink, public SignalEmitter {
 public:
-  IqReceiver(int32_t sampleRate, size_t defaultFftSize, QObject *eventTarget = nullptr);
+  explicit IqReceiver( QObject *eventTarget = nullptr);
+  // IqReceiver(int32_t sampleRate, size_t defaultFftSize, QObject *eventTarget = nullptr);
 
   ~IqReceiver() override
   {
@@ -37,7 +39,8 @@ public:
   void start() const;
   void stop() const;
 
-  void applySettings(const RadioSettings& radioSettings) const;
+  // void applySettings(const RadioSettings& radioSettings) const;
+  void apply(const ReceiverSettings& settings) override;
 
 
 //  void sink(sdrreal i, sdrreal q) override;
@@ -46,16 +49,15 @@ public:
 
 protected:
   std::vector<IqStage*> m_iqStages;
-  size_t m_inputCount;
   DcShift m_dcShift;
   OscillatorMixer m_oscillatorMixer;
-  OscillatorInjector m_signal1;
-  OscillatorInjector m_signal2;
-  OscillatorInjector m_signal3;
-  Decimator m_myDecimator;
+  // OscillatorInjector m_signal1;
+  // OscillatorInjector m_signal2;
+  // OscillatorInjector m_signal3;
+  Decimator m_decimator;
 //  ComplexPingPongBuffers m_ifBuffers;
   RealPingPongBuffers m_afBuffers;
-  Oscillator m_debugOscillator;
+  // Oscillator m_debugOscillator;
   BandPassFilter m_ifFilter;
   BandPassFilter m_afFilter;
   AmDemodulator* m_pDemodulator;

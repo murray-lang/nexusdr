@@ -27,6 +27,15 @@ public:
     m_pDevice = AudioDeviceFactory::createInputDevice(config, m_pSink);
   }
 
+  [[nodiscard]] uint32_t getSampleRate() const override
+  {
+    if (m_pDevice == nullptr) {
+      throw AudioException("IqAudioInput not initialised");
+    }
+
+    return m_pDevice->getSampleRate();
+  }
+
   void start() const override
   {
     if (m_pDevice == nullptr) {

@@ -7,7 +7,8 @@
 class OscillatorMixer : public OscillatorStage
 {
 public:
-  OscillatorMixer(int32_t sampleRate, int32_t frequency) : OscillatorStage(sampleRate, frequency) {}
+  OscillatorMixer() : OscillatorStage() {}
+  OscillatorMixer(uint32_t sampleRate, int32_t frequency) : OscillatorStage(sampleRate, frequency) {}
   ~OscillatorMixer() override = default;
 
   uint32_t processSamples(ComplexPingPongBuffers& buffers, uint32_t inputLength) override

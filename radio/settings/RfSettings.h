@@ -8,7 +8,15 @@
 #include <cstdint>
 
 struct RfSettings {
-    uint32_t frequency;
-    float gain;
+  enum Changed
+  {
+    NONE = 0,
+    FREQUENCY = 0x01,
+    GAIN = 0x02
+  };
+
+  uint32_t frequency;
+  float gain;
+  uint32_t changed;
 };
 #endif //FUNCUBEPLAY_RFSETTINGS_H

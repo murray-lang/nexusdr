@@ -3,3 +3,7 @@
 //
 
 #include "DeviceControl.h"
+
+// DeviceControl::DeviceControl() = default;
+//
+// DeviceControl::~DeviceControl() = default;

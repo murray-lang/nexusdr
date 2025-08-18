@@ -7,8 +7,10 @@
 
 #include "DeviceControl.h"
 
-template<class ControlType> class UsbDeviceControl : public DeviceControl {
+template<class UsbApi> class UsbDeviceControl : public DeviceControl {
 
+// protected:
+//   UsbApi m_control;
 };
 
 #endif //_USBDEVICECONTROL_H

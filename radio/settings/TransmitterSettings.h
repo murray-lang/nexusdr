@@ -8,7 +8,13 @@
 #include "RfSettings.h"
 
 struct TransmitterSettings {
-    RfSettings rf;
+  enum Changed
+  {
+    NONE = 0,
+    RF = 0x01
+  };
+  RfSettings rf;
+  uint32_t changed;
 };
 
 #endif //FUNCUBEPLAY_TRANSMITTERSETTINGS_H

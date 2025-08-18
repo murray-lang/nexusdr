@@ -23,7 +23,8 @@
 MainWindow::MainWindow(RadioConfig& radioConfig, QWidget *parent)
     : QMainWindow(parent)
     , m_radioConfig(radioConfig)
-    , m_pIqReceiver(nullptr)
+    // , m_pIqReceiver(nullptr)
+    , m_pRadio(nullptr)
     , m_spectrumLineSeries()
     , m_spectrumAreaSeries()
     , m_timeseriesLineSeries()
@@ -79,7 +80,8 @@ MainWindow::MainWindow(RadioConfig& radioConfig, QWidget *parent)
 
 MainWindow::~MainWindow()
 {
-  delete m_pIqReceiver;
+  // delete m_pIqReceiver;
+  delete m_pRadio;
   delete ui;
 }
 
@@ -366,52 +368,31 @@ MainWindow::initialiseRadio()
   //   }
   // }
 
-  if (m_pIqReceiver != nullptr) {
-    m_pIqReceiver->stop();
-    delete m_pIqReceiver;
-    m_pIqReceiver = nullptr;
+  if (m_pRadio != nullptr) {
+    m_pRadio->stop();
+    delete m_pRadio;
+    m_pRadio = nullptr;
   }
   try
   {
-    m_pIqReceiver = new IqReceiver(SAMPLE_RATE, FFT_SIZE, this);
-    const ReceiverConfig& receiverConfig = m_radioConfig.getReceiver();
-    m_pIqReceiver->configure(receiverConfig);
-    m_pIqReceiver->start();
-    RadioSettings radioSettings;
-    radioSettings.rxSettings.push_back({
-     .rfSettings = { .frequency = 10000000, .gain = 0.0 },
-     .ifSettings = { .bandwidth = 200000, .gain = 0.0 }
-    });
-    m_pIqReceiver->applySettings(radioSettings);
+    m_pRadio = new Radio(this);
+    m_pRadio->configure(m_radioConfig);
+    m_pRadio->start();
+
+    RadioSettings radioSettings = {
+      .rxSettings = {
+        .rfSettings = { .frequency = 10000000, .gain = 0.0, .changed = (RfSettings::FREQUENCY | RfSettings::GAIN)},
+        .ifSettings = { .bandwidth = 200000, .gain = 0.0, .changed = (IfSettings::BANDWIDTH | IfSettings::GAIN) },
+        .changed = (ReceiverSettings::RF | ReceiverSettings::IF)
+       },
+      .changed = (RadioSettings::RX)
+    };
+    m_pRadio->apply(radioSettings);
   }
   catch (std::runtime_error& error)
   {
-    qDebug() << "Error initialising receiver: " << error.what();
+    qDebug() << "Error initialising radio: " << error.what();
   }
-
-  // FunCubeDongle fcd;
-  // RadioSettings radioSettings;
-  // radioSettings.rxSettings.push_back({
-  //  .rfSettings = { .frequency = 10000000, .gain = 0.0 },
-  //  .ifSettings = { .bandwidth = 200000, .gain = 0.0 }
-  // });
-  // try {
-  //   fcd.initialise();
-  //   if (fcd.discover()) {
-  //       qDebug() << "Discovered!";
-  //   } else {
-  //       qDebug() << "NOT discovered!";
-  //   }
-  //   fcd.open();
-  //
-  //   fcd.applySettings(radioSettings);
-  //
-  //   fcd.close();
-  // } catch(UsbException& usbEx) {
-  //   qDebug() << "USB Error: " << usbEx.what();
-  // } catch(DeviceControlException& deviceEx) {
-  //   qDebug() << "DeviceControl Error: " << deviceEx.what();
-  // }
 }
 
 //#include "moc_mainwindow.cpp"

@@ -8,12 +8,15 @@
 #include <string>
 #include <nlohmann/json.hpp>
 #include "../../../radio/settings/RadioSettings.h"
+#include "../../../radio/settings/sink/ReceiverSettingsSink.h"
 
-class DeviceControl {
+class DeviceControl : public ReceiverSettingsSink {
 public:
-  virtual ~DeviceControl() = default;
-  virtual void applySettings(const RadioSettings& radioSettings) = 0;
-  virtual void readSettings(RadioSettings& radioSettings) = 0;
+  DeviceControl() = default;
+  ~DeviceControl() override = default;
+  // virtual void applySettings(const RadioSettings& radioSettings) = 0;
+  // void apply(const ReceiverSettings& rxSettings) override;
+  // virtual void readSettings(RadioSettings& radioSettings) = 0;
 
   virtual void initialise(const nlohmann::json& json) = 0;
   virtual bool discover() = 0;

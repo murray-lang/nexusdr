@@ -44,6 +44,15 @@ class AudioOutput : public AudioIo
     }
   }
 
+  [[nodiscard]] uint32_t getSampleRate() const override
+  {
+    if (m_pDevice == nullptr) {
+      throw AudioException("IqAudioOutput not initialised");
+    }
+
+    return m_pDevice->getSampleRate();
+  }
+
   [[nodiscard]] uint32_t addAudioData(const vsdrreal& data, uint32_t length) const
   {
     if (m_pDevice == nullptr)

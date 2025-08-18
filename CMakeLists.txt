@@ -100,9 +100,7 @@ set(PROJECT_SOURCES
         io/control/usb/HidUsbControl.cpp
         io/control/usb/HidUsbControl.h
         io/control/usb/UsbControl.cpp
-        io/control/device/DeviceControl.cpp
         io/control/device/DeviceControl.h
-        io/control/device/UsbDeviceControl.cpp
         io/control/device/UsbDeviceControl.h
         io/control/device/FunCubeDongle/FunCubeDongle.cpp
         io/control/device/FunCubeDongle/FunCubeDongle.h
@@ -156,6 +154,11 @@ set(PROJECT_SOURCES
         io/control/device/DeviceControlFactory.h
         io/control/device/DeviceControlFactory.cpp
         io/audio/device/AudioDeviceFactory.h
+        radio/settings/sink/ReceiverSettingsSink.h
+        radio/settings/sink/PttSink.h
+        radio/Radio.cpp
+        radio/Radio.h
+        radio/settings/sink/RadioSettingsSink.h
 
 )
 
