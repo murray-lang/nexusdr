@@ -9,7 +9,7 @@
 #include "IfSettings.h"
 
 struct ReceiverSettings {
-  enum Changed
+  enum Features
   {
     NONE = 0,
     RF = 0x01,

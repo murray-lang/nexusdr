@@ -92,20 +92,19 @@ set(PROJECT_SOURCES
         dsp/stages/demodulators/Demodulator.h
         dsp/stages/demodulators/AmDemodulator.h
 
-        io/control/usb/UsbControl.h
-        io/control/usb/UsbException.cpp
-        io/control/usb/UsbException.h
-        io/control/usb/LibUsbControl.cpp
-        io/control/usb/LibUsbControl.h
-        io/control/usb/HidUsbControl.cpp
-        io/control/usb/HidUsbControl.h
-        io/control/usb/UsbControl.cpp
-        io/control/device/DeviceControl.h
-        io/control/device/UsbDeviceControl.h
-        io/control/device/FunCubeDongle/FunCubeDongle.cpp
-        io/control/device/FunCubeDongle/FunCubeDongle.h
-        io/control/device/DeviceControlException.cpp
-        io/control/device/DeviceControlException.h
+        io/controller/device/usb/UsbControl.h
+        io/controller/device/usb/UsbException.cpp
+        io/controller/device/usb/UsbException.h
+        io/controller/device/usb/LibUsbControl.cpp
+        io/controller/device/usb/LibUsbControl.h
+        io/controller/device/usb/HidUsbControl.cpp
+        io/controller/device/usb/HidUsbControl.h
+        io/controller/device/usb/UsbControl.cpp
+        io/controller/Controller.h
+        io/controller/device/FunCubeDongle/FunCubeDongle.cpp
+        io/controller/device/FunCubeDongle/FunCubeDongle.h
+        io/controller/ControllerException.cpp
+        io/controller/ControllerException.h
         radio/settings/RfSettings.h
         radio/settings/IfSettings.h
         radio/settings/ReceiverSettings.h
@@ -133,8 +132,8 @@ set(PROJECT_SOURCES
         radio/config/ReceiverConfig.h
         radio/config/TransmitterConfig.h
         radio/config/AudioConfig.h
-        radio/config/JsonConfig.h
-        radio/config/ConfigException.h
+        config/JsonConfig.h
+        config/ConfigException.h
 
         io/audio/device/AudioDevice.h
         io/audio/IqAudioInput.h
@@ -150,15 +149,26 @@ set(PROJECT_SOURCES
         radio/receiver/ReceiverIqEvent.cpp
         radio/receiver/ReceiverAudioEvent.cpp
         radio/receiver/ReceiverAudioEvent.h
-        radio/config/ControlConfig.h
-        io/control/device/DeviceControlFactory.h
-        io/control/device/DeviceControlFactory.cpp
+        io/controller/config/ControllerConfig.h
+        io/controller/SinkControllerFactory.h
+        io/controller/SinkControllerFactory.cpp
         io/audio/device/AudioDeviceFactory.h
         radio/settings/sink/ReceiverSettingsSink.h
         radio/settings/sink/PttSink.h
         radio/Radio.cpp
         radio/Radio.h
         radio/settings/sink/RadioSettingsSink.h
+        io/controller/config/ControllersConfig.h
+        io/controller/SinkController.cpp
+        io/controller/SinkController.h
+        radio/settings/source/RadioSettingsSource.h
+        io/controller/SourceController.cpp
+        io/controller/SourceController.h
+        radio/settings/source/PttSource.h
+        io/controller/device/platform/rpi/GpioRotaryEncoder.cpp
+        io/controller/device/platform/rpi/GpioRotaryEncoder.h
+        io/controller/SourceControllerFactory.cpp
+        io/controller/SourceControllerFactory.h
 
 )
 

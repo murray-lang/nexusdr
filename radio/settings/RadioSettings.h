@@ -11,7 +11,7 @@
 
 
 struct RadioSettings {
-  enum Changed
+  enum Features
   {
     NONE = 0,
     TX = 0x01,

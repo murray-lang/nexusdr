@@ -2,18 +2,18 @@
 // Created by murray on 15/04/23.
 //
 
-#ifndef FUNCUBEPLAY_DEVICECONTROL_H
-#define FUNCUBEPLAY_DEVICECONTROL_H
+#ifndef CONTROLLER_H
+#define CONTROLLER_H
 
 #include <string>
 #include <nlohmann/json.hpp>
-#include "../../../radio/settings/RadioSettings.h"
-#include "../../../radio/settings/sink/ReceiverSettingsSink.h"
+#include "../../radio/settings/sink/RadioSettingsSink.h"
+#include "../../radio/settings/sink/PttSink.h"
 
-class DeviceControl : public ReceiverSettingsSink {
+class Controller {
 public:
-  DeviceControl() = default;
-  ~DeviceControl() override = default;
+  Controller() = default;
+  virtual ~Controller() = default;
   // virtual void applySettings(const RadioSettings& radioSettings) = 0;
   // void apply(const ReceiverSettings& rxSettings) override;
   // virtual void readSettings(RadioSettings& radioSettings) = 0;
@@ -31,4 +31,4 @@ protected:
     std::string id;
 };
 
-#endif //FUNCUBEPLAY_DEVICECONTROL_H
+#endif //CONTROLLER_H

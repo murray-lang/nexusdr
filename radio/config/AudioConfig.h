@@ -4,7 +4,7 @@
 
 #ifndef CUTESDR_VK6HL_AUDIOCONFIG_H
 #define CUTESDR_VK6HL_AUDIOCONFIG_H
-#include "./JsonConfig.h"
+#include "../../config/JsonConfig.h"
 
 class AudioConfig : public JsonConfig
 {

@@ -19,13 +19,14 @@
 #include "../../io/audio/IqAudioInput.h"
 #include "../../io/audio/AudioOutput.h"
 #include "../config/ReceiverConfig.h"
-#include "../../../io/control/device/DeviceControl.h"
+#include "../../io/controller/Controller.h"
 #include "../../radio/settings/sink/ReceiverSettingsSink.h"
+#include "../../radio/settings/sink/PttSink.h"
 
 //#define PING_PONG_LENGTH 2048
 #define PING_PONG_LENGTH 8192
 
-class IqReceiver : public IqSink, public ReceiverSettingsSink, public SignalEmitter {
+class IqReceiver : public IqSink, public ReceiverSettingsSink, public PttSink, public SignalEmitter {
 public:
   explicit IqReceiver( QObject *eventTarget = nullptr);
   // IqReceiver(int32_t sampleRate, size_t defaultFftSize, QObject *eventTarget = nullptr);
@@ -41,6 +42,8 @@ public:
 
   // void applySettings(const RadioSettings& radioSettings) const;
   void apply(const ReceiverSettings& settings) override;
+
+  void ptt(bool on) override;
 
 
 //  void sink(sdrreal i, sdrreal q) override;
@@ -68,7 +71,7 @@ protected:
   QObject* m_eventTarget;
   IqAudioInput* m_pIqInput;
   AudioOutput* m_pAudioOutput;
-  std::vector<DeviceControl*> m_deviceControllers;
+  // std::vector<DeviceControl*> m_deviceControllers;
   ReceiverConfig m_config;
 };
 

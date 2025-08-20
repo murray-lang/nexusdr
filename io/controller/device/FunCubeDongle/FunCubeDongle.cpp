@@ -4,7 +4,7 @@
 
 #include "FunCubeDongle.h"
 #include "FCDHidCmd.h"
-#include "../DeviceControlException.h"
+#include "../../ControllerException.h"
 
 #include <cmath>
 
@@ -12,8 +12,7 @@
 #define FCDPROPLUS_PRODUCT_ID   0xfb31
 
 FunCubeDongle::FunCubeDongle() :
-  UsbDeviceControl<HidUsbControl>(),
-    m_control(FCDPROPLUS_VENDOR_ID, FCDPROPLUS_PRODUCT_ID)
+  m_control(FCDPROPLUS_VENDOR_ID, FCDPROPLUS_PRODUCT_ID)
 {
 
 }
@@ -21,28 +20,33 @@ FunCubeDongle::FunCubeDongle() :
 FunCubeDongle::~FunCubeDongle() = default;
 
 void
-FunCubeDongle::apply(const ReceiverSettings& rxSettings)
+FunCubeDongle::apply(const RadioSettings& radioSettings)
 {
-  if (rxSettings.changed & ReceiverSettings::RF) {
-    if (rxSettings.rfSettings.changed & RfSettings::FREQUENCY) {
-      setFrequency(rxSettings.rfSettings.frequency);
-      setRfFilter(rxSettings.rfSettings.frequency);
-    }
-    if (rxSettings.rfSettings.changed & RfSettings::GAIN) {
-      setLnaGain(rxSettings.rfSettings.gain);
-    }
+  if (radioSettings.changed & RadioSettings::RX) {
+    if (radioSettings.rxSettings.changed & ReceiverSettings::RF) {
+      if (radioSettings.rxSettings.rfSettings.changed & RfSettings::FREQUENCY) {
+        setFrequency(radioSettings.rxSettings.rfSettings.frequency);
+        setRfFilter(radioSettings.rxSettings.rfSettings.frequency);
+      }
+      if (radioSettings.rxSettings.rfSettings.changed & RfSettings::GAIN) {
+        setLnaGain(radioSettings.rxSettings.rfSettings.gain);
+      }
 
-    if (rxSettings.ifSettings.changed & IfSettings::BANDWIDTH) {
-      setIfFilter(rxSettings.ifSettings.bandwidth);
+      if (radioSettings.rxSettings.ifSettings.changed & IfSettings::BANDWIDTH) {
+        setIfFilter(radioSettings.rxSettings.ifSettings.bandwidth);
+      }
+      if (radioSettings.rxSettings.ifSettings.changed & IfSettings::GAIN) {
+        setIfGain(radioSettings.rxSettings.ifSettings.gain);
+      }
     }
-    if (rxSettings.ifSettings.changed & IfSettings::GAIN) {
-      setIfGain(rxSettings.ifSettings.gain);
-    }
+    //setRfFilter(TRFE_8_16);
+    //setIfFilter(TIFE_200KHZ);
+  }
+}
+void FunCubeDongle::ptt(bool on)
+{
+}
 
-  //setRfFilter(TRFE_8_16);
-  //setIfFilter(TIFE_200KHZ);
-}
-}
 
 // void
 // FunCubeDongle::readSettings(RadioSettings& radioSettings)
@@ -101,7 +105,7 @@ FunCubeDongle::setFrequency(uint32_t freqHz)
     };
     transactReport(buf);
     if (buf[0] != FCD_HID_CMD_SET_FREQUENCY_HZ || buf[1]!=1) {
-        throw DeviceControlException("Set Frequency failed");
+        throw ControllerException("Set Frequency failed");
     }
     auto result = (uint32_t) buf[2];
     result += (uint32_t) (buf[3] << 8);
@@ -149,7 +153,7 @@ FunCubeDongle::setRfFilter(TUNERRFFILTERENUM eFilter) {
     };
     transactReport(buf);
     if(buf[0] != FCD_HID_CMD_SET_RF_FILTER) {
-        throw DeviceControlException("Error setting RF filter");
+        throw ControllerException("Error setting RF filter");
     }
 }
 
@@ -162,7 +166,7 @@ FunCubeDongle::setIfFilter(TUNERIFFILTERENUM eFilter) {
     };
     transactReport(buf);
     if(buf[0] != FCD_HID_CMD_SET_IF_FILTER) {
-        throw DeviceControlException("Error setting IF filter");
+        throw ControllerException("Error setting IF filter");
     }
 }
 
@@ -203,7 +207,7 @@ FunCubeDongle::setIfGain(uint8_t ifGain) {
     };
     transactReport(buf);
     if(buf[0] != FCD_HID_CMD_SET_IF_GAIN) {
-        throw DeviceControlException("Error setting IF gain");
+        throw ControllerException("Error setting IF gain");
     }
 }
 
@@ -257,6 +261,6 @@ void FunCubeDongle::setLnaGain(float gain) {
     };
     transactReport(buf);
     if(buf[0] != FCD_HID_CMD_SET_LNA_GAIN) {
-        throw DeviceControlException("Error setting LNA gain");
+        throw ControllerException("Error setting LNA gain");
     }
 }

@@ -5,19 +5,21 @@
 #ifndef FUNCUBEPLAY_FUNCUBEDONGLE_H
 #define FUNCUBEPLAY_FUNCUBEDONGLE_H
 
-#include "../../usb/HidUsbControl.h"
-#include "../UsbDeviceControl.h"
+#include "../../SinkController.h"
+#include "../usb/HidUsbControl.h"
 #include "../../../../radio/settings/RadioSettings.h"
 #include "FCDHidCmd.h"
 
-class FunCubeDongle : public UsbDeviceControl<HidUsbControl> {
+class FunCubeDongle : public SinkController {
 public:
   FunCubeDongle();
   ~FunCubeDongle() override;
 
     // void applySettings(const RadioSettings& radioSettings) override;
     // void readSettings(RadioSettings& radioSettings) override;
-  void apply(const ReceiverSettings& rxSettings) override;
+  void apply(const RadioSettings& rxSettings) override;
+
+  void ptt(bool on) override;
 
   void initialise(const nlohmann::json& json) override;
   bool discover() override;

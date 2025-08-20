@@ -4,7 +4,7 @@
 
 #ifndef CUTESDR_VK6HL_TRANSMITTERCONFIG_H
 #define CUTESDR_VK6HL_TRANSMITTERCONFIG_H
-#include "JsonConfig.h"
+#include "../../config/JsonConfig.h"
 
 class TransmitterConfig : public JsonConfig
 {

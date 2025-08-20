@@ -8,7 +8,7 @@
 #include <cstdint>
 
 struct IfSettings {
-  enum Changed
+  enum Features
   {
     NONE = 0,
     BANDWIDTH = 0x01,

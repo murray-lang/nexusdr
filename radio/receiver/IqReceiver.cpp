@@ -8,9 +8,9 @@
 #include "ReceiverAudioEvent.h"
 #include "ReceiverIqEvent.h"
 #include "../config/ReceiverConfig.h"
-#include "../../io/control/device/DeviceControlFactory.h"
-#include "../../io/control/device/DeviceControlException.h"
-#include "../config/ConfigException.h"
+#include "../../io/controller/SinkControllerFactory.h"
+#include "../../io/controller/ControllerException.h"
+#include "../../config/ConfigException.h"
 
 #define FFT_SIZE 2048
 
@@ -119,17 +119,7 @@ IqReceiver::configure(const ReceiverConfig& config)
 
   m_pDemodulator = new AmDemodulator(decimatorOutputRate);
 
-  const std::vector<ControlConfig>& controllerConfigs = config.getControllers();
-  for (auto& controllerConfig : controllerConfigs) {
-    DeviceControl* next = DeviceControlFactory::create(controllerConfig);
-    if (next != nullptr) {
-      m_deviceControllers.push_back(next);
-    } else {
-      std::ostringstream oss;
-      oss << "Failed to create device controller of type '" << controllerConfig.getType() << "'";
-      throw ConfigException(oss.str());
-    }
-  }
+
 }
 
 // void
@@ -143,23 +133,14 @@ IqReceiver::configure(const ReceiverConfig& config)
 
 void IqReceiver::apply(const ReceiverSettings& settings)
 {
-  for (auto& deviceController : m_deviceControllers) {
-    deviceController->apply(settings);
-  }
+
 }
 
 
 void
 IqReceiver::start() const
 {
-  for (auto pDeviceController : m_deviceControllers) {
-    if (!pDeviceController->discover()) {
-      std::ostringstream oss;
-      oss << "Discovery failed for device controller: '" << pDeviceController->getId() << "'";
-      throw DeviceControlException(oss.str());
-    }
-    pDeviceController->open();
-  }
+
   if (m_pAudioOutput != nullptr) {
     m_pAudioOutput->start();
   }
@@ -191,6 +172,10 @@ IqReceiver::stop() const
 //      m_ifBuffers.reset();
 //  }
 //}
+
+void IqReceiver::ptt(bool on)
+{
+}
 
 void
 IqReceiver::sink(ComplexPingPongBuffers& buffers, uint32_t inputLength)

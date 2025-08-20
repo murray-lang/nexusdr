@@ -8,7 +8,7 @@
 #include <cstdint>
 
 struct RfSettings {
-  enum Changed
+  enum Features
   {
     NONE = 0,
     FREQUENCY = 0x01,
