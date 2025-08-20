@@ -8,46 +8,106 @@
 #include "ReceiverAudioEvent.h"
 #include "ReceiverIqEvent.h"
 #include "../config/ReceiverConfig.h"
-#include "../../io/control/device/DeviceControlFactory.h"
-#include "../../io/control/device/DeviceControlException.h"
-#include "../config/ConfigException.h"
+#include "../../io/controller/SinkControllerFactory.h"
+#include "../../io/controller/ControllerException.h"
+#include "../../config/ConfigException.h"
+
+#define FFT_SIZE 2048
 
 const int32_t lo = 48000;
 
-IqReceiver::IqReceiver(int32_t sampleRate, size_t fftSize, QObject* eventTarget) :
-  // m_fftThread(fftSize),
-  m_inputCount(0),
+IqReceiver::IqReceiver(QObject* eventTarget) :
   m_dcShift(sdrcomplex(0.00447, 0.00348)),
-  m_oscillatorMixer(sampleRate, -lo),
-  m_signal1(sampleRate, lo + 300),
-  m_signal2(sampleRate, lo + 1200),
-  m_signal3(sampleRate, lo + 2700),
-  //    m_decimator(sampleRate, 24000, fftSize, 0),
-  m_myDecimator(sampleRate, 48000),
-  //    m_ifBuffers(PING_PONG_LENGTH),
+  m_oscillatorMixer(),
+  m_decimator(),
   m_afBuffers(PING_PONG_LENGTH),
-  m_debugOscillator(sampleRate, 32000),
-  m_ifFilter(fftSize),
-  m_afFilter(fftSize),
+  m_ifFilter(FFT_SIZE),
+  m_afFilter(FFT_SIZE),
   m_pDemodulator(nullptr),
-  // m_timeseriesEmitter("timeseries", MeteringStage::eTIMESERIES, *this, m_fftThread),
-  // m_spectrumEmitter("spectrum", MeteringStage::eSPECTRUM, *this, m_fftThread),
   m_eventTarget(eventTarget),
   m_pIqInput(nullptr),
-  m_pAudioOutput(nullptr),
-  m_deviceControllers()
+  m_pAudioOutput(nullptr)
 {
-  // m_iqStages.push_back(&m_spectrumEmitter);
   m_iqStages.push_back(&m_oscillatorMixer);
-  m_iqStages.push_back(&m_myDecimator);
+  m_iqStages.push_back(&m_decimator);
   m_iqStages.push_back(&m_ifFilter);
+}
 
-  uint32_t decimatorOutputRate = m_myDecimator.getOutputSampleRate();
+// IqReceiver::IqReceiver(int32_t sampleRate, size_t fftSize, QObject* eventTarget) :
+//   // m_fftThread(fftSize),
+//   m_dcShift(sdrcomplex(0.00447, 0.00348)),
+//   m_oscillatorMixer(sampleRate, -lo),
+//   // m_signal1(sampleRate, lo + 300),
+//   // m_signal2(sampleRate, lo + 1200),
+//   // m_signal3(sampleRate, lo + 2700),
+//   //    m_decimator(sampleRate, 24000, fftSize, 0),
+//   m_decimator(sampleRate, 48000),
+//   //    m_ifBuffers(PING_PONG_LENGTH),
+//   m_afBuffers(PING_PONG_LENGTH),
+//   // m_debugOscillator(sampleRate, 32000),
+//   m_ifFilter(fftSize),
+//   m_afFilter(fftSize),
+//   m_pDemodulator(nullptr),
+//   // m_timeseriesEmitter("timeseries", MeteringStage::eTIMESERIES, *this, m_fftThread),
+//   // m_spectrumEmitter("spectrum", MeteringStage::eSPECTRUM, *this, m_fftThread),
+//   m_eventTarget(eventTarget),
+//   m_pIqInput(nullptr),
+//   m_pAudioOutput(nullptr),
+//   m_deviceControllers()
+// {
+//   // m_iqStages.push_back(&m_spectrumEmitter);
+//   m_iqStages.push_back(&m_oscillatorMixer);
+//   m_iqStages.push_back(&m_decimator);
+//   m_iqStages.push_back(&m_ifFilter);
+//
+//   uint32_t decimatorOutputRate = m_decimator.getOutputSampleRate();
+//
+//   m_ifFilter.getKernel().configure(
+//     -3500.0,
+//     3500.0,
+//     0.0,
+//     decimatorOutputRate * 2);
+//
+//   m_afFilter.getKernel().configure(
+//     1000.0,
+//     1000.0,
+//     0.0,
+//     decimatorOutputRate * 2);
+//
+//   m_pDemodulator = new AmDemodulator(decimatorOutputRate);
+//
+//   // m_fftThread.start();
+// }
+
+void
+IqReceiver::configure(const ReceiverConfig& config)
+{
+  delete m_pIqInput;
+  delete m_pAudioOutput;
+  delete m_pDemodulator;
+  m_pIqInput = nullptr;
+  m_pAudioOutput = nullptr;
+  m_pDemodulator = nullptr;
+
+  const AudioConfig& iqInputConfig = config.getIqInput();
+  m_pIqInput = new IqAudioInput(this);
+  m_pIqInput->initialise(iqInputConfig);
+
+  uint32_t inputSampleRate = m_pIqInput->getSampleRate();
+  m_oscillatorMixer.initialise(inputSampleRate, -lo);
+
+  const AudioConfig& audioOutputConfig = config.getAudioOutput();
+  m_pAudioOutput = new AudioOutput();
+  m_pAudioOutput->initialise(audioOutputConfig);
+
+  uint32_t outputSampleRate = m_pAudioOutput->getSampleRate();
+  m_decimator.configure(inputSampleRate, outputSampleRate);
+
+  uint32_t decimatorOutputRate = m_decimator.getOutputSampleRate();
 
   m_ifFilter.getKernel().configure(
     -3500.0,
     3500.0,
-
     0.0,
     decimatorOutputRate * 2);
 
@@ -59,53 +119,28 @@ IqReceiver::IqReceiver(int32_t sampleRate, size_t fftSize, QObject* eventTarget)
 
   m_pDemodulator = new AmDemodulator(decimatorOutputRate);
 
-  // m_fftThread.start();
+
 }
 
-void
-IqReceiver::configure(const ReceiverConfig& config)
+// void
+// IqReceiver::applySettings(const RadioSettings& radioSettings) const
+// {
+//   //TODO: Audio settings
+//   for (auto& deviceController : m_deviceControllers) {
+//     deviceController->applySettings(radioSettings);
+//   }
+// }
+
+void IqReceiver::apply(const ReceiverSettings& settings)
 {
-  const AudioConfig& iqInputConfig = config.getIqInput();
-  m_pIqInput = new IqAudioInput(this);
-  m_pIqInput->initialise(iqInputConfig);
 
-  const AudioConfig& audioOutputConfig = config.getAudioOutput();
-  m_pAudioOutput = new AudioOutput();
-  m_pAudioOutput->initialise(audioOutputConfig);
-
-  const std::vector<ControlConfig>& controllerConfigs = config.getControllers();
-  for (auto& controllerConfig : controllerConfigs) {
-    DeviceControl* next = DeviceControlFactory::create(controllerConfig);
-    if (next != nullptr) {
-      m_deviceControllers.push_back(next);
-    } else {
-      std::ostringstream oss;
-      oss << "Failed to create device controller of type '" << controllerConfig.getType() << "'";
-      throw ConfigException(oss.str());
-    }
-  }
 }
 
-void
-IqReceiver::applySettings(const RadioSettings& radioSettings) const
-{
-  //TODO: Audio settings
-  for (auto& deviceController : m_deviceControllers) {
-    deviceController->applySettings(radioSettings);
-  }
-}
 
 void
 IqReceiver::start() const
 {
-  for (auto pDeviceController : m_deviceControllers) {
-    if (!pDeviceController->discover()) {
-      std::ostringstream oss;
-      oss << "Discovery failed for device controller: '" << pDeviceController->getId() << "'";
-      throw DeviceControlException(oss.str());
-    }
-    pDeviceController->open();
-  }
+
   if (m_pAudioOutput != nullptr) {
     m_pAudioOutput->start();
   }
@@ -137,6 +172,10 @@ IqReceiver::stop() const
 //      m_ifBuffers.reset();
 //  }
 //}
+
+void IqReceiver::ptt(bool on)
+{
+}
 
 void
 IqReceiver::sink(ComplexPingPongBuffers& buffers, uint32_t inputLength)

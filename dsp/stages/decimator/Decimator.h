@@ -14,6 +14,13 @@
 class Decimator : public IqStage
 {
 public:
+  Decimator() :
+    m_inputSampleRate(192000),
+    m_outputSampleRate(48000),
+    m_decimationFactor(192000/48000),
+    m_taps(nullptr)
+  {}
+
   Decimator(uint32_t inputSampleRate, uint32_t outputSampleRate) :
     m_inputSampleRate(inputSampleRate),
     m_outputSampleRate(outputSampleRate),

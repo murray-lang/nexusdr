@@ -10,6 +10,7 @@
 #include <QAreaSeries>
 
 #include "io/audio/device/AudioOutputDevice.h"
+#include "radio/Radio.h"
 #include "radio/config/RadioConfig.h"
 
 QT_BEGIN_NAMESPACE
@@ -55,8 +56,7 @@ private:
   Ui::MainWindow *ui;
 
 //    bool m_pullMode = true;
-//    IqReceiver m_iqProcessor;
-  IqReceiver* m_pIqReceiver;
+  Radio* m_pRadio;
   QLineSeries m_spectrumLineSeries;
   QAreaSeries m_spectrumAreaSeries;
 

@@ -8,19 +8,28 @@
 class OscillatorStage : public IqStage
 {
 public:
-    OscillatorStage(int32_t sampleRate, int32_t frequency) :
-        m_oscillator(sampleRate, frequency)
-    {
-    }
-    virtual ~OscillatorStage() = default;
+  OscillatorStage() :
+    m_oscillator()
+  {
+  }
+  OscillatorStage(uint32_t sampleRate, int32_t frequency) :
+    m_oscillator(sampleRate, frequency)
+  {
+  }
+  ~OscillatorStage() override = default;
 
-    OscillatorStage& setFrequency(int32_t frequency) {
-        m_oscillator.setFrequency(frequency);
-        return *this;
-    }
+  OscillatorStage& initialise(uint32_t sampleRate, int32_t frequency) {
+    m_oscillator.initialise(sampleRate, frequency);
+    return *this;
+  }
+
+  OscillatorStage& setFrequency(int32_t frequency) {
+      m_oscillator.setFrequency(frequency);
+      return *this;
+  }
 
 protected:
-    Oscillator m_oscillator;
+  Oscillator m_oscillator;
 };
 
 #endif //__OSCILLATORSTAGE_H__

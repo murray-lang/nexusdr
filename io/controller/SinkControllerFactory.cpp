@@ -1,17 +1,17 @@
 //
 // Created by murray on 6/08/25.
 //
-#include "DeviceControlFactory.h"
+#include "SinkControllerFactory.h"
 #include <algorithm>
 #include <cctype>
 #include <nlohmann/json.hpp>
 
-#include "FunCubeDongle/FunCubeDongle.h"
+#include "device/FunCubeDongle/FunCubeDongle.h"
 
-DeviceControl*
-DeviceControlFactory::create(const ControlConfig& config)
+SinkController*
+SinkControllerFactory::create(const ControllerConfig& config)
 {
-  DeviceControl* result = create(config.getType());
+  SinkController* result = create(config.getType());
   if (result)
   {
     result->setId(config.getType());
@@ -20,8 +20,8 @@ DeviceControlFactory::create(const ControlConfig& config)
   return result;
 }
 
-DeviceControl*
-DeviceControlFactory::create(const std::string& type)
+SinkController*
+SinkControllerFactory::create(const std::string& type)
 {
   std::string typeAslower = toLowerCase(type);
   if(typeAslower == "funcube")
@@ -32,7 +32,7 @@ DeviceControlFactory::create(const std::string& type)
 }
 
 std::string
-DeviceControlFactory::toLowerCase(const std::string& str)
+SinkControllerFactory::toLowerCase(const std::string& str)
 {
   std::string output = str;
   std::transform(output.begin(), output.end(), output.begin(),

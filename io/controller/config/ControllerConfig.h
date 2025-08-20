@@ -2,32 +2,31 @@
 // Created by murray on 5/08/25.
 //
 
-#ifndef CONTROLCONFIG_H
-#define CONTROLCONFIG_H
-#include "./JsonConfig.h"
+#ifndef CONTROLLERCONFIG_H
+#define CONTROLLERCONFIG_H
+#include "../../../config/JsonConfig.h"
 
-class ControlConfig : public JsonConfig
+class ControllerConfig : public JsonConfig
 {
-  friend class TransmitterConfig;
-  friend class ReceiverConfig;
+  friend class ControllersConfig;
 public:
-  explicit ControlConfig() = default;
+  explicit ControllerConfig() = default;
 
-  ControlConfig(const ControlConfig& rhs) :
+  ControllerConfig(const ControllerConfig& rhs) :
     m_type(rhs.m_type),
     m_config(rhs.m_config)
   {
   }
-  ControlConfig& operator=(const ControlConfig& rhs)
+  ControllerConfig& operator=(const ControllerConfig& rhs)
   {
     m_type = rhs.m_type;
     m_config = rhs.m_config;
     return *this;
   }
 
-  static ControlConfig fromJson(const nlohmann::json& json)
+  static ControllerConfig fromJson(const nlohmann::json& json)
   {
-    ControlConfig result;
+    ControllerConfig result;
     if (json.contains("type")) {
       result.m_type = json["type"].get<std::string>();
     }
@@ -45,4 +44,4 @@ protected:
   nlohmann::json m_config;
 };
 
-#endif //CONTROLCONFIG_H
+#endif //CONTROLLERCONFIG_H

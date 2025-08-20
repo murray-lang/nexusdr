@@ -9,8 +9,15 @@
 #include "IfSettings.h"
 
 struct ReceiverSettings {
-    RfSettings rfSettings;
-    IfSettings ifSettings;
+  enum Features
+  {
+    NONE = 0,
+    RF = 0x01,
+    IF = 0x02
+  };
+  RfSettings rfSettings;
+  IfSettings ifSettings;
+  uint32_t changed;
 };
 
 #endif //FUNCUBEPLAY_RECEIVERSETTINGS_H

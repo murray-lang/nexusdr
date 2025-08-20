@@ -9,29 +9,29 @@ Oscillator::Oscillator() :
   , m_thetaDelta(0.0)
   , m_sign(1.0)
 {
-    init();
+    initialise();
 }
 
-Oscillator::Oscillator(int32_t sampleRate, int32_t frequency) :
+Oscillator::Oscillator(uint32_t sampleRate, int32_t frequency) :
     m_sampleRate(sampleRate)
     , m_frequency(frequency)
     , m_theta(0.0)
     , m_thetaDelta(0.0)
     , m_sign(1.0)
 {
-    init();
+    initialise();
 }
 
 Oscillator&
-Oscillator::init(int32_t sampleRate, int32_t frequency)
+Oscillator::initialise(uint32_t sampleRate, int32_t frequency)
 {
   m_sampleRate = sampleRate;
   m_frequency = frequency;
-  return init();
+  return initialise();
 }
 
 Oscillator&
-Oscillator::init()
+Oscillator::initialise()
 {
     m_sign = m_frequency >= 0 ? 1.0 : -1.0;
     m_thetaDelta = K_2PI*(sdrreal)std::fabs(m_frequency)/(sdrreal)m_sampleRate;
@@ -42,14 +42,14 @@ Oscillator&
 Oscillator::setSampleRate(int32_t sampleRate)
 {
   m_sampleRate = sampleRate;
-  return init();
+  return initialise();
 }
 
 Oscillator&
 Oscillator::setFrequency(int32_t frequency)
 {
     m_frequency = frequency;
-    return init();
+    return initialise();
 }
 
 Oscillator&

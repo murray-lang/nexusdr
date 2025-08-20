@@ -4,7 +4,8 @@
 
 #ifndef CUTESDR_VK6HL_RADIOCONFIG_H
 #define CUTESDR_VK6HL_RADIOCONFIG_H
-#include "JsonConfig.h"
+#include "../../io/controller/config/ControllersConfig.h"
+#include "../../config/JsonConfig.h"
 #include "ReceiverConfig.h"
 #include "TransmitterConfig.h"
 
@@ -14,7 +15,8 @@ public:
   explicit RadioConfig() = default;
 
   RadioConfig(const RadioConfig& rhs) :
-    m_receiver(rhs.m_receiver)
+    m_receiver(rhs.m_receiver),
+    m_control(rhs.m_control)
   {
 //    operator=(rhs);
   }
@@ -22,6 +24,7 @@ public:
   RadioConfig& operator=(const RadioConfig& rhs)
   {
     m_receiver = rhs.m_receiver;
+    m_control = rhs.m_control;
     return *this;
   }
 
@@ -32,12 +35,23 @@ public:
     {
       result.m_receiver = ReceiverConfig::fromJson(json["receiver"]);
     }
+    if (json.contains("control"))
+    {
+      result.m_control = ControllersConfig::fromJson(json["control"]);
+      // for (auto& controller : json["control"])
+      // {
+      //   result.m_control.push_back(ControllerConfig::fromJson(controller));
+      // }
+    }
     return result;
   }
 
-  const ReceiverConfig& getReceiver() { return m_receiver; }
+  const ReceiverConfig& getReceiver() const { return m_receiver; }
+  // [[nodiscard]] const std::vector<ControllerConfig>& getControllers() const { return m_control; }
+  [[nodiscard]] const ControllersConfig& getControl() const { return m_control; }
 
 protected:
+  ControllersConfig m_control;
   ReceiverConfig m_receiver;
 };
 

@@ -7,8 +7,9 @@
 class OscillatorInjector : public OscillatorStage
 {
 public:
-    OscillatorInjector(int32_t sampleRate, int32_t frequency) : OscillatorStage(sampleRate, frequency) {}
-    ~OscillatorInjector() override = default;
+  OscillatorInjector() : OscillatorStage() {}
+  OscillatorInjector(uint32_t sampleRate, int32_t frequency) : OscillatorStage(sampleRate, frequency) {}
+  ~OscillatorInjector() override = default;
 
   uint32_t processSamples(ComplexPingPongBuffers& buffers, uint32_t inputLength) override
   {
