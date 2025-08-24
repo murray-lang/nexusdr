@@ -6,7 +6,7 @@
 #define CUTESDR_VK6HL_RECEIVERCONFIG_H
 #include "../../config/JsonConfig.h"
 #include "AudioConfig.h"
-#include "../../io/controller/config/ControllerConfig.h"
+#include "../../io/control/config/ControlBaseConfig.h"
 
 class ReceiverConfig : public JsonConfig
 {

@@ -4,7 +4,7 @@
 
 #ifndef CUTESDR_VK6HL_RADIOCONFIG_H
 #define CUTESDR_VK6HL_RADIOCONFIG_H
-#include "../../io/controller/config/ControllersConfig.h"
+#include "RadioControlConfig.h"
 #include "../../config/JsonConfig.h"
 #include "ReceiverConfig.h"
 #include "TransmitterConfig.h"
@@ -37,7 +37,7 @@ public:
     }
     if (json.contains("control"))
     {
-      result.m_control = ControllersConfig::fromJson(json["control"]);
+      result.m_control = RadioControlConfig::fromJson(json["control"]);
       // for (auto& controller : json["control"])
       // {
       //   result.m_control.push_back(ControllerConfig::fromJson(controller));
@@ -48,10 +48,10 @@ public:
 
   const ReceiverConfig& getReceiver() const { return m_receiver; }
   // [[nodiscard]] const std::vector<ControllerConfig>& getControllers() const { return m_control; }
-  [[nodiscard]] const ControllersConfig& getControl() const { return m_control; }
+  [[nodiscard]] const RadioControlConfig& getControl() const { return m_control; }
 
 protected:
-  ControllersConfig m_control;
+  RadioControlConfig m_control;
   ReceiverConfig m_receiver;
 };
 

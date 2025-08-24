@@ -28,7 +28,16 @@ set(VOLK_MIN_VERSION "2.4.1")         ## first version with CPU features
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
 list(APPEND CMAKE_MODULE_PATH "/home/murray/dev/tools/rtaudio/_build_")
 
+find_package(PkgConfig)
 find_package(RtAudio REQUIRED)
+#find_package(gpiod 2 QUIET CONFIG)
+
+pkg_check_modules(GPIOD QUIET IMPORTED_TARGET libgpiod)
+
+if(GPIOD_FOUND)
+    set(IS_RPI TRUE)
+    message(STATUS "Platform is RPi")
+endif()
 
 include(CMakeLists_AudioLibs.txt)
 message(STATUS "${AUDIO_LINK_LIBS}")
@@ -69,6 +78,18 @@ if( ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     endif()
 endif()
 
+if(IS_RPI)
+    set (PLATFORM_SOURCES
+            io/control/device/platform/rpi/GpioRotaryEncoder.h
+            io/control/device/platform/rpi/GpioRotaryEncoder.cpp
+    )
+else()
+    set (PLATFORM_SOURCES
+            io/control/device/platform/dummy/GpioRotaryEncoder.h
+            io/control/device/platform/dummy/GpioRotaryEncoder.cpp
+    )
+endif()
+
 set(PROJECT_SOURCES
         main.cpp
         mainwindow.h mainwindow.cpp
@@ -92,19 +113,19 @@ set(PROJECT_SOURCES
         dsp/stages/demodulators/Demodulator.h
         dsp/stages/demodulators/AmDemodulator.h
 
-        io/controller/device/usb/UsbControl.h
-        io/controller/device/usb/UsbException.cpp
-        io/controller/device/usb/UsbException.h
-        io/controller/device/usb/LibUsbControl.cpp
-        io/controller/device/usb/LibUsbControl.h
-        io/controller/device/usb/HidUsbControl.cpp
-        io/controller/device/usb/HidUsbControl.h
-        io/controller/device/usb/UsbControl.cpp
-        io/controller/Controller.h
-        io/controller/device/FunCubeDongle/FunCubeDongle.cpp
-        io/controller/device/FunCubeDongle/FunCubeDongle.h
-        io/controller/ControllerException.cpp
-        io/controller/ControllerException.h
+        io/control/device/usb/UsbControl.h
+        io/control/device/usb/UsbException.cpp
+        io/control/device/usb/UsbException.h
+        io/control/device/usb/LibUsbControl.cpp
+        io/control/device/usb/LibUsbControl.h
+        io/control/device/usb/HidUsbControl.cpp
+        io/control/device/usb/HidUsbControl.h
+        io/control/device/usb/UsbControl.cpp
+        io/control/ControlBase.h
+        io/control/device/FunCubeDongle/FunCubeDongle.cpp
+        io/control/device/FunCubeDongle/FunCubeDongle.h
+        io/control/ControlException.cpp
+        io/control/ControlException.h
         radio/settings/RfSettings.h
         radio/settings/IfSettings.h
         radio/settings/ReceiverSettings.h
@@ -149,27 +170,46 @@ set(PROJECT_SOURCES
         radio/receiver/ReceiverIqEvent.cpp
         radio/receiver/ReceiverAudioEvent.cpp
         radio/receiver/ReceiverAudioEvent.h
-        io/controller/config/ControllerConfig.h
-        io/controller/SinkControllerFactory.h
-        io/controller/SinkControllerFactory.cpp
+        io/control/config/ControlBaseConfig.h
+        io/control/ControlSinkFactory.h
+        io/control/ControlSinkFactory.cpp
         io/audio/device/AudioDeviceFactory.h
         radio/settings/sink/ReceiverSettingsSink.h
         radio/settings/sink/PttSink.h
         radio/Radio.cpp
         radio/Radio.h
         radio/settings/sink/RadioSettingsSink.h
-        io/controller/config/ControllersConfig.h
-        io/controller/SinkController.cpp
-        io/controller/SinkController.h
+        radio/config/RadioControlConfig.h
+        io/control/ControlSink.cpp
+        io/control/ControlSink.h
         radio/settings/source/RadioSettingsSource.h
-        io/controller/SourceController.cpp
-        io/controller/SourceController.h
+        io/control/ControlSource.cpp
+        io/control/ControlSource.h
         radio/settings/source/PttSource.h
-        io/controller/device/platform/rpi/GpioRotaryEncoder.cpp
-        io/controller/device/platform/rpi/GpioRotaryEncoder.h
-        io/controller/SourceControllerFactory.cpp
-        io/controller/SourceControllerFactory.h
-
+        io/control/ControlSourceFactory.cpp
+        io/control/ControlSourceFactory.h
+        ${PLATFORM_SOURCES}
+        io/gpio/Gpio.cpp
+        io/gpio/Gpio.h
+        io/gpio/GpioException.cpp
+        io/gpio/GpioException.h
+        io/gpio/GpioLines.cpp
+        io/gpio/GpioLines.h
+        io/gpio/digital/DigitalInputGroup.cpp
+        io/gpio/digital/DigitalInputGroup.h
+        io/gpio/digital/config/DigitalInput.cpp
+        io/gpio/digital/config/DigitalInput.h
+        radio/settings/SettingPath.h
+        radio/settings/SettingDelta.h
+        radio/settings/SettingsException.cpp
+        radio/settings/SettingsException.h
+        radio/settings/SettingsException.cpp
+        radio/settings/SettingsBase.h
+        util/StringUtils.cpp
+        util/StringUtils.h
+        io/control/RadioControl.cpp
+        io/control/RadioControl.h
+        io/control/config/ControlSourceConfig.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -203,8 +243,7 @@ target_include_directories(cutesdr-vk6hl PUBLIC
 )
 target_link_directories(cutesdr-vk6hl PRIVATE ${DSPL_DIR})
 
-target_link_libraries(cutesdr-vk6hl
-    PRIVATE
+set (COMMON_LIBRARIES
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Gui
     Qt${QT_VERSION_MAJOR}::Widgets
@@ -215,6 +254,19 @@ target_link_libraries(cutesdr-vk6hl
     usb-1.0
     hidapi-libusb
     nlohmann_json::nlohmann_json
+)
+
+if(IS_RPI)
+   set (PLATFORM_LIBRARIES
+     PkgConfig::GPIOD
+   )
+else()
+endif()
+
+target_link_libraries(cutesdr-vk6hl
+    PRIVATE
+    ${COMMON_LIBRARIES}
+    ${PLATFORM_LIBRARIES}
 )
 
 set_target_properties(cutesdr-vk6hl PROPERTIES

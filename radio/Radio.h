@@ -6,9 +6,10 @@
 #define RADIO_H
 #include <vector>
 
-#include "../io/controller/SinkController.h"
-#include "../io/controller/SourceController.h"
+#include "../io/control/ControlSink.h"
+#include "../io/control/ControlSource.h"
 #include "config/RadioConfig.h"
+#include "../io/control/RadioControl.h"
 #include "receiver/IqReceiver.h"
 #include "settings/sink/PttSink.h"
 #include "settings/sink/RadioSettingsSink.h"
@@ -20,8 +21,8 @@ public:
   ~Radio() override;
 
   void configure(const RadioConfig& config);
-  void start() const;
-  void stop() const;
+  void start();
+  void stop();
 
   void apply(const RadioSettings& settings) override;
 
@@ -33,8 +34,7 @@ protected:
 
 protected:
   IqReceiver* m_pReceiver;
-  std::vector<SinkController*> m_controlSinks;
-  std::vector<SourceController*> m_controlSources;
+  RadioControl m_control;
 };
 
 

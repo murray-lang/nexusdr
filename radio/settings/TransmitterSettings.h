@@ -7,7 +7,8 @@
 
 #include "RfSettings.h"
 
-struct TransmitterSettings {
+class TransmitterSettings {
+public:
   enum Features
   {
     NONE = 0,
@@ -15,6 +16,25 @@ struct TransmitterSettings {
   };
   RfSettings rf;
   uint32_t changed;
+
+  static void getFeaturePath(
+    const std::vector<std::string>& featureStrings,
+    std::vector<uint32_t>& featuresOut,
+    size_t startIndex
+    )
+  {
+    if (startIndex >= featureStrings.size()) {
+      throw SettingsException("Invalid feature path");
+    }
+    if (featureStrings[startIndex] == "rf") {
+      featuresOut.push_back(RF);
+      if (startIndex + 1 < featureStrings.size()) {
+        RfSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
+      }
+    } else {
+      throw SettingsException("Unknown transmitter feature: " + featureStrings[startIndex]);
+    }
+  }
 };
 
 #endif //FUNCUBEPLAY_TRANSMITTERSETTINGS_H

@@ -19,7 +19,7 @@
 #include "../../io/audio/IqAudioInput.h"
 #include "../../io/audio/AudioOutput.h"
 #include "../config/ReceiverConfig.h"
-#include "../../io/controller/Controller.h"
+#include "../../io/control/ControlBase.h"
 #include "../../radio/settings/sink/ReceiverSettingsSink.h"
 #include "../../radio/settings/sink/PttSink.h"
 
