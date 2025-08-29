@@ -8,10 +8,10 @@
 #include <QThreadPool>
 #include "io/audio/device/IqAudioInputDevice.h"
 #include <cmath>
-#include "io/control/device/usb/UsbException.h"
-#include "io/control/device/FunCubeDongle/FunCubeDongle.h"
-#include "io/control/ControlException.h"
-#include "radio/config/AudioConfig.h"
+#include "src/settings/control/device/usb/UsbException.h"
+#include "src/settings/control/device/FunCubeDongle/FunCubeDongle.h"
+#include <settings/control/ControlException.h>
+#include "include/config/AudioConfig.h"
 #include <volk/volk.h>
 
 #include "radio/receiver/ReceiverAudioEvent.h"

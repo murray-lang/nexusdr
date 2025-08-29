@@ -18,10 +18,10 @@
 #include "../../io/audio/device/AudioOutputDevice.h"
 #include "../../io/audio/IqAudioInput.h"
 #include "../../io/audio/AudioOutput.h"
-#include "../config/ReceiverConfig.h"
-#include "../../io/control/ControlBase.h"
-#include "../../radio/settings/sink/ReceiverSettingsSink.h"
-#include "../../radio/settings/sink/PttSink.h"
+#include "../../include/config/ReceiverConfig.h"
+#include <settings/control/ControlBase.h>
+#include <settings/sink/ReceiverSettingsSink.h>
+#include <settings/sink/PttSink.h>
 
 //#define PING_PONG_LENGTH 2048
 #define PING_PONG_LENGTH 8192

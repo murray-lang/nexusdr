@@ -1,4 +1,15 @@
+# We need version 2.2.x If the distro provides that then...
 sudo apt install -y gpiod libgpiod-dev
+# ...otherwise
+git clone https://github.com/brgl/libgpiod.git
+cd libgpiod
+git fetch
+git checkout v2.2.x
+./autogen.sh
+./configure --prefix=/usr --libdir=/usr/lib/x86_64-linux-gnu
+make
+sudo make install
+
 
 # Create a gpio group
 sudo groupadd gpio || true

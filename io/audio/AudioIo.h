@@ -5,7 +5,7 @@
 #ifndef AUDIOIO_H
 #define AUDIOIO_H
 #include "device/AudioDevice.h"
-#include "../../radio/config/AudioConfig.h"
+#include "../../include/config/AudioConfig.h"
 
 class AudioIo
 {

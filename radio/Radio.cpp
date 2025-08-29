@@ -4,11 +4,6 @@
 
 #include "Radio.h"
 
-#include "../config/ConfigException.h"
-#include "../io/control/ControlSinkFactory.h"
-#include "../io/control/ControlSourceFactory.h"
-#include "../io/control/ControlException.h"
-
 
 #define SAMPLE_RATE 192000
 

@@ -6,13 +6,13 @@
 #define RADIO_H
 #include <vector>
 
-#include "../io/control/ControlSink.h"
-#include "../io/control/ControlSource.h"
-#include "config/RadioConfig.h"
-#include "../io/control/RadioControl.h"
+#include <settings/control/ControlSink.h>
+#include <settings/control/ControlSource.h>
+#include "../include/config/RadioConfig.h"
+#include <settings/control/RadioControl.h>
 #include "receiver/IqReceiver.h"
-#include "settings/sink/PttSink.h"
-#include "settings/sink/RadioSettingsSink.h"
+#include <settings/sink/PttSink.h>
+#include <settings/sink/RadioSettingsSink.h>
 
 class Radio : public RadioSettingsSink, PttSink {
 

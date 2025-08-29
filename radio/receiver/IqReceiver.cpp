@@ -7,10 +7,7 @@
 
 #include "ReceiverAudioEvent.h"
 #include "ReceiverIqEvent.h"
-#include "../config/ReceiverConfig.h"
-#include "../../io/control/ControlSinkFactory.h"
-#include "../../io/control/ControlException.h"
-#include "../../config/ConfigException.h"
+#include "../../include/config/ReceiverConfig.h"
 
 #define FFT_SIZE 2048
 
