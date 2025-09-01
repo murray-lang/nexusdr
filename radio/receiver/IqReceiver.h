@@ -12,6 +12,7 @@
 #include "../../dsp/utils/PingPongBuffers.h"
 #include "../../io/audio/IqSink.h"
 #include "../../dsp/stages/demodulators/AmDemodulator.h"
+#include "../../dsp/stages/demodulators/FmDemodulator.h"
 #include "../../dsp/stages/filters/kernels/BandPassFirKernel.h"
 #include "../../SignalEmitter.h"
 #include "../../dsp/stages/metering/MeteringStage.h"
@@ -63,7 +64,8 @@ protected:
   // Oscillator m_debugOscillator;
   BandPassFilter m_ifFilter;
   BandPassFilter m_afFilter;
-  AmDemodulator* m_pDemodulator;
+  AmDemodulator m_amDemodulator;
+  FmDemodulator m_fmDemodulator;
   // MeteringStage m_timeseriesEmitter;
   // MeteringStage m_spectrumEmitter;
   // AudioOutputDevice* m_audioOutput;

@@ -20,7 +20,8 @@ IqReceiver::IqReceiver(QObject* eventTarget) :
   m_afBuffers(PING_PONG_LENGTH),
   m_ifFilter(FFT_SIZE),
   m_afFilter(FFT_SIZE),
-  m_pDemodulator(nullptr),
+  m_amDemodulator(48000),
+  m_fmDemodulator(48000),
   m_eventTarget(eventTarget),
   m_pIqInput(nullptr),
   m_pAudioOutput(nullptr)
@@ -81,10 +82,8 @@ IqReceiver::configure(const ReceiverConfig& config)
 {
   delete m_pIqInput;
   delete m_pAudioOutput;
-  delete m_pDemodulator;
   m_pIqInput = nullptr;
   m_pAudioOutput = nullptr;
-  m_pDemodulator = nullptr;
 
   const AudioConfig& iqInputConfig = config.getIqInput();
   m_pIqInput = new IqAudioInput(this);
@@ -114,9 +113,8 @@ IqReceiver::configure(const ReceiverConfig& config)
     0.0,
     decimatorOutputRate * 2);
 
-  m_pDemodulator = new AmDemodulator(decimatorOutputRate);
-
-
+  m_amDemodulator.setOutputRate(decimatorOutputRate);
+  m_fmDemodulator.setOutputRate(decimatorOutputRate);
 }
 
 // void
@@ -188,7 +186,7 @@ IqReceiver::sink(ComplexPingPongBuffers& buffers, uint32_t inputLength)
     buffers.flip();
   }
 
-  outputLength = m_pDemodulator->processSamples(buffers.input(), m_afBuffers.input(), outputLength);
+  outputLength = m_fmDemodulator.processSamples(buffers.input(), m_afBuffers.input(), outputLength);
 
   //   vsdrcomplex audiosamples(outputLength, complexZero);
   //   for (int i = 0; i < outputLength; i++) {

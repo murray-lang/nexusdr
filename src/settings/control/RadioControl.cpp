@@ -30,9 +30,9 @@ RadioControl::configure(const RadioControlConfig& config)
     if (next != nullptr) {
       m_sources.push_back(next);
     } else {
-      std::ostringstream oss;
-      oss << "Failed to create source controller of type '" << controllerConfig.getType() << "'";
-      throw ConfigException(oss.str());
+//      std::ostringstream oss;
+//      oss << "Failed to create source controller of type '" << controllerConfig.getType() << "'";
+//      throw ConfigException(oss.str());
     }
   }
 }

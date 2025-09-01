@@ -26,9 +26,7 @@ public:
   Gpio(Gpio&&) = delete;
   Gpio& operator=(Gpio&&) = delete;
 
-
-
-
+  static bool isPresent(const char *chipPath = defaultChipPath);
   void open(const char *chipPath = defaultChipPath);
   void close();
 

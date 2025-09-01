@@ -53,21 +53,21 @@ AmDemodulator::processSamples(
   return inputLength;
 }
 
-uint32_t
-AmDemodulator::processSamples(PingPongBuffers<sdrcomplex> buffers, uint32_t inputLength)
-{
-  const std::vector<sdrcomplex>& in = buffers.input();
-  std::vector<sdrcomplex>& out = buffers.output();
-  for(uint32_t i=0; i<inputLength; i++)
-  {
-    //calculate instantaneous power magnitude of pInData which is I*I + Q*Q
-    sdrcomplex iq = in.at(i);
-    sdrreal mag = std::abs(iq);
-    //High pass filter(DC removal) with IIR filter
-    // H(z) = (1 - z^-1)/(1 - ALPHA*z^-1)
-    sdrreal z0 = mag + static_cast<sdrreal>(m_z * DC_ALPHA);
-    out.at(i) = z0 - m_z;
-    m_z = z0;
-  }
-  return inputLength;
-}
+// uint32_t
+// AmDemodulator::processSamples(PingPongBuffers<sdrcomplex> buffers, uint32_t inputLength)
+// {
+//   const std::vector<sdrcomplex>& in = buffers.input();
+//   std::vector<sdrcomplex>& out = buffers.output();
+//   for(uint32_t i=0; i<inputLength; i++)
+//   {
+//     //calculate instantaneous power magnitude of pInData which is I*I + Q*Q
+//     sdrcomplex iq = in.at(i);
+//     sdrreal mag = std::abs(iq);
+//     //High pass filter(DC removal) with IIR filter
+//     // H(z) = (1 - z^-1)/(1 - ALPHA*z^-1)
+//     sdrreal z0 = mag + static_cast<sdrreal>(m_z * DC_ALPHA);
+//     out.at(i) = z0 - m_z;
+//     m_z = z0;
+//   }
+//   return inputLength;
+// }

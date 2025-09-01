@@ -161,7 +161,7 @@ MainWindow::configureTimeseriesChart()
   pChart->axes(Qt::Horizontal).first()->setRange(m_timeSeriesXmin / 100.0, m_timeSeriesXmax/100.0);
 
 //  pChart->axes(Qt::Vertical).first()->setRange(2038, 2058);
-  pChart->axes(Qt::Vertical).first()->setRange(-0.02, 0.02);
+  pChart->axes(Qt::Vertical).first()->setRange(-0.1, 0.1);
 
 //  pChart->axes(Qt::Vertical).first()->setRange(-0.0000001, 0.0000003);
 

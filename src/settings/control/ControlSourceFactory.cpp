@@ -23,12 +23,13 @@ ControlSource*
 ControlSourceFactory::create(const std::string& type)
 {
   std::string typeAslower = StringUtils::toLowerCase(type);
-  if(typeAslower == "digitalinputgroup")
+  bool gpioPresent = Gpio::isPresent();
+  if(typeAslower == "digitalinputgroup" && gpioPresent)
   {
     return new DigitalInputGroup();
   }
 
-  if(typeAslower == "gpiorotaryencoder")
+  if(typeAslower == "gpiorotaryencoder" && gpioPresent)
   {
     return new GpioRotaryEncoder();
   }

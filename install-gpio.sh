@@ -5,6 +5,7 @@ git clone https://github.com/brgl/libgpiod.git
 cd libgpiod
 git fetch
 git checkout v2.2.x
+sudo apt install autoconf-archive
 ./autogen.sh
 ./configure --prefix=/usr --libdir=/usr/lib/x86_64-linux-gnu
 make

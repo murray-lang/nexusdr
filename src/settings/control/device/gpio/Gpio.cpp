@@ -18,6 +18,17 @@ Gpio::~Gpio()
   close();
 }
 
+bool
+Gpio::isPresent(const char *chipPath)
+{
+  gpiod_chip* pChip = gpiod_chip_open(chipPath);
+  if (pChip == nullptr) {
+    return false;
+  }
+  gpiod_chip_close(pChip);
+  return true;
+}
+
 void
 Gpio::open(const char *chipPath) {
   m_pChip = gpiod_chip_open(chipPath);

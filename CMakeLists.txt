@@ -16,17 +16,15 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --enable-threads")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --enable-threads")
 
-#set(CMAKE_PREFIX_PATH "/home/murray/Qt/6.9.1/gcc_64/lib/cmake")
-#set(CMAKE_PREFIX_PATH "/home/murray/Qt6.5/6.5.3/gcc_64/lib/cmake")
-#set(CMAKE_PREFIX_PATH "/home/murray/Qt/6.5.0/gcc_64/lib/cmake")
-#set(CMAKE_PREFIX_PATH "/usr/lib/aarch-linux-gnu/cmake")
-
-
+#list(APPEND CMAKE_PREFIX_PATH "/home/murray/Qt/6.9.1/gcc_64/lib/cmake")
+#list(APPEND CMAKE_PREFIX_PATH "/home/murray/Qt6.5/6.5.3/gcc_64/lib/cmake")
+list(APPEND CMAKE_PREFIX_PATH "/home/murray/Qt/6.5.0/gcc_64/lib/cmake")
+list(APPEND CMAKE_PREFIX_PATH "/usr/lib/aarch-linux-gnu/cmake")
 
 set(VOLK_MIN_VERSION "2.4.1")         ## first version with CPU features
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
-list(APPEND CMAKE_MODULE_PATH "/home/murray/dev/tools/rtaudio/_build_")
+#list(APPEND CMAKE_MODULE_PATH "/home/murray/dev/tools/rtaudio/_build_")
 
 find_package(PkgConfig)
 find_package(RtAudio REQUIRED)
@@ -43,8 +41,8 @@ include(CMakeLists_AudioLibs.txt)
 message(STATUS "${AUDIO_LINK_LIBS}")
 
 find_package(nlohmann_json 3.11.3 REQUIRED)
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui Widgets Charts Multimedia)
+find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui Widgets Charts)
 find_library(HIDAPI_LIBRARY hidapi-libusb)
 
 message(STATUS "")
@@ -207,6 +205,8 @@ set(PROJECT_SOURCES
         src/settings/control/RadioControl.cpp
         include/settings/control/RadioControl.h
         include/config/ControlSourceConfig.h
+        dsp/stages/demodulators/FmDemodulator.cpp
+        dsp/stages/demodulators/FmDemodulator.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
