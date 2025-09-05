@@ -7,7 +7,7 @@
 
 #include "ReceiverAudioEvent.h"
 #include "ReceiverIqEvent.h"
-#include "../../include/config/ReceiverConfig.h"
+#include <config/ReceiverConfig.h>
 
 #define FFT_SIZE 2048
 
@@ -140,7 +140,7 @@ IqReceiver::start() const
     m_pAudioOutput->start();
   }
   if (m_pIqInput != nullptr) {
-    m_pIqInput->start();
+    //m_pIqInput->start();
   }
 }
 
@@ -186,7 +186,7 @@ IqReceiver::sink(ComplexPingPongBuffers& buffers, uint32_t inputLength)
     buffers.flip();
   }
 
-  outputLength = m_fmDemodulator.processSamples(buffers.input(), m_afBuffers.input(), outputLength);
+  outputLength = m_amDemodulator.processSamples(buffers.input(), m_afBuffers.input(), outputLength);
 
   //   vsdrcomplex audiosamples(outputLength, complexZero);
   //   for (int i = 0; i < outputLength; i++) {

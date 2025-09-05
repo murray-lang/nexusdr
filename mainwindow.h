@@ -11,7 +11,7 @@
 
 #include "io/audio/device/AudioOutputDevice.h"
 #include "radio/Radio.h"
-#include "include/config/RadioConfig.h"
+#include "config/RadioConfig.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }

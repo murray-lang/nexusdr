@@ -31,19 +31,8 @@ FmDemodulator::processSamples(
 
 sdrreal
 FmDemodulator::demodulateSample(const sdrcomplex& sample) {
-  // Quadrature FM discriminator:
-  // output = (I_prev * Q_now - Q_prev * I_now) / (I_now^2 + Q_now^2)
-  sdrreal i1 = std::real(m_prevSample);
-  sdrreal q1 = std::imag(m_prevSample);
-  sdrreal i2 = std::real(sample);
-  sdrreal q2 = std::imag(sample);
-
-  sdrreal denominator = i2 * i2 + q2 * q2;
-  if (denominator == 0.0f) denominator = 1e-12f; // Avoid divide by zero
-
-  sdrreal out = (i1 * q2 - q1 * i2) / denominator;
-
+  sdrreal phaseDiff = std::arg(sample * std::conj(m_prevSample));
   m_prevSample = sample;
-  return out;
+  return phaseDiff;
 
 }

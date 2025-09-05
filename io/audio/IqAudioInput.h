@@ -7,7 +7,7 @@
 #include "./device/IqAudioInputDevice.h"
 #include "./device/AudioDeviceFactory.h"
 #include "AudioIo.h"
-#include "../../include/config/AudioConfig.h"
+#include "config/AudioConfig.h"
 
 class IqAudioInput : public AudioIo
 {

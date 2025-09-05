@@ -6,9 +6,9 @@
 #include <fstream>
 #include <nlohmann/json.hpp>
 
-#include "src/settings/control/device/gpio/Gpio.h"
-#include "src/settings/control/device/gpio/GpioException.h"
-#include "src/settings/control/device/gpio/GpioLines.h"
+#include "settings/control/device/gpio/Gpio.h"
+#include "settings/control/device/gpio/GpioException.h"
+#include "settings/control/device/gpio/GpioLines.h"
 using json = nlohmann::json;
 
 int main(int argc, char *argv[])
@@ -23,15 +23,11 @@ int main(int argc, char *argv[])
     qDebug() << "No radio config found";
   }
 
-  // GpioLines centreFreqEncoder("centreFreqEncoder");
-  // std::vector<uint32_t> centreFreqEncoderLines = {20, 21};
-  //
-  // try {
-  //   Gpio::getInstance().open();
-  //   centreFreqEncoder.request(centreFreqEncoderLines, GPIOD_LINE_DIRECTION_INPUT, GPIOD_LINE_BIAS_PULL_UP, GPIOD_LINE_EDGE_BOTH);
-  // } catch (GpioException& gpioErr) {
-  //   qDebug() << gpioErr.what();
-  // }
+  try {
+    Gpio::getInstance().open();
+  } catch (GpioException& gpioErr) {
+    qDebug() << gpioErr.what();
+  }
 
   //qRegisterMetaType<QSharedPointer<vcomplex>>("SharedFftData");
   qRegisterMetaType<QSharedPointer< std::vector<float> >>("SharedFftData");
@@ -41,7 +37,6 @@ int main(int argc, char *argv[])
   w.show();
   int rc = a.exec();
 
-  // centreFreqEncoder.release();
-  // Gpio::getInstance().close();
+  Gpio::getInstance().close();
   return rc;
 }

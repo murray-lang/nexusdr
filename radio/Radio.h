@@ -8,8 +8,8 @@
 
 #include <settings/control/ControlSink.h>
 #include <settings/control/ControlSource.h>
-#include "../include/config/RadioConfig.h"
-#include <settings/control/RadioControl.h>
+#include "config/RadioConfig.h"
+#include "settings/control/RadioControl.h"
 #include "receiver/IqReceiver.h"
 #include <settings/sink/PttSink.h>
 #include <settings/sink/RadioSettingsSink.h>

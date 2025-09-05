@@ -8,10 +8,10 @@
 #include <QThreadPool>
 #include "io/audio/device/IqAudioInputDevice.h"
 #include <cmath>
-#include "src/settings/control/device/usb/UsbException.h"
-#include "src/settings/control/device/FunCubeDongle/FunCubeDongle.h"
+#include "settings/control/device/usb/UsbException.h"
+#include "settings/control/device/FunCubeDongle/FunCubeDongle.h"
 #include <settings/control/ControlException.h>
-#include "include/config/AudioConfig.h"
+#include <config/AudioConfig.h>
 #include <volk/volk.h>
 
 #include "radio/receiver/ReceiverAudioEvent.h"
@@ -161,7 +161,7 @@ MainWindow::configureTimeseriesChart()
   pChart->axes(Qt::Horizontal).first()->setRange(m_timeSeriesXmin / 100.0, m_timeSeriesXmax/100.0);
 
 //  pChart->axes(Qt::Vertical).first()->setRange(2038, 2058);
-  pChart->axes(Qt::Vertical).first()->setRange(-0.1, 0.1);
+  pChart->axes(Qt::Vertical).first()->setRange(-1.0, 1.0);
 
 //  pChart->axes(Qt::Vertical).first()->setRange(-0.0000001, 0.0000003);
 

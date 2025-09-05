@@ -14,7 +14,7 @@
 #include <optional>
 
 #include <regex>
-#include "../../../include/config/AudioConfig.h"
+#include "config/AudioConfig.h"
 #include "../AudioException.h"
 
 

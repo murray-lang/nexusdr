@@ -12,24 +12,18 @@
         {
           "type": "digitalInputGroup",
           "config": {
-            "inputs": [
-              {
-                    "type": "gpioRotaryEncoder",
-                    "config": {
-                      "gpioPins": [5, 6],
-                      "settingPath": "rx.rf.offset"
-                    }
-              },
-              {
-                "type": "gpioRotaryEncoder",
-                "config": {
-                  "gpioPins": [20, 21],
-                  "settingPath": "rx.rf.frequency"
-                }
-              }
-            ]
+  	    "inputs": [
+  	      {
+  	        "type": "rotaryEncoder",
+  	        "config": {
+		  "lines": [6, 5],
+		  "settingPath": "rx.rf.frequency"
+		}
+	      }
+  	    ]
           }
         }
+        
       ]
     },
     "receiver": {
