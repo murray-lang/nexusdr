@@ -7,8 +7,10 @@
 
 #include <string>
 #include <nlohmann/json.hpp>
-#include <settings/sink/RadioSettingsSink.h>
-#include <settings/sink/PttSink.h>
+#include <settings/RadioSettingsSink.h>
+#include <settings/PttSink.h>
+
+#include "config/ConfigBase.h"
 
 class ControlBase {
 public:
@@ -18,7 +20,8 @@ public:
   // void apply(const ReceiverSettings& rxSettings) override;
   // virtual void readSettings(RadioSettings& radioSettings) = 0;
 
-  virtual void initialise(const nlohmann::json& json) = 0;
+  // virtual void initialise(const nlohmann::json& json) = 0;
+  virtual void configure(const ConfigBase* pConfig) = 0;
   virtual bool discover() = 0;
   virtual void open() = 0;
   virtual void close() = 0;

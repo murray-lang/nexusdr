@@ -4,13 +4,13 @@
 
 #ifndef CUTESDR_VK6HL_DIGITALINPUTFACTORY_H
 #define CUTESDR_VK6HL_DIGITALINPUTFACTORY_H
+#include <config/DigitalInputConfig.h>
 #include "DigitalInput.h"
-#include "config/ControlBaseConfig.h"
 
 class DigitalInputFactory
 {
 public:
-  static DigitalInput* create(const ControlBaseConfig& config, GpioLines& lines);
+  static DigitalInput* create(const DigitalInputConfig* pConfig, GpioLines& lines);
   static DigitalInput* create(const std::string& type, GpioLines& lines);
 };
 

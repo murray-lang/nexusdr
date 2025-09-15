@@ -5,7 +5,7 @@
 #ifndef CUTESDR_VK6HL_RADIOSETTINGSSOURCE_H
 #define CUTESDR_VK6HL_RADIOSETTINGSSOURCE_H
 
-#include "../sink/RadioSettingsSink.h"
+#include "RadioSettingsSink.h"
 
 class RadioSettingsSource
 {

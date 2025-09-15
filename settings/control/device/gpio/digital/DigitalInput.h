@@ -6,7 +6,7 @@
 #define CUTESDR_VK6HL_DIGITALINPUT_H
 #include <cstdint>
 #include <vector>
-#include <nlohmann/json.hpp>
+#include <config/DigitalInputConfig.h>
 #include "settings/SettingPath.h"
 #include "../GpioLines.h"
 
@@ -17,7 +17,7 @@ public:
   explicit DigitalInput(GpioLines& lines) {}
   virtual ~DigitalInput() = default;
 
-  virtual void initialise(const nlohmann::json& json);
+  virtual void configure(const DigitalInputConfig* pConfig);
   // void setId(const std::string& id) { m_id = id; }
   [[nodiscard]] const std::string& getId() const { return m_id; }
   [[nodiscard]] const std::vector<uint32_t>& getLines() const { return m_lines; }

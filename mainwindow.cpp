@@ -376,7 +376,7 @@ MainWindow::initialiseRadio()
   try
   {
     m_pRadio = new Radio(this);
-    m_pRadio->configure(m_radioConfig);
+    m_pRadio->configure(&m_radioConfig);
     m_pRadio->start();
 
     RadioSettings radioSettings = {

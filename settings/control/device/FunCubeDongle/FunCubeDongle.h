@@ -5,7 +5,7 @@
 #ifndef FUNCUBEPLAY_FUNCUBEDONGLE_H
 #define FUNCUBEPLAY_FUNCUBEDONGLE_H
 
-#include "settings/control/ControlSink.h"
+#include "../../ControlSink.h"
 #include "../usb/HidUsbControl.h"
 #include "settings/RadioSettings.h"
 #include "FCDHidCmd.h"
@@ -21,7 +21,8 @@ public:
 
   void ptt(bool on) override;
 
-  void initialise(const nlohmann::json& json) override;
+  // void initialise(const nlohmann::json& json) override;
+  void configure(const ConfigBase* pConfig) override;
   bool discover() override;
   void open() override;
   void close() override;

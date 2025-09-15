@@ -4,7 +4,7 @@
 
 #ifndef RPI_GPIOROTARYENCODER_H
 #define RPI_GPIOROTARYENCODER_H
-#include <settings/control/ControlSource.h>
+#include "../../../ControlSource.h"
 
 #include "DigitalInput.h"
 #include "../GpioLines.h"
@@ -15,7 +15,7 @@ public:
   explicit GpioRotaryEncoder(GpioLines& lines) :
     DigitalInput(lines)
   {};
-  void initialise(const nlohmann::json& json) override;
+  void configure(const DigitalInputConfig* pConfig) override;
 
   bool handleLineChange(GpioLines::LineStateMap& changedLines) override;
 

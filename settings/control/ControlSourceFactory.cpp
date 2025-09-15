@@ -2,19 +2,21 @@
 // Created by murray on 20/8/25.
 //
 
-#include <settings/control/ControlSourceFactory.h>
+#include "ControlSourceFactory.h"
+
+#include "config/DigitalInputGroupConfig.h"
 #include "util/StringUtils.h"
 #include "device/gpio/digital/DigitalInputGroup.h"
 #include "device/gpio/digital/GpioRotaryEncoder.h"
 
 ControlSource*
-ControlSourceFactory::create(const ControlBaseConfig& config)
+ControlSourceFactory::create(const ConfigBase* pConfig)
 {
-  ControlSource* result = create(config.getType());
+  ControlSource* result = create(pConfig->getType());
   if (result)
   {
-    result->setId(config.getType());
-    result->initialise(config.getConfig());
+    result->setId(pConfig->getType());
+    result->configure(pConfig);
   }
   return result;
 }
@@ -22,9 +24,9 @@ ControlSourceFactory::create(const ControlBaseConfig& config)
 ControlSource*
 ControlSourceFactory::create(const std::string& type)
 {
-  std::string typeAslower = StringUtils::toLowerCase(type);
+
   bool gpioPresent = Gpio::isPresent();
-  if(typeAslower == "digitalinputgroup" && gpioPresent)
+  if(type == DigitalInputGroupConfig::type && gpioPresent)
   {
     return new DigitalInputGroup();
   }

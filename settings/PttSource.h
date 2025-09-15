@@ -4,7 +4,7 @@
 
 #ifndef CUTESDR_VK6HL_PTTSOURCE_H
 #define CUTESDR_VK6HL_PTTSOURCE_H
-#include "../sink/PttSink.h"
+#include "PttSink.h"
 
 class PttSource
 {

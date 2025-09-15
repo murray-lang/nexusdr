@@ -1,20 +1,20 @@
 //
 // Created by murray on 6/08/25.
 //
-#include <settings/control/ControlSinkFactory.h>
-#include <config/ControlBaseConfig.h>
+#include "ControlSinkFactory.h"
 #include <nlohmann/json.hpp>
 
+#include "config/FunCubeConfig.h"
 #include "device/FunCubeDongle/FunCubeDongle.h"
 
 ControlSink*
-ControlSinkFactory::create(const ControlBaseConfig& config)
+ControlSinkFactory::create(const ConfigBase* pConfig)
 {
-  ControlSink* result = create(config.getType());
+  ControlSink* result = create(pConfig->getType());
   if (result)
   {
-    result->setId(config.getType());
-    result->initialise(config.getConfig());
+    result->setId(pConfig->getType());
+    result->configure(pConfig);
   }
   return result;
 }
@@ -23,7 +23,7 @@ ControlSink*
 ControlSinkFactory::create(const std::string& type)
 {
   std::string typeAslower = StringUtils::toLowerCase(type);
-  if(typeAslower == "funcube")
+  if(typeAslower == FunCubeConfig::type)
   {
     return new FunCubeDongle();
   }

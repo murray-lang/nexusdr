@@ -5,8 +5,8 @@
 #ifndef CONTROLSOURCE_H
 #define CONTROLSOURCE_H
 #include "ControlBase.h"
-#include <settings/source/PttSource.h>
-#include <settings/source/RadioSettingsSource.h>
+#include <settings/PttSource.h>
+#include <settings/RadioSettingsSource.h>
 
 
 class ControlSource : public ControlBase, public RadioSettingsSource

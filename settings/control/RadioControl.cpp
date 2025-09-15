@@ -2,36 +2,36 @@
 // Created by murray on 2025-08-24.
 //
 
-#include <settings/control/RadioControl.h>
+#include "RadioControl.h"
 
-#include <settings/control/ControlException.h>
-#include <settings/control/ControlSinkFactory.h>
-#include <settings/control/ControlSourceFactory.h>
-#include <config/ConfigException.h>
+#include "ControlException.h"
+#include "ControlSinkFactory.h"
+#include "ControlSourceFactory.h"
+#include "config/ConfigException.h"
 
 void
-RadioControl::configure(const RadioControlConfig& config)
+RadioControl::configure(const ControlConfig* pConfig)
 {
-  const std::vector<ControlBaseConfig>& controlSinkConfigs = config.getSinks();
+  const std::vector<ConfigBase*>& controlSinkConfigs = pConfig->getSinks();
   for (auto& controllerConfig : controlSinkConfigs) {
-    ControlSink* next = ControlSinkFactory::create(dynamic_cast<const ControlBaseConfig&>(controllerConfig));
+    ControlSink* next = ControlSinkFactory::create(controllerConfig);
     if (next != nullptr) {
       m_sinks.push_back(next);
     } else {
       std::ostringstream oss;
-      oss << "Failed to create control sink of type '" << controllerConfig.getType() << "'";
+      oss << "Failed to create control sink of type '" << controllerConfig->getType() << "'";
       throw ConfigException(oss.str());
     }
   }
 
-  const std::vector<ControlBaseConfig>& controlSourceConfigs = config.getSources();
+  const std::vector<ConfigBase*>& controlSourceConfigs = pConfig->getSources();
   for (auto& controllerConfig : controlSourceConfigs) {
-    ControlSource* next = ControlSourceFactory::create(dynamic_cast<const ControlBaseConfig&>(controllerConfig));
+    ControlSource* next = ControlSourceFactory::create(controllerConfig);
     if (next != nullptr) {
       m_sources.push_back(next);
     } else {
       std::ostringstream oss;
-      oss << "Failed to create control source of type '" << controllerConfig.getType() << "'";
+      oss << "Failed to create control source of type '" << controllerConfig->getType() << "'";
       throw ConfigException(oss.str());
     }
   }

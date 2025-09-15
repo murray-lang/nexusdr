@@ -4,14 +4,15 @@
 
 #ifndef CUTESDR_VK6HL_AUDIOCONFIG_H
 #define CUTESDR_VK6HL_AUDIOCONFIG_H
-#include "JsonConfig.h"
+#include "ConfigBase.h"
 
-class AudioConfig : public JsonConfig
+class AudioConfig : public ConfigBase
 {
-  friend class TransmitterConfig;
-  friend class ReceiverConfig;
 public:
+  static constexpr auto type = "audio";
+
   explicit AudioConfig() :
+    ConfigBase(type),
     m_isInput(false),
     m_isIq(false),
     m_sampleRate(0),
@@ -20,6 +21,7 @@ public:
   }
 
   AudioConfig(const AudioConfig& rhs) :
+    ConfigBase(type),
     m_isInput(false),
     m_isIq(rhs.m_isIq),
     m_soundApi(rhs.m_soundApi),
@@ -42,32 +44,29 @@ public:
     m_channelCount = rhs.m_channelCount;
     return *this;
   }
-
-  static AudioConfig fromJson(const nlohmann::json& json)
+  void initialise(const nlohmann::json& json) override
   {
-    AudioConfig result;
     if (json.contains("soundApi")) {
-      result.m_soundApi = json["soundApi"].get<std::string>();
+      m_soundApi = json["soundApi"].get<std::string>();
     }
     if (json.contains("isInput")) {
-      result.m_isIq = json["isInput"].get<bool>();
+      m_isIq = json["isInput"].get<bool>();
     }
     if (json.contains("isIq")) {
-      result.m_isIq = json["isIq"].get<bool>();
+      m_isIq = json["isIq"].get<bool>();
     }
     if (json.contains("searchExpression")) {
-      result.m_searchExpression = json["searchExpression"].get<std::string>();
+      m_searchExpression = json["searchExpression"].get<std::string>();
     }
     if (json.contains("sampleRate")) {
-      result.m_sampleRate = json["sampleRate"].get<uint32_t>();
+      m_sampleRate = json["sampleRate"].get<uint32_t>();
     }
     if (json.contains("channelCount")) {
-      result.m_channelCount = json["channelCount"].get<uint32_t>();
+      m_channelCount = json["channelCount"].get<uint32_t>();
     }
     if (json.contains("format")) {
-      result.m_format = json["format"].get<std::string>();
+      m_format = json["format"].get<std::string>();
     }
-    return result;
   }
 
   [[nodiscard]] bool isIq() const { return m_isIq; }

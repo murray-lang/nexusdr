@@ -20,7 +20,7 @@ public:
 
   virtual ~AudioIo() = default;
 
-  virtual void initialise(const AudioConfig& config) = 0;
+  virtual void initialise(const AudioConfig* pConfig) = 0;
 
   virtual void start() const = 0;
   virtual void stop() const = 0;

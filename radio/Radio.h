@@ -9,10 +9,10 @@
 #include <settings/control/ControlSink.h>
 #include <settings/control/ControlSource.h>
 #include "config/RadioConfig.h"
-#include "settings/control/RadioControl.h"
+#include <settings/control/RadioControl.h>
 #include "receiver/IqReceiver.h"
-#include <settings/sink/PttSink.h>
-#include <settings/sink/RadioSettingsSink.h>
+#include <settings/PttSink.h>
+#include <settings/RadioSettingsSink.h>
 
 class Radio : public RadioSettingsSink, PttSink {
 
@@ -20,7 +20,7 @@ public:
   explicit Radio(QObject *eventTarget = nullptr);
   ~Radio() override;
 
-  void configure(const RadioConfig& config);
+  void configure(const RadioConfig* pConfig);
   void start();
   void stop();
 

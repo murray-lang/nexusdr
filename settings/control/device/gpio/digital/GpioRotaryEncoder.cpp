@@ -6,9 +6,9 @@
 #include <qdebug.h>
 
 void
-GpioRotaryEncoder::initialise(const nlohmann::json& json)
+GpioRotaryEncoder::configure(const DigitalInputConfig* pConfig)
 {
-  DigitalInput::initialise(json);
+  DigitalInput::configure(pConfig);
 }
 
 bool

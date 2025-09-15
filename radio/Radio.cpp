@@ -18,10 +18,10 @@ Radio::~Radio()
 }
 
 void
-Radio::configure(const RadioConfig& config)
+Radio::configure(const RadioConfig* pConfig)
 {
-  m_control.configure(config.getControl());
-  m_pReceiver->configure(config.getReceiver());
+  m_control.configure(pConfig->getControl());
+  m_pReceiver->configure(pConfig->getReceiver());
 
 }
 

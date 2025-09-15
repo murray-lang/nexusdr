@@ -4,28 +4,28 @@
 
 #ifndef CUTESDR_VK6HL_TRANSMITTERCONFIG_H
 #define CUTESDR_VK6HL_TRANSMITTERCONFIG_H
-#include "JsonConfig.h"
+#include "ConfigBase.h"
 
-class TransmitterConfig : public JsonConfig
+class TransmitterConfig : public ConfigBase
 {
   friend class RadioConfig;
 public:
-  explicit TransmitterConfig() = default;
+  static constexpr auto type = "transmitter";
+  explicit TransmitterConfig() : ConfigBase(type) {}
+  ~TransmitterConfig() override = default;
 
-  TransmitterConfig(const TransmitterConfig& rhs)
-  {
-    operator=(rhs);
-  }
+  // TransmitterConfig(const TransmitterConfig& rhs)
+  // {
+  //   operator=(rhs);
+  // }
+  //
+  // TransmitterConfig& operator=(const TransmitterConfig& rhs)
+  // {
+  //   return *this;
+  // }
 
-  TransmitterConfig& operator=(const TransmitterConfig& rhs)
+  void initialise(const nlohmann::json& json) override
   {
-    return *this;
-  }
-
-  static TransmitterConfig fromJson(const nlohmann::json& json)
-  {
-    TransmitterConfig result;
-    return result;
   }
 
 protected:

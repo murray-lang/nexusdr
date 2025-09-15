@@ -8,11 +8,11 @@
 #include "../../../../../util/StringUtils.h"
 
 DigitalInput*
-DigitalInputFactory::create(const ControlBaseConfig& config, GpioLines& lines)
+DigitalInputFactory::create(const DigitalInputConfig* pConfig, GpioLines& lines)
 {
-  DigitalInput* result = create(config.getType(), lines);
+  DigitalInput* result = create(pConfig->getType(), lines);
   if (result)  {
-    result->initialise(config.getConfig());
+    result->configure(pConfig);
   }
   return result;
 }

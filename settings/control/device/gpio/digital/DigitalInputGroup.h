@@ -9,6 +9,8 @@
 #include "../Gpio.h"
 #include "../GpioLines.h"
 #include <QThread>
+#include <config/DigitalInputConfig.h>
+#include "config/DigitalInputGroupConfig.h"
 
 class DigitalInputGroup : public ControlSource, public QThread
 {
@@ -16,7 +18,8 @@ public:
   explicit DigitalInputGroup(const char* consumer = "");
   ~DigitalInputGroup() override;
 
-  void initialise(const nlohmann::json& json) override;
+  // void initialise(const nlohmann::json& json) override;
+  void configure(const ConfigBase* pConfig) override;
   bool discover() override;
   void open() override;
   void close() override;
@@ -25,7 +28,7 @@ public:
   void run() override;
 
 protected:
-  void createInputs(const nlohmann::json& json);
+  void createInputs(const DigitalInputGroupConfig* pConfig);
   void deleteInputs();
 
   std::vector<uint32_t> gatherLinesFromInputs();

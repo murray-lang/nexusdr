@@ -4,10 +4,10 @@
 
 #ifndef CUTESDR_VK6HL_DIGITALINPUTCONFIG_H
 #define CUTESDR_VK6HL_DIGITALINPUTCONFIG_H
-#include "config/JsonConfig.h"
+#include "config/ConfigBase.h"
 
 
-class DigitalInputConfig : public JsonConfig
+class DigitalInputConfig : public ConfigBase
 {
 };
 

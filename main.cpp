@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
   std::ifstream f("/home/murray/.config/cutesdr-vk6hl/cutesdr-vk6hl.json");
   json config = json::parse(f);
   if (config.contains("radio")) {
-    radioConfig = RadioConfig::fromJson(config["radio"]);
+    radioConfig.initialise(config["radio"]);
   } else {
     qDebug() << "No radio config found";
   }

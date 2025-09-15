@@ -4,7 +4,7 @@
 
 #ifndef RADIOSETTINGSSINK_H
 #define RADIOSETTINGSSINK_H
-#include "../../../settings/RadioSettings.h"
+#include "RadioSettings.h"
 
 class RadioSettingsSink
 {

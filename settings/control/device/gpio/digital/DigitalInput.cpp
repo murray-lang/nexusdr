@@ -6,14 +6,10 @@
 #include "../../../../RadioSettings.h"
 
 void
-DigitalInput::initialise(const nlohmann::json& json)
+DigitalInput::configure(const DigitalInputConfig* pConfig)
 {
-  if (json.contains("lines")) {
-    m_lines = json["lines"].get<std::vector<uint32_t>>();
-  }
-  if (json.contains("settingPath")) {
-    std::string strSettingPath = json["settingPath"];
-    m_id = strSettingPath;
-    m_settingPath = RadioSettings::getSettingPath(strSettingPath);
-  }
+  m_lines = pConfig->getLines();
+  std::string strSettingPath = pConfig->getSettingPath();
+  m_id = strSettingPath;
+  m_settingPath = RadioSettings::getSettingPath(strSettingPath);
 }

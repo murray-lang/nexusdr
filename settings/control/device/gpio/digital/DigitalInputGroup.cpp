@@ -4,12 +4,14 @@
 
 #include "DigitalInputGroup.h"
 #include <config/ConfigException.h>
-#include <settings/control/ControlSource.h>
-#include <settings/control/ControlSourceFactory.h>
+#include "../../../ControlSource.h"
+#include "../../../ControlSourceFactory.h"
 #include <poll.h>
 #include <qdebug.h>
+#include <config/DigitalInputConfig.h>
 
 #include "DigitalInputFactory.h"
+#include "config/DigitalInputGroupConfig.h"
 
 DigitalInputGroup::DigitalInputGroup(const char* consumer) :
   m_lines(consumer),
@@ -25,9 +27,10 @@ DigitalInputGroup::~DigitalInputGroup()
 }
 
 void
-DigitalInputGroup::initialise(const nlohmann::json& json)
+DigitalInputGroup::configure(const ConfigBase* pConfig)
 {
-  createInputs(json);
+  const DigitalInputGroupConfig* config = dynamic_cast<const DigitalInputGroupConfig*>(pConfig);
+  createInputs(config);
 }
 
 bool
@@ -65,20 +68,15 @@ DigitalInputGroup::exit()
 }
 
 void
-DigitalInputGroup::createInputs(const nlohmann::json& json)
+DigitalInputGroup::createInputs(const DigitalInputGroupConfig* pConfig)
 {
   deleteInputs();
-  if (json.contains("inputs")) {
-    for (auto& inputConfig : json["inputs"]) {
-      ControlBaseConfig config = ControlBaseConfig::fromJson(inputConfig);
-      DigitalInput* input = DigitalInputFactory::create(config, m_lines);
-      if (input == nullptr) {
-        throw ConfigException("digitalInputGroup input has unknown input type: " + config.getType());
-      }
-      m_inputs.push_back(input);
+  for (const auto& pInputConfig : pConfig->getInputs()) {
+    DigitalInput* input = DigitalInputFactory::create(pInputConfig, m_lines);
+    if (input == nullptr) {
+      throw ConfigException("digitalInputGroup input has unknown input type: " + pConfig->getType());
     }
-  } else {
-    throw ConfigException("digitalInputGroup control source has no 'inputs' configuration");
+    m_inputs.push_back(input);
   }
 }
 

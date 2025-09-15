@@ -8,7 +8,7 @@
 
 #include "ControlSink.h"
 #include "ControlSource.h"
-#include <config/RadioControlConfig.h>
+#include <config/ControlConfig.h>
 
 
 class RadioControl : public RadioSettingsSink, public PttSink
@@ -17,7 +17,7 @@ public:
   RadioControl() = default;
   ~RadioControl() override = default;
 
-  void configure(const RadioControlConfig& config);
+  void configure(const ControlConfig* pConfig);
   void start();
   void stop();
 

@@ -4,7 +4,7 @@
 
 #include "FunCubeDongle.h"
 #include "FCDHidCmd.h"
-#include <settings/control/ControlException.h>
+#include "../../ControlException.h"
 
 #include <cmath>
 
@@ -55,7 +55,7 @@ void FunCubeDongle::ptt(bool on)
 // }
 
 void
-FunCubeDongle::initialise(const nlohmann::json& json)
+FunCubeDongle::configure(const ConfigBase* pConfig)
 {
     m_control.initialise();
 }

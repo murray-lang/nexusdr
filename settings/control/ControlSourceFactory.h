@@ -5,13 +5,13 @@
 #ifndef CUTESDR_VK6HL_CONTROLSOURCEFACTORY_H
 #define CUTESDR_VK6HL_CONTROLSOURCEFACTORY_H
 #include "ControlSource.h"
-#include <config/ControlBaseConfig.h>
+#include <config/ConfigBase.h>
 
 
 class ControlSourceFactory
 {
 public:
-  static ControlSource* create(const ControlBaseConfig& config);
+  static ControlSource* create(const ConfigBase* pConfig);
   static ControlSource* create(const std::string& type);
 };
 

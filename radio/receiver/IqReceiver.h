@@ -21,8 +21,8 @@
 #include "../../io/audio/AudioOutput.h"
 #include "config/ReceiverConfig.h"
 #include <settings/control/ControlBase.h>
-#include <settings/sink/ReceiverSettingsSink.h>
-#include <settings/sink/PttSink.h>
+#include <settings/ReceiverSettingsSink.h>
+#include <settings/PttSink.h>
 
 //#define PING_PONG_LENGTH 2048
 #define PING_PONG_LENGTH 8192
@@ -37,7 +37,7 @@ public:
     delete m_pIqInput;
   }
 
-  void configure(const ReceiverConfig& config);
+  void configure(const ReceiverConfig* pConfig);
   void start() const;
   void stop() const;
 

@@ -4,54 +4,54 @@
 
 #ifndef CUTESDR_VK6HL_RADIOCONFIG_H
 #define CUTESDR_VK6HL_RADIOCONFIG_H
-#include <config/RadioControlConfig.h>
-#include "JsonConfig.h"
+#include <config/ControlConfig.h>
+#include "ConfigBase.h"
 #include "ReceiverConfig.h"
 
-class RadioConfig : public JsonConfig
+class RadioConfig : public ConfigBase
 {
 public:
-  explicit RadioConfig() = default;
+  static constexpr auto type = "radio";
 
-  RadioConfig(const RadioConfig& rhs) :
-    m_receiver(rhs.m_receiver),
-    m_control(rhs.m_control)
+   RadioConfig() : ConfigBase(type), m_pReceiver(nullptr), m_pControl(nullptr) {}
+  ~RadioConfig() override
   {
-//    operator=(rhs);
+    delete m_pReceiver;
+    delete m_pControl;
   }
+//   RadioConfig(const RadioConfig& rhs) :
+//     m_receiver(rhs.m_receiver),
+//     m_control(rhs.m_control)
+//   {
+// //    operator=(rhs);
+//   }
+//
+//   RadioConfig& operator=(const RadioConfig& rhs)
+//   {
+//     m_receiver = rhs.m_receiver;
+//     m_control = rhs.m_control;
+//     return *this;
+//   }
 
-  RadioConfig& operator=(const RadioConfig& rhs)
+  void initialise(const nlohmann::json& json) override
   {
-    m_receiver = rhs.m_receiver;
-    m_control = rhs.m_control;
-    return *this;
-  }
-
-  static RadioConfig fromJson(const nlohmann::json& json)
-  {
-    RadioConfig result;
     if(json.contains("receiver"))
     {
-      result.m_receiver = ReceiverConfig::fromJson(json["receiver"]);
+      m_pReceiver = dynamic_cast<ReceiverConfig *>(ConfigFactory::create("receiver", json["receiver"]));
     }
     if (json.contains("control"))
     {
-      result.m_control = RadioControlConfig::fromJson(json["control"]);
-      // for (auto& controller : json["control"])
-      // {
-      //   result.m_control.push_back(ControllerConfig::fromJson(controller));
-      // }
+      m_pControl = dynamic_cast<ControlConfig *>(ConfigFactory::create("control", json["control"]));
     }
-    return result;
   }
 
-  const ReceiverConfig& getReceiver() const { return m_receiver; }
+  [[nodiscard]] const ReceiverConfig* getReceiver() const { return m_pReceiver; }
   // [[nodiscard]] const std::vector<ControllerConfig>& getControllers() const { return m_control; }
-  [[nodiscard]] const RadioControlConfig& getControl() const { return m_control; }
+  [[nodiscard]] const ControlConfig* getControl() const { return m_pControl; }
 
 protected:
-  RadioControlConfig m_control;
-  ReceiverConfig m_receiver;
+  ControlConfig* m_pControl;
+  ReceiverConfig* m_pReceiver;
 };
 
 #endif //CUTESDR_VK6HL_RADIOCONFIG_H

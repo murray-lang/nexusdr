@@ -1,0 +1,66 @@
+//
+// Created by murray on 20/8/25.
+//
+
+#ifndef CONTROLCONFIG_H
+#define CONTROLCONFIG_H
+#include "VariantConfig.h"
+#include "ConfigBase.h"
+#include "ConfigFactory.h"
+
+
+class ControlConfig : public ConfigBase
+{
+  // friend class RadioConfig;
+public:
+  static constexpr auto type = "control";
+
+  ControlConfig() : ConfigBase(type) {}
+  // RadioControlConfig(const RadioControlConfig& rhs) : m_sinks(rhs.m_sinks), m_sources(rhs.m_sources)
+  // {
+  // }
+  ~ControlConfig() override
+  {
+    for (auto p : m_sinks) {
+      delete p;
+    }
+    m_sinks.clear();
+    for (auto p : m_sources) {
+      delete p;
+    }
+    m_sources.clear();
+  }
+
+  // RadioControlConfig& operator=(const RadioControlConfig& rhs)
+  // {
+  //   m_sinks = rhs.m_sinks;
+  //   m_sources = rhs.m_sources;
+  //   return *this;
+  // }
+
+  void initialise(const nlohmann::json& json) override
+  {
+    if (json.contains("sinks")) {
+      for (auto& sinkConfig : json["sinks"]) {
+        VariantConfig variantConfig(sinkConfig);
+        ConfigBase* config = ConfigFactory::create(variantConfig);
+        m_sinks.push_back(config);
+      }
+    }
+    if (json.contains("sources")) {
+      for (auto& sourceConfig : json["sources"]) {
+        VariantConfig variantConfig(sourceConfig);
+        ConfigBase* config = ConfigFactory::create(variantConfig);
+        m_sources.push_back(config);
+      }
+    }
+  }
+  [[nodiscard]] const std::vector<ConfigBase*>& getSinks() const { return m_sinks; }
+  [[nodiscard]] const std::vector<ConfigBase*>& getSources() const { return m_sources; }
+
+protected:
+  std::vector<ConfigBase*> m_sinks;
+  std::vector<ConfigBase*> m_sources;
+};
+
+#endif //CONTROLCONFIG_H

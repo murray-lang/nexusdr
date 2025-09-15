@@ -4,49 +4,56 @@
 
 #ifndef CUTESDR_VK6HL_RECEIVERCONFIG_H
 #define CUTESDR_VK6HL_RECEIVERCONFIG_H
-#include "JsonConfig.h"
+#include "ConfigBase.h"
 #include "AudioConfig.h"
-#include "ControlBaseConfig.h"
+#include "ConfigException.h"
+#include "ConfigFactory.h"
 
-class ReceiverConfig : public JsonConfig
+class ReceiverConfig : public ConfigBase
 {
   friend class RadioConfig;
 public:
-  explicit ReceiverConfig() = default;
-
-  ReceiverConfig(const ReceiverConfig& rhs) :
-    m_iqInput(rhs.m_iqInput),
-    m_audioOutput(rhs.m_audioOutput)
+  static constexpr auto type = "receiver";
+  explicit ReceiverConfig() : ConfigBase(type), m_pInput(nullptr), m_pOutput(nullptr) {}
+  ~ReceiverConfig() override
   {
-  }
+    delete m_pInput;
+    delete m_pOutput;
+  };
+  // ReceiverConfig(const ReceiverConfig& rhs) :
+  //   m_iqInput(rhs.m_iqInput),
+  //   m_audioOutput(rhs.m_audioOutput)
+  // {
+  // }
+  //
+  // ReceiverConfig& operator=(const ReceiverConfig& rhs)
+  // {
+  //   m_iqInput = rhs.m_iqInput;
+  //   m_audioOutput = rhs.m_audioOutput;
+  //   return *this;
+  // }
 
-  ReceiverConfig& operator=(const ReceiverConfig& rhs)
+  void initialise(const nlohmann::json& json) override
   {
-    m_iqInput = rhs.m_iqInput;
-    m_audioOutput = rhs.m_audioOutput;
-    return *this;
-  }
-
-  static ReceiverConfig fromJson(const nlohmann::json& json)
-  {
-    ReceiverConfig result;
-    if (json.contains("iqInput")) {
-      result.m_iqInput = AudioConfig::fromJson(json["iqInput"]);
+    if (json.contains("input")) {
+      VariantConfig variantConfig(json["input"]);
+      m_pInput = ConfigFactory::create(variantConfig);
+    } else {
+      throw ConfigException("ReceiverConfig: input empty");
     }
-    if (json.contains("audioOutput")) {
-      result.m_audioOutput = AudioConfig::fromJson(json["audioOutput"]);
+    if (json.contains("output")) {
+      VariantConfig variantConfig(json["output"]);
+      m_pOutput = ConfigFactory::create(variantConfig);
+    } else {
+      throw ConfigException("ReceiverConfig: output empty");
     }
-    return result;
   }
 
-  [[nodiscard]] const AudioConfig& getIqInput() const { return m_iqInput; }
-  [[nodiscard]] const AudioConfig& getAudioOutput() const { return m_audioOutput; }
-
+  [[nodiscard]] const ConfigBase* getInput() const { return m_pInput; }
+  [[nodiscard]] const ConfigBase* getOutput() const { return m_pOutput; }
 
 protected:
-//  std::optional<AudioConfig> m_iqInput;
-//  std::optional<AudioConfig> m_audioOutput;
-  AudioConfig m_iqInput;
-  AudioConfig m_audioOutput;
+  ConfigBase* m_pInput;
+  ConfigBase* m_pOutput;
 };
 #endif //CUTESDR_VK6HL_RECEIVERCONFIG_H

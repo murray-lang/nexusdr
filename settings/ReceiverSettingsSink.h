@@ -4,7 +4,7 @@
 
 #ifndef RECEIVERSETTINGSSINK_H
 #define RECEIVERSETTINGSSINK_H
-#include "../../../settings/ReceiverSettings.h"
+#include "ReceiverSettings.h"
 
 class ReceiverSettingsSink
 {

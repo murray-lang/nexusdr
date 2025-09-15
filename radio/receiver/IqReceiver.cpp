@@ -78,21 +78,21 @@ IqReceiver::IqReceiver(QObject* eventTarget) :
 // }
 
 void
-IqReceiver::configure(const ReceiverConfig& config)
+IqReceiver::configure(const ReceiverConfig* pConfig)
 {
   delete m_pIqInput;
   delete m_pAudioOutput;
   m_pIqInput = nullptr;
   m_pAudioOutput = nullptr;
 
-  const AudioConfig& iqInputConfig = config.getIqInput();
+  auto iqInputConfig = dynamic_cast<const AudioConfig*>(pConfig->getInput());
   m_pIqInput = new IqAudioInput(this);
   m_pIqInput->initialise(iqInputConfig);
 
   uint32_t inputSampleRate = m_pIqInput->getSampleRate();
   m_oscillatorMixer.initialise(inputSampleRate, -lo);
 
-  const AudioConfig& audioOutputConfig = config.getAudioOutput();
+  auto audioOutputConfig = dynamic_cast<const AudioConfig*>(pConfig->getOutput());
   m_pAudioOutput = new AudioOutput();
   m_pAudioOutput->initialise(audioOutputConfig);
 

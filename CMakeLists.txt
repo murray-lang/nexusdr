@@ -18,7 +18,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 #list(APPEND CMAKE_PREFIX_PATH "/home/murray/Qt/6.9.1/gcc_64/lib/cmake")
 #list(APPEND CMAKE_PREFIX_PATH "/home/murray/Qt6.5/6.5.3/gcc_64/lib/cmake")
-# list(APPEND CMAKE_PREFIX_PATH "/home/murray/Qt/6.5.0/gcc_64/lib/cmake")
+list(APPEND CMAKE_PREFIX_PATH "/home/murray/Qt/6.5.0/gcc_64/lib/cmake")
 list(APPEND CMAKE_PREFIX_PATH "/usr/lib/aarch-linux-gnu/cmake")
 
 set(VOLK_MIN_VERSION "2.4.1")         ## first version with CPU features
@@ -119,10 +119,10 @@ set(PROJECT_SOURCES
         settings/control/device/usb/HidUsbControl.cpp
         settings/control/device/usb/HidUsbControl.h
         settings/control/device/usb/UsbControl.cpp
-        include/settings/control/ControlBase.h
+        settings/control/ControlBase.h
         settings/control/device/FunCubeDongle/FunCubeDongle.cpp
         settings/control/device/FunCubeDongle/FunCubeDongle.h
-        include/settings/control/ControlException.h
+        settings/control/ControlException.h
         settings/RfSettings.h
         settings/IfSettings.h
         settings/ReceiverSettings.h
@@ -150,7 +150,7 @@ set(PROJECT_SOURCES
         config/ReceiverConfig.h
         config/TransmitterConfig.h
         config/AudioConfig.h
-        config/JsonConfig.h
+        config/ConfigBase.h
         config/ConfigException.h
 
         io/audio/device/AudioDevice.h
@@ -167,24 +167,23 @@ set(PROJECT_SOURCES
         radio/receiver/ReceiverIqEvent.cpp
         radio/receiver/ReceiverAudioEvent.cpp
         radio/receiver/ReceiverAudioEvent.h
-        config/ControlBaseConfig.h
-        include/settings/control/ControlSinkFactory.h
+        settings/control/ControlSinkFactory.h
         settings/control/ControlSinkFactory.cpp
         io/audio/device/AudioDeviceFactory.h
-        include/settings/sink/ReceiverSettingsSink.h
-        include/settings/sink/PttSink.h
+        settings/ReceiverSettingsSink.h
+        settings/PttSink.h
         radio/Radio.cpp
         radio/Radio.h
-        include/settings/sink/RadioSettingsSink.h
-        config/RadioControlConfig.h
+        settings/RadioSettingsSink.h
+        config/ControlConfig.h
         settings/control/ControlSink.cpp
-        include/settings/control/ControlSink.h
-        include/settings/source/RadioSettingsSource.h
+        settings/control/ControlSink.h
+        settings/RadioSettingsSource.h
         settings/control/ControlSource.cpp
-        include/settings/control/ControlSource.h
-        include/settings/source/PttSource.h
+        settings/control/ControlSource.h
+        settings/PttSource.h
         settings/control/ControlSourceFactory.cpp
-        include/settings/control/ControlSourceFactory.h
+        settings/control/ControlSourceFactory.h
         ${PLATFORM_SOURCES}
         settings/control/device/gpio/Gpio.cpp
         settings/control/device/gpio/Gpio.h
@@ -203,7 +202,7 @@ set(PROJECT_SOURCES
         util/StringUtils.cpp
         util/StringUtils.h
         settings/control/RadioControl.cpp
-        include/settings/control/RadioControl.h
+        settings/control/RadioControl.h
         dsp/stages/demodulators/FmDemodulator.cpp
         dsp/stages/demodulators/FmDemodulator.h
         settings/control/device/gpio/digital/DigitalInput.h
@@ -213,6 +212,13 @@ set(PROJECT_SOURCES
         settings/control/device/gpio/digital/config/DigitalInputConfig.cpp
         settings/control/device/gpio/digital/config/DigitalInputConfig.h
         settings/control/device/gpio/digital/DigitalInputFactory.cpp
+        config/VariantConfig.h
+        config/ConfigFactory.cpp
+        config/ConfigFactory.h
+        config/DigitalInputGroupConfig.h
+        config/RotaryEncoderConfig.h
+        config/DigitalInputConfig.h
+        config/FunCubeConfig.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -240,7 +246,6 @@ endif()
 
 target_include_directories(cutesdr-vk6hl PUBLIC
     ${CMAKE_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/include
     /usl/local/include
     /usr/local/include/rtaudio
     ${VOLK_INCLUDE_DIRS}
