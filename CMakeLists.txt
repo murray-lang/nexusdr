@@ -18,7 +18,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 #list(APPEND CMAKE_PREFIX_PATH "/home/murray/Qt/6.9.1/gcc_64/lib/cmake")
 #list(APPEND CMAKE_PREFIX_PATH "/home/murray/Qt6.5/6.5.3/gcc_64/lib/cmake")
-list(APPEND CMAKE_PREFIX_PATH "/home/murray/Qt/6.5.0/gcc_64/lib/cmake")
+#list(APPEND CMAKE_PREFIX_PATH "/home/murray/Qt/6.5.0/gcc_64/lib/cmake")
 list(APPEND CMAKE_PREFIX_PATH "/usr/lib/aarch-linux-gnu/cmake")
 
 set(VOLK_MIN_VERSION "2.4.1")         ## first version with CPU features
@@ -40,7 +40,7 @@ endif()
 include(CMakeLists_AudioLibs.txt)
 message(STATUS "${AUDIO_LINK_LIBS}")
 
-find_package(nlohmann_json 3.11.3 REQUIRED)
+find_package(nlohmann_json 3.11.2 REQUIRED)
 find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui Widgets Charts)
 find_library(HIDAPI_LIBRARY hidapi-libusb)

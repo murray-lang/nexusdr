@@ -1,4 +1,6 @@
 # We need version 2.2.x If the distro provides that then...
+# (Important: Make sure any existing version is not v1.6.3
+# If it is then remove it)
 sudo apt install -y gpiod libgpiod-dev
 # ...otherwise
 git clone https://github.com/brgl/libgpiod.git
@@ -7,7 +9,10 @@ git fetch
 git checkout v2.2.x
 sudo apt install autoconf-archive
 ./autogen.sh
+#If PC then..
 ./configure --prefix=/usr --libdir=/usr/lib/x86_64-linux-gnu
+#If RPi then
+./configure --prefix=/usr --libdir=/usr/lib/aarch64-linux-gnu
 make
 sudo make install
 
