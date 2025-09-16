@@ -22,7 +22,7 @@ class MainWindow : public QMainWindow
   Q_OBJECT
 
 public:
-  MainWindow(RadioConfig& radioConfig, QWidget *parent = nullptr);
+  explicit MainWindow(RadioConfig& radioConfig, QWidget *parent = nullptr);
   ~MainWindow() override;
 
   void customEvent(QEvent* event) override;
@@ -52,7 +52,7 @@ private:
 
   void initialiseRadio();
 private:
-  RadioConfig m_radioConfig;
+  RadioConfig& m_radioConfig;
   Ui::MainWindow *ui;
 
 //    bool m_pullMode = true;

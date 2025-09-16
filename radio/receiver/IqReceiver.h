@@ -74,7 +74,7 @@ protected:
   IqAudioInput* m_pIqInput;
   AudioOutput* m_pAudioOutput;
   // std::vector<DeviceControl*> m_deviceControllers;
-  ReceiverConfig m_config;
+  // ReceiverConfig m_config;
 };
 
 #endif //__SDR_H__
