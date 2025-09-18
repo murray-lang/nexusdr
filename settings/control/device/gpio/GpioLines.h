@@ -8,11 +8,33 @@
 #include <cstdint>
 #include <unordered_map>
 #include "Gpio.h"
-
+#include <gpiod.h>
+#include <vector>
 
 class GpioLines {
   friend Gpio;
 public:
+  enum class Direction {
+    AS_IS = 1,
+    INPUT,
+    OUTPUT
+  };
+
+  enum class Bias {
+    AS_IS = 1,
+    UNKNOWN,
+    DISABLED,
+    PULL_UP,
+    PULL_DOWN
+  };
+
+  enum class Edge {
+    NONE = 1,
+    RISING,
+    FALLING,
+    BOTH
+  };
+
   struct LineState
   {
     uint32_t line;
@@ -28,9 +50,9 @@ public:
 
   void request(
     const std::vector<uint32_t>& lines,
-    gpiod_line_direction direction,
-    gpiod_line_bias bias,
-    gpiod_line_edge edge
+    Direction direction,
+    Bias bias,
+    Edge edge
   );
 
   void release();

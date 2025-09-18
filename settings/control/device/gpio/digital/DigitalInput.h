@@ -14,7 +14,7 @@
 class DigitalInput
 {
 public:
-  explicit DigitalInput(GpioLines& lines) {}
+  explicit DigitalInput() = default;
   virtual ~DigitalInput() = default;
 
   virtual void configure(const DigitalInputConfig* pConfig);

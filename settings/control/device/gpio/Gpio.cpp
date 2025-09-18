@@ -1,47 +1,35 @@
-//
-// Created by murray on 2025-08-21.
-//
-
 #include "Gpio.h"
-#include "GpioLines.h"
 
-#include "GpioException.h"
+#ifdef USE_GPIOD
+#include "impl/gpiod/GpioImplGpiod.h"
+#endif  
 
-Gpio::Gpio() :
-  m_pChip(nullptr)
+Gpio::Gpio()
 {
-
+#ifdef USE_GPIOD
+    m_pImpl = std::make_unique<GpioImplGpiod>();
+#else
+    m_pImpl = nullptr;
+#endif
 }
 
-Gpio::~Gpio()
+bool Gpio::isPresent()
 {
-  close();
-}
-
-bool
-Gpio::isPresent(const char *chipPath)
-{
-  gpiod_chip* pChip = gpiod_chip_open(chipPath);
-  if (pChip == nullptr) {
+#ifdef USE_GPIOD
+    return GpioImplGpiod::isPresent();
+#else
     return false;
-  }
-  gpiod_chip_close(pChip);
-  return true;
+#endif
 }
 
-void
-Gpio::open(const char *chipPath) {
-  m_pChip = gpiod_chip_open(chipPath);
-  if (m_pChip == nullptr) {
-    throw GpioException("Failed to open GPIO");
-  }
-}
-
-void
-Gpio::close()
+void Gpio::open()
 {
-  if (m_pChip) {
-    gpiod_chip_close(m_pChip);
-    m_pChip = nullptr;
-  }
+    m_pImpl->open();
 }
+void Gpio::close()
+{
+    if (m_pImpl) {
+        m_pImpl->close();
+    }
+}
+

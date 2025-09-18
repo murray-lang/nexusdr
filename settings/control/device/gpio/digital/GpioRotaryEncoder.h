@@ -12,9 +12,7 @@
 class GpioRotaryEncoder : public DigitalInput
 {
 public:
-  explicit GpioRotaryEncoder(GpioLines& lines) :
-    DigitalInput(lines)
-  {};
+  explicit GpioRotaryEncoder() = default;
   void configure(const DigitalInputConfig* pConfig) override;
 
   bool handleLineChange(GpioLines::LineStateMap& changedLines) override;

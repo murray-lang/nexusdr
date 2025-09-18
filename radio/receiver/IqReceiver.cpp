@@ -140,7 +140,7 @@ IqReceiver::start() const
     m_pAudioOutput->start();
   }
   if (m_pIqInput != nullptr) {
-    //m_pIqInput->start();
+    m_pIqInput->start();
   }
 }
 

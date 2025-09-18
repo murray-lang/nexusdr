@@ -67,6 +67,7 @@ public:
       // Only consider devices with input channels
       if (info.inputChannels > 0) {
         std::string name = info.name;
+        // qDebug() << "Found input device: " << QString::fromStdString(name);
         std::smatch match;
         std::regex_search(name, match, regex);
         if (std::regex_search(name, match, regex)) {

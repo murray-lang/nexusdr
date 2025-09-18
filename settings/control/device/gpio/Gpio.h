@@ -4,17 +4,12 @@
 
 #ifndef CUTESDR_VK6HL_GPIO_H
 #define CUTESDR_VK6HL_GPIO_H
-#include <gpiod.h>
-#include <string>
-#include <vector>
-
-class GpioLines;
+#include <memory>
 
 class Gpio {
-  friend GpioLines;
+  // friend GpioLines;
 public:
-  constexpr static auto defaultChipPath = "/dev/gpiochip0";
-
+  Gpio();
   static Gpio& getInstance() {
     static Gpio instance; // Only created once, thread-safe since C++11
     return instance;
@@ -26,17 +21,25 @@ public:
   Gpio(Gpio&&) = delete;
   Gpio& operator=(Gpio&&) = delete;
 
-  static bool isPresent(const char *chipPath = defaultChipPath);
-  void open(const char *chipPath = defaultChipPath);
+  static bool isPresent();
+  void open();
   void close();
 
+  class Impl
+  {
+  public:
+    virtual ~Impl() = default;
+    static bool isPresent();
+    virtual bool open() = 0;
+    virtual bool close() = 0;
+  };
+
 protected:
-  Gpio();
-  virtual ~Gpio();
-  gpiod_chip * getChip() { return m_pChip; }
-protected:
-  gpiod_chip *m_pChip;
+  std::unique_ptr<Impl> m_pImpl;
+
 };
+
+
 
 
 #endif //CUTESDR_VK6HL_GPIO_H

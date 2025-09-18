@@ -16,10 +16,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --enable-threads")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --enable-threads")
 
-list(APPEND CMAKE_PREFIX_PATH "/home/murray/Qt/6.9.1/gcc_64/lib/cmake")
+# list(APPEND CMAKE_PREFIX_PATH "/home/murray/Qt/6.9.1/gcc_64/lib/cmake")
 #list(APPEND CMAKE_PREFIX_PATH "/home/murray/Qt6.5/6.5.3/gcc_64/lib/cmake")
 #list(APPEND CMAKE_PREFIX_PATH "/home/murray/Qt/6.5.0/gcc_64/lib/cmake")
-#list(APPEND CMAKE_PREFIX_PATH "/usr/lib/aarch-linux-gnu/cmake")
+list(APPEND CMAKE_PREFIX_PATH "/usr/lib/aarch-linux-gnu/cmake")
 
 set(VOLK_MIN_VERSION "2.4.1")         ## first version with CPU features
 
@@ -28,6 +28,10 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
 
 find_package(PkgConfig)
 find_package(RtAudio REQUIRED)
+
+pkg_check_modules(PIGPIO QUIET IMPORTED_TARGET pigpio)
+
+
 #find_package(gpiod 2 QUIET CONFIG)
 
 pkg_check_modules(GPIOD QUIET IMPORTED_TARGET libgpiod)
@@ -35,6 +39,7 @@ pkg_check_modules(GPIOD QUIET IMPORTED_TARGET libgpiod)
 if(GPIOD_FOUND)
 #    set(IS_RPI TRUE)
     message(STATUS "libgpiod found")
+    add_definitions(-DUSE_GPIOD)
 endif()
 
 include(CMakeLists_AudioLibs.txt)
@@ -76,17 +81,17 @@ if( ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     endif()
 endif()
 
-# if(GPIOD_FOUND)
-#     set (PLATFORM_SOURCES
-#             src/settings/control/device/platform/rpi/GpioRotaryEncoder.h
-#             src/settings/control/device/platform/rpi/GpioRotaryEncoder.cpp
-#     )
-# else()
-#     set (PLATFORM_SOURCES
-#             src/settings/control/device/platform/dummy/GpioRotaryEncoder.h
-#             src/settings/control/device/platform/dummy/GpioRotaryEncoder.cpp
-#     )
-# endif()
+if(USE_GPIOD)
+    set (PLATFORM_SOURCES
+            src/settings/control/device/gpio/impl/gpiod/GpioImplGpiod.h
+            src/settings/control/device/gpio/impl/gpiod/GpioImplGpiod.cpp
+    )
+else()
+    # set (PLATFORM_SOURCES
+    #         src/settings/control/device/gpio/impl/gpiod/GpioRotaryEncoder.h
+    #         src/settings/control/device/platform/dummy/GpioRotaryEncoder.cpp
+    # )
+endif()
 
 set(PROJECT_SOURCES
         main.cpp
@@ -209,8 +214,6 @@ set(PROJECT_SOURCES
         settings/control/device/gpio/digital/DigitalInput.cpp
         settings/control/device/gpio/digital/DigitalInputFactory.cpp
         settings/control/device/gpio/digital/DigitalInputFactory.h
-        settings/control/device/gpio/digital/config/DigitalInputConfig.cpp
-        settings/control/device/gpio/digital/config/DigitalInputConfig.h
         settings/control/device/gpio/digital/DigitalInputFactory.cpp
         config/VariantConfig.h
         config/ConfigFactory.cpp
@@ -266,7 +269,7 @@ set (COMMON_LIBRARIES
     nlohmann_json::nlohmann_json
 )
 
-if(GPIOD_FOUND)
+if(USE_GPIOD)
    set (PLATFORM_LIBRARIES
      PkgConfig::GPIOD
    )

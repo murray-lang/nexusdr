@@ -44,7 +44,7 @@ DigitalInputGroup::open()
 {
   if (!m_running) {
     std::vector<uint32_t> lines = gatherLinesFromInputs();
-    m_lines.request(lines, GPIOD_LINE_DIRECTION_INPUT, GPIOD_LINE_BIAS_PULL_UP, GPIOD_LINE_EDGE_BOTH);
+    m_lines.request(lines, GpioLines::Direction::INPUT, GpioLines::Bias::PULL_UP, GpioLines::Edge::BOTH);
     m_running = true;
     QThread::start();
   }

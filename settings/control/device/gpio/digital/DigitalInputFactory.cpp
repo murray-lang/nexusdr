@@ -5,7 +5,7 @@
 #include "DigitalInputFactory.h"
 
 #include "DigitalInputGroup.h"
-#include "../../../../../util/StringUtils.h"
+#include <util/StringUtils.h>
 
 DigitalInput*
 DigitalInputFactory::create(const DigitalInputConfig* pConfig, GpioLines& lines)
