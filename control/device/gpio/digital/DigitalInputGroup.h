@@ -4,7 +4,7 @@
 
 #ifndef CUTESDR_VK6HL_DIGITALINPUTGROUP_H
 #define CUTESDR_VK6HL_DIGITALINPUTGROUP_H
-#include <settings/control/ControlSource.h>
+#include <control/ControlSource.h>
 #include "GpioRotaryEncoder.h"
 #include "../Gpio.h"
 #include "../GpioLines.h"
@@ -12,7 +12,7 @@
 #include <config/DigitalInputConfig.h>
 #include "config/DigitalInputGroupConfig.h"
 
-class DigitalInputGroup : public ControlSource, public QThread
+class DigitalInputGroup : public ControlSource, public GpioLines::Callback
 {
 public:
   explicit DigitalInputGroup(const char* consumer = "");
@@ -25,7 +25,7 @@ public:
   void close() override;
   void exit() override;
 
-  void run() override;
+  void callback(GpioLines::LineStateMap& lineStates) override;
 
 protected:
   void createInputs(const DigitalInputGroupConfig* pConfig);
@@ -35,9 +35,8 @@ protected:
   void readInitialInputStates();
 
 protected:
-  bool m_running;
   std::vector<DigitalInput*> m_inputs;
-  GpioLines m_lines;
+  std::unique_ptr<GpioLines> m_pLines;
   std::unordered_map<uint32_t, DigitalInput*> m_lineToInputMap;
 };
 

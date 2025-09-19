@@ -10,8 +10,8 @@
 class DigitalInputFactory
 {
 public:
-  static DigitalInput* create(const DigitalInputConfig* pConfig, GpioLines& lines);
-  static DigitalInput* create(const std::string& type, GpioLines& lines);
+  static DigitalInput* create(const DigitalInputConfig* pConfig);
+  static DigitalInput* create(const std::string& type);
 };
 
 

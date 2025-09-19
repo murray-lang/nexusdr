@@ -40,6 +40,7 @@ if(GPIOD_FOUND)
 #    set(IS_RPI TRUE)
     message(STATUS "libgpiod found")
     add_definitions(-DUSE_GPIOD)
+    set(USE_GPIOD ON)
 endif()
 
 include(CMakeLists_AudioLibs.txt)
@@ -83,17 +84,20 @@ endif()
 
 if(USE_GPIOD)
     set (PLATFORM_SOURCES
-            src/settings/control/device/gpio/impl/gpiod/GpioImplGpiod.h
-            src/settings/control/device/gpio/impl/gpiod/GpioImplGpiod.cpp
+        control/device/gpio/impl/gpiod/GpioImplGpiod.h
+        control/device/gpio/impl/gpiod/GpioImplGpiod.cpp
+        control/device/gpio/impl/gpiod/GpioLinesImplGpiod.h
+        control/device/gpio/impl/gpiod/GpioLinesImplGpiod.cpp
     )
 else()
     # set (PLATFORM_SOURCES
-    #         src/settings/control/device/gpio/impl/gpiod/GpioRotaryEncoder.h
-    #         src/settings/control/device/platform/dummy/GpioRotaryEncoder.cpp
+    #         src/control/device/gpio/impl/gpiod/GpioRotaryEncoder.h
+    #         src/control/device/platform/dummy/GpioRotaryEncoder.cpp
     # )
 endif()
 
 set(PROJECT_SOURCES
+        ${PLATFORM_SOURCES}
         main.cpp
         mainwindow.h mainwindow.cpp
         mainwindow.ui
@@ -116,18 +120,18 @@ set(PROJECT_SOURCES
         dsp/stages/demodulators/Demodulator.h
         dsp/stages/demodulators/AmDemodulator.h
 
-        settings/control/device/usb/UsbControl.h
-        settings/control/device/usb/UsbException.cpp
-        settings/control/device/usb/UsbException.h
-        settings/control/device/usb/LibUsbControl.cpp
-        settings/control/device/usb/LibUsbControl.h
-        settings/control/device/usb/HidUsbControl.cpp
-        settings/control/device/usb/HidUsbControl.h
-        settings/control/device/usb/UsbControl.cpp
-        settings/control/ControlBase.h
-        settings/control/device/FunCubeDongle/FunCubeDongle.cpp
-        settings/control/device/FunCubeDongle/FunCubeDongle.h
-        settings/control/ControlException.h
+        control/device/usb/UsbControl.h
+        control/device/usb/UsbException.cpp
+        control/device/usb/UsbException.h
+        control/device/usb/LibUsbControl.cpp
+        control/device/usb/LibUsbControl.h
+        control/device/usb/HidUsbControl.cpp
+        control/device/usb/HidUsbControl.h
+        control/device/usb/UsbControl.cpp
+        control/ControlBase.h
+        control/device/FunCubeDongle/FunCubeDongle.cpp
+        control/device/FunCubeDongle/FunCubeDongle.h
+        control/ControlException.h
         settings/RfSettings.h
         settings/IfSettings.h
         settings/ReceiverSettings.h
@@ -172,8 +176,8 @@ set(PROJECT_SOURCES
         radio/receiver/ReceiverIqEvent.cpp
         radio/receiver/ReceiverAudioEvent.cpp
         radio/receiver/ReceiverAudioEvent.h
-        settings/control/ControlSinkFactory.h
-        settings/control/ControlSinkFactory.cpp
+        control/ControlSinkFactory.h
+        control/ControlSinkFactory.cpp
         io/audio/device/AudioDeviceFactory.h
         settings/ReceiverSettingsSink.h
         settings/PttSink.h
@@ -181,40 +185,40 @@ set(PROJECT_SOURCES
         radio/Radio.h
         settings/RadioSettingsSink.h
         config/ControlConfig.h
-        settings/control/ControlSink.cpp
-        settings/control/ControlSink.h
+        control/ControlSink.cpp
+        control/ControlSink.h
         settings/RadioSettingsSource.h
-        settings/control/ControlSource.cpp
-        settings/control/ControlSource.h
+        control/ControlSource.cpp
+        control/ControlSource.h
         settings/PttSource.h
-        settings/control/ControlSourceFactory.cpp
-        settings/control/ControlSourceFactory.h
-        ${PLATFORM_SOURCES}
-        settings/control/device/gpio/Gpio.cpp
-        settings/control/device/gpio/Gpio.h
-        settings/control/device/gpio/GpioException.cpp
-        settings/control/device/gpio/GpioException.h
-        settings/control/device/gpio/GpioLines.cpp
-        settings/control/device/gpio/GpioLines.h
-        settings/control/device/gpio/digital/GpioRotaryEncoder.cpp
-        settings/control/device/gpio/digital/GpioRotaryEncoder.h
-        settings/control/device/gpio/digital/DigitalInputGroup.cpp
-        settings/control/device/gpio/digital/DigitalInputGroup.h
+        control/ControlSourceFactory.cpp
+        control/ControlSourceFactory.h
+
+        control/device/gpio/Gpio.cpp
+        control/device/gpio/Gpio.h
+        control/device/gpio/GpioException.cpp
+        control/device/gpio/GpioException.h
+        control/device/gpio/GpioLines.cpp
+        control/device/gpio/GpioLines.h
+        control/device/gpio/digital/GpioRotaryEncoder.cpp
+        control/device/gpio/digital/GpioRotaryEncoder.h
+        control/device/gpio/digital/DigitalInputGroup.cpp
+        control/device/gpio/digital/DigitalInputGroup.h
         settings/SettingPath.h
         settings/SettingDelta.h
         settings/SettingsException.h
         settings/SettingsBase.h
         util/StringUtils.cpp
         util/StringUtils.h
-        settings/control/RadioControl.cpp
-        settings/control/RadioControl.h
+        control/RadioControl.cpp
+        control/RadioControl.h
         dsp/stages/demodulators/FmDemodulator.cpp
         dsp/stages/demodulators/FmDemodulator.h
-        settings/control/device/gpio/digital/DigitalInput.h
-        settings/control/device/gpio/digital/DigitalInput.cpp
-        settings/control/device/gpio/digital/DigitalInputFactory.cpp
-        settings/control/device/gpio/digital/DigitalInputFactory.h
-        settings/control/device/gpio/digital/DigitalInputFactory.cpp
+        control/device/gpio/digital/DigitalInput.h
+        control/device/gpio/digital/DigitalInput.cpp
+        control/device/gpio/digital/DigitalInputFactory.cpp
+        control/device/gpio/digital/DigitalInputFactory.h
+        control/device/gpio/digital/DigitalInputFactory.cpp
         config/VariantConfig.h
         config/ConfigFactory.cpp
         config/ConfigFactory.h
@@ -222,6 +226,8 @@ set(PROJECT_SOURCES
         config/RotaryEncoderConfig.h
         config/DigitalInputConfig.h
         config/FunCubeConfig.h
+        control/device/gpio/impl/gpiod/GpioLinesImplGpiod.cpp
+        control/device/gpio/impl/gpiod/GpioLinesImplGpiod.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

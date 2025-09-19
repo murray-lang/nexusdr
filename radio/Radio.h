@@ -6,10 +6,10 @@
 #define RADIO_H
 #include <vector>
 
-#include <settings/control/ControlSink.h>
-#include <settings/control/ControlSource.h>
+#include <control/ControlSink.h>
+#include <control/ControlSource.h>
 #include "config/RadioConfig.h"
-#include <settings/control/RadioControl.h>
+#include <control/RadioControl.h>
 #include "receiver/IqReceiver.h"
 #include <settings/PttSink.h>
 #include <settings/RadioSettingsSink.h>

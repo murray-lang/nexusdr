@@ -10,14 +10,22 @@ class GpioImplGpiod: public Gpio::Impl
   constexpr static auto defaultChipPath = "/dev/gpiochip0";
 public:
   GpioImplGpiod();
-  ~GpioImplGpiod();
+  ~GpioImplGpiod() override;
     
     static bool isPresent();
     bool open() override;
     bool close() override;
 
+  GpioLines* requestLines(
+    const char * contextId,
+    const std::vector<uint32_t>& lines,
+    GpioLines::Direction direction,
+    GpioLines::Bias bias,
+    GpioLines::Edge edge
+  ) override;
+
 protected:
-    std::unique_ptr<gpiod_chip> m_pChip;
+    gpiod_chip* m_pChip;
 };
 
 

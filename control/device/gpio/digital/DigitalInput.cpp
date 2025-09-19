@@ -3,7 +3,7 @@
 //
 
 #include "DigitalInput.h"
-#include "../../../../RadioSettings.h"
+#include <settings/RadioSettings.h>
 
 void
 DigitalInput::configure(const DigitalInputConfig* pConfig)

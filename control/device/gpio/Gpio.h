@@ -6,6 +6,8 @@
 #define CUTESDR_VK6HL_GPIO_H
 #include <memory>
 
+#include "GpioLines.h"
+
 class Gpio {
   // friend GpioLines;
 public:
@@ -25,6 +27,14 @@ public:
   void open();
   void close();
 
+  GpioLines* requestLines(
+    const char * contextId,
+    const std::vector<uint32_t>& lines,
+    GpioLines::Direction direction,
+    GpioLines::Bias bias,
+    GpioLines::Edge edge
+  );
+
   class Impl
   {
   public:
@@ -32,6 +42,13 @@ public:
     static bool isPresent();
     virtual bool open() = 0;
     virtual bool close() = 0;
+    virtual GpioLines* requestLines(
+      const char * contextId,
+      const std::vector<uint32_t>& lines,
+      GpioLines::Direction direction,
+      GpioLines::Bias bias,
+      GpioLines::Edge edge
+    ) = 0;
   };
 
 protected:

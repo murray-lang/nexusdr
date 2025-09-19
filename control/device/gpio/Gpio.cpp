@@ -33,3 +33,15 @@ void Gpio::close()
     }
 }
 
+GpioLines*
+Gpio::requestLines(
+  const char * contextId,
+  const std::vector<uint32_t>& lines,
+  GpioLines::Direction direction,
+  GpioLines::Bias bias,
+  GpioLines::Edge edge
+)
+{
+  return m_pImpl->requestLines(contextId, lines, direction, bias, edge);
+}
+

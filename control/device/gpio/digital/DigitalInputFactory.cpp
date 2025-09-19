@@ -8,9 +8,9 @@
 #include <util/StringUtils.h>
 
 DigitalInput*
-DigitalInputFactory::create(const DigitalInputConfig* pConfig, GpioLines& lines)
+DigitalInputFactory::create(const DigitalInputConfig* pConfig)
 {
-  DigitalInput* result = create(pConfig->getType(), lines);
+  DigitalInput* result = create(pConfig->getType());
   if (result)  {
     result->configure(pConfig);
   }
@@ -18,13 +18,13 @@ DigitalInputFactory::create(const DigitalInputConfig* pConfig, GpioLines& lines)
 }
 
 DigitalInput*
-DigitalInputFactory::create(const std::string& type, GpioLines& lines)
+DigitalInputFactory::create(const std::string& type)
 {
   std::string typeAslower = StringUtils::toLowerCase(type);
   bool gpioPresent = Gpio::isPresent();
   if(typeAslower == "rotaryencoder" && gpioPresent)
   {
-    return new GpioRotaryEncoder(lines);
+    return new GpioRotaryEncoder();
   }
 
   // if(typeAslower == "gpiorotaryencoder" && gpioPresent)

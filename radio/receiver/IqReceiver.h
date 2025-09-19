@@ -20,7 +20,7 @@
 #include "../../io/audio/IqAudioInput.h"
 #include "../../io/audio/AudioOutput.h"
 #include "config/ReceiverConfig.h"
-#include <settings/control/ControlBase.h>
+#include <control/ControlBase.h>
 #include <settings/ReceiverSettingsSink.h>
 #include <settings/PttSink.h>
 
