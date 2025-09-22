@@ -6,12 +6,13 @@
 #include "../../GpioException.h"
 #include <qdebug.h>
 
-GpioLinesImplGpiod::GpioLinesImplGpiod(gpiod_line_request * pLineRequest, const char* consumer) :
+GpioLinesImplGpiod::GpioLinesImplGpiod(gpiod_chip* pChip, const char* consumer) :
+  m_pChip   (pChip),  
   m_pCallback(nullptr),
-  m_pLineRequest(pLineRequest),
   m_consumer(consumer)
 {
   m_pEventBuffer = gpiod_edge_event_buffer_new(64);
+  
 }
 
 GpioLinesImplGpiod::~GpioLinesImplGpiod()
@@ -39,6 +40,39 @@ GpioLinesImplGpiod::stopCallbacks()
   m_pCallback = nullptr;
   m_callbackMutex.unlock();
   wait();
+}
+
+void 
+GpioLinesImplGpiod::request(
+  const char * contextId,
+  const std::vector<uint32_t>& lines,
+  GpioLines::Direction direction,
+  GpioLines::Bias bias,
+  GpioLines::Edge edge
+)
+{
+  gpiod_line_config *lcfg = gpiod_line_config_new();
+  if (lcfg == nullptr) {
+    throw GpioException("Failed to allocate line config");
+  }
+  gpiod_line_settings *ls = gpiod_line_settings_new();
+  gpiod_line_settings_set_direction(ls, static_cast<gpiod_line_direction>(direction));
+  gpiod_line_settings_set_bias(ls, static_cast<gpiod_line_bias>(bias));
+  gpiod_line_settings_set_edge_detection(ls, static_cast<gpiod_line_edge>(edge));
+  gpiod_line_config_add_line_settings(lcfg, lines.data(), lines.size(), ls);
+  gpiod_line_settings_free(ls);
+
+  gpiod_request_config *rcfg = gpiod_request_config_new();
+  gpiod_request_config_set_consumer(rcfg, contextId);
+
+  gpiod_line_request *pLineRequest = gpiod_chip_request_lines(m_pChip, rcfg, lcfg);
+  gpiod_request_config_free(rcfg);
+  gpiod_line_config_free(lcfg);
+  if (pLineRequest == nullptr) {
+    throw GpioException("Failed to request GPIO lines");
+  }
+  m_pLineRequest = pLineRequest;
+  initialiseLineStates(lines); 
 }
 
 

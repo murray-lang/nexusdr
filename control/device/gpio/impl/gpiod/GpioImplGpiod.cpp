@@ -57,27 +57,16 @@ GpioImplGpiod::requestLines(
   GpioLines::Edge edge
 )
 {
-  gpiod_line_config *lcfg = gpiod_line_config_new();
-  if (lcfg == nullptr) {
-    throw GpioException("Failed to allocate line config");
+  if (!m_pChip) {
+    throw GpioException("GPIO chip not opened");
   }
-  gpiod_line_settings *ls = gpiod_line_settings_new();
-  gpiod_line_settings_set_direction(ls, static_cast<gpiod_line_direction>(direction));
-  gpiod_line_settings_set_bias(ls, static_cast<gpiod_line_bias>(bias));
-  gpiod_line_settings_set_edge_detection(ls, static_cast<gpiod_line_edge>(edge));
-  gpiod_line_config_add_line_settings(lcfg, lines.data(), lines.size(), ls);
-  gpiod_line_settings_free(ls);
-
-  gpiod_request_config *rcfg = gpiod_request_config_new();
-  gpiod_request_config_set_consumer(rcfg, contextId);
-
-  gpiod_line_request *pLineRequest = gpiod_chip_request_lines(m_pChip, rcfg, lcfg);
-  gpiod_request_config_free(rcfg);
-  gpiod_line_config_free(lcfg);
-  if (pLineRequest == nullptr) {
-    throw GpioException("Failed to request GPIO lines");
+  auto pLines = new GpioLinesImplGpiod(m_pChip, contextId); 
+  try {
+    pLines->request(contextId, lines, direction, bias, edge);
+  } catch (...) {
+    delete pLines;
+    throw;
   }
-  auto pLines = new GpioLinesImplGpiod(pLineRequest);
   return dynamic_cast<GpioLines*>(pLines);
 
 }

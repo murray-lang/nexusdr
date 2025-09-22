@@ -57,6 +57,14 @@ public:
   GpioLines();
   virtual ~GpioLines() = default;
 
+  virtual void request(
+    const char * contextId,
+    const std::vector<uint32_t>& lines,
+    GpioLines::Direction direction,
+    GpioLines::Bias bias,
+    GpioLines::Edge edge
+  ) = 0;
+
   virtual void release() = 0;
 
   virtual void startCallbacks(Callback* callback) = 0;

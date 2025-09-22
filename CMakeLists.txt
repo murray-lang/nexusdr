@@ -29,18 +29,26 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
 find_package(PkgConfig)
 find_package(RtAudio REQUIRED)
 
-pkg_check_modules(PIGPIO QUIET IMPORTED_TARGET pigpio)
+ find_path(PIGPIO_INCLUDE_DIR pigpio.h PATHS /usr/local/include /usr/include)   
+ find_library(PIGPIO_LIBRARY NAMES pigpio PATHS /usr/local/lib /usr/lib)
 
 
-#find_package(gpiod 2 QUIET CONFIG)
+# Prefer pigpio if available
+if(PIGPIO_INCLUDE_DIR AND PIGPIO_LIBRARY)
+   set(IS_RPI TRUE)
+    message(STATUS "pigpio found")
+    add_definitions(-DUSE_PIGPIO)
+    set(USE_PIGPIO ON)
+else()
+    # Otherwise GPIOD will have to do. Digital inputs will need to be electronically debounced for responsiveness.
+    set(USE_PIGPIO OFF)
+    pkg_check_modules(GPIOD QUIET IMPORTED_TARGET libgpiod)
 
-pkg_check_modules(GPIOD QUIET IMPORTED_TARGET libgpiod)
-
-if(GPIOD_FOUND)
-#    set(IS_RPI TRUE)
-    message(STATUS "libgpiod found")
-    add_definitions(-DUSE_GPIOD)
-    set(USE_GPIOD ON)
+    if(GPIOD_FOUND)
+        message(STATUS "libgpiod found")
+        add_definitions(-DUSE_GPIOD)
+        set(USE_GPIOD ON)
+    endif()
 endif()
 
 include(CMakeLists_AudioLibs.txt)
@@ -82,18 +90,21 @@ if( ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     endif()
 endif()
 
-if(USE_GPIOD)
+if(USE_PIGPIO)
+    set (PLATFORM_SOURCES
+        control/device/gpio/impl/pigpio/GpioImplPiGpio.h
+        control/device/gpio/impl/pigpio/GpioImplPiGpio.cpp
+        control/device/gpio/impl/pigpio/GpioLinesImplPiGpio.h
+        control/device/gpio/impl/pigpio/GpioLinesImplPiGpio.cpp
+    )
+    
+elseif(USE_GPIOD)
     set (PLATFORM_SOURCES
         control/device/gpio/impl/gpiod/GpioImplGpiod.h
         control/device/gpio/impl/gpiod/GpioImplGpiod.cpp
         control/device/gpio/impl/gpiod/GpioLinesImplGpiod.h
         control/device/gpio/impl/gpiod/GpioLinesImplGpiod.cpp
     )
-else()
-    # set (PLATFORM_SOURCES
-    #         src/control/device/gpio/impl/gpiod/GpioRotaryEncoder.h
-    #         src/control/device/platform/dummy/GpioRotaryEncoder.cpp
-    # )
 endif()
 
 set(PROJECT_SOURCES
@@ -226,8 +237,6 @@ set(PROJECT_SOURCES
         config/RotaryEncoderConfig.h
         config/DigitalInputConfig.h
         config/FunCubeConfig.h
-        control/device/gpio/impl/gpiod/GpioLinesImplGpiod.cpp
-        control/device/gpio/impl/gpiod/GpioLinesImplGpiod.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -253,12 +262,26 @@ else()
     endif()
 endif()
 
+if(USE_PIGPIO)
+   set(PLATFORM_LIBRARIES
+        ${PIGPIO_LIBRARY}
+    )
+    set(PLATFORM_INCLUDE_DIRS
+        ${PIGPIO_INCLUDE_DIR}
+    )
+elseif(USE_GPIOD)
+    set (PLATFORM_LIBRARIES
+        PkgConfig::GPIOD
+    )
+endif()
+
 target_include_directories(cutesdr-vk6hl PUBLIC
     ${CMAKE_SOURCE_DIR}
     /usl/local/include
     /usr/local/include/rtaudio
     ${VOLK_INCLUDE_DIRS}
     /usr/include/hidapi/
+    ${PLATFORM_INCLUDE_DIRS}
 )
 target_link_directories(cutesdr-vk6hl PRIVATE ${DSPL_DIR})
 
@@ -275,12 +298,6 @@ set (COMMON_LIBRARIES
     nlohmann_json::nlohmann_json
 )
 
-if(USE_GPIOD)
-   set (PLATFORM_LIBRARIES
-     PkgConfig::GPIOD
-   )
-else()
-endif()
 
 target_link_libraries(cutesdr-vk6hl
     PRIVATE

@@ -16,13 +16,21 @@ class GpioLinesImplGpiod : public GpioLines, public QThread
 {
   friend GpioImplGpiod;
 public:
-  explicit GpioLinesImplGpiod(gpiod_line_request * pLineRequest, const char* consumer = "");
+  explicit GpioLinesImplGpiod(gpiod_chip* pChip, const char* consumer = "");
   ~GpioLinesImplGpiod() override;
 
   void run() override;
 
   void startCallbacks(Callback* callback) override;
   void stopCallbacks() override;
+
+  void request(
+    const char * contextId,
+    const std::vector<uint32_t>& lines,
+    GpioLines::Direction direction,
+    GpioLines::Bias bias,
+    GpioLines::Edge edge
+  ) override;
 
   void release() override;
 
@@ -42,6 +50,7 @@ public:
   int readEdgeEvents(struct gpiod_edge_event_buffer* buf, size_t max_events) const;
 
 protected:
+  gpiod_chip* m_pChip;
   Callback* m_pCallback;
   std::mutex m_callbackMutex;
   std::string m_consumer;
