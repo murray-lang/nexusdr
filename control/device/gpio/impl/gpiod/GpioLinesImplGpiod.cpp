@@ -20,6 +20,19 @@ GpioLinesImplGpiod::~GpioLinesImplGpiod()
   gpiod_edge_event_buffer_free(m_pEventBuffer);
 }
 
+bool
+GpioLinesImplGpiod::isDebounced(int line)
+{
+  gpiod_line_info * li = gpiod_chip_get_line_info(m_pChip, line);
+  if (li != nullptr) {
+    bool result = gpiod_line_info_is_debounced(li);
+    gpiod_line_info_free(li);
+    return result;
+  }
+  return false;
+  
+}
+
 void
 GpioLinesImplGpiod::startCallbacks(Callback* callback)
 {
@@ -51,6 +64,13 @@ GpioLinesImplGpiod::request(
   GpioLines::Edge edge
 )
 {
+  // for (auto line : lines) {
+  //   if (isDebounced(line)) {
+  //     qDebug() << "Line " << line << " is debounced";
+  //   } else {
+  //     qDebug() << "Line " << line << " is NOT debounced";
+  //   }
+  // }
   gpiod_line_config *lcfg = gpiod_line_config_new();
   if (lcfg == nullptr) {
     throw GpioException("Failed to allocate line config");
@@ -59,6 +79,7 @@ GpioLinesImplGpiod::request(
   gpiod_line_settings_set_direction(ls, static_cast<gpiod_line_direction>(direction));
   gpiod_line_settings_set_bias(ls, static_cast<gpiod_line_bias>(bias));
   gpiod_line_settings_set_edge_detection(ls, static_cast<gpiod_line_edge>(edge));
+  // gpiod_line_settings_set_debounce_period_us(ls, 2000); 
   gpiod_line_config_add_line_settings(lcfg, lines.data(), lines.size(), ls);
   gpiod_line_settings_free(ls);
 
@@ -132,6 +153,7 @@ GpioLinesImplGpiod::run()
     }
     qDebug() << "-----------------------";
     debouncedLines.clear();
+    // int numChanges = getLineStateChanges(debouncedLines);
     int numChanges = debounce(debouncedLines);
     if (numChanges > 0) {
       std::lock_guard<std::mutex> lock(m_callbackMutex);
@@ -141,15 +163,58 @@ GpioLinesImplGpiod::run()
         haveCallback = false;
       }
     }
-    // if (numHandled == 0 && numChanges > 0) {
-    //   qDebug() << "Unhandled changes:";
+    // if (numChanges > 0) {
+    //   qDebug() << "Changes:";
     //   for (auto& infoPair : debouncedLines) {
     //     GpioLines::LineState& info = infoPair.second;
     //     qDebug() << "Line: " << info.line << ", LastRisingTime: " << info.lastRisingTime << ", LastFallingTime: " << info.lastFallingTime << ", Value: " << (int)info.value;
     //   }
-    //
+    
     // }
   }
+}
+
+int
+GpioLinesImplGpiod::getLineStateChanges(LineStateMap& changes)
+{
+  int numEvents = readEdgeEvents(m_pEventBuffer, 64);
+  if (numEvents < 0) {
+    throw GpioException("Error reading edge events");
+  }
+  for (int i = 0; i < numEvents; ++i) {
+
+    gpiod_edge_event* ev = gpiod_edge_event_buffer_get_event(m_pEventBuffer, i);
+    uint32_t line = gpiod_edge_event_get_line_offset(ev);
+    gpiod_edge_event_type type = gpiod_edge_event_get_event_type(ev);
+    uint64_t timestamp = gpiod_edge_event_get_timestamp_ns(ev);
+
+    auto stateIter = m_lineStates.find(line);
+    // if (stateIter == m_lineStates.end()) {
+    //   throw GpioException("Received event for unknown line");
+    // }
+    if (stateIter != m_lineStates.end()) {
+      LineState& info = stateIter->second;
+      info.changed = true;
+      if (type == GPIOD_EDGE_EVENT_RISING_EDGE) {
+        info.lastRisingTime = timestamp;
+        info.value = 1;
+      } else {
+        info.lastFallingTime = timestamp;
+        info.value = 0;
+      }
+      changes[line] = info;
+    }
+  }
+  // Now read the affected line values to make sure we have that part of the story straight.
+  for (auto& pair : m_lineStates) {
+    LineState& info = pair.second;
+    if (info.changed) {
+      info.value = static_cast<uint8_t>(getLineValue(pair.first));
+      changes[pair.first] = info;
+      info.changed = false;
+    }
+  }
+  return numEvents;
 }
 
 int

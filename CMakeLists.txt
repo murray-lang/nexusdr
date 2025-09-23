@@ -29,18 +29,19 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
 find_package(PkgConfig)
 find_package(RtAudio REQUIRED)
 
- find_path(PIGPIO_INCLUDE_DIR pigpio.h PATHS /usr/local/include /usr/include)   
- find_library(PIGPIO_LIBRARY NAMES pigpio PATHS /usr/local/lib /usr/lib)
+# find_path(PIGPIO_INCLUDE_DIR pigpio.h PATHS /usr/local/include /usr/include)   
+# find_library(PIGPIO_LIBRARY NAMES pigpio PATHS /usr/local/lib /usr/lib)
 
 
 # Prefer pigpio if available
-if(PIGPIO_INCLUDE_DIR AND PIGPIO_LIBRARY)
+# if(PIGPIO_INCLUDE_DIR AND PIGPIO_LIBRARY)
+if(false)
    set(IS_RPI TRUE)
     message(STATUS "pigpio found")
     add_definitions(-DUSE_PIGPIO)
     set(USE_PIGPIO ON)
 else()
-    # Otherwise GPIOD will have to do. Digital inputs will need to be electronically debounced for responsiveness.
+    # Otherwise GPIOD will have to do.
     set(USE_PIGPIO OFF)
     pkg_check_modules(GPIOD QUIET IMPORTED_TARGET libgpiod)
 

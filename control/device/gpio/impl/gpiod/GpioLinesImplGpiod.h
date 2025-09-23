@@ -38,6 +38,9 @@ public:
 
   int getLineValue(uint32_t line) override;
 
+protected:  
+  bool isDebounced(int line);
+  int getLineStateChanges(LineStateMap& changes);
   // Wait for edge events with a timeout in nanoseconds.
   // Returns:
   //   >0 if events are ready,
