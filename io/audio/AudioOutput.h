@@ -21,10 +21,10 @@ class AudioOutput : public AudioIo
     delete m_pDevice;
   }
 
-  void initialise(const AudioConfig& config) override
+  void initialise(const AudioConfig* pConfig) override
   {
     delete m_pDevice;
-    m_pDevice = AudioDeviceFactory::createOutputDevice(config);
+    m_pDevice = AudioDeviceFactory::createOutputDevice(pConfig);
   }
 
   void start() const override

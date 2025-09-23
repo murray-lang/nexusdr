@@ -7,7 +7,7 @@
 #include "./device/IqAudioInputDevice.h"
 #include "./device/AudioDeviceFactory.h"
 #include "AudioIo.h"
-#include "../../radio/config/AudioConfig.h"
+#include "config/AudioConfig.h"
 
 class IqAudioInput : public AudioIo
 {
@@ -21,10 +21,10 @@ public:
     delete m_pDevice;
   }
 
-  void initialise(const AudioConfig& config) override
+  void initialise(const AudioConfig* pConfig) override
   {
     // delete m_pDevice;
-    m_pDevice = AudioDeviceFactory::createInputDevice(config, m_pSink);
+    m_pDevice = AudioDeviceFactory::createInputDevice(pConfig, m_pSink);
   }
 
   [[nodiscard]] uint32_t getSampleRate() const override

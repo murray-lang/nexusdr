@@ -5,7 +5,7 @@
 #ifndef AUDIOIO_H
 #define AUDIOIO_H
 #include "device/AudioDevice.h"
-#include "../../radio/config/AudioConfig.h"
+#include "config/AudioConfig.h"
 
 class AudioIo
 {
@@ -20,7 +20,7 @@ public:
 
   virtual ~AudioIo() = default;
 
-  virtual void initialise(const AudioConfig& config) = 0;
+  virtual void initialise(const AudioConfig* pConfig) = 0;
 
   virtual void start() const = 0;
   virtual void stop() const = 0;

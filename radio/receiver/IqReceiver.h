@@ -12,16 +12,17 @@
 #include "../../dsp/utils/PingPongBuffers.h"
 #include "../../io/audio/IqSink.h"
 #include "../../dsp/stages/demodulators/AmDemodulator.h"
+#include "../../dsp/stages/demodulators/FmDemodulator.h"
 #include "../../dsp/stages/filters/kernels/BandPassFirKernel.h"
 #include "../../SignalEmitter.h"
 #include "../../dsp/stages/metering/MeteringStage.h"
 #include "../../io/audio/device/AudioOutputDevice.h"
 #include "../../io/audio/IqAudioInput.h"
 #include "../../io/audio/AudioOutput.h"
-#include "../config/ReceiverConfig.h"
-#include "../../io/controller/Controller.h"
-#include "../../radio/settings/sink/ReceiverSettingsSink.h"
-#include "../../radio/settings/sink/PttSink.h"
+#include "config/ReceiverConfig.h"
+#include <control/ControlBase.h>
+#include <settings/ReceiverSettingsSink.h>
+#include <settings/PttSink.h>
 
 //#define PING_PONG_LENGTH 2048
 #define PING_PONG_LENGTH 8192
@@ -36,7 +37,7 @@ public:
     delete m_pIqInput;
   }
 
-  void configure(const ReceiverConfig& config);
+  void configure(const ReceiverConfig* pConfig);
   void start() const;
   void stop() const;
 
@@ -63,7 +64,8 @@ protected:
   // Oscillator m_debugOscillator;
   BandPassFilter m_ifFilter;
   BandPassFilter m_afFilter;
-  AmDemodulator* m_pDemodulator;
+  AmDemodulator m_amDemodulator;
+  FmDemodulator m_fmDemodulator;
   // MeteringStage m_timeseriesEmitter;
   // MeteringStage m_spectrumEmitter;
   // AudioOutputDevice* m_audioOutput;
@@ -72,7 +74,7 @@ protected:
   IqAudioInput* m_pIqInput;
   AudioOutput* m_pAudioOutput;
   // std::vector<DeviceControl*> m_deviceControllers;
-  ReceiverConfig m_config;
+  // ReceiverConfig m_config;
 };
 
 #endif //__SDR_H__

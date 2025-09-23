@@ -5,6 +5,10 @@
 
 #include <fstream>
 #include <nlohmann/json.hpp>
+
+#include "control/device/gpio/Gpio.h"
+#include "control/device/gpio/GpioException.h"
+#include "control/device/gpio/GpioLines.h"
 using json = nlohmann::json;
 
 int main(int argc, char *argv[])
@@ -14,9 +18,15 @@ int main(int argc, char *argv[])
   std::ifstream f("/home/murray/.config/cutesdr-vk6hl/cutesdr-vk6hl.json");
   json config = json::parse(f);
   if (config.contains("radio")) {
-    radioConfig = RadioConfig::fromJson(config["radio"]);
+    radioConfig.initialise(config["radio"]);
   } else {
     qDebug() << "No radio config found";
+  }
+
+  try {
+    Gpio::getInstance().open();
+  } catch (GpioException& gpioErr) {
+    qDebug() << gpioErr.what();
   }
 
   //qRegisterMetaType<QSharedPointer<vcomplex>>("SharedFftData");
@@ -25,5 +35,8 @@ int main(int argc, char *argv[])
   QApplication a(argc, argv);
   MainWindow w(radioConfig);
   w.show();
-  return a.exec();
+  int rc = a.exec();
+
+  Gpio::getInstance().close();
+  return rc;
 }

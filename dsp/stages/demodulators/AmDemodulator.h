@@ -18,7 +18,7 @@ public:
       uint32_t inputLength
   ) override;
 
-  uint32_t processSamples(PingPongBuffers<sdrcomplex> buffers, uint32_t inputLength) override;
+  // uint32_t processSamples(PingPongBuffers<sdrcomplex> buffers, uint32_t inputLength) override;
 
 protected:
   sdrreal m_z;

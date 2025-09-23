@@ -10,30 +10,30 @@ class AudioDeviceFactory
 {
   // static const RtAudio::Api defaultApi = RtAudio::Api::LINUX_ALSA;
 public:
-  static IqAudioInputDevice * createInputDevice(const AudioConfig& config, IqSink* pSink)
+  static IqAudioInputDevice * createInputDevice(const AudioConfig* pConfig, IqSink* pSink)
   {
-    const RtAudio::Api api = apiFromConfig(config);
-    const RtAudio::DeviceInfo deviceInfo = findInputDevice(api, config.getSearchExpression());
+    const RtAudio::Api api = apiFromConfig(pConfig);
+    const RtAudio::DeviceInfo deviceInfo = findInputDevice(api, pConfig->getSearchExpression());
     AudioDevice::Format format{};
-    getInputFormat(config, deviceInfo, format);
+    getInputFormat(pConfig, deviceInfo, format);
     format.sampleFormat = RTAUDIO_FLOAT32;
     format.bytesPerFrame = 2 * sizeof(float);
     return new IqAudioInputDevice(deviceInfo, format, pSink);
 
   }
 
-  static AudioOutputDevice * createOutputDevice(const AudioConfig& config)
+  static AudioOutputDevice * createOutputDevice(const AudioConfig* pConfig)
   {
-    const RtAudio::Api api = apiFromConfig(config);
-    const RtAudio::DeviceInfo deviceInfo = findOutputDevice(api, config.getSearchExpression());
+    const RtAudio::Api api = apiFromConfig(pConfig);
+    const RtAudio::DeviceInfo deviceInfo = findOutputDevice(api, pConfig->getSearchExpression());
     AudioDevice::Format format{};
-    getOutputFormat(config, deviceInfo, format);
+    getOutputFormat(pConfig, deviceInfo, format);
     return new AudioOutputDevice(deviceInfo, format);
   }
 
-  static RtAudio::Api apiFromConfig(const AudioConfig& config)
+  static RtAudio::Api apiFromConfig(const AudioConfig* pConfig)
   {
-    return apiFromConfig(config.getSoundApi());
+    return apiFromConfig(pConfig->getSoundApi());
   }
 
   static RtAudio::Api apiFromConfig(const std::string& configApi)
@@ -67,6 +67,7 @@ public:
       // Only consider devices with input channels
       if (info.inputChannels > 0) {
         std::string name = info.name;
+        // qDebug() << "Found input device: " << QString::fromStdString(name);
         std::smatch match;
         std::regex_search(name, match, regex);
         if (std::regex_search(name, match, regex)) {
@@ -141,34 +142,34 @@ public:
     throw AudioException("No default audio output device found");
   }
 
-  static void getInputFormat(const AudioConfig& config, const RtAudio::DeviceInfo& deviceInfo, AudioDevice::Format& format)
+  static void getInputFormat(const AudioConfig* pConfig, const RtAudio::DeviceInfo& deviceInfo, AudioDevice::Format& format)
   {
-    format.sampleFormat = getRtAudioFormatFromConfigOrDefault(config, deviceInfo);
-    if (config.getSampleRate() == 0) {
+    format.sampleFormat = getRtAudioFormatFromConfigOrDefault(pConfig, deviceInfo);
+    if (pConfig->getSampleRate() == 0) {
       format.sampleRate = deviceInfo.preferredSampleRate;
     } else {
-      format.sampleRate = static_cast<int>(config.getSampleRate());
+      format.sampleRate = static_cast<int>(pConfig->getSampleRate());
     }
-    if (config.getChannelCount() == 0) {
+    if (pConfig->getChannelCount() == 0) {
       format.channelCount = deviceInfo.inputChannels;
     } else {
-      format.channelCount = static_cast<int>(config.getChannelCount());
+      format.channelCount = static_cast<int>(pConfig->getChannelCount());
     }
     format.bytesPerFrame = getBytesPerChannel(format.sampleFormat) * format.channelCount;
   }
 
-  static void getOutputFormat(const AudioConfig& config, const RtAudio::DeviceInfo& deviceInfo, AudioDevice::Format& format)
+  static void getOutputFormat(const AudioConfig* pConfig, const RtAudio::DeviceInfo& deviceInfo, AudioDevice::Format& format)
   {
-    format.sampleFormat = getRtAudioFormatFromConfigOrDefault(config, deviceInfo);
-    if (config.getSampleRate() == 0) {
+    format.sampleFormat = getRtAudioFormatFromConfigOrDefault(pConfig, deviceInfo);
+    if (pConfig->getSampleRate() == 0) {
       format.sampleRate = deviceInfo.preferredSampleRate;
     } else {
-      format.sampleRate = static_cast<int>(config.getSampleRate());
+      format.sampleRate = static_cast<int>(pConfig->getSampleRate());
     }
-    if (config.getChannelCount() == 0) {
+    if (pConfig->getChannelCount() == 0) {
       format.channelCount = deviceInfo.inputChannels;
     } else {
-      format.channelCount = static_cast<int>(config.getChannelCount());
+      format.channelCount = static_cast<int>(pConfig->getChannelCount());
     }
     format.bytesPerFrame = getBytesPerChannel(format.sampleFormat) * format.channelCount;
   }
@@ -211,15 +212,15 @@ public:
     return 0;
   }
 
-  static RtAudioFormat getRtAudioFormatFromConfigOrDefault(const AudioConfig& config, const RtAudio::DeviceInfo& deviceInfo)
+  static RtAudioFormat getRtAudioFormatFromConfigOrDefault(const AudioConfig* pConfig, const RtAudio::DeviceInfo& deviceInfo)
   {
-    RtAudioFormat format = getRtAudioFormatFromConfig(config);
+    RtAudioFormat format = getRtAudioFormatFromConfig(pConfig);
     if (format == 0) {
       format = getDefaultRtAudioFormat(deviceInfo);
     } else {
       if (!isRtAudioFormatSupported(format, deviceInfo)) {
         std::ostringstream stringStream;
-        stringStream << "The format '" << config.getFormat() << "' is not supported by the device '" << deviceInfo.name << "'";
+        stringStream << "The format '" << pConfig->getFormat() << "' is not supported by the device '" << deviceInfo.name << "'";
         std::string copyOfStr = stringStream.str();
         throw AudioException(copyOfStr);
       }
@@ -227,9 +228,9 @@ public:
     return format;
   }
 
-  static RtAudioFormat getRtAudioFormatFromConfig(const AudioConfig& config)
+  static RtAudioFormat getRtAudioFormatFromConfig(const AudioConfig* pConfig)
   {
-    return getRtAudioFormatFromConfig(config.getFormat());
+    return getRtAudioFormatFromConfig(pConfig->getFormat());
   }
   static RtAudioFormat getRtAudioFormatFromConfig(const std::string& configFormat)
   {

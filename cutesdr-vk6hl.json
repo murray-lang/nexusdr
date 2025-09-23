@@ -1,22 +1,50 @@
 {
-  "radio": {
-    "receiver": {
-      "iqInput": {
-        "searchExpression": "FUNcube",
-        "sampleRate": 192000,
-        "channelCount": 2
-      },
-      "audioOutput": {
-        "searchExpression": "HDMI 0",
-        "sampleRate": 48000
-      },
-      "controllers": [
-        {
-          "type": "funcube",
-          "config": {
+    "radio": {
+      "control": {
+          "sinks": [
+          	{
+              "type": "funcube",
+              "config": {
+              }
+            }
+          ],
+          "sources": [
+            {
+              "type": "digitalInputGroup",
+              "config": {
+          	    "inputs": [
+          	      {
+          	        "type": "rotaryEncoder",
+          	        "config": {
+		              "lines": [6, 5],
+		              "settingPath": "rx.rf.frequency"
+		            }
+	              }
+          	    ]
+              }
+            }
+          ]
+        },
+        "receiver": {
+          "input": {
+            "type": "audio",
+            "config": {
+              "soundApi": "alsa",
+              "searchExpression": "FUNcube",
+              "sampleRate": 192000,
+              "channelCount": 2
+            }
+          },
+          "output": {
+            "type": "audio",
+            "config": {
+              "soundApi": "alsa",
+              "searchExpression": "Default",
+              "sampleRate": 48000,
+              "format": "sint16"
+            }
           }
         }
-      ]
     }
-  }
+
 }

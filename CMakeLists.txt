@@ -16,26 +16,48 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --enable-threads")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --enable-threads")
 
-#set(CMAKE_PREFIX_PATH "/home/murray/Qt/6.9.1/gcc_64/lib/cmake")
-#set(CMAKE_PREFIX_PATH "/home/murray/Qt6.5/6.5.3/gcc_64/lib/cmake")
-#set(CMAKE_PREFIX_PATH "/home/murray/Qt/6.5.0/gcc_64/lib/cmake")
-set(CMAKE_PREFIX_PATH "/usr/lib/aarch-linux-gnu/cmake")
-
-
+# list(APPEND CMAKE_PREFIX_PATH "/home/murray/Qt/6.9.1/gcc_64/lib/cmake")
+#list(APPEND CMAKE_PREFIX_PATH "/home/murray/Qt6.5/6.5.3/gcc_64/lib/cmake")
+#list(APPEND CMAKE_PREFIX_PATH "/home/murray/Qt/6.5.0/gcc_64/lib/cmake")
+list(APPEND CMAKE_PREFIX_PATH "/usr/lib/aarch-linux-gnu/cmake")
 
 set(VOLK_MIN_VERSION "2.4.1")         ## first version with CPU features
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
-list(APPEND CMAKE_MODULE_PATH "/home/murray/dev/tools/rtaudio/_build_")
+#list(APPEND CMAKE_MODULE_PATH "/home/murray/dev/tools/rtaudio/_build_")
 
+find_package(PkgConfig)
 find_package(RtAudio REQUIRED)
+
+# find_path(PIGPIO_INCLUDE_DIR pigpio.h PATHS /usr/local/include /usr/include)   
+# find_library(PIGPIO_LIBRARY NAMES pigpio PATHS /usr/local/lib /usr/lib)
+
+
+# Prefer pigpio if available
+# if(PIGPIO_INCLUDE_DIR AND PIGPIO_LIBRARY)
+if(false)
+   set(IS_RPI TRUE)
+    message(STATUS "pigpio found")
+    add_definitions(-DUSE_PIGPIO)
+    set(USE_PIGPIO ON)
+else()
+    # Otherwise GPIOD will have to do.
+    set(USE_PIGPIO OFF)
+    pkg_check_modules(GPIOD QUIET IMPORTED_TARGET libgpiod)
+
+    if(GPIOD_FOUND)
+        message(STATUS "libgpiod found")
+        add_definitions(-DUSE_GPIOD)
+        set(USE_GPIOD ON)
+    endif()
+endif()
 
 include(CMakeLists_AudioLibs.txt)
 message(STATUS "${AUDIO_LINK_LIBS}")
 
-find_package(nlohmann_json 3.11.3 REQUIRED)
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui Widgets Charts Multimedia)
+find_package(nlohmann_json 3.11.2 REQUIRED)
+find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui Widgets Charts)
 find_library(HIDAPI_LIBRARY hidapi-libusb)
 
 message(STATUS "")
@@ -69,7 +91,25 @@ if( ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     endif()
 endif()
 
+if(USE_PIGPIO)
+    set (PLATFORM_SOURCES
+        control/device/gpio/impl/pigpio/GpioImplPiGpio.h
+        control/device/gpio/impl/pigpio/GpioImplPiGpio.cpp
+        control/device/gpio/impl/pigpio/GpioLinesImplPiGpio.h
+        control/device/gpio/impl/pigpio/GpioLinesImplPiGpio.cpp
+    )
+    
+elseif(USE_GPIOD)
+    set (PLATFORM_SOURCES
+        control/device/gpio/impl/gpiod/GpioImplGpiod.h
+        control/device/gpio/impl/gpiod/GpioImplGpiod.cpp
+        control/device/gpio/impl/gpiod/GpioLinesImplGpiod.h
+        control/device/gpio/impl/gpiod/GpioLinesImplGpiod.cpp
+    )
+endif()
+
 set(PROJECT_SOURCES
+        ${PLATFORM_SOURCES}
         main.cpp
         mainwindow.h mainwindow.cpp
         mainwindow.ui
@@ -92,24 +132,23 @@ set(PROJECT_SOURCES
         dsp/stages/demodulators/Demodulator.h
         dsp/stages/demodulators/AmDemodulator.h
 
-        io/controller/device/usb/UsbControl.h
-        io/controller/device/usb/UsbException.cpp
-        io/controller/device/usb/UsbException.h
-        io/controller/device/usb/LibUsbControl.cpp
-        io/controller/device/usb/LibUsbControl.h
-        io/controller/device/usb/HidUsbControl.cpp
-        io/controller/device/usb/HidUsbControl.h
-        io/controller/device/usb/UsbControl.cpp
-        io/controller/Controller.h
-        io/controller/device/FunCubeDongle/FunCubeDongle.cpp
-        io/controller/device/FunCubeDongle/FunCubeDongle.h
-        io/controller/ControllerException.cpp
-        io/controller/ControllerException.h
-        radio/settings/RfSettings.h
-        radio/settings/IfSettings.h
-        radio/settings/ReceiverSettings.h
-        radio/settings/RadioSettings.h
-        radio/settings/TransmitterSettings.h
+        control/device/usb/UsbControl.h
+        control/device/usb/UsbException.cpp
+        control/device/usb/UsbException.h
+        control/device/usb/LibUsbControl.cpp
+        control/device/usb/LibUsbControl.h
+        control/device/usb/HidUsbControl.cpp
+        control/device/usb/HidUsbControl.h
+        control/device/usb/UsbControl.cpp
+        control/ControlBase.h
+        control/device/FunCubeDongle/FunCubeDongle.cpp
+        control/device/FunCubeDongle/FunCubeDongle.h
+        control/ControlException.h
+        settings/RfSettings.h
+        settings/IfSettings.h
+        settings/ReceiverSettings.h
+        settings/RadioSettings.h
+        settings/TransmitterSettings.h
 
         dsp/stages/demodulators/DemodulatorSettings.h
         dsp/stages/demodulators/AmDemodulator.cpp
@@ -128,11 +167,11 @@ set(PROJECT_SOURCES
         dsp/stages/decimator/MyFirCoefficients.h
 
         dsp/stages/metering/MeteringStage.h
-        radio/config/RadioConfig.h
-        radio/config/ReceiverConfig.h
-        radio/config/TransmitterConfig.h
-        radio/config/AudioConfig.h
-        config/JsonConfig.h
+        config/RadioConfig.h
+        config/ReceiverConfig.h
+        config/TransmitterConfig.h
+        config/AudioConfig.h
+        config/ConfigBase.h
         config/ConfigException.h
 
         io/audio/device/AudioDevice.h
@@ -149,27 +188,56 @@ set(PROJECT_SOURCES
         radio/receiver/ReceiverIqEvent.cpp
         radio/receiver/ReceiverAudioEvent.cpp
         radio/receiver/ReceiverAudioEvent.h
-        io/controller/config/ControllerConfig.h
-        io/controller/SinkControllerFactory.h
-        io/controller/SinkControllerFactory.cpp
+        control/ControlSinkFactory.h
+        control/ControlSinkFactory.cpp
         io/audio/device/AudioDeviceFactory.h
-        radio/settings/sink/ReceiverSettingsSink.h
-        radio/settings/sink/PttSink.h
+        settings/ReceiverSettingsSink.h
+        settings/PttSink.h
         radio/Radio.cpp
         radio/Radio.h
-        radio/settings/sink/RadioSettingsSink.h
-        io/controller/config/ControllersConfig.h
-        io/controller/SinkController.cpp
-        io/controller/SinkController.h
-        radio/settings/source/RadioSettingsSource.h
-        io/controller/SourceController.cpp
-        io/controller/SourceController.h
-        radio/settings/source/PttSource.h
-        io/controller/device/platform/rpi/GpioRotaryEncoder.cpp
-        io/controller/device/platform/rpi/GpioRotaryEncoder.h
-        io/controller/SourceControllerFactory.cpp
-        io/controller/SourceControllerFactory.h
+        settings/RadioSettingsSink.h
+        config/ControlConfig.h
+        control/ControlSink.cpp
+        control/ControlSink.h
+        settings/RadioSettingsSource.h
+        control/ControlSource.cpp
+        control/ControlSource.h
+        settings/PttSource.h
+        control/ControlSourceFactory.cpp
+        control/ControlSourceFactory.h
 
+        control/device/gpio/Gpio.cpp
+        control/device/gpio/Gpio.h
+        control/device/gpio/GpioException.cpp
+        control/device/gpio/GpioException.h
+        control/device/gpio/GpioLines.cpp
+        control/device/gpio/GpioLines.h
+        control/device/gpio/digital/GpioRotaryEncoder.cpp
+        control/device/gpio/digital/GpioRotaryEncoder.h
+        control/device/gpio/digital/DigitalInputGroup.cpp
+        control/device/gpio/digital/DigitalInputGroup.h
+        settings/SettingPath.h
+        settings/SettingDelta.h
+        settings/SettingsException.h
+        settings/SettingsBase.h
+        util/StringUtils.cpp
+        util/StringUtils.h
+        control/RadioControl.cpp
+        control/RadioControl.h
+        dsp/stages/demodulators/FmDemodulator.cpp
+        dsp/stages/demodulators/FmDemodulator.h
+        control/device/gpio/digital/DigitalInput.h
+        control/device/gpio/digital/DigitalInput.cpp
+        control/device/gpio/digital/DigitalInputFactory.cpp
+        control/device/gpio/digital/DigitalInputFactory.h
+        control/device/gpio/digital/DigitalInputFactory.cpp
+        config/VariantConfig.h
+        config/ConfigFactory.cpp
+        config/ConfigFactory.h
+        config/DigitalInputGroupConfig.h
+        config/RotaryEncoderConfig.h
+        config/DigitalInputConfig.h
+        config/FunCubeConfig.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -195,16 +263,30 @@ else()
     endif()
 endif()
 
+if(USE_PIGPIO)
+   set(PLATFORM_LIBRARIES
+        ${PIGPIO_LIBRARY}
+    )
+    set(PLATFORM_INCLUDE_DIRS
+        ${PIGPIO_INCLUDE_DIR}
+    )
+elseif(USE_GPIOD)
+    set (PLATFORM_LIBRARIES
+        PkgConfig::GPIOD
+    )
+endif()
+
 target_include_directories(cutesdr-vk6hl PUBLIC
+    ${CMAKE_SOURCE_DIR}
     /usl/local/include
     /usr/local/include/rtaudio
     ${VOLK_INCLUDE_DIRS}
     /usr/include/hidapi/
+    ${PLATFORM_INCLUDE_DIRS}
 )
 target_link_directories(cutesdr-vk6hl PRIVATE ${DSPL_DIR})
 
-target_link_libraries(cutesdr-vk6hl
-    PRIVATE
+set (COMMON_LIBRARIES
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Gui
     Qt${QT_VERSION_MAJOR}::Widgets
@@ -215,6 +297,13 @@ target_link_libraries(cutesdr-vk6hl
     usb-1.0
     hidapi-libusb
     nlohmann_json::nlohmann_json
+)
+
+
+target_link_libraries(cutesdr-vk6hl
+    PRIVATE
+    ${COMMON_LIBRARIES}
+    ${PLATFORM_LIBRARIES}
 )
 
 set_target_properties(cutesdr-vk6hl PROPERTIES

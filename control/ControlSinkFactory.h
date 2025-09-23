@@ -1,0 +1,21 @@
+//
+// Created by murray on 6/08/25.
+//
+
+#ifndef CONTROLSINKFACTORY_H
+#define CONTROLSINKFACTORY_H
+#include <string>
+
+#include "ControlSink.h"
+#include "config/ConfigBase.h"
+
+
+class ControlSinkFactory
+{
+public:
+  static ControlSink* create(const ConfigBase* pConfig);
+  static ControlSink* create(const std::string& type);
+  // static std::string toLowerCase(const std::string& str);
+};
+
+#endif //CONTROLSINKFACTORY_H

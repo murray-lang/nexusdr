@@ -7,10 +7,7 @@
 
 #include "ReceiverAudioEvent.h"
 #include "ReceiverIqEvent.h"
-#include "../config/ReceiverConfig.h"
-#include "../../io/controller/SinkControllerFactory.h"
-#include "../../io/controller/ControllerException.h"
-#include "../../config/ConfigException.h"
+#include <config/ReceiverConfig.h>
 
 #define FFT_SIZE 2048
 
@@ -23,7 +20,8 @@ IqReceiver::IqReceiver(QObject* eventTarget) :
   m_afBuffers(PING_PONG_LENGTH),
   m_ifFilter(FFT_SIZE),
   m_afFilter(FFT_SIZE),
-  m_pDemodulator(nullptr),
+  m_amDemodulator(48000),
+  m_fmDemodulator(48000),
   m_eventTarget(eventTarget),
   m_pIqInput(nullptr),
   m_pAudioOutput(nullptr)
@@ -80,23 +78,21 @@ IqReceiver::IqReceiver(QObject* eventTarget) :
 // }
 
 void
-IqReceiver::configure(const ReceiverConfig& config)
+IqReceiver::configure(const ReceiverConfig* pConfig)
 {
   delete m_pIqInput;
   delete m_pAudioOutput;
-  delete m_pDemodulator;
   m_pIqInput = nullptr;
   m_pAudioOutput = nullptr;
-  m_pDemodulator = nullptr;
 
-  const AudioConfig& iqInputConfig = config.getIqInput();
+  auto iqInputConfig = dynamic_cast<const AudioConfig*>(pConfig->getInput());
   m_pIqInput = new IqAudioInput(this);
   m_pIqInput->initialise(iqInputConfig);
 
   uint32_t inputSampleRate = m_pIqInput->getSampleRate();
   m_oscillatorMixer.initialise(inputSampleRate, -lo);
 
-  const AudioConfig& audioOutputConfig = config.getAudioOutput();
+  auto audioOutputConfig = dynamic_cast<const AudioConfig*>(pConfig->getOutput());
   m_pAudioOutput = new AudioOutput();
   m_pAudioOutput->initialise(audioOutputConfig);
 
@@ -117,9 +113,8 @@ IqReceiver::configure(const ReceiverConfig& config)
     0.0,
     decimatorOutputRate * 2);
 
-  m_pDemodulator = new AmDemodulator(decimatorOutputRate);
-
-
+  m_amDemodulator.setOutputRate(decimatorOutputRate);
+  m_fmDemodulator.setOutputRate(decimatorOutputRate);
 }
 
 // void
@@ -191,7 +186,7 @@ IqReceiver::sink(ComplexPingPongBuffers& buffers, uint32_t inputLength)
     buffers.flip();
   }
 
-  outputLength = m_pDemodulator->processSamples(buffers.input(), m_afBuffers.input(), outputLength);
+  outputLength = m_amDemodulator.processSamples(buffers.input(), m_afBuffers.input(), outputLength);
 
   //   vsdrcomplex audiosamples(outputLength, complexZero);
   //   for (int i = 0; i < outputLength; i++) {
