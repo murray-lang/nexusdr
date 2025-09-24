@@ -24,9 +24,27 @@ public:
     TX = 0x01,
     RX = 0x02
   };
-  ReceiverSettings rxSettings;
-  TransmitterSettings txSettings;
-  uint32_t changed;
+
+  RadioSettings()
+    : changed(0)
+  {}
+  RadioSettings(const RadioSettings& rhs)
+    : rxSettings(rhs.rxSettings),
+      txSettings(rhs.txSettings),
+      changed(rhs.changed)
+  {}
+  
+  ~RadioSettings() = default;
+
+  RadioSettings& operator=(const RadioSettings& rhs)
+  {
+    if (this != &rhs) {
+      rxSettings = rhs.rxSettings;
+      txSettings = rhs.txSettings;
+      changed = rhs.changed;
+    }
+    return *this;
+  }
 
   static SettingPath getSettingPath(const std::string& strDottedFeatures)
   {
@@ -61,6 +79,10 @@ public:
     }
 
   }
+
+  ReceiverSettings rxSettings;
+  TransmitterSettings txSettings;
+  uint32_t changed;
 };
 
 #endif //FUNCUBEPLAY_RADIOSETTINGS_H

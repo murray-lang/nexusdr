@@ -28,7 +28,7 @@ protected:
     }
   }
 
-  void notifySingleSetting(const SettingDelta& delta) override
+  void notifySingleSetting(const SingleSetting& delta) override
   {
     if (m_pSettingsSink) {
       m_pSettingsSink->applySingleSetting(delta);

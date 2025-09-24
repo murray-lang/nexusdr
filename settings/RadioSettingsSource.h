@@ -14,7 +14,7 @@ public:
   virtual void connect(RadioSettingsSink* pSink) = 0;
 protected:
   virtual void notifySettings(const RadioSettings& radioSettings) = 0;
-  virtual void notifySingleSetting(const SettingDelta& settingDelta) = 0;
+  virtual void notifySingleSetting(const SingleSetting& settingDelta) = 0;
 };
 
 #endif //CUTESDR_VK6HL_RADIOSETTINGSSOURCE_H

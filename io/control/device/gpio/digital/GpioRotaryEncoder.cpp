@@ -16,7 +16,7 @@ GpioRotaryEncoder::configure(const DigitalInputConfig* pConfig)
 void
 GpioRotaryEncoder::notifyMovement(const int movement)
 {
-  SettingDelta delta(m_settingPath, movement);
+  SingleSetting delta(m_settingPath, movement);
   notifySingleSetting(delta);
 }
 

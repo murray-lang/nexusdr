@@ -26,7 +26,7 @@ DigitalInput::connect(RadioSettingsSink* pSink)
   m_pSink = pSink;
 }
 void
-DigitalInput::notifySingleSetting(const SettingDelta& settingDelta)
+DigitalInput::notifySingleSetting(const SingleSetting& settingDelta)
 {
   if (m_pSink) {
     m_pSink->applySingleSetting(settingDelta);

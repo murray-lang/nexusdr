@@ -28,7 +28,7 @@ public:
 
   void connect(RadioSettingsSink* pSink) override;
 protected:
-  void notifySingleSetting(const SettingDelta& settingDelta) override;
+  void notifySingleSetting(const SingleSetting& settingDelta) override;
 
   std::string m_id;
   std::vector<uint32_t> m_lines;

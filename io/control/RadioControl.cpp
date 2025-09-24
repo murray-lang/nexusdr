@@ -59,7 +59,7 @@ RadioControl::notifySettings(const RadioSettings& radioSettings)
 }
 
 void
-RadioControl::notifySingleSetting(const SettingDelta& settingDelta)
+RadioControl::notifySingleSetting(const SingleSetting& settingDelta)
 {
   if (m_pExternalSettingsSink) {
     m_pExternalSettingsSink->applySingleSetting(settingDelta);

@@ -28,6 +28,7 @@ Radio::configure(const RadioConfig* pConfig)
 void
 Radio::start()
 {
+  m_control.connect(this);
   m_pReceiver->start();
   m_control.start();
 }
@@ -36,6 +37,7 @@ void
 Radio::stop()
 {
   m_control.stop();
+  m_control.connect(nullptr);
   m_pReceiver->stop();
 }
 
@@ -47,7 +49,7 @@ Radio::applySettings(const RadioSettings& settings)
 }
 
 void
-Radio::applySingleSetting(const SettingDelta& settingDelta)
+Radio::applySingleSetting(const SingleSetting& settingDelta)
 {
 
 }

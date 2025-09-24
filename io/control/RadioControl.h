@@ -28,7 +28,7 @@ public:
 
   //RadioSettingsSink methods. Intended for external use, not to be called by internal sources.
   void applySettings(const RadioSettings& settings) override;
-  void applySingleSetting(const SettingDelta& settingDelta) override
+  void applySingleSetting(const SingleSetting& settingDelta) override
   {
     throw ControlException("RadioControl::applySingleSetting() not implemented");
   }
@@ -41,7 +41,7 @@ public:
   // RadioSettingsSource methods
   void connect(RadioSettingsSink* pSink) override;
   void notifySettings(const RadioSettings& radioSettings) override;
-  void notifySingleSetting(const SettingDelta& settingDelta) override;
+  void notifySingleSetting(const SingleSetting& settingDelta) override;
 
 protected:
 
@@ -55,7 +55,7 @@ protected:
         m_pControl->notifySettings(settings); // Notify external sink
       }
     }
-    void applySingleSetting(const SettingDelta& settingDelta) override
+    void applySingleSetting(const SingleSetting& settingDelta) override
     {
       if (m_pControl) {
         m_pControl->notifySingleSetting(settingDelta); // Notify external sink

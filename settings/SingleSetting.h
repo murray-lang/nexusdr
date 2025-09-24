@@ -7,12 +7,12 @@
 #include "SettingPath.h"
 
 
-class SettingDelta
+class SingleSetting
 {
 public:
-  SettingDelta() : m_delta(0) {}
-  SettingDelta(const SettingPath& settingPath, int32_t delta) : m_settingPath(settingPath), m_delta(delta) {}
-  ~SettingDelta() = default;
+  SingleSetting() : m_delta(0) {}
+  SingleSetting(const SettingPath& settingPath, int32_t delta) : m_settingPath(settingPath), m_delta(delta) {}
+  ~SingleSetting() = default;
 
 protected:
   SettingPath m_settingPath;

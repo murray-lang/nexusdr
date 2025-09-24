@@ -25,7 +25,7 @@ public:
   void stop();
 
   void applySettings(const RadioSettings& settings) override;
-  void applySingleSetting(const SettingDelta& settingDelta) override;
+  void applySingleSetting(const SingleSetting& settingDelta) override;
 
   void ptt(bool on) override;
 
@@ -34,6 +34,7 @@ protected:
   void pttOff();
 
 protected:
+  RadioSettings m_settings;
   IqReceiver* m_pReceiver;
   RadioControl m_control;
 };

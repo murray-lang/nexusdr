@@ -217,7 +217,7 @@ set(PROJECT_SOURCES
         io/control/device/gpio/digital/DigitalInputGroup.cpp
         io/control/device/gpio/digital/DigitalInputGroup.h
         settings/SettingPath.h
-        settings/SettingDelta.h
+        settings/SingleSetting.h
         settings/SettingsException.h
         settings/SettingsBase.h
         util/StringUtils.cpp

@@ -51,7 +51,7 @@ protected:
     {
       throw ControlException("A DigitalInput should not provide RadioSettings, only a single setting.");
     }
-    void applySingleSetting(const SettingDelta& settingDelta) override
+    void applySingleSetting(const SingleSetting& settingDelta) override
     {
       if (m_pGroup) {
         m_pGroup->notifySingleSetting(settingDelta);
