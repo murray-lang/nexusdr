@@ -379,14 +379,24 @@ MainWindow::initialiseRadio()
     m_pRadio->configure(&m_radioConfig);
     m_pRadio->start();
 
-    RadioSettings radioSettings = {
-      .rxSettings = {
-        .rfSettings = { .frequency = 10000000, .gain = 0.0, .changed = (RfSettings::FREQUENCY | RfSettings::GAIN)},
-        .ifSettings = { .bandwidth = 200000, .gain = 0.0, .changed = (IfSettings::BANDWIDTH | IfSettings::GAIN) },
-        .changed = (ReceiverSettings::RF | ReceiverSettings::IF)
-       },
-      .changed = (RadioSettings::RX)
-    };
+    RadioSettings radioSettings;
+    // RadioSettings radioSettings = {
+    //   .rxSettings = {
+    //     .rfSettings = { .frequency = 10000000, .gain = 0.0, .changed = (RfSettings::FREQUENCY | RfSettings::GAIN)},
+    //     .ifSettings = { .bandwidth = 200000, .gain = 0.0, .changed = (IfSettings::BANDWIDTH | IfSettings::GAIN) },
+    //     .changed = (ReceiverSettings::RF | ReceiverSettings::IF)
+    //    },
+    //   .changed = (RadioSettings::RX)
+    // };
+    radioSettings.rxSettings.rfSettings.frequency = 10000000;
+    radioSettings.rxSettings.rfSettings.gain = 0.0;
+    radioSettings.rxSettings.rfSettings.changed = (RfSettings::FREQUENCY | RfSettings::GAIN);
+    radioSettings.rxSettings.ifSettings.bandwidth = 200000;
+    radioSettings.rxSettings.ifSettings.gain = 0.0;
+    radioSettings.rxSettings.ifSettings.changed = (IfSettings::BANDWIDTH | IfSettings::GAIN);
+    radioSettings.rxSettings.changed = (ReceiverSettings::RF | ReceiverSettings::IF);
+    radioSettings.changed = RadioSettings::RX;
+
     m_pRadio->applySettings(radioSettings);
   }
   catch (std::runtime_error& error)

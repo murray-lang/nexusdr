@@ -9,7 +9,7 @@
 
 #include "SettingsBase.h"
 
-class IfSettings /*: SettingsBase*/ {
+class IfSettings : public SettingsBase {
 public:
   enum Features
   {
@@ -17,15 +17,56 @@ public:
     BANDWIDTH = 0x01,
     GAIN = 0x02
   };
+  IfSettings() : bandwidth(0), gain(0.0) {}
+  IfSettings(const IfSettings& rhs) = default;
+  ~IfSettings() override = default;
 
-  // void applyDelta(const SettingDelta& delta) override
-  // {
-  //
-  // }
+  IfSettings& operator=(const IfSettings& rhs)
+  {
+    if (this != &rhs) {
+      SettingsBase::operator=(rhs);
+      bandwidth = rhs.bandwidth;
+      gain = rhs.gain;
+      changed = rhs.changed;
+    }
+    return *this;
+  }
 
-  uint32_t bandwidth;
-  float gain;
-  uint32_t changed;
+
+  bool applySetting(const SingleSetting& setting, int startIndex) override
+  {
+    if (startIndex >= setting.getPath().getFeatures().size()) {
+      throw SettingsException("Invalid setting path");
+    }
+    bool settingChange = false;
+    uint32_t feature = setting.getPath().getFeatures()[startIndex];
+    if (feature == BANDWIDTH) {
+      if (setting.getMeaning() == SingleSetting::VALUE) {
+        bandwidth = static_cast<uint32_t>(setting.getValue());
+        settingChange = true;
+      } else if (setting.getMeaning() == SingleSetting::DELTA) {
+        bandwidth += setting.getValue();
+        settingChange = true;
+      }
+    } else if (feature == GAIN) {
+      if (setting.getMeaning() == SingleSetting::VALUE) {
+        gain = static_cast<float>(setting.getValue());
+        settingChange = true;
+      } else if (setting.getMeaning() == SingleSetting::DELTA) {
+        gain += static_cast<float>(setting.getValue());
+        settingChange = true;
+      }
+    }
+    if (settingChange) {
+      changed |= feature;
+    }
+    return settingChange;
+  }
+
+  void clearChanged() override
+  {
+    SettingsBase::clearChanged();
+  }
 
   static void getFeaturePath(
     const std::vector<std::string>& featureStrings,
@@ -44,5 +85,8 @@ public:
       throw SettingsException("Unknown IF setting: " + featureStrings[startIndex]);
     }
   }
+
+  uint32_t bandwidth;
+  float gain;
 };
 #endif //FUNCUBEPLAY_IFSETTINGS_H

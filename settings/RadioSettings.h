@@ -16,7 +16,7 @@
 #include "../util/StringUtils.h"
 
 
-class RadioSettings {
+class RadioSettings : public SettingsBase {
 public:
   enum Features
   {
@@ -25,25 +25,44 @@ public:
     RX = 0x02
   };
 
-  RadioSettings()
-    : changed(0)
-  {}
-  RadioSettings(const RadioSettings& rhs)
-    : rxSettings(rhs.rxSettings),
-      txSettings(rhs.txSettings),
-      changed(rhs.changed)
-  {}
+  RadioSettings() = default;
+  RadioSettings(const RadioSettings& rhs) = default;
   
-  ~RadioSettings() = default;
+  ~RadioSettings() override = default;
 
   RadioSettings& operator=(const RadioSettings& rhs)
   {
     if (this != &rhs) {
+      SettingsBase::operator=(rhs);
       rxSettings = rhs.rxSettings;
       txSettings = rhs.txSettings;
-      changed = rhs.changed;
     }
     return *this;
+  }
+
+  bool applySetting(const SingleSetting& setting, int startIndex) override
+  {
+    if (startIndex >= setting.getPath().getFeatures().size()) {
+      throw SettingsException("Invalid setting path");
+    }
+    bool settingChange = false;
+    uint32_t feature = setting.getPath().getFeatures()[startIndex];
+    if (feature == TX) {
+      settingChange = txSettings.applySetting(setting, startIndex + 1);
+    } else if (feature == RX) {
+      settingChange = rxSettings.applySetting(setting, startIndex + 1);
+    }
+    if (settingChange) {
+      changed |= feature;
+    }
+    return settingChange;
+  }
+
+  void clearChanged() override
+  {
+    SettingsBase::clearChanged();
+    rxSettings.clearChanged();
+    txSettings.clearChanged();
   }
 
   static SettingPath getSettingPath(const std::string& strDottedFeatures)
@@ -82,7 +101,7 @@ public:
 
   ReceiverSettings rxSettings;
   TransmitterSettings txSettings;
-  uint32_t changed;
+
 };
 
 #endif //FUNCUBEPLAY_RADIOSETTINGS_H

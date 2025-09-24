@@ -17,6 +17,8 @@ public:
   virtual ~SettingPath() = default;
 
   SettingPath& operator=(const SettingPath& rhs) = default;
+  // bool operator==(const SettingPath& rhs) const;
+  [[nodiscard]] const std::vector<uint32_t>& getFeatures() const { return m_features; }
 
   // static FeaturePath fromString(const std::string& str)
   // {

@@ -10,13 +10,28 @@
 class SingleSetting
 {
 public:
-  SingleSetting() : m_delta(0) {}
-  SingleSetting(const SettingPath& settingPath, int32_t delta) : m_settingPath(settingPath), m_delta(delta) {}
+  enum Meaning
+  {
+    NONE = 0,
+    VALUE,
+    DELTA
+  };
+  SingleSetting() : m_value(0), m_meaning(NONE) {}
+  SingleSetting(const SettingPath& settingPath, int32_t value, Meaning meaning) :
+    m_settingPath(settingPath),
+    m_value(value),
+    m_meaning(meaning)
+  {}
   ~SingleSetting() = default;
+
+  [[nodiscard]] const SettingPath& getPath() const { return m_settingPath; }
+  [[nodiscard]] int32_t getValue() const { return m_value; }
+  [[nodiscard]] Meaning getMeaning() const { return m_meaning; }
 
 protected:
   SettingPath m_settingPath;
-  int32_t m_delta;
+  int32_t m_value;
+  Meaning m_meaning;
 };
 
 #endif //CUTESDR_VK6HL_SETTINGDELTA_H
