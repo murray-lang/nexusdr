@@ -4,8 +4,10 @@
 
 #ifndef CONTROLSINK_H
 #define CONTROLSINK_H
-#include "ControlBase.h"
 
+#include "ControlBase.h"
+#include "settings/PttSink.h"
+#include "settings/RadioSettingsSink.h"
 
 class ControlSink : public ControlBase, public RadioSettingsSink, public PttSink
 {

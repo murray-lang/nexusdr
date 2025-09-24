@@ -6,9 +6,9 @@
 #include <fstream>
 #include <nlohmann/json.hpp>
 
-#include "control/device/gpio/Gpio.h"
-#include "control/device/gpio/GpioException.h"
-#include "control/device/gpio/GpioLines.h"
+#include "io/control/device/gpio/Gpio.h"
+#include "io/control/device/gpio/GpioException.h"
+#include "io/control/device/gpio/GpioLines.h"
 using json = nlohmann::json;
 
 int main(int argc, char *argv[])

@@ -5,10 +5,19 @@
 #include "GpioRotaryEncoder.h"
 #include <qdebug.h>
 
+#include "io/control/device/gpio/GpioException.h"
+
 void
 GpioRotaryEncoder::configure(const DigitalInputConfig* pConfig)
 {
   DigitalInput::configure(pConfig);
+}
+
+void
+GpioRotaryEncoder::notifyMovement(const int movement)
+{
+  SettingDelta delta(m_settingPath, movement);
+  notifySingleSetting(delta);
 }
 
 bool
@@ -21,6 +30,7 @@ GpioRotaryEncoder::handleLineChange(GpioLines::LineStateMap& changedLines)
     GpioLines::LineState& b = bIter->second;
     int dir = calculateMovement(a, b);
     qDebug() << "A:" << a.value << "B:" << b.value << "Direction: " << dir;
+    notifyMovement(dir);
     return true;
   }
   return false;

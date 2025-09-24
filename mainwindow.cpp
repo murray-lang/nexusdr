@@ -8,9 +8,9 @@
 #include <QThreadPool>
 #include "io/audio/device/IqAudioInputDevice.h"
 #include <cmath>
-#include "control/device/usb/UsbException.h"
-#include "control/device/FunCubeDongle/FunCubeDongle.h"
-#include <control/ControlException.h>
+#include "io/control/device/usb/UsbException.h"
+#include "io/control/device/FunCubeDongle/FunCubeDongle.h"
+#include <io/control/ControlException.h>
 #include <config/AudioConfig.h>
 #include <volk/volk.h>
 
@@ -387,7 +387,7 @@ MainWindow::initialiseRadio()
        },
       .changed = (RadioSettings::RX)
     };
-    m_pRadio->apply(radioSettings);
+    m_pRadio->applySettings(radioSettings);
   }
   catch (std::runtime_error& error)
   {

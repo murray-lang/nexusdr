@@ -10,8 +10,9 @@
 class SettingDelta
 {
 public:
-  SettingDelta();
-  ~SettingDelta();
+  SettingDelta() : m_delta(0) {}
+  SettingDelta(const SettingPath& settingPath, int32_t delta) : m_settingPath(settingPath), m_delta(delta) {}
+  ~SettingDelta() = default;
 
 protected:
   SettingPath m_settingPath;

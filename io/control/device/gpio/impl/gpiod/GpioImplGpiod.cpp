@@ -2,7 +2,7 @@
 #include "GpioImplGpiod.h"
 
 #include "GpioLinesImplGpiod.h"
-#include "control/device/gpio/GpioException.h"
+#include "io/control/device/gpio/GpioException.h"
 
 
 GpioImplGpiod::GpioImplGpiod() :

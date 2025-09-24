@@ -6,10 +6,10 @@
 #define RADIO_H
 #include <vector>
 
-#include <control/ControlSink.h>
-#include <control/ControlSource.h>
+#include <io/control/ControlSink.h>
+#include <io/control/ControlSource.h>
 #include "config/RadioConfig.h"
-#include <control/RadioControl.h>
+#include <io/control/RadioControl.h>
 #include "receiver/IqReceiver.h"
 #include <settings/PttSink.h>
 #include <settings/RadioSettingsSink.h>
@@ -24,7 +24,8 @@ public:
   void start();
   void stop();
 
-  void apply(const RadioSettings& settings) override;
+  void applySettings(const RadioSettings& settings) override;
+  void applySingleSetting(const SettingDelta& settingDelta) override;
 
   void ptt(bool on) override;
 

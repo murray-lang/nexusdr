@@ -9,6 +9,12 @@
 #include "ControlSourceFactory.h"
 #include "config/ConfigException.h"
 
+RadioControl::RadioControl() :
+  m_internalSink(this),
+  m_pExternalSettingsSink(nullptr)
+{
+}
+
 void
 RadioControl::configure(const ControlConfig* pConfig)
 {
@@ -16,7 +22,7 @@ RadioControl::configure(const ControlConfig* pConfig)
   for (auto& controllerConfig : controlSinkConfigs) {
     ControlSink* next = ControlSinkFactory::create(controllerConfig);
     if (next != nullptr) {
-      m_sinks.push_back(next);
+      m_controlSinks.push_back(next);
     } else {
       std::ostringstream oss;
       oss << "Failed to create control sink of type '" << controllerConfig->getType() << "'";
@@ -28,7 +34,8 @@ RadioControl::configure(const ControlConfig* pConfig)
   for (auto& controllerConfig : controlSourceConfigs) {
     ControlSource* next = ControlSourceFactory::create(controllerConfig);
     if (next != nullptr) {
-      m_sources.push_back(next);
+      next->connect(&m_internalSink);
+      m_controlSources.push_back(next);
     } else {
       std::ostringstream oss;
       oss << "Failed to create control source of type '" << controllerConfig->getType() << "'";
@@ -38,17 +45,39 @@ RadioControl::configure(const ControlConfig* pConfig)
 }
 
 void
-RadioControl::apply(const RadioSettings& settings)
+RadioControl::connect(RadioSettingsSink* pSink)
 {
-  for (auto pSink : m_sinks) {
-    pSink->apply(settings);
+  m_pExternalSettingsSink = pSink;
+}
+
+void
+RadioControl::notifySettings(const RadioSettings& radioSettings)
+{
+  if (m_pExternalSettingsSink) {
+    m_pExternalSettingsSink->applySettings(radioSettings);
+  }
+}
+
+void
+RadioControl::notifySingleSetting(const SettingDelta& settingDelta)
+{
+  if (m_pExternalSettingsSink) {
+    m_pExternalSettingsSink->applySingleSetting(settingDelta);
+  }
+}
+
+void
+RadioControl::applySettings(const RadioSettings& settings)
+{
+  for (RadioSettingsSink* pSink : m_controlSinks) {
+    pSink->applySettings(settings);
   }
 }
 
 void
 RadioControl::start()
 {
-  for (auto pSink : m_sinks) {
+  for (auto pSink : m_controlSinks) {
     if (!pSink->discover()) {
       std::ostringstream oss;
       oss << "Discovery failed for control sink: '" << pSink->getId() << "'";
@@ -56,7 +85,7 @@ RadioControl::start()
     }
     pSink->open();
   }
-  for (auto pSource : m_sources) {
+  for (auto pSource : m_controlSources) {
     if (!pSource->discover()) {
       std::ostringstream oss;
       oss << "Discovery failed for control source: '" << pSource->getId() << "'";

@@ -93,18 +93,18 @@ endif()
 
 if(USE_PIGPIO)
     set (PLATFORM_SOURCES
-        control/device/gpio/impl/pigpio/GpioImplPiGpio.h
-        control/device/gpio/impl/pigpio/GpioImplPiGpio.cpp
-        control/device/gpio/impl/pigpio/GpioLinesImplPiGpio.h
-        control/device/gpio/impl/pigpio/GpioLinesImplPiGpio.cpp
+            io/control/device/gpio/impl/pigpio/GpioImplPiGpio.h
+            io/control/device/gpio/impl/pigpio/GpioImplPiGpio.cpp
+            io/control/device/gpio/impl/pigpio/GpioLinesImplPiGpio.h
+            io/control/device/gpio/impl/pigpio/GpioLinesImplPiGpio.cpp
     )
     
 elseif(USE_GPIOD)
     set (PLATFORM_SOURCES
-        control/device/gpio/impl/gpiod/GpioImplGpiod.h
-        control/device/gpio/impl/gpiod/GpioImplGpiod.cpp
-        control/device/gpio/impl/gpiod/GpioLinesImplGpiod.h
-        control/device/gpio/impl/gpiod/GpioLinesImplGpiod.cpp
+            io/control/device/gpio/impl/gpiod/GpioImplGpiod.h
+            io/control/device/gpio/impl/gpiod/GpioImplGpiod.cpp
+            io/control/device/gpio/impl/gpiod/GpioLinesImplGpiod.h
+            io/control/device/gpio/impl/gpiod/GpioLinesImplGpiod.cpp
     )
 endif()
 
@@ -132,18 +132,18 @@ set(PROJECT_SOURCES
         dsp/stages/demodulators/Demodulator.h
         dsp/stages/demodulators/AmDemodulator.h
 
-        control/device/usb/UsbControl.h
-        control/device/usb/UsbException.cpp
-        control/device/usb/UsbException.h
-        control/device/usb/LibUsbControl.cpp
-        control/device/usb/LibUsbControl.h
-        control/device/usb/HidUsbControl.cpp
-        control/device/usb/HidUsbControl.h
-        control/device/usb/UsbControl.cpp
-        control/ControlBase.h
-        control/device/FunCubeDongle/FunCubeDongle.cpp
-        control/device/FunCubeDongle/FunCubeDongle.h
-        control/ControlException.h
+        io/control/device/usb/UsbControl.h
+        io/control/device/usb/UsbException.cpp
+        io/control/device/usb/UsbException.h
+        io/control/device/usb/LibUsbControl.cpp
+        io/control/device/usb/LibUsbControl.h
+        io/control/device/usb/HidUsbControl.cpp
+        io/control/device/usb/HidUsbControl.h
+        io/control/device/usb/UsbControl.cpp
+        io/control/ControlBase.h
+        io/control/device/FunCubeDongle/FunCubeDongle.cpp
+        io/control/device/FunCubeDongle/FunCubeDongle.h
+        io/control/ControlException.h
         settings/RfSettings.h
         settings/IfSettings.h
         settings/ReceiverSettings.h
@@ -188,8 +188,8 @@ set(PROJECT_SOURCES
         radio/receiver/ReceiverIqEvent.cpp
         radio/receiver/ReceiverAudioEvent.cpp
         radio/receiver/ReceiverAudioEvent.h
-        control/ControlSinkFactory.h
-        control/ControlSinkFactory.cpp
+        io/control/ControlSinkFactory.h
+        io/control/ControlSinkFactory.cpp
         io/audio/device/AudioDeviceFactory.h
         settings/ReceiverSettingsSink.h
         settings/PttSink.h
@@ -197,40 +197,40 @@ set(PROJECT_SOURCES
         radio/Radio.h
         settings/RadioSettingsSink.h
         config/ControlConfig.h
-        control/ControlSink.cpp
-        control/ControlSink.h
+        io/control/ControlSink.cpp
+        io/control/ControlSink.h
         settings/RadioSettingsSource.h
-        control/ControlSource.cpp
-        control/ControlSource.h
+        io/control/ControlSource.cpp
+        io/control/ControlSource.h
         settings/PttSource.h
-        control/ControlSourceFactory.cpp
-        control/ControlSourceFactory.h
+        io/control/ControlSourceFactory.cpp
+        io/control/ControlSourceFactory.h
 
-        control/device/gpio/Gpio.cpp
-        control/device/gpio/Gpio.h
-        control/device/gpio/GpioException.cpp
-        control/device/gpio/GpioException.h
-        control/device/gpio/GpioLines.cpp
-        control/device/gpio/GpioLines.h
-        control/device/gpio/digital/GpioRotaryEncoder.cpp
-        control/device/gpio/digital/GpioRotaryEncoder.h
-        control/device/gpio/digital/DigitalInputGroup.cpp
-        control/device/gpio/digital/DigitalInputGroup.h
+        io/control/device/gpio/Gpio.cpp
+        io/control/device/gpio/Gpio.h
+        io/control/device/gpio/GpioException.cpp
+        io/control/device/gpio/GpioException.h
+        io/control/device/gpio/GpioLines.cpp
+        io/control/device/gpio/GpioLines.h
+        io/control/device/gpio/digital/GpioRotaryEncoder.cpp
+        io/control/device/gpio/digital/GpioRotaryEncoder.h
+        io/control/device/gpio/digital/DigitalInputGroup.cpp
+        io/control/device/gpio/digital/DigitalInputGroup.h
         settings/SettingPath.h
         settings/SettingDelta.h
         settings/SettingsException.h
         settings/SettingsBase.h
         util/StringUtils.cpp
         util/StringUtils.h
-        control/RadioControl.cpp
-        control/RadioControl.h
+        io/control/RadioControl.cpp
+        io/control/RadioControl.h
         dsp/stages/demodulators/FmDemodulator.cpp
         dsp/stages/demodulators/FmDemodulator.h
-        control/device/gpio/digital/DigitalInput.h
-        control/device/gpio/digital/DigitalInput.cpp
-        control/device/gpio/digital/DigitalInputFactory.cpp
-        control/device/gpio/digital/DigitalInputFactory.h
-        control/device/gpio/digital/DigitalInputFactory.cpp
+        io/control/device/gpio/digital/DigitalInput.h
+        io/control/device/gpio/digital/DigitalInput.cpp
+        io/control/device/gpio/digital/DigitalInputFactory.cpp
+        io/control/device/gpio/digital/DigitalInputFactory.h
+        io/control/device/gpio/digital/DigitalInputFactory.cpp
         config/VariantConfig.h
         config/ConfigFactory.cpp
         config/ConfigFactory.h

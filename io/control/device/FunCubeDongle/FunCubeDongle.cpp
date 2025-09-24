@@ -20,7 +20,7 @@ FunCubeDongle::FunCubeDongle() :
 FunCubeDongle::~FunCubeDongle() = default;
 
 void
-FunCubeDongle::apply(const RadioSettings& radioSettings)
+FunCubeDongle::applySettings(const RadioSettings& radioSettings)
 {
   if (radioSettings.changed & RadioSettings::RX) {
     if (radioSettings.rxSettings.changed & ReceiverSettings::RF) {
@@ -43,6 +43,7 @@ FunCubeDongle::apply(const RadioSettings& radioSettings)
     //setIfFilter(TIFE_200KHZ);
   }
 }
+
 void FunCubeDongle::ptt(bool on)
 {
 }

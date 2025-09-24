@@ -10,7 +10,9 @@ class RadioSettingsSink
 {
 public:
   virtual ~RadioSettingsSink() = default;
-  virtual void apply(const RadioSettings& settings) = 0;
+  virtual void applySettings(const RadioSettings& settings) = 0;
+  virtual void applySingleSetting(const SettingDelta& settingDelta) = 0;
+
 };
 
 #endif //RADIOSETTINGSSINK_H

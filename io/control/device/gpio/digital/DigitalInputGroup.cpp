@@ -12,10 +12,10 @@
 
 #include "DigitalInputFactory.h"
 #include "config/DigitalInputGroupConfig.h"
-#include "control/device/gpio/GpioException.h"
+#include "io/control/device/gpio/GpioException.h"
 
-DigitalInputGroup::DigitalInputGroup(const char* consumer)
-  // m_lines(consumer),
+DigitalInputGroup::DigitalInputGroup(const char* consumer) :
+  m_internalSink(this)
 {
 
 }
@@ -78,6 +78,7 @@ DigitalInputGroup::createInputs(const DigitalInputGroupConfig* pConfig)
     if (input == nullptr) {
       throw ConfigException("digitalInputGroup input has unknown input type: " + pConfig->getType());
     }
+    input->connect(&m_internalSink);
     m_inputs.push_back(input);
   }
 }
@@ -122,4 +123,3 @@ DigitalInputGroup::callback(GpioLines::LineStateMap& lineStates)
     input->handleLineChange(lineStates);
   }
 }
-

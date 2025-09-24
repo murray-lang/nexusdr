@@ -40,10 +40,16 @@ Radio::stop()
 }
 
 void
-Radio::apply(const RadioSettings& settings)
+Radio::applySettings(const RadioSettings& settings)
 {
-  m_control.apply(settings);
+  m_control.applySettings(settings);
   m_pReceiver->apply(settings.rxSettings);
+}
+
+void
+Radio::applySingleSetting(const SettingDelta& settingDelta)
+{
+
 }
 
 void Radio::ptt(bool on)

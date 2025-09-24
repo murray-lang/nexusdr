@@ -9,6 +9,7 @@
 #include "../usb/HidUsbControl.h"
 #include "settings/RadioSettings.h"
 #include "FCDHidCmd.h"
+#include "io/control/ControlException.h"
 
 class FunCubeDongle : public ControlSink {
 public:
@@ -17,7 +18,11 @@ public:
 
     // void applySettings(const RadioSettings& radioSettings) override;
     // void readSettings(RadioSettings& radioSettings) override;
-  void apply(const RadioSettings& rxSettings) override;
+  void applySettings(const RadioSettings& radioSettings) override;
+  void applySingleSetting(const SettingDelta& settingDelta) override
+  {
+    throw ControlException("FunCubeDongle::applySingleSetting() not implemented.");
+  }
 
   void ptt(bool on) override;
 
