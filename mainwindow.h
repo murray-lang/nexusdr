@@ -12,6 +12,7 @@
 #include "io/audio/device/AudioOutputDevice.h"
 #include "radio/Radio.h"
 #include "config/RadioConfig.h"
+#include "settings/RadioSettingsEventPublisher.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -30,6 +31,7 @@ public:
 protected:
   void handleReceiverIqEvent(const vsdrcomplex* data, uint32_t length);
   void handleReceiverAudioEvent(const vsdrreal* data, uint32_t length);
+  void handleRadioSettingsEvent(const RadioSettings& radioSettings);
   static void powerSpectrum(const std::vector<sdrcomplex>& timeSeries, uint32_t timeSeriesLength, vsdrreal& spectrumOut);
 
   static void calcSpectrumSeries(const vsdrreal* spectrumData, QLineSeries& spectrumSeries, bool shuffle = true);

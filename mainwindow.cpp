@@ -181,15 +181,15 @@ MainWindow::setTimeSeriesX(uint32_t xMin, uint32_t xMax)
 void
 MainWindow::customEvent(QEvent* event)
 {
-  if (event->type() == ReceiverIqEvent::RxIqEvent)
-  {
+  if (event->type() == ReceiverIqEvent::RxIqEvent) {
     auto* iqEvent = dynamic_cast<ReceiverIqEvent*>(event);
     handleReceiverIqEvent(iqEvent->buffer.get(), iqEvent->dataLength);
-  }
-  else if (event->type() == ReceiverAudioEvent::RxAudioEvent)
-  {
+  } else if (event->type() == ReceiverAudioEvent::RxAudioEvent) {
     auto* audioEvent = dynamic_cast<ReceiverAudioEvent*>(event);
     handleReceiverAudioEvent(audioEvent->buffer.get(), audioEvent->dataLength);
+  } else if (event->type() == RadioSettingsEvent::RadioSettingsEventType) {
+    auto* radioSettingsEvent = dynamic_cast<RadioSettingsEvent*>(event);
+    handleRadioSettingsEvent(radioSettingsEvent->getSettings());
   }
 }
 
@@ -218,6 +218,12 @@ MainWindow::handleReceiverAudioEvent(const vsdrreal* data, uint32_t length)
   }
 
   m_timeseriesLineSeries.replace(timeseriesPoints);
+}
+
+void
+MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings)
+{
+  qDebug() << "handleRadioSettingsEvent";
 }
 
 void

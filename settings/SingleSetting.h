@@ -22,7 +22,18 @@ public:
     m_value(value),
     m_meaning(meaning)
   {}
+  SingleSetting(const SingleSetting& rhs) = default;
   ~SingleSetting() = default;
+
+  SingleSetting& operator=(const SingleSetting& rhs)
+  {
+    if (this != &rhs) {
+      m_settingPath = rhs.m_settingPath;
+      m_value = rhs.m_value;
+      m_meaning = rhs.m_meaning;
+    }
+    return *this;
+  }
 
   [[nodiscard]] const SettingPath& getPath() const { return m_settingPath; }
   [[nodiscard]] int32_t getValue() const { return m_value; }

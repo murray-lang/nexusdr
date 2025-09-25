@@ -4,18 +4,22 @@
 
 #include "Radio.h"
 
+#include <qcoreapplication.h>
+
 #include "settings/RadioSettings.h"
+#include "settings/RadioSettingsEvent.h"
+#include "settings/SingleSettingEvent.h"
 
 
 #define SAMPLE_RATE 192000
 
-Radio::Radio(QObject *eventTarget) :
+Radio::Radio(QObject *pEventTarget) :
   m_settings(),
   m_pReceiver(nullptr),
   m_control(),
-  m_pSettingsSink(nullptr)
+  m_pEventTarget(pEventTarget)
 {
-  m_pReceiver = new IqReceiver(eventTarget);
+  m_pReceiver = new IqReceiver(pEventTarget);
 }
 
 Radio::~Radio()
@@ -55,12 +59,18 @@ Radio::applySettings(const RadioSettings& settings)
   }
   m_control.applySettings(m_settings);
   m_pReceiver->apply(m_settings.rxSettings);
+  if (m_pEventTarget != nullptr) {
+    QCoreApplication::postEvent(m_pEventTarget, new RadioSettingsEvent(settings));
+  }
   m_settings.clearChanged();
 }
 
 void
 Radio::applySingleSetting(const SingleSetting& setting)
 {
+  if (m_pEventTarget != nullptr) {
+    QCoreApplication::postEvent(m_pEventTarget, new SingleSettingEvent(setting));
+  }
   if (m_settings.applySetting(setting, 0)) {
     applySettings(m_settings);
   }

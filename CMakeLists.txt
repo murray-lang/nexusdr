@@ -238,6 +238,11 @@ set(PROJECT_SOURCES
         config/RotaryEncoderConfig.h
         config/DigitalInputConfig.h
         config/FunCubeConfig.h
+        settings/RadioSettingsEvent.cpp
+        settings/RadioSettingsEvent.h
+        settings/RadioSettingsEventPublisher.h
+        settings/SingleSettingEvent.cpp
+        settings/SingleSettingEvent.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

@@ -19,7 +19,7 @@
 class Radio : public RadioSettingsSink, PttSink {
 
 public:
-  explicit Radio(QObject *eventTarget = nullptr);
+  explicit Radio(QObject *pEventTarget = nullptr);
   ~Radio() override;
 
   void configure(const RadioConfig* pConfig);
@@ -39,6 +39,8 @@ protected:
   RadioSettings m_settings;
   IqReceiver* m_pReceiver;
   RadioControl m_control;
+
+  QObject* m_pEventTarget;
 };
 
 
