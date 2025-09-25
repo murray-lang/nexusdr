@@ -11,7 +11,6 @@
 
 #define FFT_SIZE 2048
 
-const int32_t lo = 48000;
 
 IqReceiver::IqReceiver(QObject* eventTarget) :
   m_dcShift(sdrcomplex(0.00447, 0.00348)),
@@ -90,7 +89,7 @@ IqReceiver::configure(const ReceiverConfig* pConfig)
   m_pIqInput->initialise(iqInputConfig);
 
   uint32_t inputSampleRate = m_pIqInput->getSampleRate();
-  m_oscillatorMixer.initialise(inputSampleRate, -lo);
+  m_oscillatorMixer.initialise(inputSampleRate, 0);
 
   auto audioOutputConfig = dynamic_cast<const AudioConfig*>(pConfig->getOutput());
   m_pAudioOutput = new AudioOutput();
@@ -128,7 +127,12 @@ IqReceiver::configure(const ReceiverConfig* pConfig)
 
 void IqReceiver::apply(const ReceiverSettings& settings)
 {
+    if (settings.changed & ReceiverSettings::RF) {
+      if (settings.rfSettings.changed & RfSettings::OFFSET) {
+        m_oscillatorMixer.setFrequency(-settings.rfSettings.offset); 
+      }
 
+    }
 }
 
 

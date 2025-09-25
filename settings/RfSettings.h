@@ -23,7 +23,7 @@ public:
     GAIN = 0x10,
 
   };
-  RfSettings() : frequency(0), frequencyStep(1000), offset(0), offsetStep(1000), gain(0.0) {}
+  RfSettings() : frequency(0), frequencyStep(10000), offset(0), offsetStep(1000), gain(0.0) {}
   RfSettings(const RfSettings& rhs) = default;
   ~RfSettings() override = default;
 
@@ -105,7 +105,7 @@ public:
 
   uint32_t frequency;
   uint32_t frequencyStep;
-  uint32_t offset;
+  int32_t  offset;
   uint32_t offsetStep;
   float gain;
 };

@@ -9,7 +9,11 @@
 
 #define SAMPLE_RATE 192000
 
-Radio::Radio(QObject *eventTarget)
+Radio::Radio(QObject *eventTarget) :
+  m_settings(),
+  m_pReceiver(nullptr),
+  m_control(),
+  m_pSettingsSink(nullptr)
 {
   m_pReceiver = new IqReceiver(eventTarget);
 }

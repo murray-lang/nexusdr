@@ -389,8 +389,9 @@ MainWindow::initialiseRadio()
     //   .changed = (RadioSettings::RX)
     // };
     radioSettings.rxSettings.rfSettings.frequency = 10000000;
+    radioSettings.rxSettings.rfSettings.offset = 48000;
     radioSettings.rxSettings.rfSettings.gain = 0.0;
-    radioSettings.rxSettings.rfSettings.changed = (RfSettings::FREQUENCY | RfSettings::GAIN);
+    radioSettings.rxSettings.rfSettings.changed = (RfSettings::FREQUENCY | RfSettings::OFFSET | RfSettings::GAIN);
     radioSettings.rxSettings.ifSettings.bandwidth = 200000;
     radioSettings.rxSettings.ifSettings.gain = 0.0;
     radioSettings.rxSettings.ifSettings.changed = (IfSettings::BANDWIDTH | IfSettings::GAIN);
