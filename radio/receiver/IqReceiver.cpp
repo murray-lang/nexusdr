@@ -181,7 +181,7 @@ IqReceiver::sink(ComplexPingPongBuffers& buffers, uint32_t inputLength)
 {
   // qDebug() << inputLength;
   // emitComplexSignal(SignalEmitter::eSIGNAL_INPUT, buffers.input(), inputLength);
-  QCoreApplication::postEvent(m_eventTarget, new ReceiverIqEvent(buffers.input(), inputLength));
+  QCoreApplication::postEvent(m_eventTarget, new ReceiverIqEvent(buffers.input(), inputLength, m_pIqInput->getSampleRate() ));
 
   uint32_t outputLength = inputLength;
 

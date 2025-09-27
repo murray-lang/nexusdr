@@ -29,13 +29,23 @@ public:
   void customEvent(QEvent* event) override;
 
 protected:
-  void handleReceiverIqEvent(const vsdrcomplex* data, uint32_t length);
+  void handleReceiverIqEvent(const vsdrcomplex* data, uint32_t length, uint32_t sampleRate);
   void handleReceiverAudioEvent(const vsdrreal* data, uint32_t length);
   void handleRadioSettingsEvent(const RadioSettings& radioSettings);
   static void powerSpectrum(const std::vector<sdrcomplex>& timeSeries, uint32_t timeSeriesLength, vsdrreal& spectrumOut);
 
-  static void calcSpectrumSeries(const vsdrreal* spectrumData, QLineSeries& spectrumSeries, bool shuffle = true);
-  static void calcSpectrumSeries(const vsdrcomplex* spectrumData, QLineSeries& spectrumSeries, bool shuffle = true);
+  void replaceSpectrumSeries(
+    const vsdrreal* spectrumData,
+    QLineSeries& spectrumSeries,
+    uint32_t sampleRate,
+    bool shuffle = true
+  );
+  void replaceSpectrumSeries(
+    const vsdrcomplex* spectrumData,
+    QLineSeries& spectrumSeries,
+    uint32_t sampleRate,
+    bool shuffle = true
+  );
 
 //private slots:
 //    void toggleMode();
@@ -68,5 +78,6 @@ private:
   uint32_t m_panadapterXmax;
   uint32_t m_timeSeriesXmin;
   uint32_t m_timeSeriesXmax;
+  RadioSettings m_radioSettings;
 };
 #endif // MAINWINDOW_H
