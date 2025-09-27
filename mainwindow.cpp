@@ -32,7 +32,9 @@ MainWindow::MainWindow(RadioConfig& radioConfig, QWidget *parent)
     , m_panadapterXmin(0)
     , m_panadapterXmax(FFT_SIZE)
     , m_timeSeriesXmin(0)
-    , m_timeSeriesXmax(FFT_SIZE)
+    , m_timeSeriesXmax(FFT_SIZE),
+    m_verticalCursorLine(new QGraphicsLineItem()),
+    m_currentSampleRate(0)
 {
     //m_pIqReceiver = new IqReceiver(2048);
     ui->setupUi(this);
@@ -118,6 +120,9 @@ MainWindow::configurePanadapter()
   pChart->axes(Qt::Vertical).first()->setRange(-140, 0);
 
   pChart->legend()->hide();
+
+  m_verticalCursorLine->setPen(QPen(Qt::red, 1, Qt::DashLine));
+  pChart->scene()->addItem(m_verticalCursorLine);
     /*
     pChart->addSeries(pSeries);
     pChart->legend()->hide();
@@ -202,6 +207,7 @@ MainWindow::customEvent(QEvent* event)
 void
 MainWindow::handleReceiverIqEvent(const vsdrcomplex* data, uint32_t length, uint32_t sampleRate)
 {
+  m_currentSampleRate = sampleRate;
   vsdrreal spectrum(length);
   powerSpectrum(*data, length, spectrum);
   // if (spectrum.size() != m_panadapterXmax) {
@@ -236,6 +242,24 @@ void
 MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings)
 {
   m_radioSettings = radioSettings;
+  if (m_radioSettings.rxSettings.rfSettings.changed & RfSettings::Features::OFFSET) {
+    uint32_t centreFrequency = m_radioSettings.rxSettings.rfSettings.frequency;
+    int32_t offset = m_radioSettings.rxSettings.rfSettings.offset;
+    uint32_t frequencyAtOffset = centreFrequency + offset;
+    qreal samplesAtOffset = static_cast<qreal>(frequencyAtOffset) / m_currentSampleRate;
+    qreal cursorX = m_panadapterXmin + samplesAtOffset;
+    QChart *chart = ui->panadapterView->chart();
+    auto *axisY = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
+    double yMin = axisY->min();
+    double yMax = axisY->max();
+
+    // Map chart coords back to pixel positions
+    QPointF p1 = chart->mapToPosition(QPointF(cursorX, yMin));
+    QPointF p2 = chart->mapToPosition(QPointF(cursorX, yMax));
+    m_verticalCursorLine->setLine(QLineF(p1, p2));
+    m_verticalCursorLine->show();
+
+  }
 }
 
 void

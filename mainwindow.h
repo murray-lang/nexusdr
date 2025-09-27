@@ -8,6 +8,7 @@
 #include "radio/receiver/IqReceiver.h"
 #include <QLineSeries>
 #include <QAreaSeries>
+#include <QGraphicsLineItem>
 
 #include "io/audio/device/AudioOutputDevice.h"
 #include "radio/Radio.h"
@@ -79,5 +80,9 @@ private:
   uint32_t m_timeSeriesXmin;
   uint32_t m_timeSeriesXmax;
   RadioSettings m_radioSettings;
+
+  QGraphicsLineItem *m_verticalCursorLine;
+  uint32_t m_currentSampleRate;
+
 };
 #endif // MAINWINDOW_H
