@@ -36,6 +36,8 @@ public:
     BOTH
   };
 
+  
+
   struct LineState
   {
     uint32_t line;

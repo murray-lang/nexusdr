@@ -12,6 +12,8 @@ class DigitalInputConfig : public ConfigBase
 public:
   static constexpr auto type = "digitalinput";
 
+  
+
   DigitalInputConfig() : ConfigBase(type), m_debounce(true) {}
   explicit DigitalInputConfig(const char * subtype) : ConfigBase(subtype) {}
   ~DigitalInputConfig() override  = default;

@@ -245,17 +245,18 @@ MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings)
   if (m_radioSettings.rxSettings.rfSettings.changed & RfSettings::Features::OFFSET) {
     uint32_t centreFrequency = m_radioSettings.rxSettings.rfSettings.frequency;
     int32_t offset = m_radioSettings.rxSettings.rfSettings.offset;
+  
     uint32_t frequencyAtOffset = centreFrequency + offset;
-    qreal samplesAtOffset = static_cast<qreal>(frequencyAtOffset) / m_currentSampleRate;
-    qreal cursorX = m_panadapterXmin + samplesAtOffset;
     QChart *chart = ui->panadapterView->chart();
     auto *axisY = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
     double yMin = axisY->min();
     double yMax = axisY->max();
 
+    // qDebug() << "Centre frequency changed to" << centreFrequency << "Offset" << offset << "Frequency at offset" << frequencyAtOffset;
+
     // Map chart coords back to pixel positions
-    QPointF p1 = chart->mapToPosition(QPointF(cursorX, yMin));
-    QPointF p2 = chart->mapToPosition(QPointF(cursorX, yMax));
+    QPointF p1 = chart->mapToPosition(QPointF(frequencyAtOffset, yMin));
+    QPointF p2 = chart->mapToPosition(QPointF(frequencyAtOffset, yMax));
     m_verticalCursorLine->setLine(QLineF(p1, p2));
     m_verticalCursorLine->show();
 
@@ -307,7 +308,7 @@ MainWindow::replaceSpectrumSeries(
 {
   uint32_t centreFrequency = m_radioSettings.rxSettings.rfSettings.frequency;
   qreal plotX = centreFrequency - (sampleRate / 2);
-  qreal binWidth = sampleRate / spectrumData->size();
+  qreal binWidth = static_cast<qreal>(sampleRate) / static_cast<qreal>(spectrumData->size());
 
   QList<QPointF> spectrumPoints;
   size_t fftSize = spectrumData->size();

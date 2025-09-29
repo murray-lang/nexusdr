@@ -135,7 +135,7 @@ GpioLinesImplGpiod::run()
 
   LineStateMap debouncedLines;
 
-  constexpr int64_t idleTimeout = 100'000'000;
+  constexpr int64_t idleTimeout = 200'000'000;
   bool haveCallback = m_pCallback != nullptr;
   while (haveCallback) {
     // int numChanges = m_lines.debounce(changes);
@@ -151,7 +151,7 @@ GpioLinesImplGpiod::run()
       // timeout: do periodic tasks if needed
       continue;
     }
-    qDebug() << "-----------------------";
+    // qDebug() << "-----------------------";
     debouncedLines.clear();
     // int numChanges = getLineStateChanges(debouncedLines);
     int numChanges = debounce(debouncedLines);
@@ -206,21 +206,21 @@ GpioLinesImplGpiod::getLineStateChanges(LineStateMap& changes)
     }
   }
   // Now read the affected line values to make sure we have that part of the story straight.
-  for (auto& pair : m_lineStates) {
-    LineState& info = pair.second;
-    if (info.changed) {
-      info.value = static_cast<uint8_t>(getLineValue(pair.first));
-      changes[pair.first] = info;
-      info.changed = false;
-    }
-  }
+  // for (auto& pair : m_lineStates) {
+  //   LineState& info = pair.second;
+  //   if (info.changed) {
+  //     info.value = static_cast<uint8_t>(getLineValue(pair.first));
+  //     changes[pair.first] = info;
+  //     info.changed = false;
+  //   }
+  // }
   return numEvents;
 }
 
 int
 GpioLinesImplGpiod::debounce(LineStateMap& changes)
 {
-  constexpr int64_t debounceTimeout= 200'000'000;
+  constexpr int64_t debounceTimeout= 45'000'000;
   //std::unordered_map<uint32_t, DebounceInfo> m_debouncedLines;
   int waitResult = waitEdgeEvents(debounceTimeout);
 
@@ -259,13 +259,13 @@ GpioLinesImplGpiod::debounce(LineStateMap& changes)
     }
   }
   // Now read the affected line values to make sure we have that part of the story straight.
-  for (auto& pair : m_lineStates) {
-    LineState& info = pair.second;
-    if (info.changed) {
-      info.value = static_cast<uint8_t>(getLineValue(pair.first));
-      changes[pair.first] = info;
-      info.changed = false;
-    }
-  }
+  // for (auto& pair : m_lineStates) {
+  //   LineState& info = pair.second;
+  //   if (info.changed) {
+  //     info.value = static_cast<uint8_t>(getLineValue(pair.first));
+  //     changes[pair.first] = info;
+  //     info.changed = false;
+  //   }
+  // }
   return changes.size();
 }

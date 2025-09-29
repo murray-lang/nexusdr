@@ -30,7 +30,7 @@ GpioRotaryEncoder::handleLineChange(GpioLines::LineStateMap& changedLines)
     GpioLines::LineState& a = aIter->second;
     GpioLines::LineState& b = bIter->second;
     int dir = calculateMovement(a, b);
-    qDebug() << "A:" << a.value << "B:" << b.value << "Direction: " << dir;
+    // qDebug() << "A:" << a.value << "B:" << b.value << "Direction: " << dir;
     notifyMovement(dir);
     return true;
   }

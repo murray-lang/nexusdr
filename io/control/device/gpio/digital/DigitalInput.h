@@ -15,6 +15,8 @@
 class DigitalInput : public RadioSettingsSource
 {
 public:
+  
+  
   explicit DigitalInput();
   ~DigitalInput() override = default;
 

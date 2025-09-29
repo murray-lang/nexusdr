@@ -60,7 +60,7 @@ Radio::applySettings(const RadioSettings& settings)
   m_control.applySettings(m_settings);
   m_pReceiver->apply(m_settings.rxSettings);
   if (m_pEventTarget != nullptr) {
-    qDebug() << "Radio::applySettings posting RadioSettingsEvent";
+    // qDebug() << "Radio::applySettings posting RadioSettingsEvent";
     QCoreApplication::postEvent(m_pEventTarget, new RadioSettingsEvent(settings));
   }
   m_settings.clearChanged();
