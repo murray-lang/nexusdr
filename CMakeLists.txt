@@ -243,6 +243,9 @@ set(PROJECT_SOURCES
         settings/RadioSettingsEventPublisher.h
         settings/SingleSettingEvent.cpp
         settings/SingleSettingEvent.h
+        io/control/device/gpio/GpioLine.cpp
+        io/control/device/gpio/GpioLine.h
+        config/GpioLineConfig.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

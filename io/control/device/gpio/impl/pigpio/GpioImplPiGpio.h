@@ -15,13 +15,7 @@ public:
     bool open() override;
     bool close() override;
 
-  GpioLines* requestLines(
-    const char * contextId,
-    const std::vector<uint32_t>& lines,
-    GpioLines::Direction direction,
-    GpioLines::Bias bias,
-    GpioLines::Edge edge
-  ) override;
+  GpioLines* requestLines(const char * contextId, const std::vector<GpioLine>& lines) override;
 
 protected:
     int m_initRc;

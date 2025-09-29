@@ -15,15 +15,14 @@
 class DigitalInput : public RadioSettingsSource
 {
 public:
-  
-  
+
   explicit DigitalInput();
   ~DigitalInput() override = default;
 
   virtual void configure(const DigitalInputConfig* pConfig);
   // void setId(const std::string& id) { m_id = id; }
   [[nodiscard]] const std::string& getId() const { return m_id; }
-  [[nodiscard]] const std::vector<uint32_t>& getLines() const { return m_lines; }
+  [[nodiscard]] const std::vector<GpioLine>& getLines() const { return m_lines; }
   [[nodiscard]] const SettingPath& getSettingPath() const { return m_settingPath; }
 
   virtual bool handleLineChange(GpioLines::LineStateMap& changedLines) = 0;
@@ -33,7 +32,7 @@ protected:
   void notifySingleSetting(const SingleSetting& settingDelta) override;
 
   std::string m_id;
-  std::vector<uint32_t> m_lines;
+  std::vector<GpioLine> m_lines;
   SettingPath m_settingPath;
   RadioSettingsSink* m_pSink;
 };

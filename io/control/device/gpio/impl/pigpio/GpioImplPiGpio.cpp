@@ -37,20 +37,14 @@ GpioImplPiGpio::close()
 }
 
 GpioLines*
-GpioImplPiGpio::requestLines(
-  const char * contextId,
-  const std::vector<uint32_t>& lines,
-  GpioLines::Direction direction,
-  GpioLines::Bias bias,
-  GpioLines::Edge edge
-)
+GpioImplPiGpio::requestLines(const char * contextId, const std::vector<GpioLine>& lines)
 {
   if (m_initRc < 0) {
     throw GpioException("PiGPIO not initialised");
   }
   auto pLines = new GpioLinesImplPiGpio(contextId); 
   try {
-    pLines->request(contextId, lines, direction, bias, edge);
+    pLines->request(contextId, lines);
   } catch (...) {
     delete pLines;
     throw;

@@ -49,20 +49,14 @@ GpioImplGpiod::close()
 }
 
 GpioLines*
-GpioImplGpiod::requestLines(
-  const char * contextId,
-  const std::vector<uint32_t>& lines,
-  GpioLines::Direction direction,
-  GpioLines::Bias bias,
-  GpioLines::Edge edge
-)
+GpioImplGpiod::requestLines(const char * contextId, const std::vector<GpioLine>& lines)
 {
   if (!m_pChip) {
     throw GpioException("GPIO chip not opened");
   }
   auto pLines = new GpioLinesImplGpiod(m_pChip, contextId); 
   try {
-    pLines->request(contextId, lines, direction, bias, edge);
+    pLines->request(contextId, lines);
   } catch (...) {
     delete pLines;
     throw;

@@ -6,20 +6,21 @@
 #define CUTESDR_VK6HL_DIGITALINPUTCONFIG_H
 #include "ConfigBase.h"
 #include "ConfigException.h"
+#include "GpioLineConfig.h"
 
-class DigitalInputConfig : public ConfigBase
+class DigitalInputConfig : public GpioLineConfig
 {
 public:
   static constexpr auto type = "digitalinput";
 
-  
-
-  DigitalInputConfig() : ConfigBase(type), m_debounce(true) {}
-  explicit DigitalInputConfig(const char * subtype) : ConfigBase(subtype) {}
+  DigitalInputConfig() : GpioLineConfig(type), m_debounce(true) {}
+  explicit DigitalInputConfig(const char * subtype) : GpioLineConfig(subtype), m_debounce(true) {}
   ~DigitalInputConfig() override  = default;
 
   void initialise(const nlohmann::json& json) override
   {
+    GpioLineConfig::initialise(json);
+
     if (json.contains("debounce")) {
       m_debounce = json["debounce"];
     }

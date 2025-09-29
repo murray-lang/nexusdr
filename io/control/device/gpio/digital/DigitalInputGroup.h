@@ -40,7 +40,7 @@ protected:
   void createInputs(const DigitalInputGroupConfig* pConfig);
   void deleteInputs();
 
-  std::vector<uint32_t> gatherLinesFromInputs();
+  std::vector<GpioLine> gatherLinesFromInputs();
   void readInitialInputStates();
 
   class InternalSink : public RadioSettingsSink

@@ -24,13 +24,7 @@ public:
   void startCallbacks(Callback* callback) override;
   void stopCallbacks() override;
 
-  void request(
-    const char * contextId,
-    const std::vector<uint32_t>& lines,
-    GpioLines::Direction direction,
-    GpioLines::Bias bias,
-    GpioLines::Edge edge
-  ) override;
+  void request(const char * contextId, const std::vector<GpioLine>& lines) override;
 
   void release() override;
 

@@ -11,30 +11,13 @@
 #include <gpiod.h>
 #include <vector>
 
+#include "GpioLine.h"
+
 class Gpio;
 
 class GpioLines {
 public:
-  enum class Direction {
-    AS_IS = 1,
-    INPUT,
-    OUTPUT
-  };
 
-  enum class Bias {
-    AS_IS = 1,
-    UNKNOWN,
-    DISABLED,
-    PULL_UP,
-    PULL_DOWN
-  };
-
-  enum class Edge {
-    NONE = 1,
-    RISING,
-    FALLING,
-    BOTH
-  };
 
   
 
@@ -59,13 +42,7 @@ public:
   GpioLines();
   virtual ~GpioLines() = default;
 
-  virtual void request(
-    const char * contextId,
-    const std::vector<uint32_t>& lines,
-    GpioLines::Direction direction,
-    GpioLines::Bias bias,
-    GpioLines::Edge edge
-  ) = 0;
+  virtual void request(const char * contextId, const std::vector<GpioLine>& lines) = 0;
 
   virtual void release() = 0;
 
@@ -77,7 +54,7 @@ public:
   virtual int getLineValue(uint32_t line) = 0;
 
 protected:
-  void initialiseLineStates(const std::vector<uint32_t>& lines);
+  void initialiseLineStates(const std::vector<GpioLine>& lines);
 
   Gpio& m_gpio;
   LineStateMap m_lineStates;

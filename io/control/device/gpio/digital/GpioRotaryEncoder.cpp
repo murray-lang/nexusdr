@@ -12,6 +12,9 @@ void
 GpioRotaryEncoder::configure(const DigitalInputConfig* pConfig)
 {
   DigitalInput::configure(pConfig);
+  for (auto & line : m_lines) {
+    line.setEdge(GpioLine::Edge::BOTH);
+  }
 }
 
 void
@@ -24,8 +27,8 @@ GpioRotaryEncoder::notifyMovement(const int movement)
 bool
 GpioRotaryEncoder::handleLineChange(GpioLines::LineStateMap& changedLines)
 {
-  auto aIter = changedLines.find(m_lines[0]);
-  auto bIter = changedLines.find(m_lines[1]);
+  auto aIter = changedLines.find(m_lines[0].getLineNo());
+  auto bIter = changedLines.find(m_lines[1].getLineNo());
   if (aIter != changedLines.end() && bIter != changedLines.end()) {
     GpioLines::LineState& a = aIter->second;
     GpioLines::LineState& b = bIter->second;

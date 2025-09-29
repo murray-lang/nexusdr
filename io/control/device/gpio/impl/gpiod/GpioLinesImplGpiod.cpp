@@ -56,13 +56,7 @@ GpioLinesImplGpiod::stopCallbacks()
 }
 
 void 
-GpioLinesImplGpiod::request(
-  const char * contextId,
-  const std::vector<uint32_t>& lines,
-  GpioLines::Direction direction,
-  GpioLines::Bias bias,
-  GpioLines::Edge edge
-)
+GpioLinesImplGpiod::request(const char * contextId, const std::vector<GpioLine>& lines)
 {
   // for (auto line : lines) {
   //   if (isDebounced(line)) {
@@ -75,13 +69,17 @@ GpioLinesImplGpiod::request(
   if (lcfg == nullptr) {
     throw GpioException("Failed to allocate line config");
   }
-  gpiod_line_settings *ls = gpiod_line_settings_new();
-  gpiod_line_settings_set_direction(ls, static_cast<gpiod_line_direction>(direction));
-  gpiod_line_settings_set_bias(ls, static_cast<gpiod_line_bias>(bias));
-  gpiod_line_settings_set_edge_detection(ls, static_cast<gpiod_line_edge>(edge));
-  // gpiod_line_settings_set_debounce_period_us(ls, 2000); 
-  gpiod_line_config_add_line_settings(lcfg, lines.data(), lines.size(), ls);
-  gpiod_line_settings_free(ls);
+  for (const auto& line : lines) {
+    gpiod_line_settings *ls = gpiod_line_settings_new();
+    gpiod_line_settings_set_direction(ls, static_cast<gpiod_line_direction>(line.getDirection()));
+    gpiod_line_settings_set_bias(ls, static_cast<gpiod_line_bias>(line.getBias()));
+    gpiod_line_settings_set_edge_detection(ls, static_cast<gpiod_line_edge>(line.getEdge()));
+    // gpiod_line_settings_set_debounce_period_us(ls, 2000);
+    uint32_t lineNo = line.getLineNo();
+    gpiod_line_config_add_line_settings(lcfg, &lineNo, 1, ls);
+    gpiod_line_settings_free(ls);
+  }
+
 
   gpiod_request_config *rcfg = gpiod_request_config_new();
   gpiod_request_config_set_consumer(rcfg, contextId);
@@ -135,9 +133,9 @@ GpioLinesImplGpiod::run()
 
   LineStateMap debouncedLines;
 
-  constexpr int64_t idleTimeout = 200'000'000;
   bool haveCallback = m_pCallback != nullptr;
   while (haveCallback) {
+    constexpr int64_t idleTimeout = 200'000'000;
     // int numChanges = m_lines.debounce(changes);
     // for (const auto& change : changes) {
     //   qDebug() << "Line " << change.line << " changed to " << (int)change.value;

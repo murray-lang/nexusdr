@@ -13,6 +13,7 @@
 #include "DigitalInputFactory.h"
 #include "config/DigitalInputGroupConfig.h"
 #include "io/control/device/gpio/GpioException.h"
+#include "io/control/device/gpio/GpioLine.h"
 
 DigitalInputGroup::DigitalInputGroup(const char* consumer) :
   m_internalSink(this)
@@ -45,9 +46,9 @@ DigitalInputGroup::open()
   if (m_pLines != nullptr) {
     throw GpioException("DigitalInputGroup already open");
   }
-  std::vector<uint32_t> lines = gatherLinesFromInputs();
+  std::vector<GpioLine> lines = gatherLinesFromInputs();
   Gpio& gpio = Gpio::getInstance();
-  GpioLines* pLines = gpio.requestLines("digitalInputs", lines, GpioLines::Direction::INPUT, GpioLines::Bias::PULL_UP, GpioLines::Edge::BOTH);
+  GpioLines* pLines = gpio.requestLines("digitalInputs", lines);
   m_pLines.reset(pLines);
   m_pLines->startCallbacks(this);
 }
@@ -92,17 +93,17 @@ DigitalInputGroup::deleteInputs()
   m_inputs.clear();
 }
 
-std::vector<uint32_t>
+std::vector<GpioLine>
 DigitalInputGroup::gatherLinesFromInputs()
 {
   m_lineToInputMap.clear();
 
-  std::vector<uint32_t> result;
-  for (auto input : m_inputs) {
-    const std::vector<uint32_t>& lines = input->getLines();
+  std::vector<GpioLine> result;
+  for (const auto input : m_inputs) {
+    const std::vector<GpioLine>& lines = input->getLines();
     result.insert(result.end(), lines.begin(), lines.end());
-    for (auto line : lines) {
-      m_lineToInputMap[line] = input;
+    for (const auto& line : lines) {
+      m_lineToInputMap[line.getLineNo()] = input;
     }
   }
   return result;
