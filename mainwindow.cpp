@@ -121,7 +121,7 @@ MainWindow::configurePanadapter()
 
   pChart->legend()->hide();
 
-  m_verticalCursorLine->setPen(QPen(Qt::red, 1, Qt::DashLine));
+  m_verticalCursorLine->setPen(QPen(Qt::red, 2, Qt::SolidLine));
   pChart->scene()->addItem(m_verticalCursorLine);
     /*
     pChart->addSeries(pSeries);
@@ -252,7 +252,7 @@ MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings)
     double yMin = axisY->min();
     double yMax = axisY->max();
 
-    // qDebug() << "Centre frequency changed to" << centreFrequency << "Offset" << offset << "Frequency at offset" << frequencyAtOffset;
+    qDebug() << "Centre frequency changed to" << centreFrequency << "Offset" << offset << "Frequency at offset" << frequencyAtOffset;
 
     // Map chart coords back to pixel positions
     QPointF p1 = chart->mapToPosition(QPointF(frequencyAtOffset, yMin));
@@ -452,9 +452,9 @@ MainWindow::initialiseRadio()
     //    },
     //   .changed = (RadioSettings::RX)
     // };
-    m_radioSettings.rxSettings.rfSettings.frequency = 10000000;
-    m_radioSettings.rxSettings.rfSettings.offset = 48000;
-    m_radioSettings.rxSettings.rfSettings.gain = 0.0;
+    m_radioSettings.rxSettings.rfSettings.frequency = 790000;
+    m_radioSettings.rxSettings.rfSettings.offset = -70000;
+    m_radioSettings.rxSettings.rfSettings.gain = 12.0;
     m_radioSettings.rxSettings.rfSettings.changed = (RfSettings::FREQUENCY | RfSettings::OFFSET | RfSettings::GAIN);
     m_radioSettings.rxSettings.ifSettings.bandwidth = 200000;
     m_radioSettings.rxSettings.ifSettings.gain = 0.0;

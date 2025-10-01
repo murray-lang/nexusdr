@@ -101,8 +101,8 @@ IqReceiver::configure(const ReceiverConfig* pConfig)
   uint32_t decimatorOutputRate = m_decimator.getOutputSampleRate();
 
   m_ifFilter.getKernel().configure(
-    -3500.0,
-    3500.0,
+    -9000.0,
+    90000,
     0.0,
     decimatorOutputRate * 2);
 
