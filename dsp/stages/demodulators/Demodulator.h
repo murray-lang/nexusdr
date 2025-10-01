@@ -1,7 +1,6 @@
 #ifndef DEMODULATOR_H
 #define DEMODULATOR_H
 #include "../IqStage.h"
-#include "DemodulatorSettings.h"
 
 class Demodulator
 {
@@ -12,18 +11,8 @@ public:
     m_sampleRate(sampleRate)
   {
   }
-  Demodulator(uint32_t sampleRate, const DemodulatorSettings& settings) : Demodulator(sampleRate)
-  {
-    setSettings(settings);
-  }
 
-  Demodulator& setSettings(const DemodulatorSettings& settings)
-  {
-    m_settings = settings;
-    return *this;
-  }
-
-  virtual uint32_t processSamples(
+    virtual uint32_t processSamples(
     const std::vector<sdrcomplex>& in,
     std::vector<sdrreal>& out,
     uint32_t inputLength
@@ -40,7 +29,6 @@ public:
 
 protected:
   uint32_t m_sampleRate;
-  DemodulatorSettings m_settings;
 
 };
 

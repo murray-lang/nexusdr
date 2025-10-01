@@ -6,13 +6,11 @@
 #define CUTESDR_VK6HL_FMDEMODULATOR_H
 #include "./Demodulator.h"
 
-extern DemodulatorSettings defaultFmSettings;
-
 class FmDemodulator : public Demodulator
 {
 public:
   explicit FmDemodulator(uint32_t sampleRate) :
-    Demodulator(sampleRate, defaultFmSettings),
+    Demodulator(sampleRate),
     m_prevSample(static_cast<sdrreal>(1.0), static_cast<sdrreal>(0.0)),
     m_maxDeviation(0.1f)
   {}

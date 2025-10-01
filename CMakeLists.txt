@@ -150,7 +150,6 @@ set(PROJECT_SOURCES
         settings/RadioSettings.h
         settings/TransmitterSettings.h
 
-        dsp/stages/demodulators/DemodulatorSettings.h
         dsp/stages/demodulators/AmDemodulator.cpp
         dsp/stages/filters/kernels/FirKernel.h
         dsp/stages/filters/kernels/BandPassFirKernel.h
@@ -246,6 +245,8 @@ set(PROJECT_SOURCES
         io/control/device/gpio/GpioLines.cpp
         io/control/device/gpio/GpioLines.h
         config/GpioLinesConfig.h
+        dsp/stages/demodulators/SsbDemodulator.cpp
+        dsp/stages/demodulators/SsbDemodulator.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
