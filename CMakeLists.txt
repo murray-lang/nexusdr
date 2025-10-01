@@ -95,16 +95,16 @@ if(USE_PIGPIO)
     set (PLATFORM_SOURCES
             io/control/device/gpio/impl/pigpio/GpioImplPiGpio.h
             io/control/device/gpio/impl/pigpio/GpioImplPiGpio.cpp
-            io/control/device/gpio/impl/pigpio/GpioLinesImplPiGpio.h
-            io/control/device/gpio/impl/pigpio/GpioLinesImplPiGpio.cpp
+            io/control/device/gpio/impl/pigpio/GpioLinesRequestImplPiGpio.h
+            io/control/device/gpio/impl/pigpio/GpioLinesRequestImplPiGpio.cpp
     )
     
 elseif(USE_GPIOD)
     set (PLATFORM_SOURCES
             io/control/device/gpio/impl/gpiod/GpioImplGpiod.h
             io/control/device/gpio/impl/gpiod/GpioImplGpiod.cpp
-            io/control/device/gpio/impl/gpiod/GpioLinesImplGpiod.h
-            io/control/device/gpio/impl/gpiod/GpioLinesImplGpiod.cpp
+            io/control/device/gpio/impl/gpiod/GpioLinesRequestImplGpiod.h
+            io/control/device/gpio/impl/gpiod/GpioLinesRequestImplGpiod.cpp
     )
 endif()
 
@@ -210,8 +210,8 @@ set(PROJECT_SOURCES
         io/control/device/gpio/Gpio.h
         io/control/device/gpio/GpioException.cpp
         io/control/device/gpio/GpioException.h
-        io/control/device/gpio/GpioLines.cpp
-        io/control/device/gpio/GpioLines.h
+        io/control/device/gpio/GpioLinesRequest.cpp
+        io/control/device/gpio/GpioLinesRequest.h
         io/control/device/gpio/digital/GpioRotaryEncoder.cpp
         io/control/device/gpio/digital/GpioRotaryEncoder.h
         io/control/device/gpio/digital/DigitalInputGroup.cpp
@@ -243,9 +243,9 @@ set(PROJECT_SOURCES
         settings/RadioSettingsEventPublisher.h
         settings/SingleSettingEvent.cpp
         settings/SingleSettingEvent.h
-        io/control/device/gpio/GpioLine.cpp
-        io/control/device/gpio/GpioLine.h
-        config/GpioLineConfig.h
+        io/control/device/gpio/GpioLines.cpp
+        io/control/device/gpio/GpioLines.h
+        config/GpioLinesConfig.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

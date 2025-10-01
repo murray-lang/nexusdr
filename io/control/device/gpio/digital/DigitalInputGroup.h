@@ -7,13 +7,13 @@
 #include <io/control/ControlSource.h>
 #include "GpioRotaryEncoder.h"
 #include "../Gpio.h"
-#include "../GpioLines.h"
+#include "../GpioLinesRequest.h"
 #include <QThread>
 #include <config/DigitalInputConfig.h>
 #include "config/DigitalInputGroupConfig.h"
 #include "io/control/ControlException.h"
 
-class DigitalInputGroup : public ControlSource, public GpioLines::Callback
+class DigitalInputGroup : public ControlSource, public GpioLinesRequest::Callback
 {
 public:
   explicit DigitalInputGroup(const char* consumer = "");
@@ -29,7 +29,7 @@ public:
 
 
   // GpioLines::Callback override
-  void callback(GpioLines::LineStateMap& lineStates) override;
+  void callback(GpioLinesRequest::LineStateMap& lineStates) override;
 
 protected:
   void notifySettings(const RadioSettings& radioSettings) override
@@ -40,7 +40,7 @@ protected:
   void createInputs(const DigitalInputGroupConfig* pConfig);
   void deleteInputs();
 
-  std::vector<GpioLine> gatherLinesFromInputs();
+  std::vector<GpioLines> gatherLinesFromInputs();
   void readInitialInputStates();
 
   class InternalSink : public RadioSettingsSink
@@ -65,7 +65,7 @@ protected:
 protected:
   InternalSink m_internalSink;
   std::vector<DigitalInput*> m_inputs;
-  std::unique_ptr<GpioLines> m_pLines;
+  std::unique_ptr<GpioLinesRequest> m_pLines;
   std::unordered_map<uint32_t, DigitalInput*> m_lineToInputMap;
 };
 

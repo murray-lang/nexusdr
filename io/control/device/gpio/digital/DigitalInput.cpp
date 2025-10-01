@@ -6,6 +6,7 @@
 #include <settings/RadioSettings.h>
 
 DigitalInput::DigitalInput() :
+  GpioLines(Direction::INPUT),
   m_pSink(nullptr)
 {
 
@@ -14,13 +15,8 @@ DigitalInput::DigitalInput() :
 void
 DigitalInput::configure(const DigitalInputConfig* pConfig)
 {
-  m_lines.clear();
-  const std::vector<uint32_t>& lineNos = pConfig->getLines();
-  for (auto lineNo : lineNos) {
-    GpioLine line(lineNo, pConfig);
-    line.setDirection(GpioLine::Direction::INPUT);
-    m_lines.emplace_back(line);
-  }
+  GpioLines::configure(pConfig);
+  m_direction = Direction::INPUT;
   const std::string& strSettingPath = pConfig->getSettingPath();
   m_id = strSettingPath;
   m_settingPath = RadioSettings::getSettingPath(strSettingPath);

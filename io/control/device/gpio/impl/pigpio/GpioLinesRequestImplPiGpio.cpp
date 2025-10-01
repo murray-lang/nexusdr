@@ -2,22 +2,22 @@
 // Created by murray on 18/9/25.
 //
 
-#include "GpioLinesImplPiGpio.h"
+#include "GpioLinesRequestImplPiGpio.h"
 #include "../../GpioException.h"
 #include <qdebug.h>
 
-GpioLinesImplPiGpio::GpioLinesImplPiGpio(const char* consumer) :
+GpioLinesRequestImplPiGpio::GpioLinesRequestImplPiGpio(const char* consumer) :
   m_pCallback(nullptr),
   m_consumer(consumer)
 {
 }
 
-GpioLinesImplPiGpio::~GpioLinesImplPiGpio()
+GpioLinesRequestImplPiGpio::~GpioLinesRequestImplPiGpio()
 {
 }
 
 int
-GpioLinesImplPiGpio::getLineValue(uint32_t line)
+GpioLinesRequestImplPiGpio::getLineValue(uint32_t line)
 {
     int value = gpioRead(line);
     if (value < 0) {
@@ -27,7 +27,7 @@ GpioLinesImplPiGpio::getLineValue(uint32_t line)
 }
 
 void
-GpioLinesImplPiGpio::startCallbacks(Callback* callback)
+GpioLinesRequestImplPiGpio::startCallbacks(Callback* callback)
 {
   if (m_pCallback != nullptr) {
     throw GpioException("Line state callback already set");
@@ -37,46 +37,43 @@ GpioLinesImplPiGpio::startCallbacks(Callback* callback)
 }
 
 void
-GpioLinesImplPiGpio::stopCallbacks()
+GpioLinesRequestImplPiGpio::stopCallbacks()
 {
   m_pCallback = nullptr;
 }
 
 void 
-GpioLinesImplPiGpio::request(
-  const char * contextId,
-  const std::vector<uint32_t>& lines,
-  GpioLines::Direction direction,
-  GpioLines::Bias bias,
-  GpioLines::Edge edge
-)
+GpioLinesRequestImplPiGpio::request(const char * contextId, const std::vector<GpioLines>& lines)
 {
-  for (auto line : lines) {
-    setLineDirection(line, direction);
-    setLineBias(line, bias);
-    gpioNoiseFilter(line, 2000, 2000); // 2ms filter on both steady and active
-    
-    if (edge != Edge::NONE) {
-      // int edgeType = 0;
-      // if (edge == Edge::RISING) {
-      //   edgeType = RISING_EDGE;
-      // } else if (edge == Edge::FALLING) {
-      //   edgeType = FALLING_EDGE;
-      // } else if (edge == Edge::BOTH) {
-      //   edgeType = EITHER_EDGE;
-      // }
-      int rc = gpioSetAlertFuncEx(line, gpioCallback, this);
-      if (rc != 0) {
-        throw GpioException("Failed to set GPIO line alert function");
+  for (auto gpioLines : lines) {
+    for (auto lineNo : gpioLines.getLines()) {
+      setLineDirection(lineNo, gpioLines.getDirection());
+      setLineBias(lineNo, gpioLines.getBias());
+      gpioNoiseFilter(lineNo, 2000, 2000); // 2ms filter on both steady and active
+
+      if (edge != Edge::NONE) {
+        // int edgeType = 0;
+        // if (edge == Edge::RISING) {
+        //   edgeType = RISING_EDGE;
+        // } else if (edge == Edge::FALLING) {
+        //   edgeType = FALLING_EDGE;
+        // } else if (edge == Edge::BOTH) {
+        //   edgeType = EITHER_EDGE;
+        // }
+        int rc = gpioSetAlertFuncEx(lineNo, gpioCallback, this);
+        if (rc != 0) {
+          throw GpioException("Failed to set GPIO line alert function");
+        }
       }
     }
-  }
+    }
+
   initialiseLineStates(lines); 
 }
 
 
 void
-GpioLinesImplPiGpio::release()
+GpioLinesRequestImplPiGpio::release()
 {
   for (const auto& pair : m_lineStates) {
     uint32_t line = pair.first;
@@ -86,7 +83,7 @@ GpioLinesImplPiGpio::release()
 }
 
 void
-GpioLinesImplPiGpio::setLineDirection(uint32_t line, Direction direction)
+GpioLinesRequestImplPiGpio::setLineDirection(uint32_t line, Direction direction)
 {
     int rc = gpioSetMode(line, direction == Direction::INPUT ? PI_INPUT : PI_OUTPUT);
     if (rc != 0) {
@@ -95,7 +92,7 @@ GpioLinesImplPiGpio::setLineDirection(uint32_t line, Direction direction)
 }
 
 void
-GpioLinesImplPiGpio::setLineBias(uint32_t line, Bias bias)
+GpioLinesRequestImplPiGpio::setLineBias(uint32_t line, Bias bias)
 {
     int rc = -1;
     if (bias == Bias::PULL_UP) {
@@ -113,9 +110,9 @@ GpioLinesImplPiGpio::setLineBias(uint32_t line, Bias bias)
 }
 
 void
-GpioLinesImplPiGpio::gpioCallback(int gpio, int level, uint32_t tick, void* userData)
+GpioLinesRequestImplPiGpio::gpioCallback(int gpio, int level, uint32_t tick, void* userData)
 {
-  GpioLinesImplPiGpio* self = static_cast<GpioLinesImplPiGpio*>(userData);
+  GpioLinesImplPiGpio* self = static_cast<GpioLinesRequestImplPiGpio*>(userData);
   if (self->m_pCallback) {
     LineStateMap changes;
     auto stateIter = self->m_lineStates.find(gpio);

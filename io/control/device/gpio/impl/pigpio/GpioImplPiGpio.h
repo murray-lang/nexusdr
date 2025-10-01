@@ -15,7 +15,7 @@ public:
     bool open() override;
     bool close() override;
 
-  GpioLines* requestLines(const char * contextId, const std::vector<GpioLine>& lines) override;
+  GpioLinesRequest* requestLines(const char * contextId, const std::vector<GpioLines>& lines) override;
 
 protected:
     int m_initRc;

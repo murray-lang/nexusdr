@@ -7,15 +7,17 @@
 #include "ConfigBase.h"
 
 
-class GpioLineConfig : public ConfigBase
+class GpioLinesConfig : public ConfigBase
 {
 public:
-  explicit GpioLineConfig(const char* type) : ConfigBase(type), m_line(0) {}
-  ~GpioLineConfig() override = default;
+  explicit GpioLinesConfig(const char* type) : ConfigBase(type) {}
+  ~GpioLinesConfig() override = default;
   void initialise(const nlohmann::json& json) override
   {
-    if (json.contains("line")) {
-      m_line = json["line"];
+    if (json.contains("lines")) {
+      for (auto& line : json["lines"]) {
+        m_lines.push_back(line);
+      }
     }
     if (json.contains("direction")) {
       m_direction = json["direction"];
@@ -28,13 +30,13 @@ public:
     }
   }
 
-  [[nodiscard]] uint32_t getLine() const { return m_line; }
+  [[nodiscard]] const std::vector<uint32_t>& getLines() const { return m_lines; }
   [[nodiscard]] const std::string& getDirection() const { return m_direction; }
   [[nodiscard]] const std::string& getBias() const { return m_bias; }
   [[nodiscard]] const std::string& getEdge() const { return m_edge; }
 
 protected:
-  uint32_t m_line;
+  std::vector<uint32_t> m_lines;
   std::string m_direction; // "input" or "output"
   std::string m_bias; // "none", "pull-up" or "pull-down"
   std::string m_edge; // "rising", "falling" or "both"

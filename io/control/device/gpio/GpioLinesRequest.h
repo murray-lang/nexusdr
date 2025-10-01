@@ -1,0 +1,64 @@
+//
+// Created by murray on 2025-08-21.
+//
+
+#ifndef CUTESDR_VK6HL_GPIOLINES_H
+#define CUTESDR_VK6HL_GPIOLINES_H
+#include <string>
+#include <cstdint>
+#include <unordered_map>
+// #include "Gpio.h"
+#include <gpiod.h>
+#include <vector>
+
+#include "GpioLines.h"
+
+class Gpio;
+
+class GpioLinesRequest {
+public:
+
+
+  
+
+  struct LineState
+  {
+    uint32_t line;
+    uint64_t lastRisingTime;
+    uint64_t lastFallingTime;
+    uint8_t value;
+    bool changed;
+  };
+  using LineStateMap = std::unordered_map<uint32_t, LineState>;
+
+  class Callback
+  {
+  public:
+    virtual ~Callback() = default;
+    virtual void callback(LineStateMap& lineStates) = 0;
+
+  };
+
+  GpioLinesRequest();
+  virtual ~GpioLinesRequest() = default;
+
+  virtual void request(const char * contextId, const std::vector<GpioLines>& lines) = 0;
+
+  virtual void release() = 0;
+
+  virtual void startCallbacks(Callback* callback) = 0;
+  virtual void stopCallbacks() = 0;
+
+  virtual int debounce(LineStateMap& changes) = 0;
+
+  virtual int getLineValue(uint32_t line) = 0;
+
+protected:
+  void initialiseLineStates(const std::vector<GpioLines>& lines);
+
+  Gpio& m_gpio;
+  LineStateMap m_lineStates;
+};
+
+
+#endif //CUTESDR_VK6HL_GPIOLINES_H

@@ -8,23 +8,23 @@
 #include <vector>
 
 #include "GpioImplGpiod.h"
-#include "../../GpioLines.h"
+#include "../../GpioLinesRequest.h"
 #include <mutex>
 
 
-class GpioLinesImplGpiod : public GpioLines, public QThread
+class GpioLinesRequestImplGpiod : public GpioLinesRequest, public QThread
 {
   friend GpioImplGpiod;
 public:
-  explicit GpioLinesImplGpiod(gpiod_chip* pChip, const char* consumer = "");
-  ~GpioLinesImplGpiod() override;
+  explicit GpioLinesRequestImplGpiod(gpiod_chip* pChip, const char* consumer = "");
+  ~GpioLinesRequestImplGpiod() override;
 
   void run() override;
 
   void startCallbacks(Callback* callback) override;
   void stopCallbacks() override;
 
-  void request(const char * contextId, const std::vector<GpioLine>& lines) override;
+  void request(const char * contextId, const std::vector<GpioLines>& lines) override;
 
   void release() override;
 

@@ -41,8 +41,8 @@ void Gpio::close()
     }
 }
 
-GpioLines*
-Gpio::requestLines(const char * contextId, const std::vector<GpioLine>& lines
+GpioLinesRequest*
+Gpio::requestLines(const char * contextId, const std::vector<GpioLines>& lines
 )
 {
   return m_pImpl->requestLines(contextId, lines);

@@ -1,7 +1,7 @@
 
 #include "GpioImplGpiod.h"
 
-#include "GpioLinesImplGpiod.h"
+#include "GpioLinesRequestImplGpiod.h"
 #include "io/control/device/gpio/GpioException.h"
 
 
@@ -48,19 +48,19 @@ GpioImplGpiod::close()
   return false;
 }
 
-GpioLines*
-GpioImplGpiod::requestLines(const char * contextId, const std::vector<GpioLine>& lines)
+GpioLinesRequest*
+GpioImplGpiod::requestLines(const char * contextId, const std::vector<GpioLines>& lines)
 {
   if (!m_pChip) {
     throw GpioException("GPIO chip not opened");
   }
-  auto pLines = new GpioLinesImplGpiod(m_pChip, contextId); 
+  auto pLines = new GpioLinesRequestImplGpiod(m_pChip, contextId);
   try {
     pLines->request(contextId, lines);
   } catch (...) {
     delete pLines;
     throw;
   }
-  return dynamic_cast<GpioLines*>(pLines);
+  return dynamic_cast<GpioLinesRequest*>(pLines);
 
 }

@@ -2,11 +2,11 @@
 // Created by murray on 18/9/25.
 //
 
-#include "GpioLinesImplGpiod.h"
+#include "GpioLinesRequestImplGpiod.h"
 #include "../../GpioException.h"
 #include <qdebug.h>
 
-GpioLinesImplGpiod::GpioLinesImplGpiod(gpiod_chip* pChip, const char* consumer) :
+GpioLinesRequestImplGpiod::GpioLinesRequestImplGpiod(gpiod_chip* pChip, const char* consumer) :
   m_pChip   (pChip),  
   m_pCallback(nullptr),
   m_consumer(consumer)
@@ -15,13 +15,13 @@ GpioLinesImplGpiod::GpioLinesImplGpiod(gpiod_chip* pChip, const char* consumer) 
   
 }
 
-GpioLinesImplGpiod::~GpioLinesImplGpiod()
+GpioLinesRequestImplGpiod::~GpioLinesRequestImplGpiod()
 {
   gpiod_edge_event_buffer_free(m_pEventBuffer);
 }
 
 bool
-GpioLinesImplGpiod::isDebounced(int line)
+GpioLinesRequestImplGpiod::isDebounced(int line)
 {
   gpiod_line_info * li = gpiod_chip_get_line_info(m_pChip, line);
   if (li != nullptr) {
@@ -34,7 +34,7 @@ GpioLinesImplGpiod::isDebounced(int line)
 }
 
 void
-GpioLinesImplGpiod::startCallbacks(Callback* callback)
+GpioLinesRequestImplGpiod::startCallbacks(Callback* callback)
 {
   if (m_pCallback != nullptr) {
     throw GpioException("Line state callback already set");
@@ -47,7 +47,7 @@ GpioLinesImplGpiod::startCallbacks(Callback* callback)
 }
 
 void
-GpioLinesImplGpiod::stopCallbacks()
+GpioLinesRequestImplGpiod::stopCallbacks()
 {
   m_callbackMutex.lock();
   m_pCallback = nullptr;
@@ -56,7 +56,7 @@ GpioLinesImplGpiod::stopCallbacks()
 }
 
 void 
-GpioLinesImplGpiod::request(const char * contextId, const std::vector<GpioLine>& lines)
+GpioLinesRequestImplGpiod::request(const char * contextId, const std::vector<GpioLines>& lines)
 {
   // for (auto line : lines) {
   //   if (isDebounced(line)) {
@@ -75,8 +75,8 @@ GpioLinesImplGpiod::request(const char * contextId, const std::vector<GpioLine>&
     gpiod_line_settings_set_bias(ls, static_cast<gpiod_line_bias>(line.getBias()));
     gpiod_line_settings_set_edge_detection(ls, static_cast<gpiod_line_edge>(line.getEdge()));
     // gpiod_line_settings_set_debounce_period_us(ls, 2000);
-    uint32_t lineNo = line.getLineNo();
-    gpiod_line_config_add_line_settings(lcfg, &lineNo, 1, ls);
+    const std::vector<uint32_t>& lineNos = line.getLines();
+    gpiod_line_config_add_line_settings(lcfg, lineNos.data(), lineNos.size(), ls);
     gpiod_line_settings_free(ls);
   }
 
@@ -96,7 +96,7 @@ GpioLinesImplGpiod::request(const char * contextId, const std::vector<GpioLine>&
 
 
 void
-GpioLinesImplGpiod::release()
+GpioLinesRequestImplGpiod::release()
 {
   if (m_pLineRequest) {
     gpiod_line_request_release(m_pLineRequest);
@@ -105,25 +105,25 @@ GpioLinesImplGpiod::release()
 }
 
 int
-GpioLinesImplGpiod::getLineValue(uint32_t line)
+GpioLinesRequestImplGpiod::getLineValue(uint32_t line)
 {
   return gpiod_line_request_get_value(m_pLineRequest, line);
 }
 
 int
-GpioLinesImplGpiod::waitEdgeEvents(int64_t timeout_ns) const
+GpioLinesRequestImplGpiod::waitEdgeEvents(int64_t timeout_ns) const
 {
   return gpiod_line_request_wait_edge_events(m_pLineRequest, timeout_ns);
 }
 
 int
-GpioLinesImplGpiod::readEdgeEvents(struct gpiod_edge_event_buffer* buf, size_t max_events) const
+GpioLinesRequestImplGpiod::readEdgeEvents(struct gpiod_edge_event_buffer* buf, size_t max_events) const
 {
   return gpiod_line_request_read_edge_events(m_pLineRequest, buf, max_events);
 }
 
 void
-GpioLinesImplGpiod::run()
+GpioLinesRequestImplGpiod::run()
 {
   // readInitialInputStates();
   // gpiod_edge_event_buffer* eventBuff = gpiod_edge_event_buffer_new(64);
@@ -173,7 +173,7 @@ GpioLinesImplGpiod::run()
 }
 
 int
-GpioLinesImplGpiod::getLineStateChanges(LineStateMap& changes)
+GpioLinesRequestImplGpiod::getLineStateChanges(LineStateMap& changes)
 {
   int numEvents = readEdgeEvents(m_pEventBuffer, 64);
   if (numEvents < 0) {
@@ -216,7 +216,7 @@ GpioLinesImplGpiod::getLineStateChanges(LineStateMap& changes)
 }
 
 int
-GpioLinesImplGpiod::debounce(LineStateMap& changes)
+GpioLinesRequestImplGpiod::debounce(LineStateMap& changes)
 {
   constexpr int64_t debounceTimeout= 45'000'000;
   //std::unordered_map<uint32_t, DebounceInfo> m_debouncedLines;

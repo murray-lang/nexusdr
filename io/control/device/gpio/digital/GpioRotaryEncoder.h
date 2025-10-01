@@ -7,7 +7,7 @@
 #include "../../../ControlSource.h"
 
 #include "DigitalInput.h"
-#include "../GpioLines.h"
+#include "../GpioLinesRequest.h"
 #include "io/control/ControlException.h"
 
 class GpioRotaryEncoder : public DigitalInput
@@ -16,7 +16,7 @@ public:
   explicit GpioRotaryEncoder() = default;
   void configure(const DigitalInputConfig* pConfig) override;
 
-  bool handleLineChange(GpioLines::LineStateMap& changedLines) override;
+  bool handleLineChange(GpioLinesRequest::LineStateMap& changedLines) override;
 
 protected:
   void notifySettings(const RadioSettings& settings) override
@@ -24,7 +24,7 @@ protected:
     throw ControlException("GpioRotaryEncoder cannot notify settings, only a single setting.");
   }
   void notifyMovement(int movement);
-  static int calculateMovement(GpioLines::LineState& a, GpioLines::LineState& b);
+  static int calculateMovement(GpioLinesRequest::LineState& a, GpioLinesRequest::LineState& b);
 };
 
 

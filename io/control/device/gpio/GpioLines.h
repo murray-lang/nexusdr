@@ -1,64 +1,70 @@
 //
-// Created by murray on 2025-08-21.
+// Created by murray on 29/9/25.
 //
 
-#ifndef CUTESDR_VK6HL_GPIOLINES_H
-#define CUTESDR_VK6HL_GPIOLINES_H
-#include <string>
+#ifndef CUTESDR_VK6HL_GPIOLINE_H
+#define CUTESDR_VK6HL_GPIOLINE_H
 #include <cstdint>
-#include <unordered_map>
-// #include "Gpio.h"
-#include <gpiod.h>
-#include <vector>
 
-#include "GpioLine.h"
+#include "config/GpioLinesConfig.h"
 
-class Gpio;
 
-class GpioLines {
+class GpioLines
+{
 public:
 
 
-  
-
-  struct LineState
-  {
-    uint32_t line;
-    uint64_t lastRisingTime;
-    uint64_t lastFallingTime;
-    uint8_t value;
-    bool changed;
+  enum class Direction {
+    AS_IS = 1,
+    INPUT,
+    OUTPUT
   };
-  using LineStateMap = std::unordered_map<uint32_t, LineState>;
 
-  class Callback
-  {
-  public:
-    virtual ~Callback() = default;
-    virtual void callback(LineStateMap& lineStates) = 0;
+  enum class Bias {
+    AS_IS = 1,
+    UNKNOWN,
+    DISABLED,
+    PULL_UP,
+    PULL_DOWN
+  };
 
+  enum class Edge {
+    NONE = 1,
+    RISING,
+    FALLING,
+    BOTH
   };
 
   GpioLines();
+  explicit GpioLines(Direction direction);
+  explicit GpioLines(const std::vector<uint32_t>& lines);
+  explicit GpioLines(const GpioLinesConfig* pConfig);
+  GpioLines(const std::vector<uint32_t>& lines, const GpioLinesConfig* pConfig);
+  GpioLines(const std::vector<uint32_t>& lines, Direction direction, Bias bias, Edge edge);
+  GpioLines(const GpioLines& other) = default;
   virtual ~GpioLines() = default;
 
-  virtual void request(const char * contextId, const std::vector<GpioLine>& lines) = 0;
+  GpioLines& operator=(const GpioLines& other);
 
-  virtual void release() = 0;
+  [[nodiscard]] const std::vector<uint32_t>& getLines() const { return m_lines; }
+  [[nodiscard]] Direction getDirection() const { return m_direction; }
+  [[nodiscard]] Bias getBias() const { return m_bias; }
+  [[nodiscard]] Edge getEdge() const { return m_edge; }
 
-  virtual void startCallbacks(Callback* callback) = 0;
-  virtual void stopCallbacks() = 0;
+  void setLineNo(std::vector<uint32_t> lines) { m_lines = lines; }
+  void setDirection(Direction direction) { m_direction = direction; }
+  void setBias(Bias bias) { m_bias = bias; }
+  void setEdge(Edge edge) { m_edge = edge; }
 
-  virtual int debounce(LineStateMap& changes) = 0;
-
-  virtual int getLineValue(uint32_t line) = 0;
+  void configure(const GpioLinesConfig* pConfig);
 
 protected:
-  void initialiseLineStates(const std::vector<GpioLine>& lines);
+  std::vector<uint32_t> m_lines;
+  Direction m_direction;
+  Bias m_bias;
+  Edge m_edge;
 
-  Gpio& m_gpio;
-  LineStateMap m_lineStates;
 };
 
 
-#endif //CUTESDR_VK6HL_GPIOLINES_H
+#endif //CUTESDR_VK6HL_GPIOLINE_H
