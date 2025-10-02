@@ -121,7 +121,7 @@ MainWindow::configurePanadapter()
 
   pChart->legend()->hide();
 
-  m_verticalCursorLine->setPen(QPen(Qt::red, 2, Qt::SolidLine));
+  m_verticalCursorLine->setPen(QPen(Qt::red, 1.5, Qt::SolidLine));
   pChart->scene()->addItem(m_verticalCursorLine);
     /*
     pChart->addSeries(pSeries);
@@ -172,7 +172,7 @@ MainWindow::configureTimeseriesChart()
   pChart->axes(Qt::Horizontal).first()->setRange(m_timeSeriesXmin / 100.0, m_timeSeriesXmax/100.0);
 
 //  pChart->axes(Qt::Vertical).first()->setRange(2038, 2058);
-  pChart->axes(Qt::Vertical).first()->setRange(-1.0, 1.0);
+  pChart->axes(Qt::Vertical).first()->setRange(-0.05, 0.05);
 
 //  pChart->axes(Qt::Vertical).first()->setRange(-0.0000001, 0.0000003);
 
@@ -452,9 +452,9 @@ MainWindow::initialiseRadio()
     //    },
     //   .changed = (RadioSettings::RX)
     // };
-    m_radioSettings.rxSettings.rfSettings.frequency = 790000;
-    m_radioSettings.rxSettings.rfSettings.offset = -70000;
-    m_radioSettings.rxSettings.rfSettings.gain = 12.0;
+    m_radioSettings.rxSettings.rfSettings.frequency = 14140000;
+    m_radioSettings.rxSettings.rfSettings.offset = -0;
+    m_radioSettings.rxSettings.rfSettings.gain = 30.0;
     m_radioSettings.rxSettings.rfSettings.changed = (RfSettings::FREQUENCY | RfSettings::OFFSET | RfSettings::GAIN);
     m_radioSettings.rxSettings.ifSettings.bandwidth = 200000;
     m_radioSettings.rxSettings.ifSettings.gain = 0.0;

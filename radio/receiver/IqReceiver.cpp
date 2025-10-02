@@ -102,8 +102,8 @@ IqReceiver::configure(const ReceiverConfig* pConfig)
   uint32_t decimatorOutputRate = m_decimator.getOutputSampleRate();
 
   m_ifFilter.getKernel().configure(
-    -3000.0,
-    -300,
+    3000.0,
+    300,
     0.0,
     decimatorOutputRate * 2);
 
@@ -115,6 +115,9 @@ IqReceiver::configure(const ReceiverConfig* pConfig)
 
   m_amDemodulator.setOutputRate(decimatorOutputRate);
   m_fmDemodulator.setOutputRate(decimatorOutputRate);
+  m_ssbDemodulator.setOutputRate(decimatorOutputRate);
+
+  m_ssbDemodulator.setMode(SsbDemodulator::Mode::USB);
 }
 
 // void

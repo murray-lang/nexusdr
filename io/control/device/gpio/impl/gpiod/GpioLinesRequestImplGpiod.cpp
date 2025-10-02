@@ -136,10 +136,6 @@ GpioLinesRequestImplGpiod::run()
   bool haveCallback = m_pCallback != nullptr;
   while (haveCallback) {
     constexpr int64_t idleTimeout = 200'000'000;
-    // int numChanges = m_lines.debounce(changes);
-    // for (const auto& change : changes) {
-    //   qDebug() << "Line " << change.line << " changed to " << (int)change.value;
-    // }
     int wr = waitEdgeEvents(idleTimeout);
     if (wr < 0) {
       // error; consider logging and continuing or breaking
@@ -164,10 +160,9 @@ GpioLinesRequestImplGpiod::run()
     // if (numChanges > 0) {
     //   qDebug() << "Changes:";
     //   for (auto& infoPair : debouncedLines) {
-    //     GpioLines::LineState& info = infoPair.second;
+    //     GpioLinesRequest::LineState& info = infoPair.second;
     //     qDebug() << "Line: " << info.line << ", LastRisingTime: " << info.lastRisingTime << ", LastFallingTime: " << info.lastFallingTime << ", Value: " << (int)info.value;
     //   }
-    
     // }
   }
 }
