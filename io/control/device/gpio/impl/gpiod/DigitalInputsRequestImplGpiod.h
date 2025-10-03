@@ -8,23 +8,23 @@
 #include <vector>
 
 #include "GpioImplGpiod.h"
-#include "../../GpioLinesRequest.h"
+#include "../../digital/DigitalInputsRequest.h"
 #include <mutex>
 
 
-class GpioLinesRequestImplGpiod : public GpioLinesRequest, public QThread
+class DigitalInputsRequestImplGpiod : public DigitalInputsRequest, public QThread
 {
   friend GpioImplGpiod;
 public:
-  explicit GpioLinesRequestImplGpiod(gpiod_chip* pChip, const char* consumer = "");
-  ~GpioLinesRequestImplGpiod() override;
+  explicit DigitalInputsRequestImplGpiod(gpiod_chip* pChip, const char* consumer = "");
+  ~DigitalInputsRequestImplGpiod() override;
 
   void run() override;
 
   void startCallbacks(Callback* callback) override;
   void stopCallbacks() override;
 
-  void request(const char * contextId, const std::vector<GpioLines>& lines) override;
+  void request(const char * contextId, const std::vector<DigitalInput*>& inputs) override;
 
   void release() override;
 
@@ -33,8 +33,13 @@ public:
   int getLineValue(uint32_t line) override;
 
 protected:  
-  bool isDebounced(int line);
+  bool isDebounced(int line) const;
   int getLineStateChanges(LineStateMap& changes);
+  int updateLineStates();
+  bool callbackWithChangedLineStates();
+  bool callbackWithAnyDebouncedLineStates();
+
+  static uint64_t getCurrentTime();
   // Wait for edge events with a timeout in nanoseconds.
   // Returns:
   //   >0 if events are ready,
@@ -53,7 +58,7 @@ protected:
   std::string m_consumer;
   gpiod_line_request *m_pLineRequest;
   gpiod_edge_event_buffer* m_pEventBuffer;
-
+  uint64_t m_debouncePeriod;
 };
 
 

@@ -41,10 +41,9 @@ void Gpio::close()
     }
 }
 
-GpioLinesRequest*
-Gpio::requestLines(const char * contextId, const std::vector<GpioLines>& lines
-)
+DigitalInputsRequest*
+Gpio::requestDigitalInputs(const char * contextId, const std::vector<DigitalInput*>& inputs)
 {
-  return m_pImpl->requestLines(contextId, lines);
+  return m_pImpl->requestDigitalInputs(contextId, inputs);
 }
 

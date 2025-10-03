@@ -52,6 +52,8 @@ else()
     endif()
 endif()
 
+add_definitions(-DMAX_GPIO=27)
+
 include(CMakeLists_AudioLibs.txt)
 message(STATUS "${AUDIO_LINK_LIBS}")
 
@@ -95,16 +97,16 @@ if(USE_PIGPIO)
     set (PLATFORM_SOURCES
             io/control/device/gpio/impl/pigpio/GpioImplPiGpio.h
             io/control/device/gpio/impl/pigpio/GpioImplPiGpio.cpp
-            io/control/device/gpio/impl/pigpio/GpioLinesRequestImplPiGpio.h
-            io/control/device/gpio/impl/pigpio/GpioLinesRequestImplPiGpio.cpp
+            io/control/device/gpio/impl/pigpio/DigitalInputsRequestImplPiGpio.h
+            io/control/device/gpio/impl/pigpio/DigitalInputsRequestImplPiGpio.cpp
     )
     
 elseif(USE_GPIOD)
     set (PLATFORM_SOURCES
             io/control/device/gpio/impl/gpiod/GpioImplGpiod.h
             io/control/device/gpio/impl/gpiod/GpioImplGpiod.cpp
-            io/control/device/gpio/impl/gpiod/GpioLinesRequestImplGpiod.h
-            io/control/device/gpio/impl/gpiod/GpioLinesRequestImplGpiod.cpp
+            io/control/device/gpio/impl/gpiod/DigitalInputsRequestImplGpiod.h
+            io/control/device/gpio/impl/gpiod/DigitalInputsRequestImplGpiod.cpp
     )
 endif()
 
@@ -209,8 +211,8 @@ set(PROJECT_SOURCES
         io/control/device/gpio/Gpio.h
         io/control/device/gpio/GpioException.cpp
         io/control/device/gpio/GpioException.h
-        io/control/device/gpio/GpioLinesRequest.cpp
-        io/control/device/gpio/GpioLinesRequest.h
+        io/control/device/gpio/digital/DigitalInputsRequest.cpp
+        io/control/device/gpio/digital/DigitalInputsRequest.h
         io/control/device/gpio/digital/GpioRotaryEncoder.cpp
         io/control/device/gpio/digital/GpioRotaryEncoder.h
         io/control/device/gpio/digital/DigitalInputGroup.cpp

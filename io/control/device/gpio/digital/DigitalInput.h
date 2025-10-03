@@ -8,7 +8,7 @@
 #include <vector>
 #include <config/DigitalInputConfig.h>
 #include "settings/SettingPath.h"
-#include "../GpioLinesRequest.h"
+#include "DigitalInputsRequest.h"
 #include "settings/RadioSettingsSource.h"
 
 
@@ -22,16 +22,18 @@ public:
   virtual void configure(const DigitalInputConfig* pConfig);
   // void setId(const std::string& id) { m_id = id; }
   [[nodiscard]] const std::string& getId() const { return m_id; }
+  [[nodiscard]] bool getDebounce() const { return m_debounce; }
   // [[nodiscard]] const GpioLines& getLines() const { return m_lines; }
   [[nodiscard]] const SettingPath& getSettingPath() const { return m_settingPath; }
 
-  virtual bool handleLineChange(GpioLinesRequest::LineStateMap& changedLines) = 0;
+  virtual bool handleLineChange(DigitalInputsRequest::LineStateMap& changedLines) = 0;
 
   void connect(RadioSettingsSink* pSink) override;
 protected:
   void notifySingleSetting(const SingleSetting& settingDelta) override;
 
   std::string m_id;
+  bool m_debounce;
   SettingPath m_settingPath;
   RadioSettingsSink* m_pSink;
 };

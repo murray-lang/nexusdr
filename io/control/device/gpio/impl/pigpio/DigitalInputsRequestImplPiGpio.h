@@ -7,20 +7,20 @@
 #include <vector>
 
 #include "GpioImplPiGpio.h"
-#include "../../GpioLinesRequest.h"
+#include "../../digital/DigitalInputsRequest.h"
 
 
-class GpioLinesRequestImplPiGpio : public GpioLines
+class DigitalInputsRequestImplPiGpio : public DigitalInputsRequest
 {
   friend GpioImplPiGpio;
 public:
-  explicit GpioLinesRequestImplPiGpio(const char* consumer = "");
-  ~GpioLinesRequestImplPiGpio() override;
+  explicit DigitalInputsRequestImplPiGpio(const char* consumer = "");
+  ~DigitalInputsRequestImplPiGpio() override;
 
   void startCallbacks(Callback* callback) override;
   void stopCallbacks() override;
 
-  void request(const char * contextId, const std::vector<GpioLines>& lines) override;
+  void request(const char * contextId, const std::vector<DigitalInput*>& lines) override;
 
   void release() override;
 
@@ -30,8 +30,8 @@ public:
 
 protected:
 
-  void setLineDirection(uint32_t line, Direction direction);
-  void setLineBias(uint32_t line, Bias bias);
+  void setLineDirection(uint32_t line, GpioLines::Direction direction);
+  void setLineBias(uint32_t line, GpioLines::Bias bias);
   static void gpioCallback(int gpio, int level, uint32_t tick, void* userData);
 
 

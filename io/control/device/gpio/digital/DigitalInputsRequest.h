@@ -11,25 +11,29 @@
 #include <gpiod.h>
 #include <vector>
 
-#include "GpioLines.h"
+#include "../GpioLines.h"
+// #include "digital/DigitalInput.h"
 
 class Gpio;
+class DigitalInput;
 
-class GpioLinesRequest {
+class DigitalInputsRequest {
 public:
-
-
-  
 
   struct LineState
   {
     uint32_t line;
+    bool debounce;
+    bool isDebounced;
+    uint8_t candidateValue;
+    uint64_t candidateEdgeTime;
     uint64_t lastRisingTime;
     uint64_t lastFallingTime;
     uint8_t value;
     bool changed;
   };
   using LineStateMap = std::unordered_map<uint32_t, LineState>;
+  using LineStates = std::vector<LineState>;
 
   class Callback
   {
@@ -39,10 +43,10 @@ public:
 
   };
 
-  GpioLinesRequest();
-  virtual ~GpioLinesRequest() = default;
+  DigitalInputsRequest();
+  virtual ~DigitalInputsRequest() = default;
 
-  virtual void request(const char * contextId, const std::vector<GpioLines>& lines) = 0;
+  virtual void request(const char * contextId, const std::vector<DigitalInput*>& inputs) = 0;
 
   virtual void release() = 0;
 
@@ -54,10 +58,11 @@ public:
   virtual int getLineValue(uint32_t line) = 0;
 
 protected:
-  void initialiseLineStates(const std::vector<GpioLines>& lines);
+  void initialiseLineStates(const std::vector<DigitalInput*>& inputs);
 
   Gpio& m_gpio;
-  LineStateMap m_lineStates;
+  // LineStateMap m_lineStates;
+  LineStates m_lineStates;
 };
 
 

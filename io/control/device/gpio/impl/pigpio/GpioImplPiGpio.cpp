@@ -37,7 +37,7 @@ GpioImplPiGpio::close()
 }
 
 GpioLines*
-GpioImplPiGpio::requestLines(const char * contextId, const std::vector<GpioLine>& lines)
+GpioImplPiGpio::requestLines(const char * contextId, const std::vector<DigitalInput*>& lines)
 {
   if (m_initRc < 0) {
     throw GpioException("PiGPIO not initialised");

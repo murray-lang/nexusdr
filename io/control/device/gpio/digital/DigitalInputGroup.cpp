@@ -46,9 +46,9 @@ DigitalInputGroup::open()
   if (m_pLines != nullptr) {
     throw GpioException("DigitalInputGroup already open");
   }
-  std::vector<GpioLines> lines = gatherLinesFromInputs();
+  createLineToInputMap();
   Gpio& gpio = Gpio::getInstance();
-  GpioLinesRequest* pLines = gpio.requestLines("digitalInputs", lines);
+  DigitalInputsRequest* pLines = gpio.requestDigitalInputs("digitalInputs", m_inputs);
   m_pLines.reset(pLines);
   m_pLines->startCallbacks(this);
 }
@@ -93,20 +93,16 @@ DigitalInputGroup::deleteInputs()
   m_inputs.clear();
 }
 
-std::vector<GpioLines>
-DigitalInputGroup::gatherLinesFromInputs()
+void
+DigitalInputGroup::createLineToInputMap()
 {
   m_lineToInputMap.clear();
-
-  std::vector<GpioLines> result;
   for (const auto input : m_inputs) {
-    result.emplace_back(*input);
     const std::vector<uint32_t>& lineNos = input->getLines();
     for (const auto& lineNo : lineNos) {
       m_lineToInputMap[lineNo] = input;
     }
   }
-  return result;
 }
 
 void
@@ -118,7 +114,7 @@ DigitalInputGroup::readInitialInputStates()
 }
 
 void
-DigitalInputGroup::callback(GpioLinesRequest::LineStateMap& lineStates)
+DigitalInputGroup::callback(DigitalInputsRequest::LineStateMap& lineStates)
 {
   for (auto& input : m_inputs) {
     input->handleLineChange(lineStates);

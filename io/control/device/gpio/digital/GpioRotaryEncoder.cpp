@@ -23,13 +23,13 @@ GpioRotaryEncoder::notifyMovement(const int movement)
 }
 
 bool
-GpioRotaryEncoder::handleLineChange(GpioLinesRequest::LineStateMap& changedLines)
+GpioRotaryEncoder::handleLineChange(DigitalInputsRequest::LineStateMap& changedLines)
 {
   auto aIter = changedLines.find(m_lines[0]);
   auto bIter = changedLines.find(m_lines[1]);
   if (aIter != changedLines.end() && bIter != changedLines.end()) {
-    GpioLinesRequest::LineState& a = aIter->second;
-    GpioLinesRequest::LineState& b = bIter->second;
+    DigitalInputsRequest::LineState& a = aIter->second;
+    DigitalInputsRequest::LineState& b = bIter->second;
     int dir = calculateMovement(a, b);
     // qDebug() << "A:" << a.value << "B:" << b.value << "Direction: " << dir;
     notifyMovement(dir);
@@ -39,7 +39,7 @@ GpioRotaryEncoder::handleLineChange(GpioLinesRequest::LineStateMap& changedLines
 }
 
 int
-GpioRotaryEncoder::calculateMovement(GpioLinesRequest::LineState& a, GpioLinesRequest::LineState& b)
+GpioRotaryEncoder::calculateMovement(DigitalInputsRequest::LineState& a, DigitalInputsRequest::LineState& b)
 {
   if (a.value ==  1 && b.value == 1) {
     return a.lastRisingTime < b.lastRisingTime ? +1 : -1;

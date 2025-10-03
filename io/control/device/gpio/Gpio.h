@@ -6,10 +6,9 @@
 #define CUTESDR_VK6HL_GPIO_H
 #include <memory>
 
-#include "GpioLinesRequest.h"
+#include "digital/DigitalInputsRequest.h"
 
 class Gpio {
-  // friend GpioLines;
 public:
   Gpio();
   static Gpio& getInstance() {
@@ -27,7 +26,7 @@ public:
   void open();
   void close();
 
-  GpioLinesRequest* requestLines(const char * contextId, const std::vector<GpioLines>& lines);
+  DigitalInputsRequest* requestDigitalInputs(const char * contextId, const std::vector<DigitalInput*>& inputs);
 
   class Impl
   {
@@ -36,7 +35,7 @@ public:
     static bool isPresent();
     virtual bool open() = 0;
     virtual bool close() = 0;
-    virtual GpioLinesRequest* requestLines(const char * contextId, const std::vector<GpioLines>& lines) = 0;
+    virtual DigitalInputsRequest* requestDigitalInputs(const char * contextId, const std::vector<DigitalInput*>& inputs) = 0;
   };
 
 protected:
