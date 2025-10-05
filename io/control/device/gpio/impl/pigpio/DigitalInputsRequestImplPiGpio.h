@@ -24,7 +24,7 @@ public:
 
   void release() override;
 
-  int debounce(LineStateMap& changes) override { return 0;};
+  // int debounce(LineStateMap& changes) override { return 0;};
 
   int getLineValue(uint32_t line) override;
 

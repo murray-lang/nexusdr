@@ -114,7 +114,7 @@ DigitalInputGroup::readInitialInputStates()
 }
 
 void
-DigitalInputGroup::callback(DigitalInputsRequest::LineStateMap& lineStates)
+DigitalInputGroup::callback(DigitalInputsRequest::LineStates& lineStates)
 {
   for (auto& input : m_inputs) {
     input->handleLineChange(lineStates);

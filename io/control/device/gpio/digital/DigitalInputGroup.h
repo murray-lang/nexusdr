@@ -29,7 +29,7 @@ public:
 
 
   // GpioLines::Callback override
-  void callback(DigitalInputsRequest::LineStateMap& lineStates) override;
+  void callback(DigitalInputsRequest::LineStates& lineStates) override;
 
 protected:
   void notifySettings(const RadioSettings& radioSettings) override

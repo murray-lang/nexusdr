@@ -23,6 +23,8 @@ public:
 
     if (json.contains("debounce")) {
       m_debounce = json["debounce"];
+    } else {
+      m_debounce = false;
     }
     if (m_lines.empty()) {
       throw ConfigException("DigitalInputConfig: lines empty");
@@ -35,6 +37,7 @@ public:
   }
 
   const std::vector<uint32_t>& getLines() const { return m_lines; }
+  bool getDebounce() const { return m_debounce; }
   const std::string& getSettingPath() const { return m_settingPath; }
 
 protected:

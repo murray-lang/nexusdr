@@ -28,7 +28,7 @@ public:
 
   void release() override;
 
-  int debounce(LineStateMap& changes) override;
+  // int debounce(LineStateMap& changes) override;
 
   int getLineValue(uint32_t line) override;
 
@@ -36,6 +36,7 @@ protected:
   bool isDebounced(int line) const;
   int getLineStateChanges(LineStateMap& changes);
   int updateLineStates();
+  int continueDebouncing();
   bool callbackWithChangedLineStates();
   bool callbackWithAnyDebouncedLineStates();
 

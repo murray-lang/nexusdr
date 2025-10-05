@@ -111,13 +111,19 @@ MainWindow::configurePanadapter()
   pChart->addSeries(&m_spectrumLineSeries);
   pChart->setTitle("Panadapter");
   pChart->createDefaultAxes();
+
+  // QLogValueAxis *yAxis = new QLogValueAxis();
+  // yAxis->setBase(10.0);
+  // yAxis->setRange(-140, 0);
+  // pChart->setAxisY(yAxis, &m_spectrumLineSeries);
+
   QList<QAbstractAxis*> xAxes = pChart->axes(Qt::Horizontal);
   if (!xAxes.isEmpty()) {
     QValueAxis *xAxis = qobject_cast<QValueAxis*>(xAxes.first());
     xAxis->setRange(m_panadapterXmin, m_panadapterXmax);
     xAxis->setLabelFormat(QString("%i"));
   }
-  pChart->axes(Qt::Vertical).first()->setRange(-140, 0);
+  pChart->axes(Qt::Vertical).first()->setRange(-130, -60);
 
   pChart->legend()->hide();
 
@@ -252,7 +258,7 @@ MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings)
     double yMin = axisY->min();
     double yMax = axisY->max();
 
-    qDebug() << "Centre frequency changed to" << centreFrequency << "Offset" << offset << "Frequency at offset" << frequencyAtOffset;
+    // qDebug() << "Centre frequency changed to" << centreFrequency << "Offset" << offset << "Frequency at offset" << frequencyAtOffset;
 
     // Map chart coords back to pixel positions
     QPointF p1 = chart->mapToPosition(QPointF(frequencyAtOffset, yMin));
@@ -452,7 +458,7 @@ MainWindow::initialiseRadio()
     //    },
     //   .changed = (RadioSettings::RX)
     // };
-    m_radioSettings.rxSettings.rfSettings.frequency = 14140000;
+    m_radioSettings.rxSettings.rfSettings.frequency = 14200000;
     m_radioSettings.rxSettings.rfSettings.offset = -0;
     m_radioSettings.rxSettings.rfSettings.gain = 30.0;
     m_radioSettings.rxSettings.rfSettings.changed = (RfSettings::FREQUENCY | RfSettings::OFFSET | RfSettings::GAIN);

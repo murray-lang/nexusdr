@@ -8,6 +8,11 @@
 #include "io/control/device/gpio/GpioException.h"
 #include "settings/SingleSetting.h"
 
+GpioRotaryEncoder::GpioRotaryEncoder() : DigitalInput()
+{
+  m_detectEdge = true;
+}
+
 void
 GpioRotaryEncoder::configure(const DigitalInputConfig* pConfig)
 {
@@ -23,19 +28,28 @@ GpioRotaryEncoder::notifyMovement(const int movement)
 }
 
 bool
-GpioRotaryEncoder::handleLineChange(DigitalInputsRequest::LineStateMap& changedLines)
+GpioRotaryEncoder::handleLineChange(DigitalInputsRequest::LineStates& changedLines)
 {
-  auto aIter = changedLines.find(m_lines[0]);
-  auto bIter = changedLines.find(m_lines[1]);
-  if (aIter != changedLines.end() && bIter != changedLines.end()) {
-    DigitalInputsRequest::LineState& a = aIter->second;
-    DigitalInputsRequest::LineState& b = bIter->second;
-    int dir = calculateMovement(a, b);
-    // qDebug() << "A:" << a.value << "B:" << b.value << "Direction: " << dir;
-    notifyMovement(dir);
-    return true;
+  DigitalInputsRequest::LineState& a = changedLines.at(m_lines[0]);
+  DigitalInputsRequest::LineState& b = changedLines.at(m_lines[1]);
+  if (!a.changed || !b.changed) {
+    return false;
   }
-  return false;
+  if (m_debounce && (!a.isDebounced || !b.isDebounced)) {
+    return false;
+  }
+  int dir = calculateMovement(a, b);
+  // qDebug() << "A:" << a.value << "B:" << b.value << "Direction: " << dir;
+  notifyMovement(dir);
+  a.changed = false; // TODO: Encapsulate this in LineState
+  a.changed = false; // TODO: Encapsulate this in LineState
+  b.isDebounced = false;
+  b.isDebounced = false;
+  a.firstEdgeTime = 0;
+  a.firstEdgeTime = 0;
+  return true;
+
+ 
 }
 
 int

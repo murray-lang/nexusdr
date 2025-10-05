@@ -25,12 +25,14 @@ public:
     uint32_t line;
     bool debounce;
     bool isDebounced;
-    uint8_t candidateValue;
-    uint64_t candidateEdgeTime;
+    // uint8_t candidateValue;
+    // uint64_t candidateEdgeTime;
+    uint64_t firstEdgeTime;
     uint64_t lastRisingTime;
     uint64_t lastFallingTime;
     uint8_t value;
     bool changed;
+    bool processed;
   };
   using LineStateMap = std::unordered_map<uint32_t, LineState>;
   using LineStates = std::vector<LineState>;
@@ -39,7 +41,7 @@ public:
   {
   public:
     virtual ~Callback() = default;
-    virtual void callback(LineStateMap& lineStates) = 0;
+    virtual void callback(LineStates& lineStates) = 0;
 
   };
 
@@ -53,7 +55,7 @@ public:
   virtual void startCallbacks(Callback* callback) = 0;
   virtual void stopCallbacks() = 0;
 
-  virtual int debounce(LineStateMap& changes) = 0;
+  // virtual int debounce(LineStateMap& changes) = 0;
 
   virtual int getLineValue(uint32_t line) = 0;
 

@@ -7,7 +7,9 @@
 
 DigitalInput::DigitalInput() :
   GpioLines(Direction::INPUT),
-  m_pSink(nullptr)
+  m_pSink(nullptr),
+  m_detectEdge(false),
+  m_debounce(false)
 {
 
 }
@@ -16,6 +18,7 @@ void
 DigitalInput::configure(const DigitalInputConfig* pConfig)
 {
   GpioLines::configure(pConfig);
+  m_debounce = pConfig->getDebounce();
   m_direction = Direction::INPUT;
   const std::string& strSettingPath = pConfig->getSettingPath();
   m_id = strSettingPath;

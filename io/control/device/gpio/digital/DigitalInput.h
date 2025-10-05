@@ -23,10 +23,11 @@ public:
   // void setId(const std::string& id) { m_id = id; }
   [[nodiscard]] const std::string& getId() const { return m_id; }
   [[nodiscard]] bool getDebounce() const { return m_debounce; }
+  [[nodiscard]] bool getDetectEdge() const { return m_detectEdge; }
   // [[nodiscard]] const GpioLines& getLines() const { return m_lines; }
   [[nodiscard]] const SettingPath& getSettingPath() const { return m_settingPath; }
 
-  virtual bool handleLineChange(DigitalInputsRequest::LineStateMap& changedLines) = 0;
+  virtual bool handleLineChange(DigitalInputsRequest::LineStates& changedLines) = 0;
 
   void connect(RadioSettingsSink* pSink) override;
 protected:
@@ -34,6 +35,7 @@ protected:
 
   std::string m_id;
   bool m_debounce;
+  bool m_detectEdge;
   SettingPath m_settingPath;
   RadioSettingsSink* m_pSink;
 };

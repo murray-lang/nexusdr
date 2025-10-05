@@ -28,12 +28,14 @@ DigitalInputsRequest::initialiseLineStates(const std::vector<DigitalInput*>& inp
         .line = lineNo,
         .debounce = input->getDebounce(),
         .isDebounced = false,
-        .candidateValue = static_cast<uint8_t>(value),
-        .candidateEdgeTime = 0,
+        // .candidateValue = static_cast<uint8_t>(value),
+        // .candidateEdgeTime = 0,
+        .firstEdgeTime = 0,
         .lastRisingTime = 0,
         .lastFallingTime = 0,
         .value = static_cast<uint8_t>(value),
-        .changed = false
+        .changed = false,
+        .processed = false
       };
       m_lineStates[lineNo] = info;
     }

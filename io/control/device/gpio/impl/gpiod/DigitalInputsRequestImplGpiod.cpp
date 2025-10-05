@@ -13,7 +13,7 @@ DigitalInputsRequestImplGpiod::DigitalInputsRequestImplGpiod(gpiod_chip* pChip, 
   m_pCallback(nullptr),
   m_consumer(consumer),
   m_pLineRequest(nullptr),
-  m_debouncePeriod(200'000'000)
+  m_debouncePeriod(5'000'000)
 
 {
   m_pEventBuffer = gpiod_edge_event_buffer_new(64);
@@ -145,69 +145,66 @@ DigitalInputsRequestImplGpiod::run()
   //   return; //TODO: flag the error
   // }
 
-  LineStateMap debouncedLines;
+  // LineStateMap debouncedLines;
 
   bool haveCallback = m_pCallback != nullptr;
   while (haveCallback) {
-    constexpr int64_t idleTimeout = 200'000'000;
+    constexpr int64_t idleTimeout = 50'000'000;
     int wr = waitEdgeEvents(idleTimeout);
     if (wr < 0) {
       // error; consider logging and continuing or breaking
       continue;
     }
+    
     if (wr == 0) {
-      haveCallback = callbackWithAnyDebouncedLineStates();
-      continue;
+      // haveCallback = callbackWithAnyDebouncedLineStates();
+      // int numDebounced = updateDebouncingStates();
+      // if (numDebounced == 0) {
+      //   continue;
+      // }
     }
-    // qDebug() << "-----------------------";
-    // debouncedLines.clear();
-    // int numChanges = getLineStateChanges(debouncedLines);
-    // int numChanges = debounce(debouncedLines);
-    updateLineStates();
-    haveCallback = callbackWithChangedLineStates();
-    // int numChanges = 0;
-    // for ( auto& lineState : m_lineStates) {
-    //   if (lineState.changed) {
-    //     debouncedLines[lineState.line] = lineState;
-    //     lineState.changed = false;
-    //     ++numChanges;
-    //   }
+    
+    int numEvents = 0;
+    int numDebounced = 0;
+    if (wr > 0) {
+      // qDebug() <<"--------------";
+      numEvents = updateLineStates();
+    } else {
+      numDebounced = continueDebouncing();
+    }
+     
+    // if (numEvents == 0) {
+    //   numEvents = updateDebouncingStates();
     // }
-    // if (numChanges > 0) {
-    //   std::lock_guard<std::mutex> lock(m_callbackMutex);
-    //   if (m_pCallback) {
-    //     m_pCallback->callback(debouncedLines);
-    //   } else {
-    //     haveCallback = false;
-    //   }
-    // }
-    // if (numChanges > 0) {
-    //   qDebug() << "Changes:";
-    //   for (auto& infoPair : debouncedLines) {
-    //     GpioLinesRequest::LineState& info = infoPair.second;
-    //     qDebug() << "Line: " << info.line << ", LastRisingTime: " << info.lastRisingTime << ", LastFallingTime: " << info.lastFallingTime << ", Value: " << (int)info.value;
-    //   }
-    // }
+    if (numEvents > 0 || numDebounced > 0) {
+      // qDebug() << "Events: " << numEvents << " Debounced: " << numDebounced;
+      haveCallback = callbackWithChangedLineStates();
+    }
   }
 }
 
 bool
 DigitalInputsRequestImplGpiod::callbackWithChangedLineStates()
 {
-  LineStateMap lines;
-  updateLineStates();
-  for ( auto& lineState : m_lineStates) {
-    if (lineState.changed) {
-      lines[lineState.line] = lineState;
-      lineState.changed = false;
-    }
-  }
-  if (lines.empty()) {
-    return true;
-  }
+  // LineStateMap lines;
+  // updateLineStates();
+  // for ( auto& lineState : m_lineStates) {
+  //   if (lineState.changed) {
+  //     lines[lineState.line] = lineState;
+  //     lineState.changed = false;
+  //     if (lineState.debounce) {
+  //       lineState.firstEdgeTime = 0;
+  //       lineState.isDebounced = false;
+  //     }
+      
+  //   }
+  // }
+  // if (lines.empty()) {
+  //   return true;
+  // }
   std::lock_guard<std::mutex> lock(m_callbackMutex);
   if (m_pCallback) {
-    m_pCallback->callback(lines);
+    m_pCallback->callback(m_lineStates);
     return true;
   }
   return false;
@@ -216,75 +213,34 @@ DigitalInputsRequestImplGpiod::callbackWithChangedLineStates()
 bool
 DigitalInputsRequestImplGpiod::callbackWithAnyDebouncedLineStates()
 {
-  uint64_t now = getCurrentTime();
-  LineStateMap debouncedLines;
-  updateLineStates();
-  for ( auto& lineState : m_lineStates) {
-    if (lineState.debounce
-      && !lineState.isDebounced
-      && lineState.candidateEdgeTime > 0
-      && now - lineState.candidateEdgeTime > m_debouncePeriod
-      ) {
-      lineState.isDebounced = true;
-      lineState.candidateEdgeTime = 0;
-      lineState.changed = false;
-      debouncedLines[lineState.line] = lineState;
-    }
-  }
-  if (debouncedLines.empty()) {
-    return true;
-  }
-  std::lock_guard<std::mutex> lock(m_callbackMutex);
-  if (m_pCallback) {
-    m_pCallback->callback(debouncedLines);
-    return true;
-  }
+  // uint64_t now = getCurrentTime();
+  // LineStateMap debouncedLines;
+  // updateLineStates();
+  // for ( auto& lineState : m_lineStates) {
+  //   if (lineState.debounce
+  //     && !lineState.isDebounced
+  //     && lineState.firstEdgeTime > 0
+  //     && now - lineState.firstEdgeTime > m_debouncePeriod
+  //     ) {
+  //     lineState.isDebounced = true;
+  //     lineState.firstEdgeTime = 0;
+  //     lineState.changed = false;
+  //     debouncedLines[lineState.line] = lineState;
+  //     qDebug() << "callbackWithAnyDebouncedLineStates(): Line " << lineState.line << " debounced to " << (int)lineState.value;
+  //   }
+  // }
+  // if (debouncedLines.empty()) {
+  //   return true;
+  // }
+  // // qDebug() << "Found " << debouncedLines.size() << " debounced lines";
+  // std::lock_guard<std::mutex> lock(m_callbackMutex);
+  // if (m_pCallback) {
+  //   m_pCallback->callback(debouncedLines);
+  //   return true;
+  // }
   return false;
 }
 
-int
-DigitalInputsRequestImplGpiod::getLineStateChanges(LineStateMap& changes)
-{
-  return 0;
-  // int numEvents = readEdgeEvents(m_pEventBuffer, 64);
-  // if (numEvents < 0) {
-  //   throw GpioException("Error reading edge events");
-  // }
-  // for (int i = 0; i < numEvents; ++i) {
-  //
-  //   gpiod_edge_event* ev = gpiod_edge_event_buffer_get_event(m_pEventBuffer, i);
-  //   uint32_t line = gpiod_edge_event_get_line_offset(ev);
-  //   gpiod_edge_event_type type = gpiod_edge_event_get_event_type(ev);
-  //   uint64_t timestamp = gpiod_edge_event_get_timestamp_ns(ev);
-  //
-  //   auto stateIter = m_lineStates.find(line);
-  //   // if (stateIter == m_lineStates.end()) {
-  //   //   throw GpioException("Received event for unknown line");
-  //   // }
-  //   if (stateIter != m_lineStates.end()) {
-  //     LineState& info = stateIter->second;
-  //     info.changed = true;
-  //     if (type == GPIOD_EDGE_EVENT_RISING_EDGE) {
-  //       info.lastRisingTime = timestamp;
-  //       info.value = 1;
-  //     } else {
-  //       info.lastFallingTime = timestamp;
-  //       info.value = 0;
-  //     }
-  //     changes[line] = info;
-  //   }
-  // }
-  // // Now read the affected line values to make sure we have that part of the story straight.
-  // // for (auto& pair : m_lineStates) {
-  // //   LineState& info = pair.second;
-  // //   if (info.changed) {
-  // //     info.value = static_cast<uint8_t>(getLineValue(pair.first));
-  // //     changes[pair.first] = info;
-  // //     info.changed = false;
-  // //   }
-  // // }
-  // return numEvents;
-}
 
 int
 DigitalInputsRequestImplGpiod::updateLineStates()
@@ -299,6 +255,10 @@ DigitalInputsRequestImplGpiod::updateLineStates()
     gpiod_edge_event_type type = gpiod_edge_event_get_event_type(ev);
     uint64_t timestamp = gpiod_edge_event_get_timestamp_ns(ev);
     LineState& lineState = m_lineStates[line];
+    lineState.changed = true;
+    if (lineState.firstEdgeTime == 0) {
+      lineState.firstEdgeTime = timestamp;
+    }
     if (type == GPIOD_EDGE_EVENT_RISING_EDGE) {
       lineState.lastRisingTime = timestamp;
       lineState.value = 1;
@@ -306,77 +266,38 @@ DigitalInputsRequestImplGpiod::updateLineStates()
       lineState.lastFallingTime = timestamp;
       lineState.value = 0;
     }
-    if (lineState.debounce) {
-      lineState.isDebounced = false;
-      if (lineState.candidateEdgeTime == 0) {
-        lineState.candidateEdgeTime = timestamp;
-        lineState.candidateValue = lineState.value;
-        lineState.changed = false;
-      } else if (lineState.candidateValue != lineState.value) {
-        lineState.candidateEdgeTime = 0;
-        lineState.changed = false;
-      } else if (timestamp - lineState.candidateEdgeTime > m_debouncePeriod) {
-        lineState.isDebounced = true;
-        lineState.candidateEdgeTime = 0;
-        lineState.changed = true;
-      }
-    } else {
-      lineState.changed = true;
+    if (lineState.debounce && !lineState.isDebounced) {
+      lineState.isDebounced = timestamp - lineState.firstEdgeTime > m_debouncePeriod;
+      // qDebug() << "updateLineStates(): Line " << lineState.line << " changed to " << (int)lineState.value
+      //          << (lineState.isDebounced ? " (debounced)" : " (not debounced)");
     }
   }
   return numEvents;
 }
 
 int
-DigitalInputsRequestImplGpiod::debounce(LineStateMap& changes)
+DigitalInputsRequestImplGpiod::continueDebouncing()
 {
-  return 0;
-  // constexpr int64_t debounceTimeout= 45'000'000;
-  // //std::unordered_map<uint32_t, DebounceInfo> m_debouncedLines;
-  // int waitResult = waitEdgeEvents(debounceTimeout);
-  //
-  // if (waitResult < 0) {
-  //   throw GpioException("Error waiting for edge events");
-  // }
-  // // Whizz through the event storm until (we think) it's over
-  // while(waitResult != 0) {
-  //   int numEvents = readEdgeEvents(m_pEventBuffer, 64);
-  //
-  //   for (int i = 0; i < numEvents; ++i) {
-  //
-  //     gpiod_edge_event* ev = gpiod_edge_event_buffer_get_event(m_pEventBuffer, i);
-  //     uint32_t line = gpiod_edge_event_get_line_offset(ev);
-  //     gpiod_edge_event_type type = gpiod_edge_event_get_event_type(ev);
-  //     uint64_t timestamp = gpiod_edge_event_get_timestamp_ns(ev);
-  //
-  //     auto stateIter = m_lineStates.find(line);
-  //     if (stateIter == m_lineStates.end()) {
-  //       throw GpioException("Received event for unknown line");
-  //     }
-  //     LineState& info = stateIter->second;
-  //     info.changed = true;
-  //     if (type == GPIOD_EDGE_EVENT_RISING_EDGE) {
-  //       info.lastRisingTime = timestamp;
-  //       info.value = 1;
-  //     } else {
-  //       info.lastFallingTime = timestamp;
-  //       info.value = 0;
-  //     }
-  //     changes[line] = info;
-  //   }
-  //   waitResult = waitEdgeEvents(debounceTimeout);
-  //   if (waitResult < 0) {
-  //     throw GpioException("Error waiting for edge events");
-  //   }
-  // }
-  // // Now read the affected line values to make sure we have that part of the story straight.
-  // // for (auto& pair : m_lineStates) {
-  // //   LineState& info = pair.second;
-  // //   if (info.changed) {
-  // //     info.value = static_cast<uint8_t>(getLineValue(pair.first));
-  // //     changes[pair.first] = info;
-  // //     info.changed = false;
-  // //   }
-  // // }
-  // return changes.size();
+  uint64_t now = getCurrentTime();
+  int numDebounced = 0;
+  for ( auto& lineState : m_lineStates) {
+    if (lineState.debounce
+      && !lineState.isDebounced
+      && lineState.firstEdgeTime > 0
+      && now - lineState.firstEdgeTime > m_debouncePeriod
+      ) {
+        lineState.isDebounced = true;
+        lineState.firstEdgeTime = 0;
+        lineState.changed = true;
+        ++numDebounced;
+        // qDebug() << "updateDebouncingStates(): Line " << lineState.line << " debounced to " << (int)lineState.value;
+      }
+  }
+  return numDebounced;
 }
+
+// int
+// DigitalInputsRequestImplGpiod::debounce(LineStateMap& changes)
+// {
+//   return 0;
+// }
