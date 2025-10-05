@@ -2,13 +2,11 @@
 #define __AMDEMODULATOR_H__
 #include "./Demodulator.h"
 
-extern DemodulatorSettings defaultAmSettings;
-
 class AmDemodulator : public Demodulator
 {
 public:
   explicit AmDemodulator(uint32_t sampleRate) :
-    Demodulator(sampleRate, defaultAmSettings),
+    Demodulator(sampleRate),
     m_z(0.0f)
     {}
 

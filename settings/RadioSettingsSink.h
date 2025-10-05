@@ -4,13 +4,18 @@
 
 #ifndef RADIOSETTINGSSINK_H
 #define RADIOSETTINGSSINK_H
-#include "RadioSettings.h"
+// #include "RadioSettings.h"
+
+class RadioSettings;
+class SingleSetting;
 
 class RadioSettingsSink
 {
 public:
   virtual ~RadioSettingsSink() = default;
-  virtual void apply(const RadioSettings& settings) = 0;
+  virtual void applySettings(const RadioSettings& settings) = 0;
+  virtual void applySingleSetting(const SingleSetting& settingDelta) = 0;
+
 };
 
 #endif //RADIOSETTINGSSINK_H

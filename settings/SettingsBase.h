@@ -6,18 +6,25 @@
 #define CUTESDR_VK6HL_SETTINGSBASE_H
 #include <cstdint>
 
-#include "SettingDelta.h"
+#include "SingleSetting.h"
 #include "SettingsException.h"
 
 class SettingsBase
 {
 public:
+  SettingsBase() : changed(0) {}
+  SettingsBase(const SettingsBase& rhs) = default;
   virtual ~SettingsBase() = default;
 
-  // virtual void applyDelta(const SettingDelta& delta) = 0;
+  virtual bool applySetting(const SingleSetting& setting, int startIndex) = 0;
+
+  virtual void clearChanged() { changed = 0; }
+  [[nodiscard]] bool isChanged() const { return !!changed; }
 
   // virtual uint32_t getFeatureFromString(const char * strFeature) = 0;
   // virtual FeaturePath getFeaturePathFromString(const std::vector<std::string>& featureStrings) = 0;
+
+  uint32_t changed;
 };
 
 #endif //CUTESDR_VK6HL_SETTINGSBASE_H

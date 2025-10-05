@@ -13,15 +13,17 @@ class ReceiverIqEvent : public QEvent
 public:
   static const QEvent::Type RxIqEvent;
 
-  ReceiverIqEvent(vsdrcomplex& iq, uint32_t len):
+  ReceiverIqEvent(vsdrcomplex& iq, uint32_t len, uint32_t _sampleRate):
     QEvent(RxIqEvent),
     buffer(new vsdrcomplex(iq.begin(), iq.begin() + len)),
-    dataLength(len)
+    dataLength(len),
+    sampleRate(_sampleRate)
   {
   }
 
   std::shared_ptr<vsdrcomplex> buffer;
   uint32_t dataLength;
+  uint32_t sampleRate;
 
 };
 

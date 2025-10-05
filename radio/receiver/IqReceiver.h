@@ -20,9 +20,11 @@
 #include "../../io/audio/IqAudioInput.h"
 #include "../../io/audio/AudioOutput.h"
 #include "config/ReceiverConfig.h"
-#include <control/ControlBase.h>
+#include <io/control/ControlBase.h>
 #include <settings/ReceiverSettingsSink.h>
 #include <settings/PttSink.h>
+
+#include "dsp/stages/demodulators/SsbDemodulator.h"
 
 //#define PING_PONG_LENGTH 2048
 #define PING_PONG_LENGTH 8192
@@ -66,6 +68,7 @@ protected:
   BandPassFilter m_afFilter;
   AmDemodulator m_amDemodulator;
   FmDemodulator m_fmDemodulator;
+  SsbDemodulator m_ssbDemodulator;
   // MeteringStage m_timeseriesEmitter;
   // MeteringStage m_spectrumEmitter;
   // AudioOutputDevice* m_audioOutput;

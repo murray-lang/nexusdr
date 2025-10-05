@@ -6,25 +6,28 @@
 #define RADIO_H
 #include <vector>
 
-#include <control/ControlSink.h>
-#include <control/ControlSource.h>
+#include <io/control/ControlSink.h>
+#include <io/control/ControlSource.h>
 #include "config/RadioConfig.h"
-#include <control/RadioControl.h>
+#include <io/control/RadioControl.h>
 #include "receiver/IqReceiver.h"
 #include <settings/PttSink.h>
 #include <settings/RadioSettingsSink.h>
 
+#include "settings/RadioSettings.h"
+
 class Radio : public RadioSettingsSink, PttSink {
 
 public:
-  explicit Radio(QObject *eventTarget = nullptr);
+  explicit Radio(QObject *pEventTarget = nullptr);
   ~Radio() override;
 
   void configure(const RadioConfig* pConfig);
   void start();
   void stop();
 
-  void apply(const RadioSettings& settings) override;
+  void applySettings(const RadioSettings& settings) override;
+  void applySingleSetting(const SingleSetting& settingDelta) override;
 
   void ptt(bool on) override;
 
@@ -33,8 +36,11 @@ protected:
   void pttOff();
 
 protected:
+  RadioSettings m_settings;
   IqReceiver* m_pReceiver;
   RadioControl m_control;
+
+  QObject* m_pEventTarget;
 };
 
 

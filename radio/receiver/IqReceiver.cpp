@@ -11,7 +11,6 @@
 
 #define FFT_SIZE 2048
 
-const int32_t lo = 48000;
 
 IqReceiver::IqReceiver(QObject* eventTarget) :
   m_dcShift(sdrcomplex(0.00447, 0.00348)),
@@ -22,6 +21,7 @@ IqReceiver::IqReceiver(QObject* eventTarget) :
   m_afFilter(FFT_SIZE),
   m_amDemodulator(48000),
   m_fmDemodulator(48000),
+  m_ssbDemodulator(48000),
   m_eventTarget(eventTarget),
   m_pIqInput(nullptr),
   m_pAudioOutput(nullptr)
@@ -90,7 +90,7 @@ IqReceiver::configure(const ReceiverConfig* pConfig)
   m_pIqInput->initialise(iqInputConfig);
 
   uint32_t inputSampleRate = m_pIqInput->getSampleRate();
-  m_oscillatorMixer.initialise(inputSampleRate, -lo);
+  m_oscillatorMixer.initialise(inputSampleRate, 0);
 
   auto audioOutputConfig = dynamic_cast<const AudioConfig*>(pConfig->getOutput());
   m_pAudioOutput = new AudioOutput();
@@ -102,8 +102,8 @@ IqReceiver::configure(const ReceiverConfig* pConfig)
   uint32_t decimatorOutputRate = m_decimator.getOutputSampleRate();
 
   m_ifFilter.getKernel().configure(
-    -3500.0,
-    3500.0,
+    3000.0,
+    300,
     0.0,
     decimatorOutputRate * 2);
 
@@ -115,6 +115,9 @@ IqReceiver::configure(const ReceiverConfig* pConfig)
 
   m_amDemodulator.setOutputRate(decimatorOutputRate);
   m_fmDemodulator.setOutputRate(decimatorOutputRate);
+  m_ssbDemodulator.setOutputRate(decimatorOutputRate);
+
+  m_ssbDemodulator.setMode(SsbDemodulator::Mode::USB);
 }
 
 // void
@@ -128,7 +131,12 @@ IqReceiver::configure(const ReceiverConfig* pConfig)
 
 void IqReceiver::apply(const ReceiverSettings& settings)
 {
+    if (settings.changed & ReceiverSettings::RF) {
+      if (settings.rfSettings.changed & RfSettings::OFFSET) {
+        m_oscillatorMixer.setFrequency(-settings.rfSettings.offset); 
+      }
 
+    }
 }
 
 
@@ -177,7 +185,7 @@ IqReceiver::sink(ComplexPingPongBuffers& buffers, uint32_t inputLength)
 {
   // qDebug() << inputLength;
   // emitComplexSignal(SignalEmitter::eSIGNAL_INPUT, buffers.input(), inputLength);
-  QCoreApplication::postEvent(m_eventTarget, new ReceiverIqEvent(buffers.input(), inputLength));
+  QCoreApplication::postEvent(m_eventTarget, new ReceiverIqEvent(buffers.input(), inputLength, m_pIqInput->getSampleRate() ));
 
   uint32_t outputLength = inputLength;
 
@@ -186,7 +194,9 @@ IqReceiver::sink(ComplexPingPongBuffers& buffers, uint32_t inputLength)
     buffers.flip();
   }
 
-  outputLength = m_amDemodulator.processSamples(buffers.input(), m_afBuffers.input(), outputLength);
+  //outputLength = m_amDemodulator.processSamples(buffers.input(), m_afBuffers.input(), outputLength);
+  outputLength = m_ssbDemodulator.processSamples(buffers.input(), m_afBuffers.input(), outputLength);
+
 
   //   vsdrcomplex audiosamples(outputLength, complexZero);
   //   for (int i = 0; i < outputLength; i++) {

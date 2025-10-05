@@ -6,25 +6,25 @@
 #define CUTESDR_VK6HL_DIGITALINPUTCONFIG_H
 #include "ConfigBase.h"
 #include "ConfigException.h"
+#include "GpioLinesConfig.h"
 
-class DigitalInputConfig : public ConfigBase
+class DigitalInputConfig : public GpioLinesConfig
 {
 public:
   static constexpr auto type = "digitalinput";
 
-  DigitalInputConfig() : ConfigBase(type), m_debounce(true) {}
-  explicit DigitalInputConfig(const char * subtype) : ConfigBase(subtype) {}
+  DigitalInputConfig() : GpioLinesConfig(type), m_debounce(true) {}
+  explicit DigitalInputConfig(const char * subtype) : GpioLinesConfig(subtype), m_debounce(true) {}
   ~DigitalInputConfig() override  = default;
 
   void initialise(const nlohmann::json& json) override
   {
+    GpioLinesConfig::initialise(json);
+
     if (json.contains("debounce")) {
       m_debounce = json["debounce"];
-    }
-    if (json.contains("lines")) {
-      for (auto& line : json["lines"]) {
-        m_lines.push_back(line);
-      }
+    } else {
+      m_debounce = false;
     }
     if (m_lines.empty()) {
       throw ConfigException("DigitalInputConfig: lines empty");
@@ -37,10 +37,10 @@ public:
   }
 
   const std::vector<uint32_t>& getLines() const { return m_lines; }
+  bool getDebounce() const { return m_debounce; }
   const std::string& getSettingPath() const { return m_settingPath; }
 
 protected:
-  std::vector<uint32_t> m_lines;
   std::string m_settingPath;
   bool m_debounce;
 };

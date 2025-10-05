@@ -4,18 +4,6 @@
 
 #include "FmDemodulator.h"
 
-DemodulatorSettings defaultFmSettings =
-{
-  .label = "FM",
-  .hiCutMin = 500,
-  .hiCutMax = 10000,
-  .lowCutMin = -500,
-  .lowCutMax = -10000,
-  .defaultFreqClickResolution = 1000,
-  .filterClickResolution = 100,
-  .symmetrical = true,
-};
-
 uint32_t
 FmDemodulator::processSamples(
     const std::vector<sdrcomplex>& in,

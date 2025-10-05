@@ -9,7 +9,7 @@
 #include "IfSettings.h"
 #include "SettingsException.h"
 
-class ReceiverSettings {
+class ReceiverSettings : public SettingsBase {
 public:
   enum Features
   {
@@ -17,9 +17,46 @@ public:
     RF = 0x01,
     IF = 0x02
   };
-  RfSettings rfSettings;
-  IfSettings ifSettings;
-  uint32_t changed;
+
+  ReceiverSettings() = default;
+  ReceiverSettings(const ReceiverSettings& rhs) = default;
+
+  ~ReceiverSettings() override = default;
+
+  ReceiverSettings& operator=(const ReceiverSettings& rhs)
+  {
+    if (this != &rhs) {
+      SettingsBase::operator=(rhs);
+      rfSettings = rhs.rfSettings;
+      ifSettings = rhs.ifSettings;
+    }
+    return *this;
+  }
+
+  bool applySetting(const SingleSetting& setting, int startIndex) override
+  {
+    if (startIndex >= setting.getPath().getFeatures().size()) {
+      throw SettingsException("Invalid setting path");
+    }
+    bool settingChange = false;
+    uint32_t feature = setting.getPath().getFeatures()[startIndex];
+    if (feature == RF) {
+      settingChange = rfSettings.applySetting(setting, startIndex + 1);
+    } else if (feature == IF) {
+      settingChange = ifSettings.applySetting(setting, startIndex + 1);
+    }
+    if (settingChange) {
+      changed |= feature;
+    }
+    return settingChange;
+  }
+
+  void clearChanged() override
+  {
+    SettingsBase::clearChanged();
+    rfSettings.clearChanged();
+    ifSettings.clearChanged();
+  }
 
   static void getFeaturePath(
     const std::vector<std::string>& featureStrings,
@@ -44,6 +81,9 @@ public:
       throw SettingsException("Unknown receiver setting: " + featureStrings[startIndex]);
     }
   }
+
+  RfSettings rfSettings;
+  IfSettings ifSettings;
 };
 
 #endif //FUNCUBEPLAY_RECEIVERSETTINGS_H

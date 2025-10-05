@@ -7,18 +7,6 @@
 
 #define DC_ALPHA 0.99	//ALPHA for DC removal filter ~20Hz Fcut with 15625Hz Sample Rate
 
-DemodulatorSettings defaultAmSettings =
-{
-    .label = "AM",
-    .hiCutMin = 500,
-    .hiCutMax = 10000,
-    .lowCutMin = -500,
-    .lowCutMax = -10000,
-    .defaultFreqClickResolution = 1000,
-    .filterClickResolution = 100,
-    .symmetrical = true,
-};
-
 uint32_t
 AmDemodulator::processSamples(
     const std::vector<sdrcomplex>& in,
