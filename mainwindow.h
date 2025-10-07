@@ -9,6 +9,7 @@
 #include <QLineSeries>
 #include <QAreaSeries>
 #include <QGraphicsLineItem>
+#include <QValueAxis>
 
 #include "io/audio/device/AudioOutputDevice.h"
 #include "radio/Radio.h"
@@ -63,6 +64,9 @@ private:
   void configureTimeseriesChart();
   void setTimeSeriesX(uint32_t xMin, uint32_t xMax);
 
+  void addPassbandOverlay(QChart *chart, int32_t loCut, int32_t hiCut);
+  void updatePassbandOverlay(QChart *chart, int32_t loCut, int32_t hiCut);
+
   void initialiseRadio();
 private:
   RadioConfig& m_radioConfig;
@@ -82,7 +86,7 @@ private:
   RadioSettings m_radioSettings;
 
   QGraphicsLineItem *m_verticalCursorLine;
-  uint32_t m_currentSampleRate;
+  QGraphicsRectItem * m_filterPassbandRect;
 
 };
 #endif // MAINWINDOW_H

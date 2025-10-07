@@ -66,7 +66,7 @@ public:
     }
     if ((feature & MODE) != 0) {
       if (modeSettings.applySetting(setting, startIndex)) {
-        const Mode& mode = modeSettings.getCurrentMode();
+        mode = modeSettings.getCurrentMode();
         txSettings.setMode(mode);
         rxSettings.setMode(mode);
         changed |= MODE;
@@ -149,7 +149,7 @@ public:
     }
 
   }
-
+  Mode mode;
   ModeSettings modeSettings;
   ReceiverSettings rxSettings;
   TransmitterSettings txSettings;

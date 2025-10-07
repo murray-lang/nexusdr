@@ -34,7 +34,7 @@ MainWindow::MainWindow(RadioConfig& radioConfig, QWidget *parent)
     , m_timeSeriesXmin(0)
     , m_timeSeriesXmax(FFT_SIZE),
     m_verticalCursorLine(new QGraphicsLineItem()),
-    m_currentSampleRate(0)
+    m_filterPassbandRect(nullptr)
 {
     //m_pIqReceiver = new IqReceiver(2048);
     ui->setupUi(this);
@@ -213,7 +213,6 @@ MainWindow::customEvent(QEvent* event)
 void
 MainWindow::handleReceiverIqEvent(const vsdrcomplex* data, uint32_t length, uint32_t sampleRate)
 {
-  m_currentSampleRate = sampleRate;
   vsdrreal spectrum(length);
   powerSpectrum(*data, length, spectrum);
   // if (spectrum.size() != m_panadapterXmax) {
@@ -266,7 +265,36 @@ MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings)
     m_verticalCursorLine->setLine(QLineF(p1, p2));
     m_verticalCursorLine->show();
 
+    const Mode& mode = m_radioSettings.mode;
+    int32_t loCutWrtFreq = static_cast<int32_t>(frequencyAtOffset) + mode.getLoCut();
+    int32_t hioCutWrtFreq = static_cast<int32_t>(frequencyAtOffset) + mode.getHiCut();
+    updatePassbandOverlay(chart, loCutWrtFreq, hioCutWrtFreq);
   }
+}
+
+void
+MainWindow::addPassbandOverlay(QChart *chart, int32_t loCut, int32_t hiCut)
+{
+  m_filterPassbandRect = new QGraphicsRectItem(loCut, 0, hiCut - loCut, 100);
+  m_filterPassbandRect->setBrush(QColor(100, 50, 200, 80)); // Semi-transparent
+  m_filterPassbandRect->setPen(Qt::NoPen);
+  chart->scene()->addItem(m_filterPassbandRect);
+
+}
+
+void
+MainWindow::updatePassbandOverlay(QChart *chart, int32_t loCut, int32_t hiCut)
+{
+  if (m_filterPassbandRect == nullptr) {
+    addPassbandOverlay(chart, loCut, hiCut);
+  }
+  QRectF plotArea = chart->plotArea();
+  double plotLoX = chart->mapToPosition(QPointF(loCut, 0)).x();
+  double plotHiX = chart->mapToPosition(QPointF(hiCut, 0)).x();
+  double width = plotHiX - plotLoX;
+  QRectF r(plotLoX, plotArea.top(), width, plotArea.height());
+  m_filterPassbandRect->setRect(r);
+
 }
 
 void
