@@ -52,7 +52,7 @@ public:
         frequency = std::get<uint32_t>(setting.getValue());
         settingChange = true;
       } else if (setting.getMeaning() == SingleSetting::DELTA) {
-        frequency += std::get<uint32_t>(setting.getValue()) * frequencyStep;
+        frequency += std::get<int32_t>(setting.getValue()) * frequencyStep;
         settingChange = true;
       }
     } if (feature == OFFSET) {

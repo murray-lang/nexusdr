@@ -458,6 +458,10 @@ MainWindow::initialiseRadio()
     //    },
     //   .changed = (RadioSettings::RX)
     // };
+    m_radioSettings.modeSettings.setCurrentMode(Mode::USB);
+    m_radioSettings.rxSettings.mode = m_radioSettings.modeSettings.getCurrentMode();
+    //m_radioSettings.txSettings.mode = m_radioSettings.modeSettings.getCurrentMode();
+
     m_radioSettings.rxSettings.rfSettings.frequency = 14200000;
     m_radioSettings.rxSettings.rfSettings.offset = -0;
     m_radioSettings.rxSettings.rfSettings.gain = 30.0;
@@ -465,8 +469,9 @@ MainWindow::initialiseRadio()
     m_radioSettings.rxSettings.ifSettings.bandwidth = 200000;
     m_radioSettings.rxSettings.ifSettings.gain = 0.0;
     m_radioSettings.rxSettings.ifSettings.changed = (IfSettings::BANDWIDTH | IfSettings::GAIN);
-    m_radioSettings.rxSettings.changed = (ReceiverSettings::RF | ReceiverSettings::IF);
-    m_radioSettings.changed = RadioSettings::RX;
+    m_radioSettings.rxSettings.changed = (ReceiverSettings::MODE | ReceiverSettings::RF | ReceiverSettings::IF);
+
+    m_radioSettings.changed = RadioSettings::MODE | RadioSettings::RX;
 
     m_pRadio->applySettings(m_radioSettings);
   }
