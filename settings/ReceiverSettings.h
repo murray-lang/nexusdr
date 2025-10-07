@@ -8,17 +8,19 @@
 #include "RfSettings.h"
 #include "IfSettings.h"
 #include "SettingsException.h"
+#include "Mode.h"
 
 class ReceiverSettings : public SettingsBase {
 public:
   enum Features
   {
     NONE = 0,
-    RF = 0x01,
-    IF = 0x02
+    MODE = 0x01,
+    RF = 0x02,
+    IF = 0x04
   };
 
-  ReceiverSettings() = default;
+  ReceiverSettings() : SettingsBase(), mode(), rfSettings(), ifSettings() {};
   ReceiverSettings(const ReceiverSettings& rhs) = default;
 
   ~ReceiverSettings() override = default;
@@ -27,11 +29,19 @@ public:
   {
     if (this != &rhs) {
       SettingsBase::operator=(rhs);
+      mode = rhs.mode;
       rfSettings = rhs.rfSettings;
       ifSettings = rhs.ifSettings;
     }
     return *this;
   }
+
+  void setMode( const Mode& newMode )
+  {
+    mode = newMode;
+    changed |= MODE;
+  }
+  [[nodiscard]] const Mode& getMode() const { return mode; }
 
   bool applySetting(const SingleSetting& setting, int startIndex) override
   {
@@ -81,7 +91,7 @@ public:
       throw SettingsException("Unknown receiver setting: " + featureStrings[startIndex]);
     }
   }
-
+  Mode mode;
   RfSettings rfSettings;
   IfSettings ifSettings;
 };

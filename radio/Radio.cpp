@@ -19,7 +19,7 @@ Radio::Radio(QObject *pEventTarget) :
   m_control(),
   m_pEventTarget(pEventTarget)
 {
-  m_pReceiver = new IqReceiver(pEventTarget);
+  m_pReceiver = new IqReceiver(m_modes, Mode::Type::LSB, pEventTarget);
 }
 
 Radio::~Radio()

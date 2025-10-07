@@ -12,7 +12,8 @@ public:
   enum Features
   {
     NONE = 0,
-    RF = 0x01
+    MODE = 0x01,
+    RF = 0x02
   };
   TransmitterSettings() = default;
   TransmitterSettings(const TransmitterSettings& rhs) = default;
@@ -26,6 +27,13 @@ public:
     }
     return *this;
   }
+  void setMode( const Mode& newMode )
+  {
+    mode = newMode;
+    changed |= MODE;
+  }
+  [[nodiscard]] const Mode& getMode() const { return mode; }
+
   bool applySetting(const SingleSetting& setting, int startIndex) override
   {
     if (startIndex >= setting.getPath().getFeatures().size()) {
@@ -67,6 +75,7 @@ public:
     }
   }
 
+  Mode mode;
   RfSettings rfSettings;
 };
 

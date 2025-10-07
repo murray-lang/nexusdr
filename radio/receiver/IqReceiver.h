@@ -25,13 +25,14 @@
 #include <settings/PttSink.h>
 
 #include "dsp/stages/demodulators/SsbDemodulator.h"
+#include "../../settings/ModeSettings.h"
 
 //#define PING_PONG_LENGTH 2048
 #define PING_PONG_LENGTH 8192
 
 class IqReceiver : public IqSink, public ReceiverSettingsSink, public PttSink, public SignalEmitter {
 public:
-  explicit IqReceiver( QObject *eventTarget = nullptr);
+  explicit IqReceiver(const ModeSettings& modes, Mode::Type defaultMode, QObject *eventTarget = nullptr);
   // IqReceiver(int32_t sampleRate, size_t defaultFftSize, QObject *eventTarget = nullptr);
 
   ~IqReceiver() override
@@ -54,6 +55,11 @@ public:
   //void processData(const char *data, uint64_t length);
 
 protected:
+  void setMode(const Mode& mode);
+  void setDemodulator(Mode::Type modeType);
+
+protected:
+  Mode m_mode;
   std::vector<IqStage*> m_iqStages;
   DcShift m_dcShift;
   OscillatorMixer m_oscillatorMixer;
@@ -69,6 +75,8 @@ protected:
   AmDemodulator m_amDemodulator;
   FmDemodulator m_fmDemodulator;
   SsbDemodulator m_ssbDemodulator;
+  Demodulator* m_pDemodulator;
+  std::mutex m_demodulatorMutex;
   // MeteringStage m_timeseriesEmitter;
   // MeteringStage m_spectrumEmitter;
   // AudioOutputDevice* m_audioOutput;
