@@ -44,6 +44,11 @@ public:
 
         return true;
       }
+    } else if (inputSampleRate == 256000) {
+      if (outputSampleRate == 48000) {
+        m_taps = &fir_taps_256k_48k;
+        m_overlap.assign(m_taps->size() - 1, sdrcomplex{});
+      }
     }
     return false;
   }
