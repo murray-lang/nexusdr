@@ -13,13 +13,35 @@
               "type": "digitalInputGroup",
               "config": {
           	    "inputs": [
-          	      {
-          	        "type": "rotaryEncoder",
-          	        "config": {
-		              "lines": [6, 5],
-		              "settingPath": "rx.rf.frequency"
-		            }
-	              }
+          	        {
+						"type": "rotaryEncoder",
+						"config": {
+							"lines": [8, 7],
+							"bias": "pull-up",
+							"debounce": true,
+							"settingPath": "mode"
+					    }
+				    },
+          	        {
+						
+						"type": "rotaryEncoder",
+						"config": {
+							"lines": [13, 12],
+							"bias": "pull-up",
+							"debounce": true,
+							"settingPath": "rx.rf.frequency"
+						}
+					},
+					{
+						
+						"type": "rotaryEncoder",
+						"config": {
+							"lines": [26, 16],
+							"bias": "pull-up",
+							"debounce": true,
+							"settingPath": "rx.rf.offset"
+						}
+					}
           	    ]
               }
             }
@@ -39,7 +61,7 @@
             "type": "audio",
             "config": {
               "soundApi": "alsa",
-              "searchExpression": "Default",
+              "searchExpression": "C-Media",
               "sampleRate": 48000,
               "format": "sint16"
             }

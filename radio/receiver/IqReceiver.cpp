@@ -13,6 +13,7 @@
 
 
 IqReceiver::IqReceiver(QObject* eventTarget) :
+  m_mode(),
   m_dcShift(sdrcomplex(0.00447, 0.00348)),
   m_oscillatorMixer(),
   m_decimator(),
@@ -22,6 +23,7 @@ IqReceiver::IqReceiver(QObject* eventTarget) :
   m_amDemodulator(48000),
   m_fmDemodulator(48000),
   m_ssbDemodulator(48000),
+  m_pDemodulator(nullptr),
   m_eventTarget(eventTarget),
   m_pIqInput(nullptr),
   m_pAudioOutput(nullptr)
@@ -101,11 +103,11 @@ IqReceiver::configure(const ReceiverConfig* pConfig)
 
   uint32_t decimatorOutputRate = m_decimator.getOutputSampleRate();
 
-  m_ifFilter.getKernel().configure(
-    3000.0,
-    300,
-    0.0,
-    decimatorOutputRate * 2);
+  // m_ifFilter.getKernel().configure(
+  //   mode.getLoCut(),
+  //   mode.getHiCut(),
+  //   0.0,
+  //   decimatorOutputRate * 2);
 
   m_afFilter.getKernel().configure(
     1000.0,
@@ -131,12 +133,14 @@ IqReceiver::configure(const ReceiverConfig* pConfig)
 
 void IqReceiver::apply(const ReceiverSettings& settings)
 {
-    if (settings.changed & ReceiverSettings::RF) {
-      if (settings.rfSettings.changed & RfSettings::OFFSET) {
-        m_oscillatorMixer.setFrequency(-settings.rfSettings.offset); 
-      }
-
+  if (settings.changed & ReceiverSettings::RF) {
+    if (settings.rfSettings.changed & RfSettings::OFFSET) {
+      m_oscillatorMixer.setFrequency(-settings.rfSettings.offset);
     }
+  }
+  if (settings.changed & ReceiverSettings::MODE) {
+    setMode(settings.mode);
+  }
 }
 
 
@@ -195,7 +199,13 @@ IqReceiver::sink(ComplexPingPongBuffers& buffers, uint32_t inputLength)
   }
 
   //outputLength = m_amDemodulator.processSamples(buffers.input(), m_afBuffers.input(), outputLength);
-  outputLength = m_ssbDemodulator.processSamples(buffers.input(), m_afBuffers.input(), outputLength);
+  m_demodulatorMutex.lock();
+  if (m_pDemodulator != nullptr) {
+    outputLength = m_pDemodulator->processSamples(buffers.input(), m_afBuffers.input(), outputLength);
+    QCoreApplication::postEvent(m_eventTarget, new ReceiverAudioEvent(m_afBuffers.input(), outputLength));
+    outputLength = m_pAudioOutput->addAudioData(m_afBuffers.input(), outputLength);
+  }
+  m_demodulatorMutex.unlock();
 
 
   //   vsdrcomplex audiosamples(outputLength, complexZero);
@@ -207,8 +217,45 @@ IqReceiver::sink(ComplexPingPongBuffers& buffers, uint32_t inputLength)
   //emitTimeseries(m_afBuffers.input(), outputLength);
   //emitAudioData(m_afBuffers.input(), outputLength);
   // emitRealSignal(SignalEmitter::eSIGNAL_DEMODULATED, m_afBuffers.input(), outputLength);
-  QCoreApplication::postEvent(m_eventTarget, new ReceiverAudioEvent(m_afBuffers.input(), outputLength));
-  outputLength = m_pAudioOutput->addAudioData(m_afBuffers.input(), outputLength);
+  // QCoreApplication::postEvent(m_eventTarget, new ReceiverAudioEvent(m_afBuffers.input(), outputLength));
+  // outputLength = m_pAudioOutput->addAudioData(m_afBuffers.input(), outputLength);
   // m_fftThread.add(audiosamples, outputLength, true);
   //const vsdrcomplex& sincPulse = m_afFilter.getKernel().getComplexSincPulse();
+}
+
+void
+IqReceiver::setMode(const Mode& mode)
+{
+  m_mode = mode;
+  uint32_t decimatorOutputRate = m_decimator.getOutputSampleRate();
+  m_ifFilter.getKernel().configure(mode.getLoCut(), mode.getHiCut(), mode.getOffset(), decimatorOutputRate * 2);
+  setDemodulator(mode.getType());
+}
+
+void
+IqReceiver::setDemodulator(Mode::Type modeType)
+{
+  std::lock_guard<std::mutex> lock(m_demodulatorMutex);
+  switch (modeType) {
+  case Mode::Type::AMN:
+  case Mode::Type::AMW:
+    m_pDemodulator = &m_amDemodulator;
+    break;
+  case Mode::Type::FMN:
+  case Mode::Type::FMW:
+    m_pDemodulator = &m_fmDemodulator;
+    break;
+  case Mode::Type::USB:
+    m_pDemodulator = &m_ssbDemodulator;
+    m_ssbDemodulator.setMode(SsbDemodulator::Mode::USB);
+    break;
+  case Mode::Type::LSB:
+    m_pDemodulator = &m_ssbDemodulator;
+    m_ssbDemodulator.setMode(SsbDemodulator::Mode::LSB);
+    break;
+  default:
+    m_pDemodulator = nullptr;
+    throw SettingsException("Unknown mode type");
+    break;
+  }
 }

@@ -23,7 +23,7 @@ public:
     GAIN = 0x10,
 
   };
-  RfSettings() : frequency(0), frequencyStep(10000), offset(0), offsetStep(100), gain(0.0) {}
+  RfSettings() : frequency(0), frequencyStep(10000), offset(0), offsetStep(200), gain(0.0) {}
   RfSettings(const RfSettings& rhs) = default;
   ~RfSettings() override = default;
 
@@ -49,26 +49,26 @@ public:
     uint32_t feature = setting.getPath().getFeatures()[startIndex];
     if (feature == FREQUENCY) {
       if (setting.getMeaning() == SingleSetting::VALUE) {
-        frequency = static_cast<uint32_t>(setting.getValue());
+        frequency = std::get<uint32_t>(setting.getValue());
         settingChange = true;
       } else if (setting.getMeaning() == SingleSetting::DELTA) {
-        frequency += setting.getValue() * frequencyStep;
+        frequency += std::get<int32_t>(setting.getValue()) * frequencyStep;
         settingChange = true;
       }
     } if (feature == OFFSET) {
       if (setting.getMeaning() == SingleSetting::VALUE) {
-        offset = static_cast<uint32_t>(setting.getValue());
+        offset = std::get<int32_t>(setting.getValue());
         settingChange = true;
       } else if (setting.getMeaning() == SingleSetting::DELTA) {
-        offset += setting.getValue() * offsetStep;
+        offset += std::get<int32_t>(setting.getValue()) * offsetStep;
         settingChange = true;
       }
     } else if (feature == GAIN) {
       if (setting.getMeaning() == SingleSetting::VALUE) {
-        gain = static_cast<float>(setting.getValue());
+        gain = std::get<float>(setting.getValue());
         settingChange = true;
       } else if (setting.getMeaning() == SingleSetting::DELTA) {
-        gain += static_cast<float>(setting.getValue());
+        gain += std::get<float>(setting.getValue());
         settingChange = true;
       }
     }

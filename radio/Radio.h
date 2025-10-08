@@ -14,6 +14,7 @@
 #include <settings/PttSink.h>
 #include <settings/RadioSettingsSink.h>
 
+#include "../settings/ModeSettings.h"
 #include "settings/RadioSettings.h"
 
 class Radio : public RadioSettingsSink, PttSink {

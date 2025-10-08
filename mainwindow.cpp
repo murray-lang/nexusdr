@@ -29,12 +29,13 @@ MainWindow::MainWindow(RadioConfig& radioConfig, QWidget *parent)
     , m_spectrumAreaSeries()
     , m_timeseriesLineSeries()
     , ui(new Ui::MainWindow)
+    , m_reportedIqSampleRate(0)
     , m_panadapterXmin(0)
     , m_panadapterXmax(FFT_SIZE)
     , m_timeSeriesXmin(0)
     , m_timeSeriesXmax(FFT_SIZE),
     m_verticalCursorLine(new QGraphicsLineItem()),
-    m_currentSampleRate(0)
+    m_filterPassbandRect(nullptr)
 {
     //m_pIqReceiver = new IqReceiver(2048);
     ui->setupUi(this);
@@ -213,7 +214,7 @@ MainWindow::customEvent(QEvent* event)
 void
 MainWindow::handleReceiverIqEvent(const vsdrcomplex* data, uint32_t length, uint32_t sampleRate)
 {
-  m_currentSampleRate = sampleRate;
+  m_reportedIqSampleRate = sampleRate;
   vsdrreal spectrum(length);
   powerSpectrum(*data, length, spectrum);
   // if (spectrum.size() != m_panadapterXmax) {
@@ -248,25 +249,65 @@ void
 MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings)
 {
   m_radioSettings = radioSettings;
-  if (m_radioSettings.rxSettings.rfSettings.changed & RfSettings::Features::OFFSET) {
-    uint32_t centreFrequency = m_radioSettings.rxSettings.rfSettings.frequency;
+  bool frequencyChanged = (m_radioSettings.rxSettings.rfSettings.changed & RfSettings::Features::FREQUENCY) != 0;
+  bool offsetChanged = (m_radioSettings.rxSettings.rfSettings.changed & RfSettings::Features::OFFSET) != 0;
+  bool modeChanged = (m_radioSettings.changed & RadioSettings::Features::MODE) != 0;
+
+  if (frequencyChanged || offsetChanged || modeChanged) {
+    int32_t centreFrequency = static_cast<int32_t>(m_radioSettings.rxSettings.rfSettings.frequency);
     int32_t offset = m_radioSettings.rxSettings.rfSettings.offset;
-  
-    uint32_t frequencyAtOffset = centreFrequency + offset;
+    int32_t frequencyAtOffset = centreFrequency + offset;
     QChart *chart = ui->panadapterView->chart();
     auto *axisY = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
     double yMin = axisY->min();
     double yMax = axisY->max();
 
     // qDebug() << "Centre frequency changed to" << centreFrequency << "Offset" << offset << "Frequency at offset" << frequencyAtOffset;
+    if (m_reportedIqSampleRate > 0) {
+      uint32_t xMin = centreFrequency - (m_reportedIqSampleRate / 2);
+      uint32_t xMax = centreFrequency + (m_reportedIqSampleRate / 2);
+      if (m_panadapterXmin != xMin || m_panadapterXmax != xMax) {
+        setPanadapterX(xMin, xMax);
+      }
+    } 
 
-    // Map chart coords back to pixel positions
     QPointF p1 = chart->mapToPosition(QPointF(frequencyAtOffset, yMin));
     QPointF p2 = chart->mapToPosition(QPointF(frequencyAtOffset, yMax));
+    // qDebug() << "Centre frequency" << centreFrequency << "Offset" << offset << "Frequency at offset" << frequencyAtOffset << "Mapped to" << p1 << p2; 
     m_verticalCursorLine->setLine(QLineF(p1, p2));
     m_verticalCursorLine->show();
-
+  
+    const Mode& mode = m_radioSettings.mode;
+    int32_t loCutWrtFreq = frequencyAtOffset + mode.getLoCut();
+    int32_t hioCutWrtFreq = frequencyAtOffset + mode.getHiCut();
+    updatePassbandOverlay(chart, loCutWrtFreq, hioCutWrtFreq);
   }
+  m_radioSettings.clearChanged();
+}
+
+void
+MainWindow::addPassbandOverlay(QChart *chart, int32_t loCut, int32_t hiCut)
+{
+  m_filterPassbandRect = new QGraphicsRectItem(loCut, 0, hiCut - loCut, 100);
+  m_filterPassbandRect->setBrush(QColor(100, 50, 200, 80)); // Semi-transparent
+  m_filterPassbandRect->setPen(Qt::NoPen);
+  chart->scene()->addItem(m_filterPassbandRect);
+
+}
+
+void
+MainWindow::updatePassbandOverlay(QChart *chart, int32_t loCut, int32_t hiCut)
+{
+  if (m_filterPassbandRect == nullptr) {
+    addPassbandOverlay(chart, loCut, hiCut);
+  }
+  QRectF plotArea = chart->plotArea();
+  double plotLoX = chart->mapToPosition(QPointF(loCut, 0)).x();
+  double plotHiX = chart->mapToPosition(QPointF(hiCut, 0)).x();
+  double width = plotHiX - plotLoX;
+  QRectF r(plotLoX, plotArea.top(), width, plotArea.height());
+  m_filterPassbandRect->setRect(r);
+
 }
 
 void
@@ -456,17 +497,24 @@ MainWindow::initialiseRadio()
     //     .ifSettings = { .bandwidth = 200000, .gain = 0.0, .changed = (IfSettings::BANDWIDTH | IfSettings::GAIN) },
     //     .changed = (ReceiverSettings::RF | ReceiverSettings::IF)
     //    },
-    //   .changed = (RadioSettings::RX)
+    //   .changed = (RadioSettings::RX) 
     // };
-    m_radioSettings.rxSettings.rfSettings.frequency = 14200000;
+    m_radioSettings.modeSettings.setCurrentMode(Mode::USB);
+    const Mode& mode = m_radioSettings.modeSettings.getCurrentMode();
+    m_radioSettings.mode = mode;
+    m_radioSettings.rxSettings.mode = mode;
+    //m_radioSettings.txSettings.mode = m_radioSettings.modeSettings.getCurrentMode();
+
+    m_radioSettings.rxSettings.rfSettings.frequency = 14100000;
     m_radioSettings.rxSettings.rfSettings.offset = -0;
     m_radioSettings.rxSettings.rfSettings.gain = 30.0;
     m_radioSettings.rxSettings.rfSettings.changed = (RfSettings::FREQUENCY | RfSettings::OFFSET | RfSettings::GAIN);
     m_radioSettings.rxSettings.ifSettings.bandwidth = 200000;
     m_radioSettings.rxSettings.ifSettings.gain = 0.0;
     m_radioSettings.rxSettings.ifSettings.changed = (IfSettings::BANDWIDTH | IfSettings::GAIN);
-    m_radioSettings.rxSettings.changed = (ReceiverSettings::RF | ReceiverSettings::IF);
-    m_radioSettings.changed = RadioSettings::RX;
+    m_radioSettings.rxSettings.changed = (ReceiverSettings::MODE | ReceiverSettings::RF | ReceiverSettings::IF);
+
+    m_radioSettings.changed = RadioSettings::MODE | RadioSettings::RX;
 
     m_pRadio->applySettings(m_radioSettings);
   }

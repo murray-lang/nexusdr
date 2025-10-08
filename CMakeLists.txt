@@ -249,6 +249,9 @@ set(PROJECT_SOURCES
         config/GpioLinesConfig.h
         dsp/stages/demodulators/SsbDemodulator.cpp
         dsp/stages/demodulators/SsbDemodulator.h
+        settings/Mode.h
+        settings/ModeSettings.h
+        settings/ModeSettings.cpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

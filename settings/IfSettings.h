@@ -42,18 +42,18 @@ public:
     uint32_t feature = setting.getPath().getFeatures()[startIndex];
     if (feature == BANDWIDTH) {
       if (setting.getMeaning() == SingleSetting::VALUE) {
-        bandwidth = static_cast<uint32_t>(setting.getValue());
+        bandwidth = std::get<uint32_t>(setting.getValue());
         settingChange = true;
       } else if (setting.getMeaning() == SingleSetting::DELTA) {
-        bandwidth += setting.getValue();
+        bandwidth += std::get<uint32_t>(setting.getValue());
         settingChange = true;
       }
     } else if (feature == GAIN) {
       if (setting.getMeaning() == SingleSetting::VALUE) {
-        gain = static_cast<float>(setting.getValue());
+        gain = std::get<float>(setting.getValue());
         settingChange = true;
       } else if (setting.getMeaning() == SingleSetting::DELTA) {
-        gain += static_cast<float>(setting.getValue());
+        gain += std::get<float>(setting.getValue());
         settingChange = true;
       }
     }
