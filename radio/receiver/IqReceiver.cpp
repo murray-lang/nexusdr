@@ -12,7 +12,7 @@
 #define FFT_SIZE 2048
 
 
-IqReceiver::IqReceiver(const ModeSettings& modes, Mode::Type defaultMode, QObject* eventTarget) :
+IqReceiver::IqReceiver(QObject* eventTarget) :
   m_mode(),
   m_dcShift(sdrcomplex(0.00447, 0.00348)),
   m_oscillatorMixer(),

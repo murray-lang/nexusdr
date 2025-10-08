@@ -32,7 +32,7 @@
 
 class IqReceiver : public IqSink, public ReceiverSettingsSink, public PttSink, public SignalEmitter {
 public:
-  explicit IqReceiver(const ModeSettings& modes, Mode::Type defaultMode, QObject *eventTarget = nullptr);
+  explicit IqReceiver(QObject *eventTarget = nullptr);
   // IqReceiver(int32_t sampleRate, size_t defaultFftSize, QObject *eventTarget = nullptr);
 
   ~IqReceiver() override

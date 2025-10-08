@@ -39,6 +39,7 @@ public:
   {
     if (this != &rhs) {
       SettingsBase::operator=(rhs);
+      mode = rhs.mode;
       rxSettings = rhs.rxSettings;
       txSettings = rhs.txSettings;
     }
@@ -106,6 +107,7 @@ public:
   void clearChanged() override
   {
     SettingsBase::clearChanged();
+    modeSettings.clearChanged();
     rxSettings.clearChanged();
     txSettings.clearChanged();
   }

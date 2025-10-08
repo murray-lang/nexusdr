@@ -79,6 +79,7 @@ private:
 
   QLineSeries m_timeseriesLineSeries;
 
+  uint32_t m_reportedIqSampleRate;
   uint32_t m_panadapterXmin;
   uint32_t m_panadapterXmax;
   uint32_t m_timeSeriesXmin;

@@ -16,8 +16,15 @@ class ModeSettings : SettingsBase
 {
 public:
   ModeSettings();
+  ModeSettings(const ModeSettings& rhs) = default;
+  ~ModeSettings() override = default;
+  ModeSettings& operator=(const ModeSettings& rhs) = default;
 
   bool applySetting(const SingleSetting& setting, int startIndex) override;
+  void clearChanged() override
+  {
+    SettingsBase::clearChanged();
+  }
   void setCycle(bool cycle) { m_cycle = cycle;}
 
   [[nodiscard]] const std::vector<Mode>& getAll() const { return m_modes; }
@@ -31,8 +38,8 @@ public:
   [[nodiscard]] const Mode& getCurrentMode() { return m_modes.at(m_currentIndex); }
   [[nodiscard]] int getCurrentIndex() const { return m_currentIndex; }
   [[nodiscard]] int getNumModes() const { return static_cast<int>(m_modes.size()); }
-  int increment();
-  int decrement();
+  bool increment();
+  bool decrement();
 
   bool setCurrentMode(Mode::Type type);
   bool setCurrentMode(const std::string& name);

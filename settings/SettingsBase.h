@@ -15,6 +15,13 @@ public:
   SettingsBase() : changed(0) {}
   SettingsBase(const SettingsBase& rhs) = default;
   virtual ~SettingsBase() = default;
+  SettingsBase& operator=(const SettingsBase& rhs)
+  {
+    if (this != &rhs) {
+      changed = rhs.changed;
+    }
+    return *this;
+  }
 
   virtual bool applySetting(const SingleSetting& setting, int startIndex) = 0;
 

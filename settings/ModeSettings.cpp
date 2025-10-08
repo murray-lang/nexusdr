@@ -31,11 +31,14 @@ ModeSettings::applySetting(const SingleSetting& setting, int startIndex)
   bool settingChange = false;
   if (setting.getMeaning() == SingleSetting::DELTA) {
     if (setting.isInt()) {
-      m_currentIndex += std::get<int32_t>(setting.getValue());
-      settingChange = true;
+      auto delta = std::get<int32_t>(setting.getValue());
+      if (delta > 0) {
+        settingChange = increment();
+      } else {
+        settingChange = decrement();
+      }
     } else if (setting.isUInt()) {
-      m_currentIndex += static_cast<int>(std::get<uint32_t>(setting.getValue()));
-      settingChange = true;
+      settingChange = increment();
     }
   } else if (setting.getMeaning() == SingleSetting::VALUE) {
     if (setting.isUInt()) {
@@ -88,26 +91,34 @@ ModeSettings::getModeByName(const std::string& name) const
   return m_modes.at(index);
 }
 
-int
+bool
 ModeSettings::increment()
 {
   if (m_cycle) {
     m_currentIndex = (m_currentIndex + 1) % getNumModes();
+    return true;
   } else {
-    m_currentIndex = std::min(static_cast<int>(m_modes.size()) - 1, m_currentIndex + 1);
+    if (m_currentIndex >= static_cast<int>(m_modes.size()) - 1) {
+      return false;
+    }
+    m_currentIndex++;
+    return true;
   }
-  return m_currentIndex;
 }
-int
+bool
 ModeSettings::decrement()
 {
   if (m_cycle) {
     int numModes = getNumModes();
     m_currentIndex = (m_currentIndex - 1 + numModes) % numModes;
+    return true;
   } else {
-    m_currentIndex = m_currentIndex > 0 ?  m_currentIndex - 1 : 0;
+    if (m_currentIndex == 0) {
+      return false;
+    }
+    m_currentIndex--;
+    return true;
   }
-  return m_currentIndex;
 }
 
 bool

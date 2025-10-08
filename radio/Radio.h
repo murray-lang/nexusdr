@@ -41,8 +41,6 @@ protected:
   IqReceiver* m_pReceiver;
   RadioControl m_control;
 
-  ModeSettings m_modes;
-
   QObject* m_pEventTarget;
 };
 

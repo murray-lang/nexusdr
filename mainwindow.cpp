@@ -29,6 +29,7 @@ MainWindow::MainWindow(RadioConfig& radioConfig, QWidget *parent)
     , m_spectrumAreaSeries()
     , m_timeseriesLineSeries()
     , ui(new Ui::MainWindow)
+    , m_reportedIqSampleRate(0)
     , m_panadapterXmin(0)
     , m_panadapterXmax(FFT_SIZE)
     , m_timeSeriesXmin(0)
@@ -213,6 +214,7 @@ MainWindow::customEvent(QEvent* event)
 void
 MainWindow::handleReceiverIqEvent(const vsdrcomplex* data, uint32_t length, uint32_t sampleRate)
 {
+  m_reportedIqSampleRate = sampleRate;
   vsdrreal spectrum(length);
   powerSpectrum(*data, length, spectrum);
   // if (spectrum.size() != m_panadapterXmax) {
@@ -247,29 +249,40 @@ void
 MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings)
 {
   m_radioSettings = radioSettings;
-  if (m_radioSettings.rxSettings.rfSettings.changed & RfSettings::Features::OFFSET) {
-    uint32_t centreFrequency = m_radioSettings.rxSettings.rfSettings.frequency;
+  bool frequencyChanged = (m_radioSettings.rxSettings.rfSettings.changed & RfSettings::Features::FREQUENCY) != 0;
+  bool offsetChanged = (m_radioSettings.rxSettings.rfSettings.changed & RfSettings::Features::OFFSET) != 0;
+  bool modeChanged = (m_radioSettings.changed & RadioSettings::Features::MODE) != 0;
+
+  if (frequencyChanged || offsetChanged || modeChanged) {
+    int32_t centreFrequency = static_cast<int32_t>(m_radioSettings.rxSettings.rfSettings.frequency);
     int32_t offset = m_radioSettings.rxSettings.rfSettings.offset;
-  
-    uint32_t frequencyAtOffset = centreFrequency + offset;
+    int32_t frequencyAtOffset = centreFrequency + offset;
     QChart *chart = ui->panadapterView->chart();
     auto *axisY = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
     double yMin = axisY->min();
     double yMax = axisY->max();
 
     // qDebug() << "Centre frequency changed to" << centreFrequency << "Offset" << offset << "Frequency at offset" << frequencyAtOffset;
+    if (m_reportedIqSampleRate > 0) {
+      uint32_t xMin = centreFrequency - (m_reportedIqSampleRate / 2);
+      uint32_t xMax = centreFrequency + (m_reportedIqSampleRate / 2);
+      if (m_panadapterXmin != xMin || m_panadapterXmax != xMax) {
+        setPanadapterX(xMin, xMax);
+      }
+    } 
 
-    // Map chart coords back to pixel positions
     QPointF p1 = chart->mapToPosition(QPointF(frequencyAtOffset, yMin));
     QPointF p2 = chart->mapToPosition(QPointF(frequencyAtOffset, yMax));
+    // qDebug() << "Centre frequency" << centreFrequency << "Offset" << offset << "Frequency at offset" << frequencyAtOffset << "Mapped to" << p1 << p2; 
     m_verticalCursorLine->setLine(QLineF(p1, p2));
     m_verticalCursorLine->show();
-
+  
     const Mode& mode = m_radioSettings.mode;
-    int32_t loCutWrtFreq = static_cast<int32_t>(frequencyAtOffset) + mode.getLoCut();
-    int32_t hioCutWrtFreq = static_cast<int32_t>(frequencyAtOffset) + mode.getHiCut();
+    int32_t loCutWrtFreq = frequencyAtOffset + mode.getLoCut();
+    int32_t hioCutWrtFreq = frequencyAtOffset + mode.getHiCut();
     updatePassbandOverlay(chart, loCutWrtFreq, hioCutWrtFreq);
   }
+  m_radioSettings.clearChanged();
 }
 
 void
@@ -484,13 +497,15 @@ MainWindow::initialiseRadio()
     //     .ifSettings = { .bandwidth = 200000, .gain = 0.0, .changed = (IfSettings::BANDWIDTH | IfSettings::GAIN) },
     //     .changed = (ReceiverSettings::RF | ReceiverSettings::IF)
     //    },
-    //   .changed = (RadioSettings::RX)
+    //   .changed = (RadioSettings::RX) 
     // };
     m_radioSettings.modeSettings.setCurrentMode(Mode::USB);
-    m_radioSettings.rxSettings.mode = m_radioSettings.modeSettings.getCurrentMode();
+    const Mode& mode = m_radioSettings.modeSettings.getCurrentMode();
+    m_radioSettings.mode = mode;
+    m_radioSettings.rxSettings.mode = mode;
     //m_radioSettings.txSettings.mode = m_radioSettings.modeSettings.getCurrentMode();
 
-    m_radioSettings.rxSettings.rfSettings.frequency = 14200000;
+    m_radioSettings.rxSettings.rfSettings.frequency = 14100000;
     m_radioSettings.rxSettings.rfSettings.offset = -0;
     m_radioSettings.rxSettings.rfSettings.gain = 30.0;
     m_radioSettings.rxSettings.rfSettings.changed = (RfSettings::FREQUENCY | RfSettings::OFFSET | RfSettings::GAIN);
