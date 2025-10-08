@@ -19,7 +19,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # list(APPEND CMAKE_PREFIX_PATH "/home/murray/Qt/6.9.1/gcc_64/lib/cmake")
 #list(APPEND CMAKE_PREFIX_PATH "/home/murray/Qt6.5/6.5.3/gcc_64/lib/cmake")
 #list(APPEND CMAKE_PREFIX_PATH "/home/murray/Qt/6.5.0/gcc_64/lib/cmake")
-list(APPEND CMAKE_PREFIX_PATH "/usr/lib/aarch-linux-gnu/cmake")
+#list(APPEND CMAKE_PREFIX_PATH "/usr/lib/aarch-linux-gnu/cmake")
+list(APPEND CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/cmake")
 
 set(VOLK_MIN_VERSION "2.4.1")         ## first version with CPU features
 
@@ -28,6 +29,9 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
 
 find_package(PkgConfig)
 find_package(RtAudio REQUIRED)
+
+pkg_check_modules(SAMPLERATE REQUIRED samplerate)
+
 
 # find_path(PIGPIO_INCLUDE_DIR pigpio.h PATHS /usr/local/include /usr/include)   
 # find_library(PIGPIO_LIBRARY NAMES pigpio PATHS /usr/local/lib /usr/lib)
@@ -252,6 +256,7 @@ set(PROJECT_SOURCES
         settings/Mode.h
         settings/ModeSettings.h
         settings/ModeSettings.cpp
+        dsp/stages/resampler/Resampler.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -296,6 +301,7 @@ target_include_directories(cutesdr-vk6hl PUBLIC
     /usr/local/include/rtaudio
     ${VOLK_INCLUDE_DIRS}
     /usr/include/hidapi/
+    ${SAMPLERATE_INCLUDE_DIRS}
     ${PLATFORM_INCLUDE_DIRS}
 )
 target_link_directories(cutesdr-vk6hl PRIVATE ${DSPL_DIR})
@@ -311,6 +317,7 @@ set (COMMON_LIBRARIES
     usb-1.0
     hidapi-libusb
     nlohmann_json::nlohmann_json
+    ${SAMPLERATE_LIBRARIES}
 )
 
 

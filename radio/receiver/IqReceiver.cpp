@@ -26,7 +26,8 @@ IqReceiver::IqReceiver(QObject* eventTarget) :
   m_pDemodulator(nullptr),
   m_eventTarget(eventTarget),
   m_pIqInput(nullptr),
-  m_pAudioOutput(nullptr)
+  m_pAudioOutput(nullptr),
+  m_resampleRequired(false)
 {
   m_iqStages.push_back(&m_oscillatorMixer);
   m_iqStages.push_back(&m_decimator);
@@ -98,10 +99,14 @@ IqReceiver::configure(const ReceiverConfig* pConfig)
   m_pAudioOutput = new AudioOutput();
   m_pAudioOutput->initialise(audioOutputConfig);
 
-  uint32_t outputSampleRate = m_pAudioOutput->getSampleRate();
-  m_decimator.configure(inputSampleRate, outputSampleRate);
+  uint32_t preferredOutputRate = m_pAudioOutput->getSampleRate();
+  m_decimator.configure(inputSampleRate, preferredOutputRate);
 
   uint32_t decimatorOutputRate = m_decimator.getOutputSampleRate();
+  if (decimatorOutputRate != preferredOutputRate) {
+    m_resampleRequired = true;
+    m_resampler.configure(decimatorOutputRate, preferredOutputRate);
+  }
 
   // m_ifFilter.getKernel().configure(
   //   mode.getLoCut(),
@@ -201,9 +206,15 @@ IqReceiver::sink(ComplexPingPongBuffers& buffers, uint32_t inputLength)
   //outputLength = m_amDemodulator.processSamples(buffers.input(), m_afBuffers.input(), outputLength);
   m_demodulatorMutex.lock();
   if (m_pDemodulator != nullptr) {
-    outputLength = m_pDemodulator->processSamples(buffers.input(), m_afBuffers.input(), outputLength);
-    QCoreApplication::postEvent(m_eventTarget, new ReceiverAudioEvent(m_afBuffers.input(), outputLength));
-    outputLength = m_pAudioOutput->addAudioData(m_afBuffers.input(), outputLength);
+
+    if (m_resampleRequired) {
+      outputLength = m_pDemodulator->processSamples(buffers.input(), m_afBuffers.input(), outputLength);
+      outputLength = m_resampler.processSamples(m_afBuffers.input(), m_afBuffers.output(), outputLength);
+    } else {
+      outputLength = m_pDemodulator->processSamples(buffers.input(), m_afBuffers.output(), outputLength);
+    }
+    QCoreApplication::postEvent(m_eventTarget, new ReceiverAudioEvent(m_afBuffers.output(), outputLength));
+    outputLength = m_pAudioOutput->addAudioData(m_afBuffers.output(), outputLength);
   }
   m_demodulatorMutex.unlock();
 
