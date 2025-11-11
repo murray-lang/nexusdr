@@ -46,6 +46,7 @@ protected:
 
 protected:
   HidUsbControl m_control;
+  RadioSettings m_lastSettings;
 };
 
 #endif //FUNCUBEPLAY_FUNCUBEDONGLE_H

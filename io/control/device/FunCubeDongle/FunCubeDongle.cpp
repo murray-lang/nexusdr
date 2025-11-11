@@ -23,6 +23,7 @@ void
 FunCubeDongle::applySettings(const RadioSettings& radioSettings)
 {
   if (radioSettings.changed & RadioSettings::RX) {
+    m_lastSettings = radioSettings;
     if (radioSettings.rxSettings.changed & ReceiverSettings::RF) {
       if (radioSettings.rxSettings.rfSettings.changed & RfSettings::FREQUENCY) {
         setFrequency(radioSettings.rxSettings.rfSettings.frequency);
@@ -46,6 +47,13 @@ FunCubeDongle::applySettings(const RadioSettings& radioSettings)
 
 void FunCubeDongle::ptt(bool on)
 {
+    if (on) {
+        setLnaGain(-100.0); // Mute LNA when transmitting
+        setIfGain(0.0f);   // Mute IF when transmitting
+    } else {
+        setLnaGain(m_lastSettings.rxSettings.rfSettings.gain);
+        setIfGain(m_lastSettings.rxSettings.ifSettings.gain);
+    }
 }
 
 

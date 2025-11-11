@@ -55,6 +55,10 @@ Radio::applySettings(const RadioSettings& settings)
   if (&settings != &m_settings) {
     m_settings = settings;
   }
+  if (settings.changed & RadioSettings::PTT) {
+    ptt(m_settings.ptt);
+    return; // Don't try to do anything else concurrently with PTT.
+  }
   m_control.applySettings(m_settings);
   m_pReceiver->apply(m_settings.rxSettings);
   if (m_pEventTarget != nullptr) {

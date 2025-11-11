@@ -26,6 +26,10 @@ DigitalInputFactory::create(const std::string& type)
   {
     return new GpioRotaryEncoder();
   }
+  if(typeAslower == "digitalinput" && gpioPresent)
+  {
+    return new DigitalInput();
+  }
 
   // if(typeAslower == "gpiorotaryencoder" && gpioPresent)
   // {

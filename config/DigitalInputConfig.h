@@ -20,6 +20,11 @@ public:
   void initialise(const nlohmann::json& json) override
   {
     GpioLinesConfig::initialise(json);
+    if (json.contains("activeHigh")) {
+      m_activeHigh = json["activeHigh"];
+    } else {
+      m_activeHigh = true; 
+    }
 
     if (json.contains("debounce")) {
       m_debounce = json["debounce"];
@@ -38,10 +43,12 @@ public:
 
   const std::vector<uint32_t>& getLines() const { return m_lines; }
   bool getDebounce() const { return m_debounce; }
+  bool getActiveHigh() const { return m_activeHigh; }
   const std::string& getSettingPath() const { return m_settingPath; }
 
 protected:
   std::string m_settingPath;
+  bool m_activeHigh;
   bool m_debounce;
 };
 #endif //CUTESDR_VK6HL_DIGITALINPUTCONFIG_H

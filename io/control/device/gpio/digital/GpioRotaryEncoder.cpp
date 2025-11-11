@@ -42,11 +42,11 @@ GpioRotaryEncoder::handleLineChange(DigitalInputsRequest::LineStates& changedLin
   // qDebug() << "A:" << a.value << "B:" << b.value << "Direction: " << dir;
   notifyMovement(dir);
   a.changed = false; // TODO: Encapsulate this in LineState
-  a.changed = false; // TODO: Encapsulate this in LineState
-  b.isDebounced = false;
+  b.changed = false; // TODO: Encapsulate this in LineState
+  a.isDebounced = false;
   b.isDebounced = false;
   a.firstEdgeTime = 0;
-  a.firstEdgeTime = 0;
+  b.firstEdgeTime = 0;
   return true;
 
  
