@@ -30,22 +30,29 @@ public:
     configure(inputSampleRate, outputSampleRate);
   }
 
-  bool configure(uint32_t inputSampleRate, uint32_t outputSampleRate)
+  uint32_t configure(uint32_t inputSampleRate, uint32_t preferredOutputRate)
   {
     m_inputSampleRate = inputSampleRate;
-    m_outputSampleRate = outputSampleRate;
-    m_decimationFactor = inputSampleRate/outputSampleRate;
+    //m_outputSampleRate = outputSampleRate;
+    //m_decimationFactor = inputSampleRate/outputSampleRate;
     if (inputSampleRate == 192000)
     {
-      if (outputSampleRate == 48000)
+      if (preferredOutputRate == 48000)
       {
         m_taps = &fir_taps_192k_48k;
         m_overlap.assign(m_taps->size() - 1, sdrcomplex{});
-
-        return true;
+        m_decimationFactor = 192000/48000;
+        m_outputSampleRate = 48000;
+        return 48000;
       }
+    } else if (inputSampleRate == 256000) {
+      m_taps = &fir_taps_256k_64k;
+      m_overlap.assign(m_taps->size() - 1, sdrcomplex{});
+      m_decimationFactor = 256000/64000;
+      m_outputSampleRate = 64000;
+      return 64000;
     }
-    return false;
+    return 0;
   }
 
   [[nodiscard]] uint32_t getOutputSampleRate() const { return m_outputSampleRate; }

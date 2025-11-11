@@ -26,6 +26,7 @@
 
 #include "dsp/stages/demodulators/SsbDemodulator.h"
 #include "../../settings/ModeSettings.h"
+#include "dsp/stages/resampler/Resampler.h"
 
 //#define PING_PONG_LENGTH 2048
 #define PING_PONG_LENGTH 8192
@@ -86,6 +87,8 @@ protected:
   AudioOutput* m_pAudioOutput;
   // std::vector<DeviceControl*> m_deviceControllers;
   // ReceiverConfig m_config;
+  Resampler m_resampler;
+  bool m_resampleRequired;
 };
 
 #endif //__SDR_H__

@@ -52,7 +52,7 @@
             "type": "audio",
             "config": {
               "soundApi": "alsa",
-              "searchExpression": "FUNcube",
+              "searchExpression": "HiFiBerry",
               "sampleRate": 192000,
               "channelCount": 2
             }
