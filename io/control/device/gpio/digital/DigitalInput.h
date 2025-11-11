@@ -10,6 +10,7 @@
 #include "settings/SettingPath.h"
 #include "DigitalInputsRequest.h"
 #include "settings/RadioSettingsSource.h"
+#include "io/control/ControlException.h"
 
 
 class DigitalInput : public GpioLines, public RadioSettingsSource
@@ -27,13 +28,19 @@ public:
   // [[nodiscard]] const GpioLines& getLines() const { return m_lines; }
   [[nodiscard]] const SettingPath& getSettingPath() const { return m_settingPath; }
 
-  virtual bool handleLineChange(DigitalInputsRequest::LineStates& changedLines) = 0;
+  virtual bool handleLineChange(DigitalInputsRequest::LineStates& changedLines);
 
   void connect(RadioSettingsSink* pSink) override;
 protected:
+  void notifyChange(const DigitalInputsRequest::LineState& lineState);
   void notifySingleSetting(const SingleSetting& settingDelta) override;
+  void notifySettings(const RadioSettings& settings) override
+  {
+    throw ControlException("DigitalInput cannot notify settings, only a single setting.");
+  }
 
   std::string m_id;
+  bool m_activeHigh;
   bool m_debounce;
   bool m_detectEdge;
   SettingPath m_settingPath;

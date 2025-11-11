@@ -22,11 +22,12 @@ public:
   enum Features
   {
     NONE = 0,
-    MODE = 0x01,
-    FREQUENCY = 0x02,
-    OFFSET = 0x04,
-    TX = 0x08,
-    RX = 0x10//,
+    PTT = 0x01,
+    MODE = 0x02,
+    FREQUENCY = 0x04,
+    OFFSET = 0x08,
+    TX = 0x10,
+    RX = 0x20//,
     // TXRX = TX | RX
   };
 
@@ -53,6 +54,13 @@ public:
     }
     bool settingChange = false;
     uint32_t feature = setting.getPath().getFeatures()[startIndex];
+
+    if ((feature & PTT) != 0) {
+      ptt = std::get<bool>(setting.getValue()) != 0;
+      changed |= PTT;
+      return true; // PTT shouldn't be combined with anything else. Just return now.
+    }
+
     if ((feature & TX) != 0) {
       if (txSettings.applySetting(setting, startIndex + 1)) {
         changed |= TX;
@@ -65,6 +73,8 @@ public:
         settingChange = true;
       }
     }
+    
+
     if ((feature & MODE) != 0) {
       if (modeSettings.applySetting(setting, startIndex)) {
         mode = modeSettings.getCurrentMode();
@@ -130,7 +140,10 @@ public:
     if (startIndex >= featureStrings.size()) {
       throw SettingsException("Invalid setting path");
     }
-    if (featureStrings[startIndex] == "rx") {
+     if (featureStrings[startIndex] == "ptt") {
+      featuresOut.push_back(PTT);
+     
+    } else if (featureStrings[startIndex] == "rx") {
       featuresOut.push_back(RX);
       if (startIndex + 1 < featureStrings.size()) {
         ReceiverSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
@@ -151,6 +164,7 @@ public:
     }
 
   }
+  bool ptt;
   Mode mode;
   ModeSettings modeSettings;
   ReceiverSettings rxSettings;

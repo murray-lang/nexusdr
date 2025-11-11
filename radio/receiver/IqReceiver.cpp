@@ -186,6 +186,11 @@ IqReceiver::stop() const
 
 void IqReceiver::ptt(bool on)
 {
+  if (on) {
+    stop();
+  } else {
+    start();
+  }
 }
 
 void

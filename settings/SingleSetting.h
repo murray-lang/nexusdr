@@ -11,7 +11,7 @@
 class SingleSetting
 {
 public:
-  using ValueType = std::variant<uint32_t, int32_t, Mode::Type, float, double, std::string>;
+  using ValueType = std::variant<uint32_t, int32_t, Mode::Type, float, double, std::string, bool>;
 
   enum Meaning
   {
@@ -49,6 +49,7 @@ public:
   [[nodiscard]] bool isDouble() const { return std::holds_alternative<double>(m_value); }
   [[nodiscard]] bool isFloat() const { return std::holds_alternative<float>(m_value); }
   [[nodiscard]] bool isString() const { return std::holds_alternative<std::string>(m_value); }
+  [[nodiscard]] bool isBool() const { return std::holds_alternative<bool>(m_value); }
   [[nodiscard]] bool isMode() const { return std::holds_alternative<Mode::Type>(m_value); }
 
 

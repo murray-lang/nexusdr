@@ -14,6 +14,15 @@
               "config": {
           	    "inputs": [
           	        {
+						"type": "digitalInput",
+						"config": {
+							"lines": [22],
+							"bias": "pull-up",
+							"debounce": true,
+							"settingPath": "ptt"
+						}
+					},
+          	        {
 						"type": "rotaryEncoder",
 						"config": {
 							"lines": [8, 7],
