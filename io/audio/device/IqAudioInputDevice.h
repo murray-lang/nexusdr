@@ -123,6 +123,7 @@ public:
           size_t samplesToRead = std::min(requiredSamples, numIncomingSamples);
           for (size_t i = 0; i < samplesToRead; i++) {
             input.at(i) = sdrcomplex(m_iqBuffer.at(i*2), m_iqBuffer.at(i*2+1));
+            // input.at(i) = sdrcomplex(m_iqBuffer.at(i*2+1), m_iqBuffer.at(i*2));
           }
           m_iqBuffer.erase(m_iqBuffer.begin(), m_iqBuffer.begin() + samplesToRead*2);
           m_numCurrentSamples += samplesToRead;

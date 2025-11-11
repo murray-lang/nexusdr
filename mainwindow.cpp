@@ -179,7 +179,7 @@ MainWindow::configureTimeseriesChart()
   pChart->axes(Qt::Horizontal).first()->setRange(m_timeSeriesXmin / 100.0, m_timeSeriesXmax/100.0);
 
 //  pChart->axes(Qt::Vertical).first()->setRange(2038, 2058);
-  pChart->axes(Qt::Vertical).first()->setRange(-0.05, 0.05);
+  pChart->axes(Qt::Vertical).first()->setRange(-10, 10);
 
 //  pChart->axes(Qt::Vertical).first()->setRange(-0.0000001, 0.0000003);
 
@@ -505,7 +505,7 @@ MainWindow::initialiseRadio()
     m_radioSettings.rxSettings.mode = mode;
     //m_radioSettings.txSettings.mode = m_radioSettings.modeSettings.getCurrentMode();
 
-    m_radioSettings.rxSettings.rfSettings.frequency = 14100000;
+    m_radioSettings.rxSettings.rfSettings.frequency = 7050000;
     m_radioSettings.rxSettings.rfSettings.offset = -0;
     m_radioSettings.rxSettings.rfSettings.gain = 30.0;
     m_radioSettings.rxSettings.rfSettings.changed = (RfSettings::FREQUENCY | RfSettings::OFFSET | RfSettings::GAIN);

@@ -100,9 +100,8 @@ IqReceiver::configure(const ReceiverConfig* pConfig)
   m_pAudioOutput->initialise(audioOutputConfig);
 
   uint32_t preferredOutputRate = m_pAudioOutput->getSampleRate();
-  m_decimator.configure(inputSampleRate, preferredOutputRate);
+  uint32_t decimatorOutputRate = m_decimator.configure(inputSampleRate, preferredOutputRate);
 
-  uint32_t decimatorOutputRate = m_decimator.getOutputSampleRate();
   if (decimatorOutputRate != preferredOutputRate) {
     m_resampleRequired = true;
     m_resampler.configure(decimatorOutputRate, preferredOutputRate);
@@ -115,8 +114,8 @@ IqReceiver::configure(const ReceiverConfig* pConfig)
   //   decimatorOutputRate * 2);
 
   m_afFilter.getKernel().configure(
-    1000.0,
-    1000.0,
+    100.0,
+    3000.0,
     0.0,
     decimatorOutputRate * 2);
 
@@ -209,6 +208,7 @@ IqReceiver::sink(ComplexPingPongBuffers& buffers, uint32_t inputLength)
 
     if (m_resampleRequired) {
       outputLength = m_pDemodulator->processSamples(buffers.input(), m_afBuffers.input(), outputLength);
+      // m_afBuffers.flip();
       outputLength = m_resampler.processSamples(m_afBuffers.input(), m_afBuffers.output(), outputLength);
     } else {
       outputLength = m_pDemodulator->processSamples(buffers.input(), m_afBuffers.output(), outputLength);

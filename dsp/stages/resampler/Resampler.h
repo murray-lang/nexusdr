@@ -44,14 +44,14 @@ public:
     )
   {
     auto max_out = static_cast<long>(inputLength * m_ratio + 32);
-    out.resize(max_out);
+    // out.resize(max_out);
 
     SRC_DATA src_data = {};
     src_data.data_in = in.data();
     src_data.input_frames = inputLength;
     src_data.data_out = out.data();
     src_data.output_frames = max_out;
-    src_data.end_of_input = 1;
+    src_data.end_of_input = 0;
     src_data.src_ratio = m_ratio;
 
     int ret = src_process(m_pSrcState, &src_data);
