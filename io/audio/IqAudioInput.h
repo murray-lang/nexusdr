@@ -4,9 +4,10 @@
 
 #ifndef IQAUDIOINPUT_H
 #define IQAUDIOINPUT_H
-#include "./device/IqAudioInputDevice.h"
+#include "./device/AudioInputDevice.h"
 #include "./device/AudioDeviceFactory.h"
 #include "AudioIo.h"
+#include "IqSink.h"
 #include "config/AudioConfig.h"
 
 class IqAudioInput : public AudioIo
@@ -50,7 +51,7 @@ public:
     }
   }
 protected:
-  IqAudioInputDevice* m_pDevice;
+  AudioInputDevice<sdrcomplex>* m_pDevice;
   IqSink* m_pSink;
 };
 

@@ -4,22 +4,23 @@
 
 #ifndef AUDIODEVICEFACTORY_H
 #define AUDIODEVICEFACTORY_H
-#include "IqAudioInputDevice.h"
+#include "AudioInputDevice.h"
 
 class AudioDeviceFactory
 {
   // static const RtAudio::Api defaultApi = RtAudio::Api::LINUX_ALSA;
 public:
-  static IqAudioInputDevice * createInputDevice(const AudioConfig* pConfig, IqSink* pSink)
+  template<typename T>
+  static AudioInputDevice<T>* createInputDevice(const AudioConfig* pConfig, AudioSink<T>* pSink)
   {
     const RtAudio::Api api = apiFromConfig(pConfig);
     const RtAudio::DeviceInfo deviceInfo = findInputDevice(api, pConfig->getSearchExpression());
     AudioDevice::Format format{};
     getInputFormat(pConfig, deviceInfo, format);
+    format.channelCount = pConfig->getChannelCount();
     format.sampleFormat = RTAUDIO_FLOAT32;
-    format.bytesPerFrame = 2 * sizeof(float);
-    return new IqAudioInputDevice(deviceInfo, format, pSink);
-
+    format.bytesPerFrame = sizeof(float) * format.channelCount;
+    return new AudioInputDevice<T>(deviceInfo, format, pSink);
   }
 
   static AudioOutputDevice * createOutputDevice(const AudioConfig* pConfig)

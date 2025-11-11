@@ -10,7 +10,7 @@
 #include "../../dsp/stages/DcShift.h"
 #include "../../dsp/stages/filters/FastFIR.h"
 #include "../../dsp/utils/PingPongBuffers.h"
-#include "../../io/audio/IqSink.h"
+#include "../../io/audio/AudioSink.h"
 #include "../../dsp/stages/demodulators/AmDemodulator.h"
 #include "../../dsp/stages/demodulators/FmDemodulator.h"
 #include "../../dsp/stages/filters/kernels/BandPassFirKernel.h"
@@ -27,6 +27,8 @@
 #include "dsp/stages/demodulators/SsbDemodulator.h"
 #include "../../settings/ModeSettings.h"
 #include "dsp/stages/resampler/Resampler.h"
+#include "io/audio/IqSink.h"
+
 
 //#define PING_PONG_LENGTH 2048
 #define PING_PONG_LENGTH 8192

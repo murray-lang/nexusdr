@@ -183,10 +183,10 @@ set(PROJECT_SOURCES
         io/audio/IqAudioInput.h
         io/audio/device/AudioOutputDevice.cpp
         io/audio/device/AudioOutputDevice.h
-        io/audio/device/IqAudioInputDevice.h
+        io/audio/device/AudioInputDevice.h
         io/audio/AudioException.h
         io/audio/AudioException.cpp
-        io/audio/IqSink.h
+        io/audio/AudioSink.h
         io/audio/AudioIo.h
         io/audio/AudioOutput.h
         radio/receiver/ReceiverIqEvent.h
@@ -257,6 +257,7 @@ set(PROJECT_SOURCES
         settings/ModeSettings.h
         settings/ModeSettings.cpp
         dsp/stages/resampler/Resampler.h
+        io/audio/IqSink.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
