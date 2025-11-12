@@ -6,6 +6,7 @@
 
 #include "AudioConfig.h"
 #include "ReceiverConfig.h"
+#include "TransmitterConfig.h"  
 #include "VariantConfig.h"
 #include <stdexcept>
 
@@ -46,6 +47,10 @@ ConfigFactory::create(const std::string& type)
   }
   if (typeAsLower == ReceiverConfig::type) {
     auto * result = new ReceiverConfig();
+    return result;
+  }
+  if (typeAsLower == TransmitterConfig::type) {
+    auto * result = new TransmitterConfig();
     return result;
   }
   if (typeAsLower == AudioConfig::type) {

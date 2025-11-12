@@ -83,7 +83,8 @@
             "soundApi": "alsa",
             "searchExpression": "C-Media",
             "sampleRate": 48000,
-            "format": "sint16"
+            "format": "sint16",
+            "channelCount": 1
           }
         },
         "output": {
