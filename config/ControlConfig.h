@@ -55,6 +55,29 @@ public:
       }
     }
   }
+  [[nodiscard]] nlohmann::json toJson() const override
+  {
+    nlohmann::json sinks = nlohmann::json::array();
+    for (const auto* s : m_sinks) {
+      if (s) sinks.push_back(nlohmann::json{{"type", s->getType()}, {"config", s->toJson()}});
+    }
+    nlohmann::json sources = nlohmann::json::array();
+    for (const auto* s : m_sources) {
+      if (s) sources.push_back(nlohmann::json{{"type", s->getType()}, {"config", s->toJson()}});
+    }
+    return nlohmann::json{{"sinks", sinks}, {"sources", sources}};
+  }
+
+  [[nodiscard]] nlohmann::json describe() const override
+  {
+    return nlohmann::json{
+      {"type", type},
+      {"fields", nlohmann::json{
+        {"sinks", nlohmann::json{{"type","array"},{"items", { {"type","variant"} }},{"desc","Control sinks (e.g., actuators, displays)"}}},
+        {"sources", nlohmann::json{{"type","array"},{"items", { {"type","variant"} }},{"desc","Control sources (e.g., buttons, encoders)"}}}
+      }}
+    };
+  }
   [[nodiscard]] const std::vector<ConfigBase*>& getSinks() const { return m_sinks; }
   [[nodiscard]] const std::vector<ConfigBase*>& getSources() const { return m_sources; }
 

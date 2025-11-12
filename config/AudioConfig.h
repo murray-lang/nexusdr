@@ -50,7 +50,7 @@ public:
       m_soundApi = json["soundApi"].get<std::string>();
     }
     if (json.contains("isInput")) {
-      m_isIq = json["isInput"].get<bool>();
+      m_isInput = json["isInput"].get<bool>();
     }
     if (json.contains("isIq")) {
       m_isIq = json["isIq"].get<bool>();
@@ -67,6 +67,36 @@ public:
     if (json.contains("format")) {
       m_format = json["format"].get<std::string>();
     }
+  }
+
+  [[nodiscard]] nlohmann::json toJson() const override
+  {
+    return nlohmann::json{
+      {"isInput", m_isInput},
+      {"isIq", m_isIq},
+      {"soundApi", m_soundApi},
+      {"searchExpression", m_searchExpression},
+      {"sampleRate", m_sampleRate},
+      {"channelCount", m_channelCount},
+      {"format", m_format}
+    };
+  }
+
+  [[nodiscard]] nlohmann::json describe() const override
+  {
+    // Rudimentary self-documentation of fields and expected types
+    return nlohmann::json{
+      {"type", type},
+      {"fields", nlohmann::json{
+        {"isInput", nlohmann::json{{"type","boolean"},{"desc","True if this audio device is an input (capture) device"}}},
+        {"isIq", nlohmann::json{{"type","boolean"},{"desc","True if the input delivers complex I/Q samples"}}},
+        {"soundApi", nlohmann::json{{"type","string"},{"enum", {"alsa","pulse","jack","oss","dummy"}}}},
+        {"searchExpression", nlohmann::json{{"type","string"},{"desc","Regex or substring used to select a device"}}},
+        {"sampleRate", nlohmann::json{{"type","integer"},{"desc","Samples per second"}}},
+        {"channelCount", nlohmann::json{{"type","integer"},{"desc","Number of channels (1=mono,2=stereo)"}}},
+        {"format", nlohmann::json{{"type","string"},{"enum", {"sint8","sint16","sint24","sint32","float32","float64"}}}}
+      }}
+    };
   }
 
   [[nodiscard]] bool isIq() const { return m_isIq; }

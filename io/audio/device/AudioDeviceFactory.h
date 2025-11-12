@@ -4,7 +4,12 @@
 
 #ifndef AUDIODEVICEFACTORY_H
 #define AUDIODEVICEFACTORY_H
+
+#include <regex>
+
 #include "AudioInputDevice.h"
+#include "AudioOutputDevice.h"
+#include "io/audio/AudioException.h"
 
 class AudioDeviceFactory
 {

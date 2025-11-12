@@ -180,7 +180,7 @@ set(PROJECT_SOURCES
         config/ConfigException.h
 
         io/audio/device/AudioDevice.h
-        io/audio/IqAudioInput.h
+        io/audio/AudioInput.h
         io/audio/device/AudioOutputDevice.cpp
         io/audio/device/AudioOutputDevice.h
         io/audio/device/AudioInputDevice.h
@@ -189,13 +189,20 @@ set(PROJECT_SOURCES
         io/audio/AudioSink.h
         io/audio/AudioIo.h
         io/audio/AudioOutput.h
+        io/audio/device/AudioDeviceFactory.h
+        io/audio/IqSink.h
+        io/audio/IqAudioInput.h
         radio/receiver/ReceiverIqEvent.h
         radio/receiver/ReceiverIqEvent.cpp
         radio/receiver/ReceiverAudioEvent.cpp
         radio/receiver/ReceiverAudioEvent.h
+        radio/transmitter/IqTransmitter.cpp
+        radio/transmitter/IqTransmitter.h
+        radio/transmitter/TransmitterAudioEvent.cpp
+        radio/transmitter/TransmitterAudioEvent.h
         io/control/ControlSinkFactory.h
         io/control/ControlSinkFactory.cpp
-        io/audio/device/AudioDeviceFactory.h
+
         settings/ReceiverSettingsSink.h
         settings/PttSink.h
         radio/Radio.cpp
@@ -257,7 +264,8 @@ set(PROJECT_SOURCES
         settings/ModeSettings.h
         settings/ModeSettings.cpp
         dsp/stages/resampler/Resampler.h
-        io/audio/IqSink.h
+        settings/TransmitterSettingsSink.h
+
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

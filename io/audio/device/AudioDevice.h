@@ -4,18 +4,8 @@
 
 #ifndef AUDIODEVICE_H
 #define AUDIODEVICE_H
-// #include <QAudioSource>
-// #include <QMediaDevices>
-// #include <QAudioFormat>
-// #include <QIODevice>
 #include <rtaudio/RtAudio.h>
-#include <string>
-#include <algorithm>
-#include <optional>
-
-#include <regex>
 #include "config/AudioConfig.h"
-#include "../AudioException.h"
 
 
 class AudioDevice

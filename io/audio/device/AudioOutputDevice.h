@@ -4,6 +4,7 @@
 
 #ifndef AUDIOOUTPUTDEVICE_H
 #define AUDIOOUTPUTDEVICE_H
+#include <deque>
 #include <QIODevice>
 #include <mutex>
 

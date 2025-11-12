@@ -89,7 +89,7 @@ IqReceiver::configure(const ReceiverConfig* pConfig)
   m_pAudioOutput = nullptr;
 
   auto iqInputConfig = dynamic_cast<const AudioConfig*>(pConfig->getInput());
-  m_pIqInput = new IqAudioInput(this);
+  m_pIqInput = new AudioInput<sdrcomplex>(this);
   m_pIqInput->initialise(iqInputConfig);
 
   uint32_t inputSampleRate = m_pIqInput->getSampleRate();

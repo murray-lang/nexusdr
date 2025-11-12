@@ -49,6 +49,34 @@ public:
     }
   }
 
+  [[nodiscard]] nlohmann::json toJson() const override
+  {
+    nlohmann::json input;
+    if (m_pInput) {
+      input = nlohmann::json{{"type", m_pInput->getType()}, {"config", m_pInput->toJson()}};
+    }
+    nlohmann::json output;
+    if (m_pOutput) {
+      output = nlohmann::json{{"type", m_pOutput->getType()}, {"config", m_pOutput->toJson()}};
+    }
+    return nlohmann::json{{"input", input}, {"output", output}};
+  }
+
+  [[nodiscard]] nlohmann::json describe() const override
+  {
+    nlohmann::json inputDesc;
+    if (m_pInput) inputDesc = m_pInput->describe();
+    nlohmann::json outputDesc;
+    if (m_pOutput) outputDesc = m_pOutput->describe();
+    return nlohmann::json{
+      {"type", type},
+      {"fields", nlohmann::json{
+        {"input", nlohmann::json{{"type","variant"},{"desc","Receiver audio input configuration"},{"config", inputDesc}}},
+        {"output", nlohmann::json{{"type","variant"},{"desc","Receiver audio output configuration"},{"config", outputDesc}}}
+      }}
+    };
+  }
+
   [[nodiscard]] const ConfigBase* getInput() const { return m_pInput; }
   [[nodiscard]] const ConfigBase* getOutput() const { return m_pOutput; }
 

@@ -16,6 +16,7 @@
 
 #include "../settings/ModeSettings.h"
 #include "settings/RadioSettings.h"
+#include "transmitter/IqTransmitter.h"
 
 class Radio : public RadioSettingsSink, PttSink {
 
@@ -39,6 +40,7 @@ protected:
 protected:
   RadioSettings m_settings;
   IqReceiver* m_pReceiver;
+  IqTransmitter* m_pTransmitter;
   RadioControl m_control;
 
   QObject* m_pEventTarget;

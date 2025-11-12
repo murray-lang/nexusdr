@@ -1,16 +1,9 @@
-#ifndef IQAUDIOINPUTDEVICE_H_
-#define IQAUDIOINPUTDEVICE_H_
+#ifndef AUDIOINPUTDEVICE_H_
+#define AUDIOINPUTDEVICE_H_
 
-#include <QWidget>
 #include <QThread>
-#include <regex>
-//#include "../dsp/IqReceiver.h"
 #include "AudioDevice.h"
-#include "../../../radio/receiver/IqReceiver.h"
-#include "../../../dsp/blocks/Oscillator.h"
 #include "../AudioSink.h"
-#include "../AudioException.h"
-#include <QQueue>
 #include <QMutex>
 #include <QWaitCondition>
 
@@ -37,7 +30,7 @@ public:
 
   ~AudioInputDevice() override
   {
-    AudioInputDevice<T>::stop();
+    AudioInputDevice::stop();
     wait();
   }
 
@@ -89,24 +82,6 @@ public:
 
   }
 
-
-
-  // size_t writeBuffer(std::vector<int8_t>& buffer, qint64 length)
-  // {
-  //   m_iqBuffers.reset();
-  //   m_sampleCursor.reset(buffer.data(), length, false);
-  //   size_t numFrames = length/m_format.bytesPerFrame();
-  //
-  //   vsdrcomplex& input = m_iqBuffers.input();
-  //   for (size_t j = 0; j < numFrames; j++) {
-  //     input.at(j) = sdrcomplex(m_sampleCursor.getNormalisedLeft(), m_sampleCursor.getNormalisedRight());
-  //     ++m_sampleCursor;
-  //   }
-  //   m_pSink->sink(m_iqBuffers, static_cast<uint32_t>(numFrames));
-  //   m_iqBuffers.reset();
-  //   return length;
-  // }
-
   void run() override
   {
     while (m_running) {
@@ -121,10 +96,6 @@ public:
           size_t numIncomingFrames = m_buffer.size() / m_format.channelCount;
           size_t framesToRead = std::min(requiredFrames, numIncomingFrames);
           getSamplesFromBuffer(framesToRead, m_format.channelCount, input);
-          // for (size_t i = 0; i < framesToRead; i++) {
-          //   input.at(i) = sdrcomplex(m_buffer.at(i*2), m_buffer.at(i*2+1));
-          //   // input.at(i) = sdrcomplex(m_iqBuffer.at(i*2+1), m_iqBuffer.at(i*2));
-          // }
           m_buffer.erase(m_buffer.begin(), m_buffer.begin() + framesToRead*m_format.channelCount);
           m_numCurrentFrames += framesToRead;
         }
@@ -182,4 +153,4 @@ inline void AudioInputDevice<sdrcomplex>::getSamplesFromBuffer<sdrcomplex>(
   }
 }
 
-#endif //IQAUDIOINPUTDEVICE_H_
+#endif //AUDIOINPUTDEVICE_H_

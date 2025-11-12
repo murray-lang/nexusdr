@@ -17,7 +17,7 @@
 #include "../../SignalEmitter.h"
 #include "../../dsp/stages/metering/MeteringStage.h"
 #include "../../io/audio/device/AudioOutputDevice.h"
-#include "../../io/audio/IqAudioInput.h"
+// #include "../../io/audio/AudioInput.h"
 #include "../../io/audio/AudioOutput.h"
 #include "config/ReceiverConfig.h"
 #include <io/control/ControlBase.h>
@@ -27,13 +27,13 @@
 #include "dsp/stages/demodulators/SsbDemodulator.h"
 #include "../../settings/ModeSettings.h"
 #include "dsp/stages/resampler/Resampler.h"
-#include "io/audio/IqSink.h"
+#include "io/audio/AudioInput.h"
 
 
 //#define PING_PONG_LENGTH 2048
 #define PING_PONG_LENGTH 8192
 
-class IqReceiver : public IqSink, public ReceiverSettingsSink, public PttSink, public SignalEmitter {
+class IqReceiver : public AudioSink<sdrcomplex>, public ReceiverSettingsSink, public PttSink, public SignalEmitter {
 public:
   explicit IqReceiver(QObject *eventTarget = nullptr);
   // IqReceiver(int32_t sampleRate, size_t defaultFftSize, QObject *eventTarget = nullptr);
@@ -41,6 +41,7 @@ public:
   ~IqReceiver() override
   {
     delete m_pIqInput;
+    delete m_pAudioOutput;
   }
 
   void configure(const ReceiverConfig* pConfig);
@@ -85,7 +86,7 @@ protected:
   // AudioOutputDevice* m_audioOutput;
 
   QObject* m_eventTarget;
-  IqAudioInput* m_pIqInput;
+  AudioInput<sdrcomplex>* m_pIqInput;
   AudioOutput* m_pAudioOutput;
   // std::vector<DeviceControl*> m_deviceControllers;
   // ReceiverConfig m_config;

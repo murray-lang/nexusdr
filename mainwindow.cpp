@@ -16,6 +16,7 @@
 
 #include "radio/receiver/ReceiverAudioEvent.h"
 #include "radio/receiver/ReceiverIqEvent.h"
+#include "radio/transmitter/TransmitterAudioEvent.h"
 
 #define FFT_SIZE 2048
 #define SAMPLE_RATE 192000
@@ -208,6 +209,9 @@ MainWindow::customEvent(QEvent* event)
   } else if (event->type() == RadioSettingsEvent::RadioSettingsEventType) {
     auto* radioSettingsEvent = dynamic_cast<RadioSettingsEvent*>(event);
     handleRadioSettingsEvent(radioSettingsEvent->getSettings());
+  } else if (event->type() == TransmitterAudioEvent::TxAudioEvent) {
+    auto* audioEvent = dynamic_cast<TransmitterAudioEvent*>(event);
+    handleTransmitterAudioEvent(audioEvent->buffer.get(), audioEvent->dataLength);
   }
 }
 
@@ -231,6 +235,22 @@ MainWindow::handleReceiverIqEvent(const vsdrcomplex* data, uint32_t length, uint
 
 void
 MainWindow::handleReceiverAudioEvent(const vsdrreal* data, uint32_t length)
+{
+  setTimeSeriesX(0, length);
+  //  setTimeSeriesX(0, 48);
+
+  //}
+  QList<QPointF> timeseriesPoints;
+  uint32_t plotX = 0;
+  for (uint32_t i = 0; i < length; i++) {
+    timeseriesPoints.append(QPointF(plotX++, data->at(i)));
+  }
+
+  m_timeseriesLineSeries.replace(timeseriesPoints);
+}
+
+void
+MainWindow::handleTransmitterAudioEvent(const vsdrreal* data, uint32_t length)
 {
   setTimeSeriesX(0, length);
   //  setTimeSeriesX(0, 48);

@@ -3,4 +3,5 @@
 //
 
 #include "ReceiverAudioEvent.h"
+
 const QEvent::Type ReceiverAudioEvent::RxAudioEvent = static_cast<QEvent::Type>(QEvent::User + 2);

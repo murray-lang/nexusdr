@@ -14,6 +14,7 @@
 Radio::Radio(QObject *pEventTarget) :
   m_settings(),
   m_pReceiver(nullptr),
+  m_pTransmitter(nullptr),
   m_control(),
   m_pEventTarget(pEventTarget)
 {
@@ -23,6 +24,7 @@ Radio::Radio(QObject *pEventTarget) :
 Radio::~Radio()
 {
   delete m_pReceiver;
+  delete m_pTransmitter;
 }
 
 void
@@ -30,7 +32,7 @@ Radio::configure(const RadioConfig* pConfig)
 {
   m_control.configure(pConfig->getControl());
   m_pReceiver->configure(pConfig->getReceiver());
-
+  m_pTransmitter->configure(pConfig->getTransmitter());
 }
 
 void
@@ -47,6 +49,7 @@ Radio::stop()
   m_control.stop();
   m_control.connect(nullptr);
   m_pReceiver->stop();
+  m_pTransmitter->stop();
 }
 
 void
@@ -96,11 +99,17 @@ Radio::pttOn()
     m_pReceiver->ptt(true);
   }
   m_control.ptt(true);
+  if (m_pTransmitter != nullptr) {
+    m_pTransmitter->ptt(true);
+  }
 }
 
 void
 Radio::pttOff()
 {
+  if (m_pTransmitter != nullptr) {
+    m_pTransmitter->ptt(false);
+  }
   m_control.ptt(false);
   if (m_pReceiver != nullptr) {
     m_pReceiver->ptt(false);

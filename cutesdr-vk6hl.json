@@ -75,7 +75,27 @@
               "format": "sint16"
             }
           }
+        },
+      "transmitter": {
+        "input": {
+          "type": "audio",
+          "config": {
+            "soundApi": "alsa",
+            "searchExpression": "C-Media",
+            "sampleRate": 48000,
+            "format": "sint16"
+          }
+        },
+        "output": {
+          "type": "audio",
+          "config": {
+            "soundApi": "alsa",
+            "searchExpression": "HiFiBerry",
+            "sampleRate": 192000,
+            "channelCount": 2
+          }
         }
+      }
     }
 
 }

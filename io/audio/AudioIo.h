@@ -11,12 +11,7 @@ class AudioIo
 {
 public:
 
-  AudioIo()// :
-    // m_pDevice(nullptr)//,
-    // m_format{ .sampleFormat = 0, .sampleRate = 0, .channelCount = 0 }
-  {
-
-  }
+  AudioIo() = default;
 
   virtual ~AudioIo() = default;
 
