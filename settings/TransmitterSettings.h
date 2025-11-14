@@ -24,6 +24,7 @@ public:
     if (this != &rhs) {
       SettingsBase::operator=(rhs);
       rfSettings = rhs.rfSettings;
+      mode = rhs.mode;
     }
     return *this;
   }

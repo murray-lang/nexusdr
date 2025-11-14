@@ -526,7 +526,7 @@ MainWindow::initialiseRadio()
     //m_radioSettings.txSettings.mode = m_radioSettings.modeSettings.getCurrentMode();
 
     m_radioSettings.rxSettings.rfSettings.frequency = 7050000;
-    m_radioSettings.rxSettings.rfSettings.offset = -0;
+    m_radioSettings.rxSettings.rfSettings.offset = 48000;
     m_radioSettings.rxSettings.rfSettings.gain = 30.0;
     m_radioSettings.rxSettings.rfSettings.changed = (RfSettings::FREQUENCY | RfSettings::OFFSET | RfSettings::GAIN);
     m_radioSettings.rxSettings.ifSettings.bandwidth = 200000;
@@ -535,6 +535,14 @@ MainWindow::initialiseRadio()
     m_radioSettings.rxSettings.changed = (ReceiverSettings::MODE | ReceiverSettings::RF | ReceiverSettings::IF);
 
     m_radioSettings.changed = RadioSettings::MODE | RadioSettings::RX;
+
+    m_radioSettings.txSettings.mode = mode;
+    m_radioSettings.txSettings.rfSettings.frequency = 7050000;
+    m_radioSettings.txSettings.rfSettings.offset = 48000;
+    m_radioSettings.txSettings.rfSettings.changed = (RfSettings::FREQUENCY | RfSettings::OFFSET);
+    m_radioSettings.txSettings.changed = (TransmitterSettings::MODE | TransmitterSettings::RF);
+
+    m_radioSettings.changed = RadioSettings::MODE | RadioSettings::RX | RadioSettings::TX;
 
     m_pRadio->applySettings(m_radioSettings);
   }

@@ -64,7 +64,12 @@ Radio::applySettings(const RadioSettings& settings)
     return; // Don't try to do anything else concurrently with PTT.
   }
   m_control.applySettings(m_settings);
-  m_pReceiver->apply(m_settings.rxSettings);
+  if (settings.changed & RadioSettings::RX) {
+    m_pReceiver->apply(m_settings.rxSettings);
+  }
+  if (settings.changed & RadioSettings::TX) {
+    m_pTransmitter->apply(m_settings.txSettings);
+  }
   if (m_pEventTarget != nullptr) {
     // qDebug() << "Radio::applySettings posting RadioSettingsEvent";
     // qDebug() << m_settings.mode.getName().c_str();
