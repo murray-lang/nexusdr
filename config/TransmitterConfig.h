@@ -9,7 +9,13 @@
 #include "ConfigFactory.h"
 #include "VariantConfig.h"
 
-class TransmitterConfig : public ConfigBase
+// Plain struct listing configuration members for programmer visibility
+struct TransmitterConfigFields {
+  VariantConfig input;
+  VariantConfig output;
+};
+
+class TransmitterConfig : public ConfigBase, public TransmitterConfigFields
 {
   friend class RadioConfig;
 public:
@@ -31,7 +37,7 @@ public:
   //   return *this;
   // }
 
-  void initialise(const nlohmann::json& json) override
+  void fromJson(const nlohmann::json& json) override
   {
     if (json.contains("input")) {
       VariantConfig variantConfig(json["input"]);
@@ -47,6 +53,24 @@ public:
     }
   }
 
+  // Convenience helpers to work with the plain struct form
+  void setFields(const TransmitterConfigFields& f)
+  {
+    static_cast<TransmitterConfigFields&>(*this) = f;
+    delete m_pInput; m_pInput = nullptr;
+    delete m_pOutput; m_pOutput = nullptr;
+    if (!f.input.getType().empty()) m_pInput = ConfigFactory::create(f.input);
+    if (!f.output.getType().empty()) m_pOutput = ConfigFactory::create(f.output);
+  }
+
+  [[nodiscard]] TransmitterConfigFields getFields() const
+  {
+    TransmitterConfigFields f;
+    if (m_pInput) f.input = nlohmann::json{{"type", m_pInput->getType()}, {"config", m_pInput->toJson()}};
+    if (m_pOutput) f.output = nlohmann::json{{"type", m_pOutput->getType()}, {"config", m_pOutput->toJson()}};
+    return f;
+  }
+
   [[nodiscard]] nlohmann::json toJson() const override
   {
     nlohmann::json input;
@@ -60,20 +84,6 @@ public:
     return nlohmann::json{{"input", input}, {"output", output}};
   }
 
-  [[nodiscard]] nlohmann::json describe() const override
-  {
-    nlohmann::json inputDesc;
-    if (m_pInput) inputDesc = m_pInput->describe();
-    nlohmann::json outputDesc;
-    if (m_pOutput) outputDesc = m_pOutput->describe();
-    return nlohmann::json{
-        {"type", type},
-        {"fields", nlohmann::json{
-          {"input", nlohmann::json{{"type","variant"},{"desc","Transmitter audio input configuration"},{"config", inputDesc}}},
-          {"output", nlohmann::json{{"type","variant"},{"desc","Transmitter audio output configuration"},{"config", outputDesc}}}
-        }}
-    };
-  }
 
   [[nodiscard]] const ConfigBase* getInput() const { return m_pInput; }
   [[nodiscard]] const ConfigBase* getOutput() const { return m_pOutput; }

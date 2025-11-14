@@ -33,9 +33,14 @@ Oscillator::initialise(uint32_t sampleRate, int32_t frequency)
 Oscillator&
 Oscillator::initialise()
 {
+  if (m_frequency != 0) {
     m_sign = m_frequency >= 0 ? 1.0 : -1.0;
-    m_thetaDelta = K_2PI*(sdrreal)std::fabs(m_frequency)/(sdrreal)m_sampleRate;
-    return reset();
+    m_thetaDelta = K_2PI*static_cast<sdrreal>(std::fabs(m_frequency))/static_cast<sdrreal>(m_sampleRate);
+  } else {
+    m_sign = 1.0;
+    m_thetaDelta = 0.0;
+  }
+  return reset();
 }
 
 Oscillator&
@@ -68,8 +73,13 @@ Oscillator::increment()
 Oscillator&
 Oscillator::reset()
 {
-    m_theta = 0.0;
+  m_theta = 0.0;
+  if (m_frequency != 0) {
     m_state.real(2.0 * cos(m_theta) - 1.0);
     m_state.imag(2.0 * sin(m_theta) - 1.0);
-    return *this;
+  } else {
+    m_state.real(1.0);
+    m_state.imag(0.0);
+  }
+  return *this;
 }

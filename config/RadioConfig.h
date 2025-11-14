@@ -34,7 +34,7 @@ public:
 //     return *this;
 //   }
 
-  void initialise(const nlohmann::json& json) override
+  void fromJson(const nlohmann::json& json) override
   {
     if(json.contains("receiver"))
     {
@@ -67,17 +67,6 @@ public:
     return nlohmann::json{{"receiver", receiver}, {"transmitter", transmitter}, {"control", control}};
   }
 
-  [[nodiscard]] nlohmann::json describe() const override
-  {
-    return nlohmann::json{
-      {"type", type},
-      {"fields", nlohmann::json{
-        {"receiver", nlohmann::json{{"type","object"},{"desc","Receiver configuration"}}},
-        {"transmitter", nlohmann::json{{"type","object"},{"desc","Transmitter configuration"}}},
-        {"control", nlohmann::json{{"type","object"},{"desc","Control configuration"}}}
-      }}
-    };
-  }
 
   [[nodiscard]] const ReceiverConfig* getReceiver() const { return m_pReceiver; }
   [[nodiscard]] const TransmitterConfig* getTransmitter() const { return m_pTransmitter; }

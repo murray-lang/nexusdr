@@ -14,9 +14,9 @@ public:
   RotaryEncoderConfig() : DigitalInputConfig(type) {}
   ~RotaryEncoderConfig() override = default;
 
-  void initialise(const nlohmann::json& json) override
+  void fromJson(const nlohmann::json& json) override
   {
-    DigitalInputConfig::initialise(json);
+    DigitalInputConfig::fromJson(json);
   }
 };
 #endif //CUTESDR_VK6HL_ROTARYENCODERCONFIG_H

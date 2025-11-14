@@ -14,19 +14,19 @@ public:
   VariantConfig(const VariantConfig& rhs) = default;
   explicit VariantConfig(const nlohmann::json& json)
   {
-    initialise(json);
+    fromJson(json);
   }
   ~VariantConfig() = default;
 
   VariantConfig& operator=(const VariantConfig& rhs) = default;
   VariantConfig& operator=(const nlohmann::json& json)
   {
-    initialise(json);
+    fromJson(json);
     return *this;
   }
 
 
-  void initialise(const nlohmann::json& json)
+  void fromJson(const nlohmann::json& json)
   {
     if (json.contains("type")) {
       m_type = json["type"];

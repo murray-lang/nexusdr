@@ -265,6 +265,9 @@ set(PROJECT_SOURCES
         settings/ModeSettings.cpp
         dsp/stages/resampler/Resampler.h
         settings/TransmitterSettingsSink.h
+        dsp/utils/HilbertTransform.h
+        dsp/stages/modulators/Modulator.h
+        dsp/stages/modulators/SsbModulator.h
 
 )
 

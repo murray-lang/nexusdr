@@ -17,9 +17,9 @@ public:
   explicit DigitalInputConfig(const char * subtype) : GpioLinesConfig(subtype), m_debounce(true) {}
   ~DigitalInputConfig() override  = default;
 
-  void initialise(const nlohmann::json& json) override
+  void fromJson(const nlohmann::json& json) override
   {
-    GpioLinesConfig::initialise(json);
+    GpioLinesConfig::fromJson(json);
     if (json.contains("activeHigh")) {
       m_activeHigh = json["activeHigh"];
     } else {

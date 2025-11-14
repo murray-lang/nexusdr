@@ -12,7 +12,7 @@ class GpioLinesConfig : public ConfigBase
 public:
   explicit GpioLinesConfig(const char* type) : ConfigBase(type) {}
   ~GpioLinesConfig() override = default;
-  void initialise(const nlohmann::json& json) override
+  void fromJson(const nlohmann::json& json) override
   {
     if (json.contains("lines")) {
       for (auto& line : json["lines"]) {

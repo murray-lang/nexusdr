@@ -75,6 +75,7 @@ ConfigFactory::create(const std::string& type, const nlohmann::json& config)
   if (result == nullptr) {
     throw std::runtime_error("Unknown config type: " + type);
   }
-  result->initialise(config);
+  // Prefer fromJson for symmetry with toJson()
+  result->fromJson(config);
   return result;
 }

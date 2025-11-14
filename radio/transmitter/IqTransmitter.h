@@ -11,7 +11,11 @@
 #include "config/TransmitterConfig.h"
 #include "dsp/stages/IqStage.h"
 #include "dsp/stages/filters/FastFIR.h"
+#include "dsp/stages/modulators/Modulator.h"
+#include "dsp/stages/modulators/SsbModulator.h"
 #include "dsp/stages/oscillators/OscillatorMixer.h"
+#include "dsp/stages/resampler/Resampler.h"
+#include "dsp/utils/HilbertTransform.h"
 #include "io/audio/AudioInput.h"
 #include "io/audio/AudioOutput.h"
 #include "io/audio/AudioSink.h"
@@ -38,20 +42,23 @@ public:
 
   void sink(RealPingPongBuffers& audioBuffers, uint32_t length) override;
 
+protected:
+  void setMode(const Mode& mode);
+  void setModulator(Mode::Type modeType);
 
 protected:
   Mode m_mode;
   std::vector<IqStage*> m_iqStages;
   OscillatorMixer m_oscillatorMixer;
-  RealPingPongBuffers m_afBuffers;
+  ComplexPingPongBuffers m_pipelineBuffers;
   // Oscillator m_debugOscillator;
   BandPassFilter m_ifFilter;
   BandPassFilter m_afFilter;
   // AmDemodulator m_amDemodulator;
   // FmDemodulator m_fmDemodulator;
-  // SsbDemodulator m_ssbDemodulator;
-  // Demodulator* m_pDemodulator;
-  // std::mutex m_demodulatorMutex;
+  SsbModulator m_ssbModulator;
+  Modulator* m_pModulator;
+  std::mutex m_modulatorMutex;
   // MeteringStage m_timeseriesEmitter;
   // MeteringStage m_spectrumEmitter;
   // AudioOutputDevice* m_audioOutput;
@@ -59,6 +66,9 @@ protected:
   QObject* m_eventTarget;
   AudioInput<sdrreal>* m_pAudioInput;
   AudioOutput* m_pIqOutput;
+
+  HilbertTransform m_hilbert;
+  Resampler m_resampler;
 };
 
 

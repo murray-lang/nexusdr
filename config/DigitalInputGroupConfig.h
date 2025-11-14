@@ -23,7 +23,7 @@ public:
     }
   }
 
-  void initialise(const nlohmann::json& json) override
+  void fromJson(const nlohmann::json& json) override
   {
     if (json.contains("inputs")) {
       for (auto& inputConfig : json["inputs"]) {

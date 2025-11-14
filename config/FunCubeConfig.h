@@ -14,7 +14,7 @@ public:
   FunCubeConfig() : ConfigBase(type) {}
   ~FunCubeConfig() override = default;
 
-  void initialise(const nlohmann::json& json) override {}
+  void fromJson(const nlohmann::json& json) override {}
 
 };
 #endif //CUTESDR_VK6HL_FUNCUBECONFIG_H

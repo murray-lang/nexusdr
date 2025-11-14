@@ -32,7 +32,8 @@ int main(int argc, char *argv[])
       std::ifstream f(configPath.toStdString());
       json config = json::parse(f);
       if (config.contains("radio")) {
-        radioConfig.initialise(config["radio"]);
+        // Prefer fromJson for symmetry with toJson()
+        radioConfig.fromJson(config["radio"]);
       } else {
         qDebug() << "Config file present but no 'radio' section found:" << configPath;
       }

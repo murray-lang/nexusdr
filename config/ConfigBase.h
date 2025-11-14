@@ -16,8 +16,9 @@ public:
 
   // ConfigBase& operator=(const ConfigBase& rhs) = default;
 
-  // static ConfigBase fromJson(const nlohmann::json& json) { return {}; }
-  virtual void initialise(const nlohmann::json& json) = 0;
+  // Load this configuration from JSON (symmetrical with toJson()).
+  // All derived classes must implement this.
+  virtual void fromJson(const nlohmann::json& json) = 0;
 
   // Serialize this configuration back to JSON. Default: empty object
   // Derived classes should override to include their fields.
