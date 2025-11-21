@@ -32,6 +32,7 @@ ConfigBase*
 ConfigFactory::create(const std::string& type)
 {
   std::string typeAsLower = StringUtils::toLowerCase(type);
+  
   if (typeAsLower == ControlConfig::type) {
     auto * result = new ControlConfig();
     return result;
@@ -48,8 +49,8 @@ ConfigFactory::create(const std::string& type)
     auto * result = new RotaryEncoderConfig();
     return result;
   }
-  if (typeAsLower == IqIoConfig::type) {
-    auto * result = new IqIoConfig();
+  if (typeAsLower == ReceiverConfig::type) {
+    auto * result = new ReceiverConfig();
     return result;
   }
   if (typeAsLower == TransmitterConfig::type) {
@@ -74,6 +75,10 @@ ConfigFactory::create(const std::string& type)
   }
   if (typeAsLower == AudioSignalIqSourceConfig::type) {
     auto * result = new AudioSignalIqSourceConfig();
+    return result;
+  }
+  if (typeAsLower == IqIoConfig::type) {
+    auto * result = new IqIoConfig();
     return result;
   }
   return nullptr;

@@ -25,7 +25,7 @@ IqRxPipeline::IqRxPipeline() :
 void
 IqRxPipeline::initialise(IqIo* pIo, AudioSink* pAudioSink)
 {
-  dynamic_cast<IqPipeline*>(this)->initialise(pIo, pAudioSink);
+  IqPipeline::initialise(pIo, pAudioSink);
   m_inputSampleRate = pIo->getInputSampleRate();
   m_oscillatorMixer.initialise(m_inputSampleRate, 0);
   uint32_t preferredOutputRate = pIo->getOutputSampleRate();
@@ -44,7 +44,7 @@ IqRxPipeline::setOutputSampleRate(uint32_t preferredOutputRate)
 uint32_t
 IqRxPipeline::getMaxFramesPerInputPacket() const
 {
-  return m_buffers.getSize();
+  return m_buffers.getSize() / 2; // 2 is the number of channels (I + Q)
 }
 
 uint32_t
@@ -71,7 +71,7 @@ void
 IqRxPipeline::setMode(const Mode& mode)
 {
 
-  dynamic_cast<IqPipeline*>(this)->setMode(mode);
+  IqPipeline::setMode(mode);
   const uint32_t decimatorOutputRate = m_decimator.getOutputSampleRate();
   m_ifFilter.getKernel().configure(mode.getLoCut(), mode.getHiCut(), mode.getOffset(), decimatorOutputRate * 2);
   setDemodulator(mode.getType());

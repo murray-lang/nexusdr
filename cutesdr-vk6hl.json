@@ -62,14 +62,11 @@
           "type": "audioSignalIqSource",
           "config": {
             "audioInput": {
-              "type": "audio",
-              "config": {
-                "soundApi": "alsa",
-                "searchExpression": "HiFiBerry",
-                "sampleRate": 192000,
-                "channelCount": 2
-              }
-            },
+			  "soundApi": "alsa",
+			  "searchExpression": "HiFiBerry",
+			  "sampleRate": 192000,
+			  "channelCount": 2
+           },
             "reverse": false
           }
         },
@@ -90,14 +87,11 @@
           "type": "audioIqSource",
           "config": {
             "audioInput": {
-              "type": "audio",
-              "config": {
-                "soundApi": "alsa",
-                "searchExpression": "C-Media",
-                "sampleRate": 48000,
-                "format": "sint16",
-                "channelCount": 1
-              }
+			  "soundApi": "alsa",
+			  "searchExpression": "C-Media",
+			  "sampleRate": 48000,
+			  "format": "sint16",
+			  "channelCount": 1
             }
           }
         },

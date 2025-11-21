@@ -14,7 +14,7 @@ struct AudioIqSourceConfigFields
 class AudioIqSourceConfig : public ConfigBase, public AudioIqSourceConfigFields
 {
 public:
-  static constexpr auto type = "audioIqSource";
+  static constexpr auto type = "audioiqsource";
   explicit AudioIqSourceConfig() : ConfigBase(type) {}
   AudioIqSourceConfig(const AudioIqSourceConfig& rhs) = default;
   ~AudioIqSourceConfig() override = default;

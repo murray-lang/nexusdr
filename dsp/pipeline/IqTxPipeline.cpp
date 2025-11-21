@@ -23,7 +23,7 @@ IqTxPipeline::IqTxPipeline() :
 void
 IqTxPipeline::initialise(IqIo* pIo, AudioSink* pAudioSink)
 {
-  dynamic_cast<IqPipeline*>(this)->initialise(pIo, pAudioSink);
+  IqPipeline::initialise(pIo, pAudioSink);
   m_inputSampleRate = pIo->getInputSampleRate();
   uint32_t preferredOutputRate = pIo->getOutputSampleRate();
   setOutputSampleRate(preferredOutputRate);
@@ -47,7 +47,7 @@ IqTxPipeline::getMaxFramesPerInputPacket() const
 uint32_t
 IqTxPipeline::getMaxFramesPerOutputPacket() const
 {
-  return m_buffers.getSize();
+  return m_buffers.getSize() / 2; // 2 is the number of channels (I + Q)
 }
 
 void IqTxPipeline::apply(const TransmitterSettings& settings)
@@ -66,7 +66,7 @@ void IqTxPipeline::apply(const TransmitterSettings& settings)
 void IqTxPipeline::setMode(const Mode& mode)
 {
 
-  dynamic_cast<IqPipeline*>(this)->setMode(mode);
+  IqPipeline::setMode(mode);
   m_ifFilter.getKernel().configure(mode.getLoCut(), mode.getHiCut(), mode.getOffset(), m_inputSampleRate * 2);
   setModulator(mode.getType());
 }
