@@ -115,8 +115,17 @@ IqTxPipeline::sinkIq(const vsdrcomplex& samples, uint32_t length)
     }
   }
   if (outputLength > 0 && m_pAudioOutSink != nullptr) {
-    m_pAudioOutSink->sinkAudio(m_audioBuffer, outputLength);
+    uint32_t numReals = interleaveComplexToReal(m_buffers.input(), m_audioBuffer, outputLength);
+    m_pAudioOutSink->sinkAudio(m_audioBuffer, numReals);
   }
   return outputLength;
+}
+
+uint32_t
+IqTxPipeline::interleaveComplexToReal(const vsdrcomplex& vcomplex, vsdrreal& vreal, uint32_t numComplexes)
+{
+  vreal.resize(numComplexes * 2);
+  std::memcpy(vreal.data(), vcomplex.data(), numComplexes * sizeof(sdrcomplex));
+  return numComplexes * 2;
 }
 

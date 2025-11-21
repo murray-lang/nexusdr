@@ -34,6 +34,7 @@ public:
 protected:
   void setMode(const Mode& mode) override;
   void setModulator(Mode::Type modeType);
+  static uint32_t interleaveComplexToReal(const vsdrcomplex& vcomplex, vsdrreal& vreal, uint32_t numComplexes);
 
 protected:
   SsbModulator m_ssbModulator;
