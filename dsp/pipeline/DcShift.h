@@ -1,6 +1,6 @@
 #pragma once
 
-#include "IqPipelineStage.h"
+#include "../../radio/IqPipelineStage.h"
 
 class DcShift  : public IqPipelineStage
 {

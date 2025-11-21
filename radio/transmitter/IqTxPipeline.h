@@ -5,12 +5,12 @@
 #pragma once
 #include <mutex>
 
-#include "IqPipeline.h"
+#include "../IqPipeline.h"
 #include "dsp/utils/HilbertTransform.h"
-#include "filters/FastFIR.h"
-#include "modulators/SsbModulator.h"
-#include "oscillators/OscillatorMixer.h"
-#include "resampler/Resampler.h"
+#include "../../dsp/pipeline/filters/FastFIR.h"
+#include "../../dsp/pipeline/modulators/SsbModulator.h"
+#include "../../dsp/pipeline/oscillators/OscillatorMixer.h"
+#include "../../dsp/pipeline/resampler/Resampler.h"
 #include "settings/TransmitterSettingsSink.h"
 
 class IqTxPipeline: public IqPipeline, public TransmitterSettingsSink

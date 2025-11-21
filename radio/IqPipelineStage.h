@@ -1,8 +1,8 @@
 #pragma once
 
 #include <cstdint>
-#include "../../SampleTypes.h"
-#include "../utils/PingPongBuffers.h"
+#include "../SampleTypes.h"
+#include "../dsp/utils/PingPongBuffers.h"
 
 class IqPipelineStage
 {

@@ -5,15 +5,15 @@
 #pragma once
 #include <mutex>
 
-#include "DcShift.h"
-#include "IqPipeline.h"
-#include "decimator/Decimator.h"
-#include "demodulators/AmDemodulator.h"
-#include "demodulators/Demodulator.h"
-#include "demodulators/FmDemodulator.h"
-#include "demodulators/SsbDemodulator.h"
-#include "filters/FastFIR.h"
-#include "oscillators/OscillatorMixer.h"
+#include "../../dsp/pipeline/DcShift.h"
+#include "../IqPipeline.h"
+#include "../../dsp/pipeline/decimator/Decimator.h"
+#include "../../dsp/pipeline/demodulators/AmDemodulator.h"
+#include "../../dsp/pipeline/demodulators/Demodulator.h"
+#include "../../dsp/pipeline/demodulators/FmDemodulator.h"
+#include "../../dsp/pipeline/demodulators/SsbDemodulator.h"
+#include "../../dsp/pipeline/filters/FastFIR.h"
+#include "../../dsp/pipeline/oscillators/OscillatorMixer.h"
 #include "settings/ReceiverSettingsSink.h"
 
 

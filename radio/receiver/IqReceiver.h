@@ -5,7 +5,7 @@
 #include "config/ReceiverConfig.h"
 #include <settings/ReceiverSettingsSink.h>
 #include <settings/PttSink.h>
-#include "dsp/pipeline/IqRxPipeline.h"
+#include "IqRxPipeline.h"
 #include "io/iq/IqIo.h"
 
 

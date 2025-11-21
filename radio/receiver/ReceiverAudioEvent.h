@@ -14,7 +14,7 @@ class ReceiverAudioEvent : public QEvent
   public:
   static const QEvent::Type RxAudioEvent;
 
-  ReceiverAudioEvent(vsdrreal& audio, uint32_t len):
+  ReceiverAudioEvent(const vsdrreal& audio, uint32_t len):
     QEvent(RxAudioEvent),
     buffer(new vsdrreal(audio.begin(), audio.begin() + len)),
     dataLength(len)

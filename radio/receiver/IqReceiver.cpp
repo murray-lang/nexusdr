@@ -64,6 +64,7 @@ void IqReceiver::ptt(bool on)
 uint32_t
 IqReceiver::sinkIq(const vsdrcomplex& samples, uint32_t length)
 {
+  QCoreApplication::postEvent(m_eventTarget, new ReceiverIqEvent(samples, length, m_iqIo.getInputSampleRate() ));
   // Straight to the only pipeline for now
   return m_iqPipeline.sinkIq(samples, length);
 }
@@ -71,6 +72,7 @@ IqReceiver::sinkIq(const vsdrcomplex& samples, uint32_t length)
 uint32_t
 IqReceiver::sinkAudio(const vsdrreal& samples, uint32_t length)
 {
+  QCoreApplication::postEvent(m_eventTarget, new ReceiverAudioEvent(samples, length));
   // TODO: There will need to be a way to distinguish which pipeline this is from and also to combine the audio.
   return m_iqIo.sinkAudio(samples, length);
 }
