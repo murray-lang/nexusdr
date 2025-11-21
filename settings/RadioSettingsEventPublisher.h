@@ -2,8 +2,8 @@
 // Created by murray on 25/9/25.
 //
 
-#ifndef CUTESDR_VK6HL_RADIOSETTINGSEVENTPUBLISHER_H
-#define CUTESDR_VK6HL_RADIOSETTINGSEVENTPUBLISHER_H
+#pragma once
+
 #include <qcoreapplication.h>
 #include <QObject>
 
@@ -30,6 +30,3 @@ public:
 protected:
   QObject* m_eventTarget;
 };
-
-
-#endif //CUTESDR_VK6HL_RADIOSETTINGSEVENTPUBLISHER_H

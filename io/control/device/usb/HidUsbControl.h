@@ -2,8 +2,7 @@
 // Created by murray on 12/04/23.
 //
 
-#ifndef FUNCUBEPLAY_HIDUSBCONTROL_H
-#define FUNCUBEPLAY_HIDUSBCONTROL_H
+#pragma once
 
 #include "UsbControl.h"
 #include <hidapi.h>
@@ -25,5 +24,3 @@ public:
 protected:
     hid_device * device;
 };
-
-#endif //FUNCUBEPLAY_HIDUSBCONTROL_H

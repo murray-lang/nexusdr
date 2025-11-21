@@ -2,8 +2,8 @@
 // Created by murray on 2025-08-24.
 //
 
-#ifndef CUTESDR_VK6HL_DIGITALINPUTGROUP_H
-#define CUTESDR_VK6HL_DIGITALINPUTGROUP_H
+#pragma once
+
 #include <io/control/ControlSource.h>
 #include "GpioRotaryEncoder.h"
 #include "../Gpio.h"
@@ -68,6 +68,3 @@ protected:
   std::unique_ptr<DigitalInputsRequest> m_pLines;
   std::unordered_map<uint32_t, DigitalInput*> m_lineToInputMap;
 };
-
-
-#endif //CUTESDR_VK6HL_DIGITALINPUTGROUP_H

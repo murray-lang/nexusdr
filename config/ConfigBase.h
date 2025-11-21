@@ -2,8 +2,7 @@
 // Created by murray on 27/07/25.
 //
 
-#ifndef CUTESDR_VK6HL_CONFIGBASE_H
-#define CUTESDR_VK6HL_CONFIGBASE_H
+#pragma once
 #include <nlohmann/json.hpp>
 #include <string>
 
@@ -11,7 +10,7 @@ class ConfigBase
 {
 public:
   explicit ConfigBase(const char* type) : m_type(type) {}
-  // ConfigBase(const ConfigBase& rhs) = default;
+  ConfigBase(const ConfigBase& rhs) = default;
   virtual ~ConfigBase() = default;
 
   // ConfigBase& operator=(const ConfigBase& rhs) = default;
@@ -32,4 +31,3 @@ public:
 protected:
   std::string m_type;
 };
-#endif //CUTESDR_VK6HL_CONFIGBASE_H

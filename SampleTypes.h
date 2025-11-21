@@ -1,5 +1,4 @@
-#ifndef __SAMPLETYPES_H__
-#define __SAMPLETYPES_H__
+#pragma once
 
 #include <complex>
 #include <vector>
@@ -12,4 +11,3 @@ using vsdrcomplex = std::vector<sdrcomplex>;
 //using vsdrcomplex = std::valarray<sdrcomplex>;
 using vsdrcomplex_iter = vsdrcomplex::iterator;
 
-#endif // __SAMPLETYPES_H__

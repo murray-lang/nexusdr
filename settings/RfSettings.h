@@ -2,8 +2,8 @@
 // Created by murray on 14/04/23.
 //
 
-#ifndef FUNCUBEPLAY_RFSETTINGS_H
-#define FUNCUBEPLAY_RFSETTINGS_H
+#pragma once
+
 
 #include <cstdint>
 
@@ -109,4 +109,3 @@ public:
   uint32_t offsetStep;
   float gain;
 };
-#endif //FUNCUBEPLAY_RFSETTINGS_H

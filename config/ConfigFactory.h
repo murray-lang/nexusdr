@@ -2,8 +2,7 @@
 // Created by murray on 14/9/25.
 //
 
-#ifndef CUTESDR_VK6HL_CONFIGFACTORY_H
-#define CUTESDR_VK6HL_CONFIGFACTORY_H
+#pragma once
 #include "ConfigBase.h"
 #include "VariantConfig.h"
 #include <nlohmann/json.hpp>
@@ -16,6 +15,3 @@ public:
   static ConfigBase* create(const std::string& type);
   static ConfigBase* create(const std::string& type, const nlohmann::json& config);
 };
-
-
-#endif //CUTESDR_VK6HL_CONFIGFACTORY_H

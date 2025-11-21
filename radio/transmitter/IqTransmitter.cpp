@@ -3,152 +3,43 @@
 //
 
 #include "IqTransmitter.h"
-
-#include <qcoreapplication.h>
-
 #include "TransmitterAudioEvent.h"
-
-#define FFT_SIZE 2048
-#define HILBERT_TAPS 63
 
 
 IqTransmitter::IqTransmitter(QObject* eventTarget) :
-  m_mode(),
-  m_oscillatorMixer(),
-  m_pipelineBuffers(PING_PONG_LENGTH),
-  m_ifFilter(FFT_SIZE),
-  m_afFilter(FFT_SIZE),
-  // m_amDemodulator(48000),
-  // m_fmDemodulator(48000),
-  // m_ssbDemodulator(48000),
-  // m_pDemodulator(nullptr),
-  m_eventTarget(eventTarget),
-  m_pAudioInput(nullptr),
-  m_pIqOutput(nullptr),
-  m_hilbert(HILBERT_TAPS)
+  m_eventTarget(eventTarget)
 {
-  // m_iqStages.push_back(&m_oscillatorMixer);
-  // m_iqStages.push_back(&m_decimator);
-  // m_iqStages.push_back(&m_ifFilter);
 }
 
 void
 IqTransmitter::configure(const TransmitterConfig* pConfig)
 {
-  delete m_pAudioInput;
-  delete m_pIqOutput;
-  m_pAudioInput = nullptr;
-  m_pIqOutput = nullptr;
-
-  auto audioInputConfig = dynamic_cast<const AudioConfig*>(pConfig->getInput());
-  m_pAudioInput = new AudioInput<sdrreal>(this);
-  m_pAudioInput->initialise(audioInputConfig);
-
-  uint32_t inputSampleRate = m_pAudioInput->getSampleRate();
-  m_oscillatorMixer.initialise(inputSampleRate, 0);
-
-  auto audioOutputConfig = dynamic_cast<const AudioConfig*>(pConfig->getOutput());
-  m_pIqOutput = new AudioOutput();
-  m_pIqOutput->initialise(audioOutputConfig);
-
-  uint32_t preferredOutputRate = m_pIqOutput->getSampleRate();
-  m_resampler.configure(inputSampleRate, preferredOutputRate);
-  // uint32_t decimatorOutputRate = m_decimator.configure(inputSampleRate, preferredOutputRate);
-  //
-  // if (decimatorOutputRate != preferredOutputRate) {
-  //   m_resampleRequired = true;
-  //   m_resampler.configure(decimatorOutputRate, preferredOutputRate);
-  // }
-
-  // m_ifFilter.getKernel().configure(
-  //   mode.getLoCut(),
-  //   mode.getHiCut(),
-  //   0.0,
-  //   decimatorOutputRate * 2);
-
-  // m_afFilter.getKernel().configure(
-  //   100.0,
-  //   3000.0,
-  //   0.0,
-  //   decimatorOutputRate * 2);
-  //
-  // m_amDemodulator.setOutputRate(decimatorOutputRate);
-  // m_fmDemodulator.setOutputRate(decimatorOutputRate);
-  // m_ssbDemodulator.setOutputRate(decimatorOutputRate);
-  //
-  // m_ssbDemodulator.setMode(SsbDemodulator::Mode::USB);
+  if (pConfig != nullptr) {
+    m_iqIo.configure(&pConfig->iqIo);
+    // Send the audio (interleaved I/Q) from the pipeline directly to the output since there is only one
+    // TX pipeline (no mixing to be done beforehand as with the receiver).
+    m_iqPipeline.initialise(&m_iqIo, &m_iqIo);
+    m_iqIo.setIqSink(&m_iqPipeline);
+  }
 }
-
 void
 IqTransmitter::apply(const TransmitterSettings& settings)
 {
-  if (settings.changed & TransmitterSettings::RF) {
-    if (settings.rfSettings.changed & RfSettings::OFFSET) {
-      m_oscillatorMixer.setFrequency(-settings.rfSettings.offset);
-    }
-  }
-  if (settings.changed & TransmitterSettings::MODE) {
-    setMode(settings.mode);
-  }
-}
-
-void
-IqTransmitter::setMode(const Mode& mode)
-{
-  m_mode = mode;
-  uint32_t sampleRate = m_pAudioInput->getSampleRate();
-  m_ifFilter.getKernel().configure(mode.getLoCut(), mode.getHiCut(), mode.getOffset(), sampleRate * 2);
-  setModulator(mode.getType());
-}
-void
-IqTransmitter::setModulator(Mode::Type modeType)
-{
-  std::lock_guard<std::mutex> lock(m_modulatorMutex);
-  switch (modeType) {
-  case Mode::Type::AMN:
-  case Mode::Type::AMW:
-    m_pModulator = nullptr;
-    break;
-  case Mode::Type::FMN:
-  case Mode::Type::FMW:
-    m_pModulator = nullptr;
-    break;
-  case Mode::Type::USB:
-    m_pModulator = &m_ssbModulator;
-    m_ssbModulator.setMode(SsbModulator::Mode::USB);
-    break;
-  case Mode::Type::LSB:
-    m_pModulator = &m_ssbModulator;
-    m_ssbModulator.setMode(SsbModulator::Mode::LSB);
-    break;
-  default:
-    m_pModulator = nullptr;
-    throw SettingsException("Unknown mode type");
-    break;
-  }
+  m_iqPipeline.apply(settings);
 }
 
 void
 IqTransmitter::start() const
 {
-
-  if (m_pAudioInput != nullptr) {
-    m_pAudioInput->start();
-  }
-  if (m_pIqOutput != nullptr) {
-    m_pIqOutput->start();
-  }
+  uint32_t framesPerOutputPacket = m_iqPipeline.getMaxFramesPerOutputPacket();
+  uint32_t framesPerInputPacket = m_iqPipeline.getMaxFramesPerInputPacket();
+  m_iqIo.start(framesPerInputPacket, framesPerOutputPacket);
 }
 
 void
 IqTransmitter::stop() const
 {
-  if (m_pAudioInput != nullptr) {
-    m_pAudioInput->stop();
-  }
-  if (m_pIqOutput != nullptr) {
-    m_pIqOutput->stop();
-  }
+  m_iqIo.stop();
 }
 
 void IqTransmitter::ptt(bool on)
@@ -158,27 +49,4 @@ void IqTransmitter::ptt(bool on)
   } else {
     stop();
   }
-}
-
-void
-IqTransmitter::sink(RealPingPongBuffers& audioBuffers, uint32_t length)
-{
-  QCoreApplication::postEvent(m_eventTarget, new TransmitterAudioEvent(audioBuffers.input(), length));
-  uint32_t outputLength = m_hilbert.transform(audioBuffers.input(), m_pipelineBuffers.input(), length);
-  bool continueProcessing = false;
-  m_modulatorMutex.lock();
-  if (m_pModulator != nullptr) {
-    outputLength = m_pModulator->processSamples(m_pipelineBuffers, outputLength);
-    continueProcessing = true;
-  }
-  m_modulatorMutex.unlock();
-  if (continueProcessing) {
-    m_pipelineBuffers.flip();
-    outputLength = m_ifFilter.processSamples(m_pipelineBuffers, outputLength);
-    m_pipelineBuffers.flip();
-    outputLength = m_resampler.processSamples(m_pipelineBuffers, outputLength);
-    m_pipelineBuffers.flip();
-    outputLength = m_oscillatorMixer.processSamples(m_pipelineBuffers, outputLength);
-  }
-
 }

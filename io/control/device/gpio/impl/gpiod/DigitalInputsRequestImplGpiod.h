@@ -2,8 +2,8 @@
 // Created by murray on 18/9/25.
 //
 
-#ifndef CUTESDR_VK6HL_GPIOLINESIMPLGPIOD_H
-#define CUTESDR_VK6HL_GPIOLINESIMPLGPIOD_H
+#pragma once
+
 #include <QThread>
 #include <vector>
 
@@ -61,6 +61,3 @@ protected:
   gpiod_edge_event_buffer* m_pEventBuffer;
   uint64_t m_debouncePeriod;
 };
-
-
-#endif //CUTESDR_VK6HL_GPIOLINESIMPLGPIOD_H

@@ -2,8 +2,8 @@
 // Created by murray on 20/8/25.
 //
 
-#ifndef CUTESDR_VK6HL_CONTROLSOURCEFACTORY_H
-#define CUTESDR_VK6HL_CONTROLSOURCEFACTORY_H
+#pragma once
+
 #include "ControlSource.h"
 #include <config/ConfigBase.h>
 
@@ -15,5 +15,3 @@ public:
   static ControlSource* create(const std::string& type);
 };
 
-
-#endif //CUTESDR_VK6HL_CONTROLSOURCEFACTORY_H

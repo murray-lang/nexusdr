@@ -2,8 +2,8 @@
 // Created by murray on 20/8/25.
 //
 
-#ifndef CONTROLCONFIG_H
-#define CONTROLCONFIG_H
+#pragma once
+
 #include "VariantConfig.h"
 #include "ConfigBase.h"
 #include "ConfigFactory.h"
@@ -100,5 +100,3 @@ protected:
   std::vector<ConfigBase*> m_sinks;
   std::vector<ConfigBase*> m_sources;
 };
-
-#endif //CONTROLCONFIG_H

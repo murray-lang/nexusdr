@@ -2,8 +2,8 @@
 // Created by murray on 18/9/25.
 //
 
-#ifndef CUTESDR_VK6HL_GPIOLINESIMPLPIGPIO_H
-#define CUTESDR_VK6HL_GPIOLINESIMPLPIGPIO_H
+#pragma once
+
 #include <vector>
 
 #include "GpioImplPiGpio.h"
@@ -41,6 +41,3 @@ protected:
   std::string m_consumer;
 
 };
-
-
-#endif //CUTESDR_VK6HL_GPIOLINESIMPLPIGPIO_H

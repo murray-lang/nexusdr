@@ -2,8 +2,8 @@
 // Created by murray on 2025-08-24.
 //
 
-#ifndef CUTESDR_VK6HL_SETTINGSBASE_H
-#define CUTESDR_VK6HL_SETTINGSBASE_H
+#pragma once
+
 #include <cstdint>
 
 #include "SingleSetting.h"
@@ -33,5 +33,3 @@ public:
 
   uint32_t changed;
 };
-
-#endif //CUTESDR_VK6HL_SETTINGSBASE_H

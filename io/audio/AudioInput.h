@@ -2,19 +2,19 @@
 // Created by murray on 5/08/25.
 //
 
-#ifndef AUDIOINPUT_H
-#define AUDIOINPUT_H
+#pragma once
+
 #include "AudioException.h"
 #include "./device/AudioDeviceFactory.h"
 #include "AudioIo.h"
-#include "IqSink.h"
+#include "AudioSink.h"
 #include "config/AudioConfig.h"
 
-template<typename T>
+// template<typename T>
 class AudioInput : public AudioIo
 {
 public:
-  explicit AudioInput(AudioSink<T>* pSink) : AudioIo(), m_pDevice(nullptr), m_pSink(pSink)
+  explicit AudioInput(AudioSink* pSink) : AudioIo(), m_pDevice(nullptr), m_pSink(pSink)
   {
   }
 
@@ -23,10 +23,10 @@ public:
     delete m_pDevice;
   }
 
-  void initialise(const AudioConfig* pConfig) override
+  void configure(const AudioConfig* pConfig) override
   {
     // delete m_pDevice;
-    m_pDevice = AudioDeviceFactory::createInputDevice<T>(pConfig, m_pSink);
+    m_pDevice = AudioDeviceFactory::createInputDevice(pConfig, m_pSink);
   }
 
   [[nodiscard]] uint32_t getSampleRate() const override
@@ -38,12 +38,12 @@ public:
     return m_pDevice->getSampleRate();
   }
 
-  void start() const override
+  void start(uint32_t maxPacketFrames) const override
   {
     if (m_pDevice == nullptr) {
       throw AudioException("IqAudioInput not initialised");
     }
-    m_pDevice->start();
+    m_pDevice->start(maxPacketFrames);
   }
   void stop() const override
   {
@@ -52,8 +52,6 @@ public:
     }
   }
 protected:
-  AudioInputDevice<T>* m_pDevice;
-  AudioSink<T>* m_pSink;
+  AudioInputDevice* m_pDevice;
+  AudioSink* m_pSink;
 };
-
-#endif //AUDIOINPUT_H

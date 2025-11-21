@@ -2,8 +2,7 @@
 // Created by murray on 15/03/25.
 //
 
-#ifndef CUTESDR_VK6HL_SIGNALEMITTER_H
-#define CUTESDR_VK6HL_SIGNALEMITTER_H
+#pragma once
 
 #include <QObject>
 #include "dsp/utils/FftData.h"
@@ -37,5 +36,3 @@ public:
     emit signalRealSignal(stage, sharedSignal, length);
   }
 };
-
-#endif //CUTESDR_VK6HL_SIGNALEMITTER_H

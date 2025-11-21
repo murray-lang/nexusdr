@@ -2,8 +2,8 @@
 // Created by murray on 5/08/25.
 //
 
-#ifndef RECEIVERAUDIOEVENT_H
-#define RECEIVERAUDIOEVENT_H
+#pragma once
+
 #include <memory>
 #include <qcoreevent.h>
 #include "../../SampleTypes.h"
@@ -25,6 +25,3 @@ class ReceiverAudioEvent : public QEvent
   uint32_t dataLength;
 
 };
-
-
-#endif //RECEIVERAUDIOEVENT_H

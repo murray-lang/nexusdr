@@ -2,8 +2,8 @@
 // Created by murray on 29/9/25.
 //
 
-#ifndef CUTESDR_VK6HL_GPIOLINE_H
-#define CUTESDR_VK6HL_GPIOLINE_H
+#pragma once
+
 #include <cstdint>
 
 #include "config/GpioLinesConfig.h"
@@ -65,6 +65,3 @@ protected:
   Edge m_edge;
 
 };
-
-
-#endif //CUTESDR_VK6HL_GPIOLINE_H

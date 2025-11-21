@@ -2,8 +2,8 @@
 // Created by murray on 15/04/23.
 //
 
-#ifndef FUNCUBEPLAY_FUNCUBEDONGLE_H
-#define FUNCUBEPLAY_FUNCUBEDONGLE_H
+#pragma once
+
 
 #include "../../ControlSink.h"
 #include "../usb/HidUsbControl.h"
@@ -48,5 +48,3 @@ protected:
   HidUsbControl m_control;
   RadioSettings m_lastSettings;
 };
-
-#endif //FUNCUBEPLAY_FUNCUBEDONGLE_H

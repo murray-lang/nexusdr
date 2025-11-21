@@ -2,8 +2,8 @@
 // Created by murray on 5/08/25.
 //
 
-#ifndef TRANSMITTERAUDIOEVENT_H
-#define TRANSMITTERAUDIOEVENT_H
+#pragma once
+
 #include <memory>
 #include <qcoreevent.h>
 #include "../../SampleTypes.h"
@@ -25,5 +25,3 @@ class TransmitterAudioEvent : public QEvent
   uint32_t dataLength;
 
 };
-
-#endif //TRANSMITTERAUDIOEVENT_H

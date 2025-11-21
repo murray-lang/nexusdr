@@ -2,8 +2,8 @@
 // Created by murray on 18/07/25.
 //
 
-#ifndef AUDIOOUTPUTDEVICE_H
-#define AUDIOOUTPUTDEVICE_H
+#pragma once
+
 #include <deque>
 #include <QIODevice>
 #include <mutex>
@@ -23,7 +23,7 @@ public:
     AudioOutputDevice::stop();
   };
 
-  void start() override;
+  void start(uint32_t maxPacketFrames) override;
   void stop() override;
 
   uint32_t addAudioData(const vsdrreal& data, uint32_t length);
@@ -36,6 +36,6 @@ private:
   std::deque<int16_t> m_audioBuffer;
   std::mutex m_mutex;
 
-};
+  uint32_t m_maxPacketFrames;
 
-#endif //AUDIOOUTPUTDEVICE_H
+};

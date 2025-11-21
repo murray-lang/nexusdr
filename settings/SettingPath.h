@@ -2,8 +2,8 @@
 // Created by murray on 2025-08-24.
 //
 
-#ifndef CUTESDR_VK6HL_SETTINGPATH_H
-#define CUTESDR_VK6HL_SETTINGPATH_H
+#pragma once
+
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -29,4 +29,3 @@ public:
 protected:
   std::vector<uint32_t> m_features;
 };
-#endif //CUTESDR_VK6HL_SETTINGPATH_H

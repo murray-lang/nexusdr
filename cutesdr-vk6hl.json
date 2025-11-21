@@ -1,93 +1,107 @@
 {
-    "radio": {
-      "control": {
-          "sinks": [
-          	{
-              "type": "funcube",
-              "config": {
-              }
-            }
-          ],
-          "sources": [
-            {
-              "type": "digitalInputGroup",
-              "config": {
-          	    "inputs": [
-          	        {
-						"type": "digitalInput",
-						"config": {
-							"lines": [22],
-							"bias": "pull-up",
-							"debounce": true,
-							"settingPath": "ptt"
-						}
-					},
-          	        {
-						"type": "rotaryEncoder",
-						"config": {
-							"lines": [8, 7],
-							"bias": "pull-up",
-							"debounce": true,
-							"settingPath": "mode"
-					    }
-				    },
-          	        {
-						
-						"type": "rotaryEncoder",
-						"config": {
-							"lines": [13, 12],
-							"bias": "pull-up",
-							"debounce": true,
-							"settingPath": "rx.rf.frequency"
-						}
-					},
-					{
-						
-						"type": "rotaryEncoder",
-						"config": {
-							"lines": [26, 16],
-							"bias": "pull-up",
-							"debounce": true,
-							"settingPath": "rx.rf.offset"
-						}
-					}
-          	    ]
-              }
-            }
-          ]
-        },
-        "receiver": {
-          "input": {
-            "type": "audio",
+  "radio": {
+    "control": {
+        "sinks": [
+          {
+            "type": "funcube",
             "config": {
-              "soundApi": "alsa",
-              "searchExpression": "HiFiBerry",
-              "sampleRate": 192000,
-              "channelCount": 2
-            }
-          },
-          "output": {
-            "type": "audio",
-            "config": {
-              "soundApi": "alsa",
-              "searchExpression": "C-Media",
-              "sampleRate": 48000,
-              "format": "sint16"
             }
           }
+        ],
+        "sources": [
+          {
+            "type": "digitalInputGroup",
+            "config": {
+              "inputs": [
+                  {
+                      "type": "digitalInput",
+                      "config": {
+                          "lines": [22],
+                          "bias": "pull-up",
+                          "debounce": true,
+                          "settingPath": "ptt"
+                      }
+                  },
+                  {
+                      "type": "rotaryEncoder",
+                      "config": {
+                          "lines": [8, 7],
+                          "bias": "pull-up",
+                          "debounce": true,
+                          "settingPath": "mode"
+                      }
+                  },
+                  {
+
+                      "type": "rotaryEncoder",
+                      "config": {
+                          "lines": [13, 12],
+                          "bias": "pull-up",
+                          "debounce": true,
+                          "settingPath": "rx.rf.frequency"
+                      }
+                  },
+                  {
+
+                      "type": "rotaryEncoder",
+                      "config": {
+                          "lines": [26, 16],
+                          "bias": "pull-up",
+                          "debounce": true,
+                          "settingPath": "rx.rf.offset"
+                      }
+                  }
+              ]
+            }
+          }
+        ]
+      },
+    "receiver": {
+      "iqIo": {
+        "iqSource": {
+          "type": "audioSignalIqSource",
+          "config": {
+            "audioInput": {
+              "type": "audio",
+              "config": {
+                "soundApi": "alsa",
+                "searchExpression": "HiFiBerry",
+                "sampleRate": 192000,
+                "channelCount": 2
+              }
+            },
+            "reverse": false
+          }
         },
-      "transmitter": {
-        "input": {
+        "audioOutput": {
           "type": "audio",
           "config": {
             "soundApi": "alsa",
             "searchExpression": "C-Media",
             "sampleRate": 48000,
-            "format": "sint16",
-            "channelCount": 1
+            "format": "sint16"
+          }
+        }
+      }
+    },
+    "transmitter": {
+      "iqIo": {
+        "iqSource": {
+          "type": "audioIqSource",
+          "config": {
+            "audioInput": {
+              "type": "audio",
+              "config": {
+                "soundApi": "alsa",
+                "searchExpression": "C-Media",
+                "sampleRate": 48000,
+                "format": "sint16",
+                "channelCount": 1
+              }
+            }
           }
         },
-        "output": {
+        "audioOutput": {
           "type": "audio",
           "config": {
             "soundApi": "alsa",
@@ -98,5 +112,5 @@
         }
       }
     }
-
+  }
 }

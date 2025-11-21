@@ -2,8 +2,8 @@
 // Created by murray on 5/10/25.
 //
 
-#ifndef CUTESDR_VK6HL_MODES_H
-#define CUTESDR_VK6HL_MODES_H
+#pragma once
+
 #include <unordered_map>
 #include <vector>
 
@@ -49,5 +49,3 @@ protected:
   int m_currentIndex;
   std::vector<Mode> m_modes;
 };
-
-#endif //CUTESDR_VK6HL_MODES_H

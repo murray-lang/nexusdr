@@ -129,14 +129,14 @@ set(PROJECT_SOURCES
         dsp/utils/VectorAssembler.h
         dsp/utils/pocketfft/pocketfft_hdronly.h
         radio/receiver/IqReceiver.h radio/receiver/IqReceiver.cpp
-        dsp/stages/IqStage.h
-        dsp/stages/oscillators/OscillatorStage.h
-        dsp/stages/oscillators/OscillatorMixer.h
-        dsp/stages/oscillators/OscillatorInjector.h
-        dsp/stages/filters/FastFIR.h
-        dsp/stages/DcShift.h
-        dsp/stages/demodulators/Demodulator.h
-        dsp/stages/demodulators/AmDemodulator.h
+        dsp/pipeline/IqPipelineStage.h
+        dsp/pipeline/oscillators/OscillatorStage.h
+        dsp/pipeline/oscillators/OscillatorMixer.h
+        dsp/pipeline/oscillators/OscillatorInjector.h
+        dsp/pipeline/filters/FastFIR.h
+        dsp/pipeline/DcShift.h
+        dsp/pipeline/demodulators/Demodulator.h
+        dsp/pipeline/demodulators/AmDemodulator.h
 
         io/control/device/usb/UsbControl.h
         io/control/device/usb/UsbException.cpp
@@ -156,22 +156,22 @@ set(PROJECT_SOURCES
         settings/RadioSettings.h
         settings/TransmitterSettings.h
 
-        dsp/stages/demodulators/AmDemodulator.cpp
-        dsp/stages/filters/kernels/FirKernel.h
-        dsp/stages/filters/kernels/BandPassFirKernel.h
-        dsp/stages/filters/kernels/BandPassFirKernel.cpp
-        dsp/stages/filters/kernels/BandStopFirKernel.cpp
-        dsp/stages/filters/kernels/BandStopFirKernel.h
-        dsp/stages/filters/kernels/LowPassFirKernel.cpp
-        dsp/stages/filters/kernels/LowPassFirKernel.h
+        dsp/pipeline/demodulators/AmDemodulator.cpp
+        dsp/pipeline/filters/kernels/FirKernel.h
+        dsp/pipeline/filters/kernels/BandPassFirKernel.h
+        dsp/pipeline/filters/kernels/BandPassFirKernel.cpp
+        dsp/pipeline/filters/kernels/BandStopFirKernel.cpp
+        dsp/pipeline/filters/kernels/BandStopFirKernel.h
+        dsp/pipeline/filters/kernels/LowPassFirKernel.cpp
+        dsp/pipeline/filters/kernels/LowPassFirKernel.h
         SignalEmitter.h
-        dsp/stages/filters/OverlapBuffers.h
+        dsp/pipeline/filters/OverlapBuffers.h
         dsp/utils/window.h
         dsp/utils/OverlapBuffers.h
-        dsp/stages/decimator/Decimator.h
-        dsp/stages/decimator/MyFirCoefficients.h
+        dsp/pipeline/decimator/Decimator.h
+        dsp/pipeline/decimator/MyFirCoefficients.h
 
-        dsp/stages/metering/MeteringStage.h
+        dsp/pipeline/metering/MeteringStage.h
         config/RadioConfig.h
         config/ReceiverConfig.h
         config/TransmitterConfig.h
@@ -186,12 +186,11 @@ set(PROJECT_SOURCES
         io/audio/device/AudioInputDevice.h
         io/audio/AudioException.h
         io/audio/AudioException.cpp
-        io/audio/AudioSink.h
+        dsp/iq/PingPongBufferSink.h
         io/audio/AudioIo.h
         io/audio/AudioOutput.h
         io/audio/device/AudioDeviceFactory.h
-        io/audio/IqSink.h
-        io/audio/IqAudioInput.h
+        dsp/iq/IqSink.h
         radio/receiver/ReceiverIqEvent.h
         radio/receiver/ReceiverIqEvent.cpp
         radio/receiver/ReceiverAudioEvent.cpp
@@ -236,8 +235,8 @@ set(PROJECT_SOURCES
         util/StringUtils.h
         io/control/RadioControl.cpp
         io/control/RadioControl.h
-        dsp/stages/demodulators/FmDemodulator.cpp
-        dsp/stages/demodulators/FmDemodulator.h
+        dsp/pipeline/demodulators/FmDemodulator.cpp
+        dsp/pipeline/demodulators/FmDemodulator.h
         io/control/device/gpio/digital/DigitalInput.h
         io/control/device/gpio/digital/DigitalInput.cpp
         io/control/device/gpio/digital/DigitalInputFactory.cpp
@@ -258,16 +257,33 @@ set(PROJECT_SOURCES
         io/control/device/gpio/GpioLines.cpp
         io/control/device/gpio/GpioLines.h
         config/GpioLinesConfig.h
-        dsp/stages/demodulators/SsbDemodulator.cpp
-        dsp/stages/demodulators/SsbDemodulator.h
+        dsp/pipeline/demodulators/SsbDemodulator.cpp
+        dsp/pipeline/demodulators/SsbDemodulator.h
         settings/Mode.h
         settings/ModeSettings.h
         settings/ModeSettings.cpp
-        dsp/stages/resampler/Resampler.h
+        dsp/pipeline/resampler/Resampler.h
         settings/TransmitterSettingsSink.h
         dsp/utils/HilbertTransform.h
-        dsp/stages/modulators/Modulator.h
-        dsp/stages/modulators/SsbModulator.h
+        dsp/pipeline/modulators/Modulator.h
+        dsp/pipeline/modulators/SsbModulator.h
+        dsp/iq/IqSource.h
+        dsp/iq/AudioIqSource.h
+        dsp/iq/IqSourceFactory.cpp
+        dsp/iq/IqSourceFactory.h
+        config/AudioIqSourceConfig.h
+        dsp/iq/AudioSignalIqSource.h
+        io/audio/AudioSink.h
+        config/AudioSignalIqSourceConfig.h
+        dsp/pipeline/IqPipeline.h
+        dsp/pipeline/IqRxPipeline.h
+        dsp/pipeline/IqRxPipeline.cpp
+        dsp/pipeline/IqPipeline.cpp
+        dsp/pipeline/IqTxPipeline.cpp
+        dsp/pipeline/IqTxPipeline.h
+        config/IqIoConfig.h
+        io/iq/IqIo.cpp
+        io/iq/IqIo.h
 
 )
 

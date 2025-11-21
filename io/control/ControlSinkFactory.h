@@ -2,8 +2,8 @@
 // Created by murray on 6/08/25.
 //
 
-#ifndef CONTROLSINKFACTORY_H
-#define CONTROLSINKFACTORY_H
+#pragma once
+
 #include <string>
 
 #include "ControlSink.h"
@@ -17,5 +17,3 @@ public:
   static ControlSink* create(const std::string& type);
   // static std::string toLowerCase(const std::string& str);
 };
-
-#endif //CONTROLSINKFACTORY_H

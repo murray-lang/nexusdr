@@ -1,5 +1,4 @@
-#ifndef OSCILLATOR_H
-#define OSCILLATOR_H
+#pragma once
 
 #include <cstdint>
 #include "../../SampleTypes.h"
@@ -54,5 +53,3 @@ protected:
   sdrreal m_thetaDelta;
   sdrreal m_sign;
 };
-
-#endif // OSCILLATOR_H

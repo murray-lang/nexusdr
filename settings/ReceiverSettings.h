@@ -2,8 +2,8 @@
 // Created by murray on 14/04/23.
 //
 
-#ifndef FUNCUBEPLAY_RECEIVERSETTINGS_H
-#define FUNCUBEPLAY_RECEIVERSETTINGS_H
+#pragma once
+
 
 #include "RfSettings.h"
 #include "IfSettings.h"
@@ -96,4 +96,3 @@ public:
   IfSettings ifSettings;
 };
 
-#endif //FUNCUBEPLAY_RECEIVERSETTINGS_H

@@ -2,8 +2,8 @@
 // Created by murray on 18/08/25.
 //
 
-#ifndef RADIOSETTINGSSINK_H
-#define RADIOSETTINGSSINK_H
+#pragma once
+
 // #include "RadioSettings.h"
 
 class RadioSettings;
@@ -17,5 +17,3 @@ public:
   virtual void applySingleSetting(const SingleSetting& settingDelta) = 0;
 
 };
-
-#endif //RADIOSETTINGSSINK_H

@@ -2,8 +2,8 @@
 // Created by murray on 10/08/25.
 //
 
-#ifndef AUDIODEVICEFACTORY_H
-#define AUDIODEVICEFACTORY_H
+#pragma once
+
 
 #include <regex>
 
@@ -15,8 +15,8 @@ class AudioDeviceFactory
 {
   // static const RtAudio::Api defaultApi = RtAudio::Api::LINUX_ALSA;
 public:
-  template<typename T>
-  static AudioInputDevice<T>* createInputDevice(const AudioConfig* pConfig, AudioSink<T>* pSink)
+  // template<typename T>
+  static AudioInputDevice* createInputDevice(const AudioConfig* pConfig, AudioSink* pSink)
   {
     const RtAudio::Api api = apiFromConfig(pConfig);
     const RtAudio::DeviceInfo deviceInfo = findInputDevice(api, pConfig->getSearchExpression());
@@ -25,7 +25,7 @@ public:
     format.channelCount = pConfig->getChannelCount();
     format.sampleFormat = RTAUDIO_FLOAT32;
     format.bytesPerFrame = sizeof(float) * format.channelCount;
-    return new AudioInputDevice<T>(deviceInfo, format, pSink);
+    return new AudioInputDevice(deviceInfo, format, pSink);
   }
 
   static AudioOutputDevice * createOutputDevice(const AudioConfig* pConfig)
@@ -257,4 +257,3 @@ public:
   }
 };
 
-#endif //AUDIODEVICEFACTORY_H

@@ -2,8 +2,8 @@
 // Created by murray on 2025-08-21.
 //
 
-#ifndef CUTESDR_VK6HL_GPIO_H
-#define CUTESDR_VK6HL_GPIO_H
+#pragma once
+
 #include <memory>
 
 #include "digital/DigitalInputsRequest.h"
@@ -42,8 +42,3 @@ protected:
   std::unique_ptr<Impl> m_pImpl;
 
 };
-
-
-
-
-#endif //CUTESDR_VK6HL_GPIO_H

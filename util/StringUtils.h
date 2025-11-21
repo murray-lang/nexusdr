@@ -2,8 +2,8 @@
 // Created by murray on 2025-08-24.
 //
 
-#ifndef CUTESDR_VK6HL_STRINGUTILS_H
-#define CUTESDR_VK6HL_STRINGUTILS_H
+#pragma once
+
 #include <string>
 #include <vector>
 
@@ -13,6 +13,3 @@ public:
   static std::vector<std::string> split(const std::string& s, char delim);
   static std::string toLowerCase(const std::string& str);
 };
-
-
-#endif //CUTESDR_VK6HL_STRINGUTILS_H

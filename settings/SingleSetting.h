@@ -2,8 +2,8 @@
 // Created by murray on 2025-08-24.
 //
 
-#ifndef CUTESDR_VK6HL_SETTINGDELTA_H
-#define CUTESDR_VK6HL_SETTINGDELTA_H
+#pragma once
+
 #include "SettingPath.h"
 #include <variant>
 #include "Mode.h"
@@ -59,5 +59,3 @@ protected:
   m_value;
   Meaning m_meaning;
 };
-
-#endif //CUTESDR_VK6HL_SETTINGDELTA_H

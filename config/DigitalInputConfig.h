@@ -2,8 +2,8 @@
 // Created by murray on 15/9/25.
 //
 
-#ifndef CUTESDR_VK6HL_DIGITALINPUTCONFIG_H
-#define CUTESDR_VK6HL_DIGITALINPUTCONFIG_H
+#pragma once
+
 #include "ConfigBase.h"
 #include "ConfigException.h"
 #include "GpioLinesConfig.h"
@@ -51,4 +51,3 @@ protected:
   bool m_activeHigh;
   bool m_debounce;
 };
-#endif //CUTESDR_VK6HL_DIGITALINPUTCONFIG_H

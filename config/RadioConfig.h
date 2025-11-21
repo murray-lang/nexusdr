@@ -2,8 +2,8 @@
 // Created by murray on 27/07/25.
 //
 
-#ifndef CUTESDR_VK6HL_RADIOCONFIG_H
-#define CUTESDR_VK6HL_RADIOCONFIG_H
+#pragma once
+
 #include <config/ControlConfig.h>
 #include "ConfigBase.h"
 #include "ReceiverConfig.h"
@@ -78,5 +78,3 @@ protected:
   ReceiverConfig* m_pReceiver;
   TransmitterConfig* m_pTransmitter;
 };
-
-#endif //CUTESDR_VK6HL_RADIOCONFIG_H

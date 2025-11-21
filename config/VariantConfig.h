@@ -2,8 +2,8 @@
 // Created by murray on 14/9/25.
 //
 
-#ifndef CUTESDR_VK6HL_VARIANTCONFIG_H
-#define CUTESDR_VK6HL_VARIANTCONFIG_H
+#pragma once
+
 #include <string>
 #include <nlohmann/json.hpp>
 
@@ -50,5 +50,3 @@ protected:
   std::string m_type;
   nlohmann::json m_config;
 };
-
-#endif //CUTESDR_VK6HL_VARIANTCONFIG_H

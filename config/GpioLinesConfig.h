@@ -2,8 +2,8 @@
 // Created by murray on 29/9/25.
 //
 
-#ifndef CUTESDR_VK6HL_GPIOLINECONFIG_H
-#define CUTESDR_VK6HL_GPIOLINECONFIG_H
+#pragma once
+
 #include "ConfigBase.h"
 
 
@@ -41,4 +41,3 @@ protected:
   std::string m_bias; // "none", "pull-up" or "pull-down"
   std::string m_edge; // "rising", "falling" or "both"
 };
-#endif //CUTESDR_VK6HL_GPIOLINECONFIG_H

@@ -2,8 +2,7 @@
 // Created by murray on 4/08/25.
 //
 
-#ifndef AUDIODEVICE_H
-#define AUDIODEVICE_H
+#pragma once
 #include <rtaudio/RtAudio.h>
 #include "config/AudioConfig.h"
 
@@ -29,7 +28,7 @@ public:
   {
   }
 
-  virtual void start() = 0;
+  virtual void start(uint32_t maxPacketFrames) = 0;
   virtual void stop() = 0;
 
   [[nodiscard]] uint32_t getSampleRate() const { return m_format.sampleRate; }
@@ -39,5 +38,3 @@ protected:
   Format m_format;
   RtAudio::DeviceInfo m_deviceInfo;
 };
-
-#endif //AUDIODEVICE_H

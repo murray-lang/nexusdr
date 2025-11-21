@@ -2,8 +2,8 @@
 // Created by murray on 5/08/25.
 //
 
-#ifndef RECEIVERIQEVENT_H
-#define RECEIVERIQEVENT_H
+#pragma once
+
 #include <memory>
 #include <qcoreevent.h>
 #include "../../SampleTypes.h"
@@ -27,4 +27,3 @@ public:
 
 };
 
-#endif //RECEIVERIQEVENT_H

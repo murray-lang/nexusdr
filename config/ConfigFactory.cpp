@@ -10,10 +10,13 @@
 #include "VariantConfig.h"
 #include <stdexcept>
 
+#include "AudioIqSourceConfig.h"
+#include "AudioSignalIqSourceConfig.h"
 #include "ControlConfig.h"
 #include "DigitalInputGroupConfig.h"
 #include "FunCubeConfig.h"
 #include "RotaryEncoderConfig.h"
+#include "dsp/iq/AudioSignalIqSource.h"
 #include "util/StringUtils.h"
 
 ConfigBase*
@@ -45,8 +48,8 @@ ConfigFactory::create(const std::string& type)
     auto * result = new RotaryEncoderConfig();
     return result;
   }
-  if (typeAsLower == ReceiverConfig::type) {
-    auto * result = new ReceiverConfig();
+  if (typeAsLower == IqIoConfig::type) {
+    auto * result = new IqIoConfig();
     return result;
   }
   if (typeAsLower == TransmitterConfig::type) {
@@ -63,6 +66,14 @@ ConfigFactory::create(const std::string& type)
   }
   if (typeAsLower == FunCubeConfig::type) {
     auto * result = new FunCubeConfig();
+    return result;
+  }
+  if (typeAsLower == AudioIqSourceConfig::type) {
+    auto * result = new AudioIqSourceConfig();
+    return result;
+  }
+  if (typeAsLower == AudioSignalIqSourceConfig::type) {
+    auto * result = new AudioSignalIqSourceConfig();
     return result;
   }
   return nullptr;

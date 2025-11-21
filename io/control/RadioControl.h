@@ -2,8 +2,8 @@
 // Created by murray on 2025-08-24.
 //
 
-#ifndef CUTESDR_VK6HL_RADIOCONTROL_H
-#define CUTESDR_VK6HL_RADIOCONTROL_H
+#pragma once
+
 #include <vector>
 
 #include "ControlSink.h"
@@ -70,6 +70,3 @@ protected:
   std::vector<ControlSink*> m_controlSinks;
   std::vector<ControlSource*> m_controlSources;
 };
-
-
-#endif //CUTESDR_VK6HL_RADIOCONTROL_H

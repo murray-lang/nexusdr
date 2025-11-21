@@ -1,5 +1,5 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#pragma once
+
 
 #include <QMainWindow>
 #include <QScopedPointer>
@@ -91,4 +91,4 @@ private:
   QGraphicsRectItem * m_filterPassbandRect;
 
 };
-#endif // MAINWINDOW_H
+

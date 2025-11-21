@@ -1,5 +1,5 @@
-#ifndef CUTESDR_VK6HL_GPIOIMPLGPIOD_H
-#define CUTESDR_VK6HL_GPIOIMPLGPIOD_H
+#pragma once
+
 #include <iostream>
 #include "../../Gpio.h"
 #include <gpiod.h>
@@ -21,6 +21,3 @@ public:
 protected:
     gpiod_chip* m_pChip;
 };
-
-
-#endif //CUTESDR_VK6HL_GPIOIMPLGPIOD_H

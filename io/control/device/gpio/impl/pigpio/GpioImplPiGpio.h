@@ -1,5 +1,5 @@
-#ifndef CUTESDR_VK6HL_GPIOIMPLPIGPIO_H
-#define CUTESDR_VK6HL_GPIOIMPLPIGPIO_H
+#pragma once
+
 #include <iostream>
 #include "../../Gpio.h"
 #include <pigpio.h>
@@ -20,6 +20,3 @@ public:
 protected:
     int m_initRc;
 };
-
-
-#endif //CUTESDR_VK6HL_GPIOIMPLPIGPIO_H

@@ -2,8 +2,8 @@
 // Created by murray on 5/08/25.
 //
 
-#ifndef AUDIOIO_H
-#define AUDIOIO_H
+#pragma once
+
 #include "device/AudioDevice.h"
 #include "config/AudioConfig.h"
 
@@ -15,9 +15,9 @@ public:
 
   virtual ~AudioIo() = default;
 
-  virtual void initialise(const AudioConfig* pConfig) = 0;
+  virtual void configure(const AudioConfig* pConfig) = 0;
 
-  virtual void start() const = 0;
+  virtual void start(uint32_t maxPacketFrames) const = 0;
   virtual void stop() const = 0;
 
   [[nodiscard]] virtual uint32_t getSampleRate() const = 0;
@@ -27,5 +27,3 @@ protected:
   // AudioDevice* m_pDevice;
   // AudioDevice::Format m_format;
 };
-
-#endif //AUDIOIO_H

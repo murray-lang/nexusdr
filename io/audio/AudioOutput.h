@@ -2,14 +2,14 @@
 // Created by murray on 5/08/25.
 //
 
-#ifndef AUDIOOUTPUT_H
-#define AUDIOOUTPUT_H
+#pragma once
+
 
 #include "AudioIo.h"
 #include "./device/AudioOutputDevice.h"
 #include "./device/AudioDeviceFactory.h"
 
-class AudioOutput : public AudioIo
+class AudioOutput : public AudioIo, public AudioSink
 {
   public:
   AudioOutput() : AudioIo(), m_pDevice(nullptr)
@@ -21,19 +21,19 @@ class AudioOutput : public AudioIo
     delete m_pDevice;
   }
 
-  void initialise(const AudioConfig* pConfig) override
+  void configure(const AudioConfig* pConfig) override
   {
     delete m_pDevice;
     m_pDevice = AudioDeviceFactory::createOutputDevice(pConfig);
   }
 
-  void start() const override
+  void start(uint32_t maxPacketFrames) const override
   {
     if (m_pDevice == nullptr)
     {
       throw AudioException("AudioOutput not initialised");
     }
-    m_pDevice->start();
+    m_pDevice->start(maxPacketFrames);
     // m_pSink->setVolume(1.0); How to do this with RtAudio???
   }
 
@@ -53,7 +53,7 @@ class AudioOutput : public AudioIo
     return m_pDevice->getSampleRate();
   }
 
-  [[nodiscard]] uint32_t addAudioData(const vsdrreal& data, uint32_t length) const
+  uint32_t sinkAudio(const vsdrreal& data, uint32_t length) override
   {
     if (m_pDevice == nullptr)
     {
@@ -67,4 +67,3 @@ protected:
 
 };
 
-#endif //AUDIOOUTPUT_H

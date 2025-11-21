@@ -2,8 +2,8 @@
 // Created by murray on 15/04/23.
 //
 
-#ifndef FUNCUBEPLAY_RADIOSETTINGS_H
-#define FUNCUBEPLAY_RADIOSETTINGS_H
+#pragma once
+
 
 #include "ModeSettings.h"
 #include "ReceiverSettings.h"
@@ -171,5 +171,3 @@ public:
   TransmitterSettings txSettings;
 
 };
-
-#endif //FUNCUBEPLAY_RADIOSETTINGS_H

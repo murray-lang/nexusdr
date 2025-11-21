@@ -2,8 +2,8 @@
 // Created by murray on 13/11/25.
 //
 
-#ifndef CUTESDR_VK6HL_HILBERTTRANSFORM_H
-#define CUTESDR_VK6HL_HILBERTTRANSFORM_H
+#pragma once
+
 #include <deque>
 
 #include "SampleTypes.h"
@@ -70,6 +70,3 @@ protected:
   vsdrreal m_coefficients;
   std::deque<sdrreal> m_delayLine;
 };
-
-
-#endif //CUTESDR_VK6HL_HILBERTTRANSFORM_H

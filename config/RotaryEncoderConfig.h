@@ -2,8 +2,8 @@
 // Created by murray on 15/9/25.
 //
 
-#ifndef CUTESDR_VK6HL_ROTARYENCODERCONFIG_H
-#define CUTESDR_VK6HL_ROTARYENCODERCONFIG_H
+#pragma once
+
 #include "DigitalInputConfig.h"
 
 class RotaryEncoderConfig : public DigitalInputConfig
@@ -19,4 +19,3 @@ public:
     DigitalInputConfig::fromJson(json);
   }
 };
-#endif //CUTESDR_VK6HL_ROTARYENCODERCONFIG_H

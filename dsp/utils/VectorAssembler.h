@@ -1,5 +1,4 @@
-#ifndef __VECTORASSEMBLER_H__
-#define __VECTORASSEMBLER_H__
+#pragma once
 
 #include <stdint.h>
 #include "../../SampleTypes.h"
@@ -62,5 +61,3 @@ protected:
     VectorVector m_availableVectors;
 
 }
-
-#endif //__VECTORASSEMBLER_H__

@@ -2,8 +2,7 @@
 // Created by murray on 27/07/25.
 //
 
-#ifndef CUTESDR_VK6HL_AUDIOCONFIG_H
-#define CUTESDR_VK6HL_AUDIOCONFIG_H
+#pragma once
 #include "ConfigBase.h"
 #include <string>
 #include <cstdint>
@@ -31,7 +30,7 @@ public:
   }
 
   AudioConfig(const AudioConfig& rhs) :
-    ConfigBase(type)
+    ConfigBase(dynamic_cast<const ConfigBase&>(rhs))
   {
     operator=(rhs);
   }
@@ -100,4 +99,3 @@ public:
   [[nodiscard]] const std::string& getFormat() const { return format; }
   [[nodiscard]] const std::string& getSoundApi() const { return soundApi; }
 };
-#endif //CUTESDR_VK6HL_AUDIOCONFIG_H

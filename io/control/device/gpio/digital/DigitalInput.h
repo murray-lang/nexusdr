@@ -2,8 +2,8 @@
 // Created by murray on 2025-08-24.
 //
 
-#ifndef CUTESDR_VK6HL_DIGITALINPUT_H
-#define CUTESDR_VK6HL_DIGITALINPUT_H
+#pragma once
+
 #include <cstdint>
 #include <vector>
 #include <config/DigitalInputConfig.h>
@@ -46,6 +46,3 @@ protected:
   SettingPath m_settingPath;
   RadioSettingsSink* m_pSink;
 };
-
-
-#endif //CUTESDR_VK6HL_DIGITALINPUT_H

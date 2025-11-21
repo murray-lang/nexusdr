@@ -2,8 +2,7 @@
 // Created by murray on 18/08/25.
 //
 
-#ifndef RADIO_H
-#define RADIO_H
+#pragma once
 #include <vector>
 
 #include <io/control/ControlSink.h>
@@ -46,6 +45,3 @@ protected:
   QObject* m_pEventTarget;
 };
 
-
-
-#endif //RADIO_H

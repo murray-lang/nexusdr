@@ -2,8 +2,8 @@
 // Created by murray on 2025-08-21.
 //
 
-#ifndef CUTESDR_VK6HL_GPIOLINES_H
-#define CUTESDR_VK6HL_GPIOLINES_H
+#pragma once
+
 #include <string>
 #include <cstdint>
 #include <unordered_map>
@@ -66,6 +66,3 @@ protected:
   // LineStateMap m_lineStates;
   LineStates m_lineStates;
 };
-
-
-#endif //CUTESDR_VK6HL_GPIOLINES_H

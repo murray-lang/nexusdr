@@ -1,26 +1,27 @@
-#ifndef AUDIOINPUTDEVICE_H_
-#define AUDIOINPUTDEVICE_H_
+#pragma once
 
 #include <QThread>
 #include "AudioDevice.h"
+// #include "../../../radio/iq/PingPongBufferSink.h"
 #include "../AudioSink.h"
 #include <QMutex>
 #include <QWaitCondition>
 
 
-#define PING_PONG_LENGTH 8192
+#define DEFAULT_BUFFER_SIZE 8192
 
-template<typename T>
+// template<typename T>
 class AudioInputDevice : public AudioDevice, public QThread
 {
 
 public:
-  AudioInputDevice(const RtAudio::DeviceInfo& deviceInfo, const Format& format, AudioSink<T>* pSink)
+  AudioInputDevice(const RtAudio::DeviceInfo& deviceInfo, const Format& format, AudioSink* pSink)
   : AudioDevice(deviceInfo, format),
     m_running(false),
     // m_sampleCursor(format),
     m_pSink(pSink),
-    m_buffers(PING_PONG_LENGTH),
+    m_outputBuffer(DEFAULT_BUFFER_SIZE),
+    m_maxPacketFrames(0),
     m_numCurrentFrames(0)
   {
     m_params.deviceId = m_deviceInfo.ID;
@@ -34,16 +35,17 @@ public:
     wait();
   }
 
-  void start() override {
+  void start(uint32_t maxPacketFrames) override {
+    m_maxPacketFrames = maxPacketFrames;
     if (!m_running) {
-      unsigned int bufferFrames = PING_PONG_LENGTH;
+      // unsigned int bufferFrames = DEFAULT_BUFFER_SIZE;
 
       RtAudioErrorType rc = m_rtAudio.openStream(
           nullptr,              // no output
           &m_params,            // input params
           m_format.sampleFormat,      // sample format
           m_format.sampleRate,
-          &bufferFrames,
+          &m_maxPacketFrames,
           &rtCallback,
           this
       );
@@ -64,7 +66,7 @@ public:
 
   static int rtCallback(void *, void *inputBuffer, unsigned int nframes, double,
                                    RtAudioStreamStatus, void *userData) {
-    return static_cast<AudioInputDevice<T>*>(userData)->handleCallback(inputBuffer, nframes);
+    return static_cast<AudioInputDevice*>(userData)->handleCallback(inputBuffer, nframes);
   }
 
 
@@ -75,7 +77,7 @@ public:
       // std::lock_guard<std::mutex> lock(m_mutex);
       QMutexLocker locker(&m_mutex);
       // Append nframes * m_channels samples
-      m_buffer.insert(m_buffer.end(), in, in + nframes * m_format.channelCount);
+      m_queue.insert(m_queue.end(), in, in + nframes * m_format.channelCount);
       m_dataAvailable.wakeOne();
     }
     return 0;
@@ -85,24 +87,22 @@ public:
   void run() override
   {
     while (m_running) {
-      std::vector<T>& input = m_buffers.input();
       {
         QMutexLocker locker(&m_mutex);
-        if (m_buffer.empty()) {
+        if (m_queue.empty()) {
           m_dataAvailable.wait(&m_mutex);
         }
-        if (!m_buffer.empty()) {
-          size_t requiredFrames = m_buffers.current().size() - m_numCurrentFrames;
-          size_t numIncomingFrames = m_buffer.size() / m_format.channelCount;
-          size_t framesToRead = std::min(requiredFrames, numIncomingFrames);
-          getSamplesFromBuffer(framesToRead, m_format.channelCount, input);
-          m_buffer.erase(m_buffer.begin(), m_buffer.begin() + framesToRead*m_format.channelCount);
+        if (!m_queue.empty()) {
+          uint32_t requiredFrames = m_maxPacketFrames - m_numCurrentFrames;
+          uint32_t numIncomingFrames = m_queue.size() / m_format.channelCount;
+          uint32_t framesToRead = std::min(requiredFrames, numIncomingFrames);
+          getSamplesFromBuffer(framesToRead, m_format.channelCount, m_outputBuffer);
+          m_queue.erase(m_queue.begin(), m_queue.begin() + framesToRead*m_format.channelCount);
           m_numCurrentFrames += framesToRead;
         }
       }
-      if (m_numCurrentFrames == input.size()) {
-        m_pSink->sink(m_buffers, static_cast<uint32_t>(m_numCurrentFrames));
-        m_buffers.reset();
+      if (m_numCurrentFrames == m_maxPacketFrames) {
+        m_pSink->sinkAudio(m_outputBuffer, static_cast<uint32_t>(m_numCurrentFrames));
         m_numCurrentFrames = 0;
       }
     }
@@ -113,7 +113,7 @@ public:
   {
     for (size_t i = 0; i < numFrames; i++) {
       for (size_t j = 0; j < channelCount; j++) {
-         input.at(i*channelCount + j) = m_buffer.at(i*channelCount + j);
+         input.at(i*channelCount + j) = m_queue.at(i*channelCount + j);
        }
     }
   }
@@ -121,17 +121,18 @@ public:
 private:
   std::atomic<bool> m_running;
   // std::mutex m_mutex;
-  std::deque<float> m_buffer;
+  std::deque<float> m_queue;
   RtAudio::StreamParameters m_params;
 
   // IqSampleCursor m_sampleCursor;
-  AudioSink<T>* m_pSink;
-  PingPongBuffers<T> m_buffers;
+  AudioSink* m_pSink;
+  vsdrreal m_outputBuffer;
   // std::vector<int8_t> m_inputBuffer;
   // qint64 m_inputBufferSize;
   // qint64 m_inputBufferBytes;
   // QQueue<QByteArray> m_bufferQueue;
-  size_t m_numCurrentFrames;
+  uint32_t m_maxPacketFrames;
+  uint32_t m_numCurrentFrames;
   // QByteArray dataChunk;
   // size_t m_inputBufferSize;
   // std::vector<int8_t> m_inputBuffer;
@@ -141,16 +142,15 @@ private:
 
 };
 
-template<>
-template<>
-inline void AudioInputDevice<sdrcomplex>::getSamplesFromBuffer<sdrcomplex>(
-  size_t numFrames,
-  uint32_t channelCount,
-  std::vector<sdrcomplex>& input
-) {
-  for (size_t i = 0; i < numFrames; i++) {
-    input.at(i) = sdrcomplex(m_buffer.at(i*2), m_buffer.at(i*2+1));
-  }
-}
+// template<>
+// template<>
+// inline void AudioInputDevice<sdrcomplex>::getSamplesFromBuffer<sdrcomplex>(
+//   size_t numFrames,
+//   uint32_t channelCount,
+//   std::vector<sdrcomplex>& input
+// ) {
+//   for (size_t i = 0; i < numFrames; i++) {
+//     input.at(i) = sdrcomplex(m_buffer.at(i*2), m_buffer.at(i*2+1));
+//   }
+// }
 
-#endif //AUDIOINPUTDEVICE_H_
