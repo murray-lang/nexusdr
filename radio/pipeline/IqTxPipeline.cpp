@@ -8,16 +8,30 @@
 #define PING_PONG_LENGTH 8192
 #define HILBERT_TAPS 63
 
-IqTxPipeline::IqTxPipeline() :
+IqTxPipeline::IqTxPipeline(QObject* eventTarget) :
+  IqPipeline(eventTarget),
   m_pModulator(nullptr),
   m_resampler(),
   m_ifFilter(FFT_SIZE),
   m_inputSampleRate(0),
-  m_outputSampleRate(0)
+  m_outputSampleRate(0),
+  m_pMonitoringStage(nullptr)
 {
+  m_pMonitoringStage = new MonitoringStage(
+    eventTarget,
+    TransmitterIqEvent::TxIqEvent,
+    [this]() { return m_inputSampleRate; }
+  );
+
   addStage(&m_ifFilter);
+  addStage(m_pMonitoringStage);
   addStage(&m_resampler);
   addStage(&m_oscillatorMixer);
+}
+
+IqTxPipeline::~IqTxPipeline()
+{
+  delete m_pMonitoringStage;
 }
 
 void

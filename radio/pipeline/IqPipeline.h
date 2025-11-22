@@ -10,12 +10,13 @@
 #include "io/iq/IqIo.h"
 #include "settings/Mode.h"
 #include "settings/PttSink.h"
+#include <qcoreevent.h>
 
 
 class IqPipeline : public IqSink, public PttSink
 {
 public:
-  IqPipeline();
+  explicit IqPipeline(QObject* eventTarget);
   ~IqPipeline() override = default;
 
   virtual void initialise(IqIo* pIo, AudioSink* pAudioOutSink)
@@ -42,6 +43,7 @@ protected:
   }
 
 protected:
+  QObject* m_eventTarget;
   Mode m_mode;
   std::mutex m_settingsMutex;
   // IqPipelineIo* m_pIo;

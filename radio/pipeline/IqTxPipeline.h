@@ -11,13 +11,14 @@
 #include "../../dsp/pipeline/modulators/SsbModulator.h"
 #include "../../dsp/pipeline/oscillators/OscillatorMixer.h"
 #include "../../dsp/pipeline/resampler/Resampler.h"
+#include "dsp/pipeline/monitoring/MonitoringStage.h"
 #include "settings/TransmitterSettingsSink.h"
 
 class IqTxPipeline: public IqPipeline, public TransmitterSettingsSink
 {
 public:
-  IqTxPipeline();
-  ~IqTxPipeline() override = default;
+  explicit IqTxPipeline(QObject* eventTarget);
+  ~IqTxPipeline() override;
 
   void initialise(IqIo* pIo, AudioSink* pAudioSink) override;
   void setOutputSampleRate(uint32_t outputSampleRate) override;
@@ -45,4 +46,5 @@ protected:
   vsdrreal m_audioBuffer;
   uint32_t m_inputSampleRate;
   uint32_t m_outputSampleRate;
+  MonitoringStage* m_pMonitoringStage;
 };

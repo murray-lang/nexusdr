@@ -6,14 +6,15 @@
 #define FFT_SIZE 2048
 #define PING_PONG_LENGTH 8192
 
-IqRxPipeline::IqRxPipeline() :
-  IqPipeline(),
+IqRxPipeline::IqRxPipeline(QObject* eventTarget) :
+  IqPipeline(eventTarget),
   m_ifFilter(FFT_SIZE),
   m_amDemodulator(48000),
   m_fmDemodulator(48000),
   m_ssbDemodulator(48000),
   m_pDemodulator(nullptr),
-  m_audioBuffer(PING_PONG_LENGTH)
+  m_audioBuffer(PING_PONG_LENGTH),
+  m_pMonitoringStage(nullptr)
 {
   addStage(&m_oscillatorMixer);
   addStage(&m_decimator);

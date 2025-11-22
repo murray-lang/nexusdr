@@ -10,6 +10,7 @@
 
 
 IqTransmitter::IqTransmitter(QObject* eventTarget) :
+  m_iqPipeline(eventTarget),
   m_eventTarget(eventTarget)
 {
 }
@@ -69,7 +70,7 @@ IqTransmitter::setMode(const Mode& mode)
 uint32_t
 IqTransmitter::sinkIq(const vsdrcomplex& samples, uint32_t length)
 {
-  QCoreApplication::postEvent(m_eventTarget, new TransmitterIqEvent(samples, length, m_iqIo.getInputSampleRate() ));
+  // QCoreApplication::postEvent(m_eventTarget, new TransmitterIqEvent(samples, length, m_iqIo.getInputSampleRate() ));
 
   return m_iqPipeline.sinkIq(samples, length);
 }

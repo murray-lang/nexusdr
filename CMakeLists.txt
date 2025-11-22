@@ -171,7 +171,7 @@ set(PROJECT_SOURCES
         dsp/pipeline/decimator/Decimator.h
         dsp/pipeline/decimator/MyFirCoefficients.h
 
-        dsp/pipeline/metering/MeteringStage.h
+        dsp/pipeline/monitoring/MonitoringStage.h
         config/RadioConfig.h
         config/ReceiverConfig.h
         config/TransmitterConfig.h

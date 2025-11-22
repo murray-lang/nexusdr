@@ -15,13 +15,14 @@
 #include "../../dsp/pipeline/filters/FastFIR.h"
 #include "../../dsp/pipeline/oscillators/OscillatorMixer.h"
 #include "settings/ReceiverSettingsSink.h"
+#include "dsp/pipeline/monitoring/MonitoringStage.h"
 
 
 
 class IqRxPipeline : public IqPipeline, public ReceiverSettingsSink
 {
 public:
-  IqRxPipeline();
+  explicit IqRxPipeline(QObject* eventTarget);
   ~IqRxPipeline() override = default;
 
   void initialise(IqIo* pIo, AudioSink* pAudioSink) override;
@@ -50,4 +51,5 @@ protected:
   SsbDemodulator m_ssbDemodulator;
   Demodulator* m_pDemodulator;
   vsdrreal m_audioBuffer;
+  MonitoringStage* m_pMonitoringStage;
 };

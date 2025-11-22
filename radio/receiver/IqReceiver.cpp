@@ -13,6 +13,7 @@
 
 
 IqReceiver::IqReceiver(QObject* eventTarget) :
+  m_iqPipeline(eventTarget),
   m_eventTarget(eventTarget)
 {
 }
