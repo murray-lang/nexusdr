@@ -86,7 +86,6 @@ Radio::applySettings(const RadioSettings& settings)
     if (m_pTransmitter != nullptr) {
       m_pTransmitter->setMode(m_settings.mode);
     }
-    return; // Don't try to do anything else concurrently with PTT.
   }
   m_control.applySettings(m_settings);
   if (settings.changed & RadioSettings::RX) {
