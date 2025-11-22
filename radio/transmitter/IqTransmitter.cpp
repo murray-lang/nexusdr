@@ -4,6 +4,9 @@
 
 #include "IqTransmitter.h"
 #include "TransmitterAudioEvent.h"
+#include <qcoreapplication.h>
+
+#include "TransmitterIqEvent.h"
 
 
 IqTransmitter::IqTransmitter(QObject* eventTarget) :
@@ -14,12 +17,18 @@ IqTransmitter::IqTransmitter(QObject* eventTarget) :
 void
 IqTransmitter::configure(const TransmitterConfig* pConfig)
 {
+  // if (pConfig != nullptr) {
+  //   m_iqIo.configure(&pConfig->iqIo);
+  //   m_iqPipeline.initialise(&m_iqIo, &m_iqIo);
+  //   m_iqIo.setIqSink(&m_iqPipeline);
+  // }
   if (pConfig != nullptr) {
     m_iqIo.configure(&pConfig->iqIo);
-    // Send the audio (interleaved I/Q) from the pipeline directly to the output since there is only one
-    // TX pipeline (no mixing to be done beforehand as with the receiver).
-    m_iqPipeline.initialise(&m_iqIo, &m_iqIo);
-    m_iqIo.setIqSink(&m_iqPipeline);
+    // The AudioSink provided here could be m_pPipelineIo, but...
+    // this class intercepts the audio out for display purposes.
+    m_iqPipeline.initialise(&m_iqIo, dynamic_cast<AudioSink*>(this));
+    // This class also intercepts the received IQ for display purposes.
+    m_iqIo.setIqSink(this);
   }
 }
 void
@@ -49,4 +58,25 @@ void IqTransmitter::ptt(bool on)
   } else {
     stop();
   }
+}
+
+void
+IqTransmitter::setMode(const Mode& mode)
+{
+  m_iqPipeline.setMode(mode);
+}
+
+uint32_t
+IqTransmitter::sinkIq(const vsdrcomplex& samples, uint32_t length)
+{
+  QCoreApplication::postEvent(m_eventTarget, new TransmitterIqEvent(samples, length, m_iqIo.getInputSampleRate() ));
+
+  return m_iqPipeline.sinkIq(samples, length);
+}
+
+uint32_t
+IqTransmitter::sinkAudio(const vsdrreal& samples, uint32_t length)
+{
+  // QCoreApplication::postEvent(m_eventTarget, new TransmitterAudioEvent(samples, length));
+  return m_iqIo.sinkAudio(samples, length);
 }

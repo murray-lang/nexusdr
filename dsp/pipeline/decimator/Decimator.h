@@ -5,7 +5,7 @@
 #pragma once
 
 #include <cstdint>
-#include "../../../radio/IqPipelineStage.h"
+#include "../../../radio/pipeline/IqPipelineStage.h"
 #include "../../utils/PingPongBuffers.h"
 #include "MyFirCoefficients.h"
 

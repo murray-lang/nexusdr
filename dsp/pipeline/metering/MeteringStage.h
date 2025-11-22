@@ -5,7 +5,7 @@
 #ifndef CUTESDR_VK6HL_METERINGSTAGE_H
 #define CUTESDR_VK6HL_METERINGSTAGE_H
 
-#include "../../../radio/IqPipelineStage.h"
+#include "../../../radio/pipeline/IqPipelineStage.h"
 #include "../../../SignalEmitter.h"
 
 class MeteringStage : public IqPipelineStage

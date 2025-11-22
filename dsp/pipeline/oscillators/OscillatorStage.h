@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../../radio/IqPipelineStage.h"
+#include "../../../radio/pipeline/IqPipelineStage.h"
 #include "../../blocks/Oscillator.h"
 #include <algorithm>
 

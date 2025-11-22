@@ -40,10 +40,10 @@ public:
     {
       m_pReceiver = dynamic_cast<ReceiverConfig *>(ConfigFactory::create("receiver", json["receiver"]));
     }
-     if(json.contains("transmitter"))
-     {
-       m_pTransmitter = dynamic_cast<TransmitterConfig *>(ConfigFactory::create("transmitter", json["transmitter"]));
-     }
+    if(json.contains("transmitter"))
+    {
+     m_pTransmitter = dynamic_cast<TransmitterConfig *>(ConfigFactory::create("transmitter", json["transmitter"]));
+    }
     if (json.contains("control"))
     {
       m_pControl = dynamic_cast<ControlConfig *>(ConfigFactory::create("control", json["control"]));

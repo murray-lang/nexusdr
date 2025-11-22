@@ -129,7 +129,7 @@ set(PROJECT_SOURCES
         dsp/utils/VectorAssembler.h
         dsp/utils/pocketfft/pocketfft_hdronly.h
         radio/receiver/IqReceiver.h radio/receiver/IqReceiver.cpp
-        radio/IqPipelineStage.h
+        radio/pipeline/IqPipelineStage.h
         dsp/pipeline/oscillators/OscillatorStage.h
         dsp/pipeline/oscillators/OscillatorMixer.h
         dsp/pipeline/oscillators/OscillatorInjector.h
@@ -275,15 +275,17 @@ set(PROJECT_SOURCES
         dsp/iq/AudioSignalIqSource.h
         io/audio/AudioSink.h
         config/AudioSignalIqSourceConfig.h
-        radio/IqPipeline.h
-        radio/receiver/IqRxPipeline.h
-        radio/receiver/IqRxPipeline.cpp
-        radio/IqPipeline.cpp
-        radio/transmitter/IqTxPipeline.cpp
-        radio/transmitter/IqTxPipeline.h
+        radio/pipeline/IqPipeline.h
+        radio/pipeline/IqRxPipeline.h
+        radio/pipeline/IqRxPipeline.cpp
+        radio/pipeline/IqPipeline.cpp
+        radio/pipeline/IqTxPipeline.cpp
+        radio/pipeline/IqTxPipeline.h
         config/IqIoConfig.h
         io/iq/IqIo.cpp
         io/iq/IqIo.h
+        radio/transmitter/TransmitterIqEvent.cpp
+        radio/transmitter/TransmitterIqEvent.h
 
 )
 

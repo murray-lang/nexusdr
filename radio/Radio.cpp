@@ -32,15 +32,27 @@ void
 Radio::configure(const RadioConfig* pConfig)
 {
   m_control.configure(pConfig->getControl());
-  m_pReceiver->configure(pConfig->getReceiver());
-  m_pTransmitter->configure(pConfig->getTransmitter());
+
+  const ReceiverConfig* pRxConfig = pConfig->getReceiver();
+  if (pRxConfig != nullptr) {
+    m_pReceiver = new IqReceiver(m_pEventTarget);
+    m_pReceiver->configure(pRxConfig);
+  }
+
+  const TransmitterConfig* pTxConfig = pConfig->getTransmitter();
+  if (pTxConfig != nullptr) {
+    m_pTransmitter = new IqTransmitter(m_pEventTarget);
+    m_pTransmitter->configure(pTxConfig);
+  }
 }
 
 void
 Radio::start()
 {
   m_control.connect(this);
-  m_pReceiver->start();
+  if (m_pReceiver != nullptr) {
+    m_pReceiver->start();
+  }
   m_control.start();
 }
 
@@ -49,8 +61,12 @@ Radio::stop()
 {
   m_control.stop();
   m_control.connect(nullptr);
-  m_pReceiver->stop();
-  m_pTransmitter->stop();
+  if (m_pReceiver != nullptr) {
+    m_pReceiver->stop();
+  }
+  if (m_pTransmitter != nullptr) {
+    m_pTransmitter->stop();
+  }
 }
 
 void
@@ -63,12 +79,25 @@ Radio::applySettings(const RadioSettings& settings)
     ptt(m_settings.ptt);
     return; // Don't try to do anything else concurrently with PTT.
   }
+  if (settings.changed & RadioSettings::MODE) {
+    if (m_pReceiver != nullptr) {
+      m_pReceiver->setMode(m_settings.mode);
+    }
+    if (m_pTransmitter != nullptr) {
+      m_pTransmitter->setMode(m_settings.mode);
+    }
+    return; // Don't try to do anything else concurrently with PTT.
+  }
   m_control.applySettings(m_settings);
   if (settings.changed & RadioSettings::RX) {
-    m_pReceiver->apply(m_settings.rxSettings);
+    if (m_pReceiver != nullptr) {
+      m_pReceiver->apply(m_settings.rxSettings);
+    }
   }
   if (settings.changed & RadioSettings::TX) {
-    m_pTransmitter->apply(m_settings.txSettings);
+    if (m_pTransmitter != nullptr) {
+      m_pTransmitter->apply(m_settings.txSettings);
+    }
   }
   if (m_pEventTarget != nullptr) {
     // qDebug() << "Radio::applySettings posting RadioSettingsEvent";

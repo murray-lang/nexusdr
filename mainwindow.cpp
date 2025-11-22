@@ -17,6 +17,7 @@
 #include "radio/receiver/ReceiverAudioEvent.h"
 #include "radio/receiver/ReceiverIqEvent.h"
 #include "radio/transmitter/TransmitterAudioEvent.h"
+#include "radio/transmitter/TransmitterIqEvent.h"
 
 #define FFT_SIZE 2048
 #define SAMPLE_RATE 192000
@@ -209,6 +210,9 @@ MainWindow::customEvent(QEvent* event)
   } else if (event->type() == RadioSettingsEvent::RadioSettingsEventType) {
     auto* radioSettingsEvent = dynamic_cast<RadioSettingsEvent*>(event);
     handleRadioSettingsEvent(radioSettingsEvent->getSettings());
+  } else if (event->type() == TransmitterIqEvent::TxIqEvent) {
+    auto* iqEvent = dynamic_cast<TransmitterIqEvent*>(event);
+    handleReceiverIqEvent(iqEvent->buffer.get(), iqEvent->dataLength, iqEvent->sampleRate);
   } else if (event->type() == TransmitterAudioEvent::TxAudioEvent) {
     auto* audioEvent = dynamic_cast<TransmitterAudioEvent*>(event);
     handleTransmitterAudioEvent(audioEvent->buffer.get(), audioEvent->dataLength);

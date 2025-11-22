@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../../../SampleTypes.h"
-#include "../../../radio/IqPipelineStage.h"
+#include "../../../radio/pipeline/IqPipelineStage.h"
 #include "../../utils/pocketfft/pocketfft_hdronly.h"
 #include "../../utils/constants.h"
 #include "kernels/BandPassFirKernel.h"

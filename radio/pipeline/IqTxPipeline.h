@@ -5,7 +5,7 @@
 #pragma once
 #include <mutex>
 
-#include "../IqPipeline.h"
+#include "IqPipeline.h"
 #include "dsp/utils/HilbertTransform.h"
 #include "../../dsp/pipeline/filters/FastFIR.h"
 #include "../../dsp/pipeline/modulators/SsbModulator.h"
@@ -30,9 +30,9 @@ public:
 
   [[nodiscard]] uint32_t getMaxFramesPerInputPacket() const override;
   [[nodiscard]] uint32_t getMaxFramesPerOutputPacket() const override;
-
-protected:
   void setMode(const Mode& mode) override;
+protected:
+
   void setModulator(Mode::Type modeType);
   static uint32_t interleaveComplexToReal(const vsdrcomplex& vcomplex, vsdrreal& vreal, uint32_t numComplexes);
 

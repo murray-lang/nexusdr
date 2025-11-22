@@ -52,6 +52,12 @@ IqReceiver::stop()
   m_iqIo.stop();
 }
 
+void
+IqReceiver::setMode(const Mode& mode)
+{
+  m_iqPipeline.setMode(mode);
+}
+
 void IqReceiver::ptt(bool on)
 {
   if (on) {

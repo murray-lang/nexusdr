@@ -6,7 +6,7 @@
 #include <mutex>
 
 #include "../../dsp/pipeline/DcShift.h"
-#include "../IqPipeline.h"
+#include "IqPipeline.h"
 #include "../../dsp/pipeline/decimator/Decimator.h"
 #include "../../dsp/pipeline/demodulators/AmDemodulator.h"
 #include "../../dsp/pipeline/demodulators/Demodulator.h"
@@ -36,8 +36,8 @@ public:
   [[nodiscard]] uint32_t getMaxFramesPerInputPacket() const override;
   [[nodiscard]] uint32_t getMaxFramesPerOutputPacket() const override;
 
-protected:
   void setMode(const Mode& mode) override;
+protected:
   void setDemodulator(Mode::Type modeType);
 
 protected:

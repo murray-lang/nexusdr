@@ -5,7 +5,7 @@
 #include "config/ReceiverConfig.h"
 #include <settings/ReceiverSettingsSink.h>
 #include <settings/PttSink.h>
-#include "IqRxPipeline.h"
+#include "../pipeline/IqRxPipeline.h"
 #include "io/iq/IqIo.h"
 
 
@@ -29,6 +29,8 @@ public:
   void apply(const ReceiverSettings& settings) override;
 
   void ptt(bool on) override;
+
+  void setMode(const Mode& mode);
 
 protected:
   IqIo m_iqIo;
