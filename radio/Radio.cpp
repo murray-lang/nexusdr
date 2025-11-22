@@ -77,6 +77,7 @@ Radio::applySettings(const RadioSettings& settings)
   }
   if (settings.changed & RadioSettings::PTT) {
     ptt(m_settings.ptt);
+    m_settings.clearChanged();
     return; // Don't try to do anything else concurrently with PTT.
   }
   if (settings.changed & RadioSettings::MODE) {
