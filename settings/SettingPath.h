@@ -13,12 +13,17 @@ class SettingPath
 public:
   SettingPath() = default;
   SettingPath(const SettingPath& rhs) = default;
-  SettingPath(const std::vector<uint32_t>& features) : m_features(features) {}
+  explicit SettingPath(const std::vector<uint32_t>& features) : m_features(features) {}
   virtual ~SettingPath() = default;
 
   SettingPath& operator=(const SettingPath& rhs) = default;
   // bool operator==(const SettingPath& rhs) const;
   [[nodiscard]] const std::vector<uint32_t>& getFeatures() const { return m_features; }
+
+  bool operator==(const SettingPath& rhs) const
+  {
+    return m_features == rhs.m_features;
+  }
 
   // static FeaturePath fromString(const std::string& str)
   // {

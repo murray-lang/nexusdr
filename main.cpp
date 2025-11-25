@@ -11,7 +11,7 @@
 
 #include "io/control/device/gpio/Gpio.h"
 #include "io/control/device/gpio/GpioException.h"
-#include "io/control/device/gpio/digital/DigitalInputsRequest.h"
+#include "io/control/device/gpio/digital/DigitalInputLinesRequest.h"
 using json = nlohmann::json;
 
 int main(int argc, char *argv[])

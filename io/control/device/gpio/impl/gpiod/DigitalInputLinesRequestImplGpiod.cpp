@@ -2,13 +2,13 @@
 // Created by murray on 18/9/25.
 //
 
-#include "DigitalInputsRequestImplGpiod.h"
+#include "DigitalInputLinesRequestImplGpiod.h"
 #include "../../digital/DigitalInput.h"
 #include "../../GpioException.h"
 #include <time.h>
 #include <qdebug.h>
 
-DigitalInputsRequestImplGpiod::DigitalInputsRequestImplGpiod(gpiod_chip* pChip, const char* consumer) :
+DigitalInputLinesRequestImplGpiod::DigitalInputLinesRequestImplGpiod(gpiod_chip* pChip, const char* consumer) :
   m_pChip   (pChip),  
   m_pCallback(nullptr),
   m_consumer(consumer),
@@ -20,13 +20,14 @@ DigitalInputsRequestImplGpiod::DigitalInputsRequestImplGpiod(gpiod_chip* pChip, 
   
 }
 
-DigitalInputsRequestImplGpiod::~DigitalInputsRequestImplGpiod()
+DigitalInputLinesRequestImplGpiod::~DigitalInputLinesRequestImplGpiod()
 {
   gpiod_edge_event_buffer_free(m_pEventBuffer);
+  DigitalInputLinesRequestImplGpiod::release();
 }
 
 bool
-DigitalInputsRequestImplGpiod::isDebounced(int line) const
+DigitalInputLinesRequestImplGpiod::isDebounced(int line) const
 {
   gpiod_line_info * li = gpiod_chip_get_line_info(m_pChip, line);
   if (li != nullptr) {
@@ -39,7 +40,7 @@ DigitalInputsRequestImplGpiod::isDebounced(int line) const
 }
 
 uint64_t
-DigitalInputsRequestImplGpiod::getCurrentTime()
+DigitalInputLinesRequestImplGpiod::getCurrentTime()
 {
   timespec now{};
   clock_gettime(CLOCK_MONOTONIC, &now);
@@ -48,7 +49,7 @@ DigitalInputsRequestImplGpiod::getCurrentTime()
 }
 
 void
-DigitalInputsRequestImplGpiod::startCallbacks(Callback* callback)
+DigitalInputLinesRequestImplGpiod::startCallbacks(Callback* callback)
 {
   if (m_pCallback != nullptr) {
     throw GpioException("Line state callback already set");
@@ -61,7 +62,7 @@ DigitalInputsRequestImplGpiod::startCallbacks(Callback* callback)
 }
 
 void
-DigitalInputsRequestImplGpiod::stopCallbacks()
+DigitalInputLinesRequestImplGpiod::stopCallbacks()
 {
   m_callbackMutex.lock();
   m_pCallback = nullptr;
@@ -70,7 +71,7 @@ DigitalInputsRequestImplGpiod::stopCallbacks()
 }
 
 void 
-DigitalInputsRequestImplGpiod::request(const char * contextId, const std::vector<DigitalInput*>& inputs)
+DigitalInputLinesRequestImplGpiod::request(const char * contextId, const std::vector<DigitalInput*>& inputs)
 {
   // for (auto line : lines) {
   //   if (isDebounced(line)) {
@@ -102,7 +103,7 @@ DigitalInputsRequestImplGpiod::request(const char * contextId, const std::vector
   gpiod_request_config_free(rcfg);
   gpiod_line_config_free(lcfg);
   if (pLineRequest == nullptr) {
-    throw GpioException("Failed to request GPIO lines");
+    throw GpioException("Failed to request GPIO digital input lines");
   }
   m_pLineRequest = pLineRequest;
   initialiseLineStates(inputs);
@@ -110,7 +111,7 @@ DigitalInputsRequestImplGpiod::request(const char * contextId, const std::vector
 
 
 void
-DigitalInputsRequestImplGpiod::release()
+DigitalInputLinesRequestImplGpiod::release()
 {
   if (m_pLineRequest) {
     gpiod_line_request_release(m_pLineRequest);
@@ -119,25 +120,25 @@ DigitalInputsRequestImplGpiod::release()
 }
 
 int
-DigitalInputsRequestImplGpiod::getLineValue(uint32_t line)
+DigitalInputLinesRequestImplGpiod::getLineValue(uint32_t line)
 {
   return gpiod_line_request_get_value(m_pLineRequest, line);
 }
 
 int
-DigitalInputsRequestImplGpiod::waitEdgeEvents(int64_t timeout_ns) const
+DigitalInputLinesRequestImplGpiod::waitEdgeEvents(int64_t timeout_ns) const
 {
   return gpiod_line_request_wait_edge_events(m_pLineRequest, timeout_ns);
 }
 
 int
-DigitalInputsRequestImplGpiod::readEdgeEvents(struct gpiod_edge_event_buffer* buf, size_t max_events) const
+DigitalInputLinesRequestImplGpiod::readEdgeEvents(struct gpiod_edge_event_buffer* buf, size_t max_events) const
 {
   return gpiod_line_request_read_edge_events(m_pLineRequest, buf, max_events);
 }
 
 void
-DigitalInputsRequestImplGpiod::run()
+DigitalInputLinesRequestImplGpiod::run()
 {
   // readInitialInputStates();
   // gpiod_edge_event_buffer* eventBuff = gpiod_edge_event_buffer_new(64);
@@ -184,7 +185,7 @@ DigitalInputsRequestImplGpiod::run()
 }
 
 bool
-DigitalInputsRequestImplGpiod::callbackWithChangedLineStates()
+DigitalInputLinesRequestImplGpiod::callbackWithChangedLineStates()
 {
   // LineStateMap lines;
   // updateLineStates();
@@ -211,7 +212,7 @@ DigitalInputsRequestImplGpiod::callbackWithChangedLineStates()
 }
 
 bool
-DigitalInputsRequestImplGpiod::callbackWithAnyDebouncedLineStates()
+DigitalInputLinesRequestImplGpiod::callbackWithAnyDebouncedLineStates()
 {
   // uint64_t now = getCurrentTime();
   // LineStateMap debouncedLines;
@@ -243,7 +244,7 @@ DigitalInputsRequestImplGpiod::callbackWithAnyDebouncedLineStates()
 
 
 int
-DigitalInputsRequestImplGpiod::updateLineStates()
+DigitalInputLinesRequestImplGpiod::updateLineStates()
 {
   int numEvents = readEdgeEvents(m_pEventBuffer, 64);
   if (numEvents < 0) {
@@ -276,7 +277,7 @@ DigitalInputsRequestImplGpiod::updateLineStates()
 }
 
 int
-DigitalInputsRequestImplGpiod::continueDebouncing()
+DigitalInputLinesRequestImplGpiod::continueDebouncing()
 {
   uint64_t now = getCurrentTime();
   int numDebounced = 0;

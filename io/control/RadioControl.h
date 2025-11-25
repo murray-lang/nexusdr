@@ -28,10 +28,7 @@ public:
 
   //RadioSettingsSink methods. Intended for external use, not to be called by internal sources.
   void applySettings(const RadioSettings& settings) override;
-  void applySingleSetting(const SingleSetting& settingDelta) override
-  {
-    throw ControlException("RadioControl::applySingleSetting() not implemented");
-  }
+  void applySingleSetting(const SingleSetting& setting) override;
 
   // SettingDeltaSink method.
 
@@ -45,6 +42,7 @@ public:
 
 protected:
 
+  // Intercepts settings from m_controlSources for anything relevant to this RadioControl mechanism
   class InternalSink : public RadioSettingsSink
   {
   public:

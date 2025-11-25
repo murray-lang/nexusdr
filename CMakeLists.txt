@@ -103,14 +103,18 @@ if(USE_PIGPIO)
             io/control/device/gpio/impl/pigpio/GpioImplPiGpio.cpp
             io/control/device/gpio/impl/pigpio/DigitalInputsRequestImplPiGpio.h
             io/control/device/gpio/impl/pigpio/DigitalInputsRequestImplPiGpio.cpp
+            io/control/device/gpio/impl/pigpio/DigitalOutputsRequestImplPiGpio.h
+            io/control/device/gpio/impl/pigpio/DigitalOutputsRequestImplPiGpio.cpp
     )
     
 elseif(USE_GPIOD)
     set (PLATFORM_SOURCES
             io/control/device/gpio/impl/gpiod/GpioImplGpiod.h
             io/control/device/gpio/impl/gpiod/GpioImplGpiod.cpp
-            io/control/device/gpio/impl/gpiod/DigitalInputsRequestImplGpiod.h
-            io/control/device/gpio/impl/gpiod/DigitalInputsRequestImplGpiod.cpp
+            io/control/device/gpio/impl/gpiod/DigitalInputLinesRequestImplGpiod.h
+            io/control/device/gpio/impl/gpiod/DigitalInputLinesRequestImplGpiod.cpp
+            io/control/device/gpio/impl/gpiod/DigitalOutputLinesRequestImplGpiod.cpp
+            io/control/device/gpio/impl/gpiod/DigitalOutputLinesRequestImplGpiod.h
     )
 endif()
 
@@ -221,12 +225,12 @@ set(PROJECT_SOURCES
         io/control/device/gpio/Gpio.h
         io/control/device/gpio/GpioException.cpp
         io/control/device/gpio/GpioException.h
-        io/control/device/gpio/digital/DigitalInputsRequest.cpp
-        io/control/device/gpio/digital/DigitalInputsRequest.h
+        io/control/device/gpio/digital/DigitalInputLinesRequest.cpp
+        io/control/device/gpio/digital/DigitalInputLinesRequest.h
         io/control/device/gpio/digital/GpioRotaryEncoder.cpp
         io/control/device/gpio/digital/GpioRotaryEncoder.h
-        io/control/device/gpio/digital/DigitalInputGroup.cpp
-        io/control/device/gpio/digital/DigitalInputGroup.h
+        io/control/device/gpio/digital/DigitalInputs.cpp
+        io/control/device/gpio/digital/DigitalInputs.h
         settings/SettingPath.h
         settings/SingleSetting.h
         settings/SettingsException.h
@@ -245,7 +249,7 @@ set(PROJECT_SOURCES
         config/VariantConfig.h
         config/ConfigFactory.cpp
         config/ConfigFactory.h
-        config/DigitalInputGroupConfig.h
+        config/DigitalInputsConfig.h
         config/RotaryEncoderConfig.h
         config/DigitalInputConfig.h
         config/FunCubeConfig.h
@@ -286,6 +290,11 @@ set(PROJECT_SOURCES
         io/iq/IqIo.h
         radio/transmitter/TransmitterIqEvent.cpp
         radio/transmitter/TransmitterIqEvent.h
+        io/control/device/gpio/digital/DigitalOutput.cpp
+        io/control/device/gpio/digital/DigitalOutput.h
+        config/DigitalOutputConfig.h
+        io/control/device/gpio/digital/DigitalOutputLinesRequest.h
+        io/control/device/gpio/digital/DigitalOutputLinesRequest.cpp
 
 )
 

@@ -15,7 +15,8 @@ public:
     bool open() override;
     bool close() override;
 
-  DigitalInputsRequest* requestDigitalInputs(const char * contextId, const std::vector<DigitalInput*>& lines) override;
+  DigitalInputLinesRequest* requestDigitalInputs(const char * contextId, const std::vector<DigitalInput*>& lines) override;
+  DigitalOutputLinesRequest* requestDigitalOutputs(const char * contextId, const std::vector<DigitalOutput*>& lines) override;
 
 protected:
     int m_initRc;

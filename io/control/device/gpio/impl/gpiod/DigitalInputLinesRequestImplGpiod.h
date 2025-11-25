@@ -8,16 +8,16 @@
 #include <vector>
 
 #include "GpioImplGpiod.h"
-#include "../../digital/DigitalInputsRequest.h"
+#include "../../digital/DigitalInputLinesRequest.h"
 #include <mutex>
 
 
-class DigitalInputsRequestImplGpiod : public DigitalInputsRequest, public QThread
+class DigitalInputLinesRequestImplGpiod : public DigitalInputLinesRequest, public QThread
 {
   friend GpioImplGpiod;
 public:
-  explicit DigitalInputsRequestImplGpiod(gpiod_chip* pChip, const char* consumer = "");
-  ~DigitalInputsRequestImplGpiod() override;
+  explicit DigitalInputLinesRequestImplGpiod(gpiod_chip* pChip, const char* consumer = "");
+  ~DigitalInputLinesRequestImplGpiod() override;
 
   void run() override;
 

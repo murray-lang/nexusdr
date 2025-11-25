@@ -1,7 +1,8 @@
 
 #include "GpioImplGpiod.h"
 
-#include "DigitalInputsRequestImplGpiod.h"
+#include "DigitalInputLinesRequestImplGpiod.h"
+#include "DigitalOutputLinesRequestImplGpiod.h"
 #include "io/control/device/gpio/GpioException.h"
 
 
@@ -48,19 +49,35 @@ GpioImplGpiod::close()
   return false;
 }
 
-DigitalInputsRequest*
+DigitalInputLinesRequest*
 GpioImplGpiod::requestDigitalInputs(const char * contextId, const std::vector<DigitalInput*>& lines)
 {
   if (!m_pChip) {
     throw GpioException("GPIO chip not opened");
   }
-  auto pLines = new DigitalInputsRequestImplGpiod(m_pChip, contextId);
+  auto pLines = new DigitalInputLinesRequestImplGpiod(m_pChip, contextId);
   try {
     pLines->request(contextId, lines);
   } catch (...) {
     delete pLines;
     throw;
   }
-  return dynamic_cast<DigitalInputsRequest*>(pLines);
+  return dynamic_cast<DigitalInputLinesRequest*>(pLines);
 
+}
+
+DigitalOutputLinesRequest*
+GpioImplGpiod::requestDigitalOutputs(const char * contextId, const std::vector<DigitalOutput*>& lines)
+{
+  if (!m_pChip) {
+    throw GpioException("GPIO chip not opened");
+  }
+  auto pLines = new DigitalOutputLinesRequestImplGpiod(m_pChip, contextId);
+  try {
+    pLines->request(contextId, lines);
+  } catch (...) {
+    delete pLines;
+    throw;
+  }
+  return dynamic_cast<DigitalOutputLinesRequest*>(pLines);
 }

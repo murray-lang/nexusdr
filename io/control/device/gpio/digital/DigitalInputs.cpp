@@ -2,7 +2,7 @@
 // Created by murray on 2025-08-24.
 //
 
-#include "DigitalInputGroup.h"
+#include "DigitalInputs.h"
 #include <config/ConfigException.h>
 #include "../../../ControlSource.h"
 #include "../../../ControlSourceFactory.h"
@@ -11,53 +11,53 @@
 #include <config/DigitalInputConfig.h>
 
 #include "DigitalInputFactory.h"
-#include "config/DigitalInputGroupConfig.h"
+#include "config/DigitalInputsConfig.h"
 #include "io/control/device/gpio/GpioException.h"
 #include "io/control/device/gpio/GpioLines.h"
 
-DigitalInputGroup::DigitalInputGroup(const char* consumer) :
+DigitalInputs::DigitalInputs(const char* consumer) :
   m_internalSink(this)
 {
 
 }
 
-DigitalInputGroup::~DigitalInputGroup()
+DigitalInputs::~DigitalInputs()
 {
   deleteInputs();
 
 }
 
 void
-DigitalInputGroup::configure(const ConfigBase* pConfig)
+DigitalInputs::configure(const ConfigBase* pConfig)
 {
-  const auto* config = dynamic_cast<const DigitalInputGroupConfig*>(pConfig);
+  const auto* config = dynamic_cast<const DigitalInputsConfig*>(pConfig);
   createInputs(config);
 }
 
 bool
-DigitalInputGroup::discover()
+DigitalInputs::discover()
 {
     return Gpio::isPresent();
 }
 
 void
-DigitalInputGroup::open()
+DigitalInputs::open()
 {
   if (m_pLines != nullptr) {
-    throw GpioException("DigitalInputGroup already open");
+    throw GpioException("DigitalInputs already open");
   }
   createLineToInputMap();
   Gpio& gpio = Gpio::getInstance();
-  DigitalInputsRequest* pLines = gpio.requestDigitalInputs("digitalInputs", m_inputs);
+  DigitalInputLinesRequest* pLines = gpio.requestDigitalInputs("digitalInputs", m_inputs);
   m_pLines.reset(pLines);
   m_pLines->startCallbacks(this);
 }
 
 void
-DigitalInputGroup::close()
+DigitalInputs::close()
 {
   if (m_pLines == nullptr) {
-    throw GpioException("DigitalInputGroup not open");
+    throw GpioException("DigitalInputs not open");
   }
   m_pLines->stopCallbacks();
   m_pLines->release();
@@ -65,19 +65,19 @@ DigitalInputGroup::close()
 }
 
 void
-DigitalInputGroup::exit()
+DigitalInputs::exit()
 {
 
 }
 
 void
-DigitalInputGroup::createInputs(const DigitalInputGroupConfig* pConfig)
+DigitalInputs::createInputs(const DigitalInputsConfig* pConfig)
 {
   deleteInputs();
   for (const auto& pInputConfig : pConfig->getInputs()) {
     DigitalInput* input = DigitalInputFactory::create(pInputConfig);
     if (input == nullptr) {
-      throw ConfigException("digitalInputGroup input has unknown input type: " + pConfig->getType());
+      throw ConfigException("digitalInputs input has unknown input type: " + pConfig->getType());
     }
     input->connect(&m_internalSink);
     m_inputs.push_back(input);
@@ -85,7 +85,7 @@ DigitalInputGroup::createInputs(const DigitalInputGroupConfig* pConfig)
 }
 
 void
-DigitalInputGroup::deleteInputs()
+DigitalInputs::deleteInputs()
 {
   for (auto input : m_inputs) {
     delete input;
@@ -94,7 +94,7 @@ DigitalInputGroup::deleteInputs()
 }
 
 void
-DigitalInputGroup::createLineToInputMap()
+DigitalInputs::createLineToInputMap()
 {
   m_lineToInputMap.clear();
   for (const auto input : m_inputs) {
@@ -106,7 +106,7 @@ DigitalInputGroup::createLineToInputMap()
 }
 
 void
-DigitalInputGroup::readInitialInputStates()
+DigitalInputs::readInitialInputStates()
 {
   // for (auto encoder : m_encoders) {
   //   encoder->initialiseState(m_lines);
@@ -114,7 +114,7 @@ DigitalInputGroup::readInitialInputStates()
 }
 
 void
-DigitalInputGroup::callback(DigitalInputsRequest::LineStates& lineStates)
+DigitalInputs::callback(DigitalInputLinesRequest::LineStates& lineStates)
 {
   for (auto& input : m_inputs) {
     input->handleLineChange(lineStates);

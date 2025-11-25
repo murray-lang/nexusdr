@@ -13,8 +13,8 @@ class DigitalInputConfig : public GpioLinesConfig
 public:
   static constexpr auto type = "digitalinput";
 
-  DigitalInputConfig() : GpioLinesConfig(type), m_debounce(true) {}
-  explicit DigitalInputConfig(const char * subtype) : GpioLinesConfig(subtype), m_debounce(true) {}
+  DigitalInputConfig() : GpioLinesConfig(type), m_activeHigh(true), m_debounce(true) {}
+  explicit DigitalInputConfig(const char * subtype) : GpioLinesConfig(subtype), m_activeHigh(true), m_debounce(true) {}
   ~DigitalInputConfig() override  = default;
 
   void fromJson(const nlohmann::json& json) override
@@ -41,10 +41,9 @@ public:
     }
   }
 
-  const std::vector<uint32_t>& getLines() const { return m_lines; }
-  bool getDebounce() const { return m_debounce; }
-  bool getActiveHigh() const { return m_activeHigh; }
-  const std::string& getSettingPath() const { return m_settingPath; }
+  [[nodiscard]] bool getDebounce() const { return m_debounce; }
+  [[nodiscard]] bool getActiveHigh() const { return m_activeHigh; }
+  [[nodiscard]] const std::string& getSettingPath() const { return m_settingPath; }
 
 protected:
   std::string m_settingPath;

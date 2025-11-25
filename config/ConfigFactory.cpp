@@ -13,7 +13,8 @@
 #include "AudioIqSourceConfig.h"
 #include "AudioSignalIqSourceConfig.h"
 #include "ControlConfig.h"
-#include "DigitalInputGroupConfig.h"
+#include "DigitalInputsConfig.h"
+#include "DigitalOutputConfig.h"
 #include "FunCubeConfig.h"
 #include "RotaryEncoderConfig.h"
 #include "dsp/iq/AudioSignalIqSource.h"
@@ -29,20 +30,35 @@ ConfigFactory::create(const VariantConfig& item)
 }
 
 ConfigBase*
+ConfigFactory::create(const std::string& type, const nlohmann::json& config)
+{
+  ConfigBase* result = create(type);
+  if (result == nullptr) {
+    throw std::runtime_error("Unknown config type: " + type);
+  }
+  result->fromJson(config);
+  return result;
+}
+
+ConfigBase*
 ConfigFactory::create(const std::string& type)
 {
   std::string typeAsLower = StringUtils::toLowerCase(type);
-  
+
   if (typeAsLower == ControlConfig::type) {
     auto * result = new ControlConfig();
     return result;
   }
-  if (typeAsLower == DigitalInputGroupConfig::type) {
-    auto * result = new DigitalInputGroupConfig();
+  if (typeAsLower == DigitalInputsConfig::type) {
+    auto * result = new DigitalInputsConfig();
     return result;
   }
   if (typeAsLower == DigitalInputConfig::type) {
     auto * result = new DigitalInputConfig();
+    return result;
+  }
+  if (typeAsLower == DigitalOutputConfig::type) {
+    auto * result = new DigitalOutputConfig();
     return result;
   }
   if (typeAsLower == RotaryEncoderConfig::type) {
@@ -82,16 +98,4 @@ ConfigFactory::create(const std::string& type)
     return result;
   }
   return nullptr;
-}
-
-ConfigBase*
-ConfigFactory::create(const std::string& type, const nlohmann::json& config)
-{
-  ConfigBase* result = create(type);
-  if (result == nullptr) {
-    throw std::runtime_error("Unknown config type: " + type);
-  }
-  // Prefer fromJson for symmetry with toJson()
-  result->fromJson(config);
-  return result;
 }

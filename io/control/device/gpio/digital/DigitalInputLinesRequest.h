@@ -17,7 +17,8 @@
 class Gpio;
 class DigitalInput;
 
-class DigitalInputsRequest {
+class DigitalInputLinesRequest
+{
 public:
 
   struct LineState
@@ -45,8 +46,8 @@ public:
 
   };
 
-  DigitalInputsRequest();
-  virtual ~DigitalInputsRequest() = default;
+  DigitalInputLinesRequest();
+  virtual ~DigitalInputLinesRequest() = default;
 
   virtual void request(const char * contextId, const std::vector<DigitalInput*>& inputs) = 0;
 

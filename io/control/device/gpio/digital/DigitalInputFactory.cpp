@@ -4,7 +4,7 @@
 
 #include "DigitalInputFactory.h"
 
-#include "DigitalInputGroup.h"
+#include "DigitalInputs.h"
 #include <util/StringUtils.h>
 
 DigitalInput*

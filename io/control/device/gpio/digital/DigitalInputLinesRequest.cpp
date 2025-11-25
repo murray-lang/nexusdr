@@ -2,7 +2,7 @@
 // Created by murray on 2025-08-21.
 //
 
-#include "DigitalInputsRequest.h"
+#include "DigitalInputLinesRequest.h"
 #include "../Gpio.h"
 
 #include "../GpioException.h"
@@ -10,14 +10,14 @@
 
 #include "DigitalInput.h"
 
-DigitalInputsRequest::DigitalInputsRequest() :
+DigitalInputLinesRequest::DigitalInputLinesRequest() :
   m_gpio(Gpio::getInstance()),
   m_lineStates(MAX_GPIO)
 {
 }
 
 void
-DigitalInputsRequest::initialiseLineStates(const std::vector<DigitalInput*>& inputs)
+DigitalInputLinesRequest::initialiseLineStates(const std::vector<DigitalInput*>& inputs)
 {
   // m_lineStates.clear();
 

@@ -10,7 +10,7 @@
 #include "../../digital/DigitalInputsRequest.h"
 
 
-class DigitalInputsRequestImplPiGpio : public DigitalInputsRequest
+class DigitalInputsRequestImplPiGpio : public DigitalInputLinesRequest
 {
   friend GpioImplPiGpio;
 public:

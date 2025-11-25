@@ -6,11 +6,18 @@
             "type": "funcube",
             "config": {
             }
+          },
+          {
+            "type": "digitalOutput",
+            "config": {
+              "lines": [23],
+              "settingPath": "ptt"
+            }
           }
         ],
         "sources": [
           {
-            "type": "digitalInputGroup",
+            "type": "digitalInputs",
             "config": {
               "inputs": [
                   {

@@ -10,13 +10,13 @@
 #include "DigitalInputConfig.h"
 #include "VariantConfig.h"
 
-class DigitalInputGroupConfig : public ConfigBase
+class DigitalInputsConfig : public ConfigBase
 {
 public:
-  static constexpr auto type = "digitalinputgroup";
+  static constexpr auto type = "digitalinputs";
 
-  DigitalInputGroupConfig() : ConfigBase(type) {}
-  ~DigitalInputGroupConfig() override
+  DigitalInputsConfig() : ConfigBase(type) {}
+  ~DigitalInputsConfig() override
   {
     for (auto input : m_inputs) {
       delete input;
@@ -33,7 +33,7 @@ public:
       }
     }
     if (m_inputs.empty()) {
-      throw ConfigException("DigitalInputGroupConfig: inputs empty");
+      throw ConfigException("DigitalInputsConfig: inputs empty");
     }
   }
 

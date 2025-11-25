@@ -7,17 +7,17 @@
 #include <io/control/ControlSource.h>
 #include "GpioRotaryEncoder.h"
 #include "../Gpio.h"
-#include "DigitalInputsRequest.h"
+#include "DigitalInputLinesRequest.h"
 #include <QThread>
 #include <config/DigitalInputConfig.h>
-#include "config/DigitalInputGroupConfig.h"
+#include "config/DigitalInputsConfig.h"
 #include "io/control/ControlException.h"
 
-class DigitalInputGroup : public ControlSource, public DigitalInputsRequest::Callback
+class DigitalInputs : public ControlSource, public DigitalInputLinesRequest::Callback
 {
 public:
-  explicit DigitalInputGroup(const char* consumer = "");
-  ~DigitalInputGroup() override;
+  explicit DigitalInputs(const char* consumer = "");
+  ~DigitalInputs() override;
 
   // ControlBase overrides;
   void configure(const ConfigBase* pConfig) override;
@@ -29,15 +29,15 @@ public:
 
 
   // GpioLines::Callback override
-  void callback(DigitalInputsRequest::LineStates& lineStates) override;
+  void callback(DigitalInputLinesRequest::LineStates& lineStates) override;
 
 protected:
   void notifySettings(const RadioSettings& radioSettings) override
   {
-    throw ControlException("A DigitalInputGroup should not provide RadioSettings, only individual settings.");
+    throw ControlException("A DigitalInputs should not provide RadioSettings, only individual settings.");
   }
 
-  void createInputs(const DigitalInputGroupConfig* pConfig);
+  void createInputs(const DigitalInputsConfig* pConfig);
   void deleteInputs();
 
   void createLineToInputMap();
@@ -46,7 +46,7 @@ protected:
   class InternalSink : public RadioSettingsSink
   {
   public:
-    explicit InternalSink(DigitalInputGroup* pGroup) : m_pGroup(pGroup) {}
+    explicit InternalSink(DigitalInputs* pGroup) : m_pGroup(pGroup) {}
     void applySettings(const RadioSettings& settings) override
     {
       throw ControlException("A DigitalInput should not provide RadioSettings, only a single setting.");
@@ -59,12 +59,12 @@ protected:
     }
 
   protected:
-    DigitalInputGroup* m_pGroup;
+    DigitalInputs* m_pGroup;
   };
 
 protected:
   InternalSink m_internalSink;
   std::vector<DigitalInput*> m_inputs;
-  std::unique_ptr<DigitalInputsRequest> m_pLines;
+  std::unique_ptr<DigitalInputLinesRequest> m_pLines;
   std::unordered_map<uint32_t, DigitalInput*> m_lineToInputMap;
 };
