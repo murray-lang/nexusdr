@@ -2,58 +2,49 @@
 // Created by murray on 27/07/25.
 //
 
-#ifndef CUTESDR_VK6HL_RECEIVERCONFIG_H
-#define CUTESDR_VK6HL_RECEIVERCONFIG_H
+#pragma once
+
 #include "ConfigBase.h"
 #include "AudioConfig.h"
 #include "ConfigException.h"
 #include "ConfigFactory.h"
+#include "IqIoConfig.h"
 
-class ReceiverConfig : public ConfigBase
+// Plain struct listing configuration members for programmer visibility
+struct ReceiverConfigFields {
+  IqIoConfig iqIo;
+};
+
+class ReceiverConfig : public ConfigBase, public ReceiverConfigFields
 {
-  friend class RadioConfig;
 public:
   static constexpr auto type = "receiver";
-  explicit ReceiverConfig() : ConfigBase(type), m_pInput(nullptr), m_pOutput(nullptr) {}
-  ~ReceiverConfig() override
-  {
-    delete m_pInput;
-    delete m_pOutput;
-  };
-  // ReceiverConfig(const ReceiverConfig& rhs) :
-  //   m_iqInput(rhs.m_iqInput),
-  //   m_audioOutput(rhs.m_audioOutput)
-  // {
-  // }
-  //
-  // ReceiverConfig& operator=(const ReceiverConfig& rhs)
-  // {
-  //   m_iqInput = rhs.m_iqInput;
-  //   m_audioOutput = rhs.m_audioOutput;
-  //   return *this;
-  // }
+  explicit ReceiverConfig() : ConfigBase(type) {}
 
-  void initialise(const nlohmann::json& json) override
+  void fromJson(const nlohmann::json& json) override
   {
-    if (json.contains("input")) {
-      VariantConfig variantConfig(json["input"]);
-      m_pInput = ConfigFactory::create(variantConfig);
+    if (json.contains("iqIo")) {
+      iqIo.fromJson(json["iqIo"]);
     } else {
-      throw ConfigException("ReceiverConfig: input empty");
-    }
-    if (json.contains("output")) {
-      VariantConfig variantConfig(json["output"]);
-      m_pOutput = ConfigFactory::create(variantConfig);
-    } else {
-      throw ConfigException("ReceiverConfig: output empty");
+      throw ConfigException("ReceiverConfig: no iqIo configuration");
     }
   }
 
-  [[nodiscard]] const ConfigBase* getInput() const { return m_pInput; }
-  [[nodiscard]] const ConfigBase* getOutput() const { return m_pOutput; }
+  // Convenience helpers to work with the plain struct form
+  void setFields(const ReceiverConfigFields& f)
+  {
+    iqIo.setFields(f.iqIo);
+  }
 
-protected:
-  ConfigBase* m_pInput;
-  ConfigBase* m_pOutput;
+  [[nodiscard]] ReceiverConfigFields getFields() const
+  {
+    ReceiverConfigFields f;
+    f.iqIo.setFields(iqIo.getFields());
+    return f;
+  }
+
+  [[nodiscard]] nlohmann::json toJson() const override
+  {
+   return nlohmann::json{{"iqIo", iqIo.toJson()}};
+  }
 };
-#endif //CUTESDR_VK6HL_RECEIVERCONFIG_H

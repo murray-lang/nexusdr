@@ -2,8 +2,8 @@
 // Created by murray on 12/04/23.
 //
 
-#ifndef FUNCUBEPLAY_USBEXCEPTION_H
-#define FUNCUBEPLAY_USBEXCEPTION_H
+#pragma once
+
 
 #include <stdexcept>
 
@@ -14,4 +14,3 @@ public:
     explicit UsbException(const std::wstring& what);
 };
 
-#endif //FUNCUBEPLAY_USBEXCEPTION_H

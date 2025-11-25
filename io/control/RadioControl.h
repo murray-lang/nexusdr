@@ -2,8 +2,8 @@
 // Created by murray on 2025-08-24.
 //
 
-#ifndef CUTESDR_VK6HL_RADIOCONTROL_H
-#define CUTESDR_VK6HL_RADIOCONTROL_H
+#pragma once
+
 #include <vector>
 
 #include "ControlSink.h"
@@ -28,10 +28,7 @@ public:
 
   //RadioSettingsSink methods. Intended for external use, not to be called by internal sources.
   void applySettings(const RadioSettings& settings) override;
-  void applySingleSetting(const SingleSetting& settingDelta) override
-  {
-    throw ControlException("RadioControl::applySingleSetting() not implemented");
-  }
+  void applySingleSetting(const SingleSetting& setting) override;
 
   // SettingDeltaSink method.
 
@@ -45,6 +42,7 @@ public:
 
 protected:
 
+  // Intercepts settings from m_controlSources for anything relevant to this RadioControl mechanism
   class InternalSink : public RadioSettingsSink
   {
   public:
@@ -70,6 +68,3 @@ protected:
   std::vector<ControlSink*> m_controlSinks;
   std::vector<ControlSource*> m_controlSources;
 };
-
-
-#endif //CUTESDR_VK6HL_RADIOCONTROL_H

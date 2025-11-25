@@ -1,5 +1,4 @@
-#ifndef __FILTERCOEFFICIENTS_H__
-#define __FILTERCOEFFICIENTS_H__
+#pragma once
 #include "../../SampleTypes.h"
 
 //////////////////////////////////////////////////////////////////////
@@ -427,4 +426,3 @@ const sdrreal HB51TAP_H[HB51TAP_LENGTH] =
         0.0000033359253688981639
 };
 
-#endif //__FILTERCOEFFICIENTS_H__

@@ -2,11 +2,12 @@
 // Created by murray on 2025-08-21.
 //
 
-#ifndef CUTESDR_VK6HL_GPIO_H
-#define CUTESDR_VK6HL_GPIO_H
+#pragma once
+
 #include <memory>
 
-#include "digital/DigitalInputsRequest.h"
+#include "digital/DigitalInputLinesRequest.h"
+#include "digital/DigitalOutputLinesRequest.h"
 
 class Gpio {
 public:
@@ -26,7 +27,8 @@ public:
   void open();
   void close();
 
-  DigitalInputsRequest* requestDigitalInputs(const char * contextId, const std::vector<DigitalInput*>& inputs);
+  DigitalInputLinesRequest* requestDigitalInputs(const char * contextId, const std::vector<DigitalInput*>& inputs);
+  DigitalOutputLinesRequest* requestDigitalOutputs(const char * contextId, const std::vector<DigitalOutput*>& inputs);
 
   class Impl
   {
@@ -35,15 +37,11 @@ public:
     static bool isPresent();
     virtual bool open() = 0;
     virtual bool close() = 0;
-    virtual DigitalInputsRequest* requestDigitalInputs(const char * contextId, const std::vector<DigitalInput*>& inputs) = 0;
+    virtual DigitalInputLinesRequest* requestDigitalInputs(const char * contextId, const std::vector<DigitalInput*>& inputs) = 0;
+    virtual DigitalOutputLinesRequest* requestDigitalOutputs(const char * contextId, const std::vector<DigitalOutput*>& inputs) = 0;
   };
 
 protected:
   std::unique_ptr<Impl> m_pImpl;
 
 };
-
-
-
-
-#endif //CUTESDR_VK6HL_GPIO_H

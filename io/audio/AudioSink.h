@@ -1,0 +1,15 @@
+//
+// Created by murray on 18/11/25.
+//
+
+#pragma once
+#include <cstdint>
+
+#include "SampleTypes.h"
+
+class AudioSink
+{
+public:
+  virtual ~AudioSink() = default;
+  virtual uint32_t sinkAudio(const vsdrreal& samples, uint32_t length) = 0;
+};

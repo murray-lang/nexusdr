@@ -8,12 +8,14 @@
 AudioOutputDevice::AudioOutputDevice(const RtAudio::DeviceInfo& deviceInfo, const Format& format) :
   AudioDevice(deviceInfo, format),
   m_running(false),
-  m_audioBuffer()
+  m_audioBuffer(),
+  m_maxPacketFrames(0)
 {
 }
 
-void AudioOutputDevice::start()
+void AudioOutputDevice::start(uint32_t maxPacketFrames)
 {
+  m_maxPacketFrames = maxPacketFrames;
   if (!m_running) {
     m_running = true;
     RtAudio::StreamParameters parameters;
@@ -28,7 +30,6 @@ void AudioOutputDevice::start()
     // Set options as needed
 
     unsigned int sampleRate = m_format.sampleRate;
-    unsigned int bufferFrames = 512;
 
     RtAudioCallback rtCallback = [](void *outputBuffer, void *, unsigned int nFrames,
                          double, RtAudioStreamStatus, void *userData) -> int {
@@ -41,7 +42,7 @@ void AudioOutputDevice::start()
       nullptr,
       m_format.sampleFormat,
       sampleRate,
-      &bufferFrames, rtCallback, this /*, &options*/);
+      &m_maxPacketFrames, rtCallback, this /*, &options*/);
 
     rc = m_rtAudio.startStream();
   }

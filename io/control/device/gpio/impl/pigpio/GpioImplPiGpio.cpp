@@ -1,6 +1,7 @@
 
 #include "GpioImplPiGpio.h"
 
+#include "DigitalInputsRequestImplPiGpio.h"
 #include "GpioLinesImplPiGpio.h"
 #include "io/control/device/gpio/GpioException.h"
 
@@ -36,19 +37,25 @@ GpioImplPiGpio::close()
   return true;
 }
 
-GpioLines*
-GpioImplPiGpio::requestLines(const char * contextId, const std::vector<DigitalInput*>& lines)
+DigitalInputLinesRequest*
+GpioImplPiGpio::requestDigitalInputs(const char * contextId, const std::vector<DigitalInput*>& lines)
 {
   if (m_initRc < 0) {
     throw GpioException("PiGPIO not initialised");
   }
-  auto pLines = new GpioLinesImplPiGpio(contextId); 
+  auto pLines = new DigitalInputsRequestImplPiGpio(contextId);
   try {
     pLines->request(contextId, lines);
   } catch (...) {
     delete pLines;
     throw;
   }
-  return dynamic_cast<GpioLines*>(pLines);
+  return dynamic_cast<DigitalInputLinesRequest*>(pLines);
 
+}
+
+DigitalOutputLinesRequest*
+GpioImplPiGpio::requestDigitalOutputs(const char * contextId, const std::vector<DigitalOutput*>& lines)
+{
+  throw GpioException("GpioImplPiGpio::requestDigitalOutputs not implemented yet");
 }

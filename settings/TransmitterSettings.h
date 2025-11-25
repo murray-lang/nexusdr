@@ -2,8 +2,7 @@
 // Created by murray on 14/04/23.
 //
 
-#ifndef FUNCUBEPLAY_TRANSMITTERSETTINGS_H
-#define FUNCUBEPLAY_TRANSMITTERSETTINGS_H
+#pragma once
 
 #include "RfSettings.h"
 
@@ -24,6 +23,7 @@ public:
     if (this != &rhs) {
       SettingsBase::operator=(rhs);
       rfSettings = rhs.rfSettings;
+      mode = rhs.mode;
     }
     return *this;
   }
@@ -78,5 +78,3 @@ public:
   Mode mode;
   RfSettings rfSettings;
 };
-
-#endif //FUNCUBEPLAY_TRANSMITTERSETTINGS_H

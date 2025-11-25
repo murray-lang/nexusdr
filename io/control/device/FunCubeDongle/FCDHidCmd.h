@@ -1,5 +1,5 @@
-#ifndef __FCDHIDCMD_H__
-#define __FCDHIDCMD_H__
+#pragma once
+
 #define FCD_HID_CMD_QUERY              1 // Returns string with "FCDAPP version"
 
 #define FCD_HID_CMD_SET_FREQUENCY    100 // Send with 3 byte unsigned little endian frequency in kHz.
@@ -48,5 +48,3 @@ typedef enum
   TIFE_7MHZ=6,
   TIFE_8MHZ=7
 } TUNERIFFILTERENUM;
-
-#endif //__FCDHIDCMD_H__

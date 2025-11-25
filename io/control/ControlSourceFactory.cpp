@@ -4,9 +4,9 @@
 
 #include "ControlSourceFactory.h"
 
-#include "config/DigitalInputGroupConfig.h"
+#include "config/DigitalInputsConfig.h"
 #include "util/StringUtils.h"
-#include "device/gpio/digital/DigitalInputGroup.h"
+#include "device/gpio/digital/DigitalInputs.h"
 #include "device/gpio/digital/GpioRotaryEncoder.h"
 
 ControlSource*
@@ -26,9 +26,9 @@ ControlSourceFactory::create(const std::string& type)
 {
 
   bool gpioPresent = Gpio::isPresent();
-  if(type == DigitalInputGroupConfig::type && gpioPresent)
+  if(type == DigitalInputsConfig::type && gpioPresent)
   {
-    return new DigitalInputGroup();
+    return new DigitalInputs();
   }
 
   // if(typeAslower == "gpiorotaryencoder" && gpioPresent)

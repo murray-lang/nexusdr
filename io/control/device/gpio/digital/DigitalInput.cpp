@@ -8,11 +8,10 @@
 DigitalInput::DigitalInput() :
   GpioLines(Direction::INPUT),
   m_activeHigh(true),
-  m_pSink(nullptr),
+  m_debounce(false),
   m_detectEdge(false),
-  m_debounce(false)
+  m_pSink(nullptr)
 {
-
 }
 
 void
@@ -21,7 +20,6 @@ DigitalInput::configure(const DigitalInputConfig* pConfig)
   GpioLines::configure(pConfig);
   m_activeHigh = pConfig->getActiveHigh();
   m_debounce = pConfig->getDebounce();
-  m_direction = Direction::INPUT;
   const std::string& strSettingPath = pConfig->getSettingPath();
   m_id = strSettingPath;
   m_settingPath = RadioSettings::getSettingPath(strSettingPath);
@@ -42,9 +40,9 @@ DigitalInput::notifySingleSetting(const SingleSetting& settingDelta)
 }
 
 bool 
-DigitalInput::handleLineChange(DigitalInputsRequest::LineStates& changedLines)
+DigitalInput::handleLineChange(DigitalInputLinesRequest::LineStates& changedLines)
 {
-  DigitalInputsRequest::LineState& line = changedLines.at(m_lines[0]);
+  DigitalInputLinesRequest::LineState& line = changedLines.at(m_lines[0]);
   if (!line.changed) {
     return false;
   }
@@ -61,7 +59,7 @@ DigitalInput::handleLineChange(DigitalInputsRequest::LineStates& changedLines)
 }
 
 void
-DigitalInput::notifyChange(const DigitalInputsRequest::LineState& lineState)
+DigitalInput::notifyChange(const DigitalInputLinesRequest::LineState& lineState)
 {
   bool active = m_activeHigh ? !!lineState.value : !lineState.value;
   SingleSetting setting(m_settingPath, static_cast<bool>(active), SingleSetting::VALUE);

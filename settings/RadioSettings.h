@@ -2,8 +2,8 @@
 // Created by murray on 15/04/23.
 //
 
-#ifndef FUNCUBEPLAY_RADIOSETTINGS_H
-#define FUNCUBEPLAY_RADIOSETTINGS_H
+#pragma once
+
 
 #include "ModeSettings.h"
 #include "ReceiverSettings.h"
@@ -31,7 +31,7 @@ public:
     // TXRX = TX | RX
   };
 
-  RadioSettings() = default;
+  RadioSettings() : ptt(false), mode(), modeSettings(), rxSettings(), txSettings() {};
   RadioSettings(const RadioSettings& rhs) = default;
   
   ~RadioSettings() override = default;
@@ -73,8 +73,6 @@ public:
         settingChange = true;
       }
     }
-    
-
     if ((feature & MODE) != 0) {
       if (modeSettings.applySetting(setting, startIndex)) {
         mode = modeSettings.getCurrentMode();
@@ -83,7 +81,6 @@ public:
         changed |= MODE;
         settingChange = true;
       }
-
     }
     if ((feature & FREQUENCY) != 0) {
       SingleSetting frequencySetting(setting);
@@ -171,5 +168,3 @@ public:
   TransmitterSettings txSettings;
 
 };
-
-#endif //FUNCUBEPLAY_RADIOSETTINGS_H

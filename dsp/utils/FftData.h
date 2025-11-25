@@ -1,5 +1,4 @@
-#ifndef FFTDATA_H
-#define FFTDATA_H
+#pragma once
 
 #include <QSharedPointer>
 //#include <fftw3.h>
@@ -31,4 +30,3 @@
 typedef QSharedPointer<vsdrreal> SharedRealSeriesData;
 typedef QSharedPointer<vsdrcomplex> SharedComplexSeriesData;
 
-#endif // FFTDATA_H

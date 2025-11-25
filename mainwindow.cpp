@@ -6,7 +6,7 @@
 #include <QValueAxis>
 #include <QLogValueAxis>
 #include <QThreadPool>
-#include "io/audio/device/IqAudioInputDevice.h"
+#include "io/audio/device/AudioInputDevice.h"
 #include <cmath>
 #include "io/control/device/usb/UsbException.h"
 #include "io/control/device/FunCubeDongle/FunCubeDongle.h"
@@ -16,6 +16,8 @@
 
 #include "radio/receiver/ReceiverAudioEvent.h"
 #include "radio/receiver/ReceiverIqEvent.h"
+#include "radio/transmitter/TransmitterAudioEvent.h"
+#include "radio/transmitter/TransmitterIqEvent.h"
 
 #define FFT_SIZE 2048
 #define SAMPLE_RATE 192000
@@ -179,7 +181,7 @@ MainWindow::configureTimeseriesChart()
   pChart->axes(Qt::Horizontal).first()->setRange(m_timeSeriesXmin / 100.0, m_timeSeriesXmax/100.0);
 
 //  pChart->axes(Qt::Vertical).first()->setRange(2038, 2058);
-  pChart->axes(Qt::Vertical).first()->setRange(-10, 10);
+  pChart->axes(Qt::Vertical).first()->setRange(-0.05, 0.05);
 
 //  pChart->axes(Qt::Vertical).first()->setRange(-0.0000001, 0.0000003);
 
@@ -208,6 +210,12 @@ MainWindow::customEvent(QEvent* event)
   } else if (event->type() == RadioSettingsEvent::RadioSettingsEventType) {
     auto* radioSettingsEvent = dynamic_cast<RadioSettingsEvent*>(event);
     handleRadioSettingsEvent(radioSettingsEvent->getSettings());
+  } else if (event->type() == TransmitterIqEvent::TxIqEvent) {
+    auto* iqEvent = dynamic_cast<TransmitterIqEvent*>(event);
+    handleReceiverIqEvent(iqEvent->buffer.get(), iqEvent->dataLength, iqEvent->sampleRate);
+  } else if (event->type() == TransmitterAudioEvent::TxAudioEvent) {
+    auto* audioEvent = dynamic_cast<TransmitterAudioEvent*>(event);
+    handleTransmitterAudioEvent(audioEvent->buffer.get(), audioEvent->dataLength);
   }
 }
 
@@ -231,6 +239,22 @@ MainWindow::handleReceiverIqEvent(const vsdrcomplex* data, uint32_t length, uint
 
 void
 MainWindow::handleReceiverAudioEvent(const vsdrreal* data, uint32_t length)
+{
+  setTimeSeriesX(0, length);
+  //  setTimeSeriesX(0, 48);
+
+  //}
+  QList<QPointF> timeseriesPoints;
+  uint32_t plotX = 0;
+  for (uint32_t i = 0; i < length; i++) {
+    timeseriesPoints.append(QPointF(plotX++, data->at(i)));
+  }
+
+  m_timeseriesLineSeries.replace(timeseriesPoints);
+}
+
+void
+MainWindow::handleTransmitterAudioEvent(const vsdrreal* data, uint32_t length)
 {
   setTimeSeriesX(0, length);
   //  setTimeSeriesX(0, 48);
@@ -505,8 +529,8 @@ MainWindow::initialiseRadio()
     m_radioSettings.rxSettings.mode = mode;
     //m_radioSettings.txSettings.mode = m_radioSettings.modeSettings.getCurrentMode();
 
-    m_radioSettings.rxSettings.rfSettings.frequency = 7050000;
-    m_radioSettings.rxSettings.rfSettings.offset = -0;
+    m_radioSettings.rxSettings.rfSettings.frequency = 14100000;
+    m_radioSettings.rxSettings.rfSettings.offset = 48000;
     m_radioSettings.rxSettings.rfSettings.gain = 30.0;
     m_radioSettings.rxSettings.rfSettings.changed = (RfSettings::FREQUENCY | RfSettings::OFFSET | RfSettings::GAIN);
     m_radioSettings.rxSettings.ifSettings.bandwidth = 200000;
@@ -515,6 +539,14 @@ MainWindow::initialiseRadio()
     m_radioSettings.rxSettings.changed = (ReceiverSettings::MODE | ReceiverSettings::RF | ReceiverSettings::IF);
 
     m_radioSettings.changed = RadioSettings::MODE | RadioSettings::RX;
+
+    m_radioSettings.txSettings.mode = mode;
+    m_radioSettings.txSettings.rfSettings.frequency = 7050000;
+    m_radioSettings.txSettings.rfSettings.offset = 48000;
+    m_radioSettings.txSettings.rfSettings.changed = (RfSettings::FREQUENCY | RfSettings::OFFSET);
+    m_radioSettings.txSettings.changed = (TransmitterSettings::MODE | TransmitterSettings::RF);
+
+    m_radioSettings.changed = RadioSettings::MODE | RadioSettings::RX | RadioSettings::TX;
 
     m_pRadio->applySettings(m_radioSettings);
   }

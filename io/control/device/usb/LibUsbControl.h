@@ -2,8 +2,8 @@
 // Created by murray on 12/04/23.
 //
 
-#ifndef FUNCUBEPLAY_LIBUSBCONTROL_H
-#define FUNCUBEPLAY_LIBUSBCONTROL_H
+#pragma once
+
 
 #include "UsbControl.h"
 
@@ -26,4 +26,3 @@ protected:
     libusb_device_handle* handle;
 };
 
-#endif //FUNCUBEPLAY_LIBUSBCONTROL_H

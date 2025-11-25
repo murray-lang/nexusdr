@@ -2,8 +2,8 @@
 // Created by murray on 15/04/23.
 //
 
-#ifndef CONTROLBASE_H
-#define CONTROLBASE_H
+#pragma once
+
 
 #include <string>
 #include <nlohmann/json.hpp>
@@ -27,5 +27,3 @@ public:
 protected:
     std::string id;
 };
-
-#endif //CONTROLBASE_H

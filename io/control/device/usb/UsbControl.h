@@ -2,8 +2,7 @@
 // Created by murray on 12/04/23.
 //
 
-#ifndef FUNCUBEPLAY_USBCONTROL_H
-#define FUNCUBEPLAY_USBCONTROL_H
+#pragma once
 
 #include <stdexcept>
 #include <libusb-1.0/libusb.h>
@@ -23,4 +22,4 @@ protected:
     uint16_t vendorId;
     uint16_t productId;
 };
-#endif //FUNCUBEPLAY_USBCONTROL_H
+

@@ -2,8 +2,8 @@
 // Created by murray on 25/9/25.
 //
 
-#ifndef CUTESDR_VK6HL_RADIOSETTINGSEVENT_H
-#define CUTESDR_VK6HL_RADIOSETTINGSEVENT_H
+#pragma once
+
 #include <memory>
 #include <qcoreevent.h>
 
@@ -23,6 +23,3 @@ protected:
   // std::shared_ptr<RadioSettings> m_pSettings;
   RadioSettings m_settings;
 };
-
-
-#endif //CUTESDR_VK6HL_RADIOSETTINGSEVENT_H

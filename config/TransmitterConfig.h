@@ -2,32 +2,49 @@
 // Created by murray on 27/07/25.
 //
 
-#ifndef CUTESDR_VK6HL_TRANSMITTERCONFIG_H
-#define CUTESDR_VK6HL_TRANSMITTERCONFIG_H
-#include "ConfigBase.h"
+#pragma once
 
-class TransmitterConfig : public ConfigBase
+#include "ConfigBase.h"
+#include "AudioConfig.h"
+#include "ConfigException.h"
+#include "ConfigFactory.h"
+#include "IqIoConfig.h"
+
+// Plain struct listing configuration members for programmer visibility
+struct TransmitterConfigFields {
+  IqIoConfig iqIo;
+};
+
+class TransmitterConfig : public ConfigBase, public TransmitterConfigFields
 {
-  friend class RadioConfig;
 public:
   static constexpr auto type = "transmitter";
   explicit TransmitterConfig() : ConfigBase(type) {}
-  ~TransmitterConfig() override = default;
 
-  // TransmitterConfig(const TransmitterConfig& rhs)
-  // {
-  //   operator=(rhs);
-  // }
-  //
-  // TransmitterConfig& operator=(const TransmitterConfig& rhs)
-  // {
-  //   return *this;
-  // }
-
-  void initialise(const nlohmann::json& json) override
+  void fromJson(const nlohmann::json& json) override
   {
+    if (json.contains("iqIo")) {
+      iqIo.fromJson(json["iqIo"]);
+    } else {
+      throw ConfigException("TransmitterConfig: no iqIo configuration");
+    }
   }
 
-protected:
+  // Convenience helpers to work with the plain struct form
+  void setFields(const TransmitterConfigFields& f)
+  {
+    iqIo.setFields(f.iqIo);
+  }
+
+  [[nodiscard]] TransmitterConfigFields getFields() const
+  {
+    TransmitterConfigFields f;
+    f.iqIo.setFields(iqIo.getFields());
+    return f;
+  }
+
+  [[nodiscard]] nlohmann::json toJson() const override
+  {
+    return nlohmann::json{{"iqIo", iqIo.toJson()}};
+  }
 };
-#endif //CUTESDR_VK6HL_TRANSMITTERCONFIG_H

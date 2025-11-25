@@ -6,13 +6,18 @@
 
 #include "AudioConfig.h"
 #include "ReceiverConfig.h"
+#include "TransmitterConfig.h"  
 #include "VariantConfig.h"
 #include <stdexcept>
 
+#include "AudioIqSourceConfig.h"
+#include "AudioSignalIqSourceConfig.h"
 #include "ControlConfig.h"
-#include "DigitalInputGroupConfig.h"
+#include "DigitalInputsConfig.h"
+#include "DigitalOutputConfig.h"
 #include "FunCubeConfig.h"
 #include "RotaryEncoderConfig.h"
+#include "dsp/iq/AudioSignalIqSource.h"
 #include "util/StringUtils.h"
 
 ConfigBase*
@@ -25,19 +30,35 @@ ConfigFactory::create(const VariantConfig& item)
 }
 
 ConfigBase*
+ConfigFactory::create(const std::string& type, const nlohmann::json& config)
+{
+  ConfigBase* result = create(type);
+  if (result == nullptr) {
+    throw std::runtime_error("Unknown config type: " + type);
+  }
+  result->fromJson(config);
+  return result;
+}
+
+ConfigBase*
 ConfigFactory::create(const std::string& type)
 {
   std::string typeAsLower = StringUtils::toLowerCase(type);
+
   if (typeAsLower == ControlConfig::type) {
     auto * result = new ControlConfig();
     return result;
   }
-  if (typeAsLower == DigitalInputGroupConfig::type) {
-    auto * result = new DigitalInputGroupConfig();
+  if (typeAsLower == DigitalInputsConfig::type) {
+    auto * result = new DigitalInputsConfig();
     return result;
   }
   if (typeAsLower == DigitalInputConfig::type) {
     auto * result = new DigitalInputConfig();
+    return result;
+  }
+  if (typeAsLower == DigitalOutputConfig::type) {
+    auto * result = new DigitalOutputConfig();
     return result;
   }
   if (typeAsLower == RotaryEncoderConfig::type) {
@@ -46,6 +67,10 @@ ConfigFactory::create(const std::string& type)
   }
   if (typeAsLower == ReceiverConfig::type) {
     auto * result = new ReceiverConfig();
+    return result;
+  }
+  if (typeAsLower == TransmitterConfig::type) {
+    auto * result = new TransmitterConfig();
     return result;
   }
   if (typeAsLower == AudioConfig::type) {
@@ -60,16 +85,17 @@ ConfigFactory::create(const std::string& type)
     auto * result = new FunCubeConfig();
     return result;
   }
-  return nullptr;
-}
-
-ConfigBase*
-ConfigFactory::create(const std::string& type, const nlohmann::json& config)
-{
-  ConfigBase* result = create(type);
-  if (result == nullptr) {
-    throw std::runtime_error("Unknown config type: " + type);
+  if (typeAsLower == AudioIqSourceConfig::type) {
+    auto * result = new AudioIqSourceConfig();
+    return result;
   }
-  result->initialise(config);
-  return result;
+  if (typeAsLower == AudioSignalIqSourceConfig::type) {
+    auto * result = new AudioSignalIqSourceConfig();
+    return result;
+  }
+  if (typeAsLower == IqIoConfig::type) {
+    auto * result = new IqIoConfig();
+    return result;
+  }
+  return nullptr;
 }

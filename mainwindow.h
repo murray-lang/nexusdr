@@ -1,5 +1,5 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#pragma once
+
 
 #include <QMainWindow>
 #include <QScopedPointer>
@@ -33,6 +33,7 @@ public:
 protected:
   void handleReceiverIqEvent(const vsdrcomplex* data, uint32_t length, uint32_t sampleRate);
   void handleReceiverAudioEvent(const vsdrreal* data, uint32_t length);
+  void handleTransmitterAudioEvent(const vsdrreal* data, uint32_t length);
   void handleRadioSettingsEvent(const RadioSettings& radioSettings);
   static void powerSpectrum(const std::vector<sdrcomplex>& timeSeries, uint32_t timeSeriesLength, vsdrreal& spectrumOut);
 
@@ -90,4 +91,4 @@ private:
   QGraphicsRectItem * m_filterPassbandRect;
 
 };
-#endif // MAINWINDOW_H
+

@@ -2,8 +2,8 @@
 // Created by murray on 20/8/25.
 //
 
-#ifndef CONTROLSOURCE_H
-#define CONTROLSOURCE_H
+#pragma once
+
 #include "ControlBase.h"
 #include <settings/PttSource.h>
 #include <settings/RadioSettingsSource.h>
@@ -38,6 +38,3 @@ protected:
 protected:
   RadioSettingsSink* m_pSettingsSink;
 };
-
-
-#endif //CONTROLSOURCE_H

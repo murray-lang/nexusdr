@@ -2,8 +2,8 @@
 // Created by murray on 14/9/25.
 //
 
-#ifndef CUTESDR_VK6HL_VARIANTCONFIG_H
-#define CUTESDR_VK6HL_VARIANTCONFIG_H
+#pragma once
+
 #include <string>
 #include <nlohmann/json.hpp>
 
@@ -14,19 +14,19 @@ public:
   VariantConfig(const VariantConfig& rhs) = default;
   explicit VariantConfig(const nlohmann::json& json)
   {
-    initialise(json);
+    fromJson(json);
   }
   ~VariantConfig() = default;
 
   VariantConfig& operator=(const VariantConfig& rhs) = default;
   VariantConfig& operator=(const nlohmann::json& json)
   {
-    initialise(json);
+    fromJson(json);
     return *this;
   }
 
 
-  void initialise(const nlohmann::json& json)
+  void fromJson(const nlohmann::json& json)
   {
     if (json.contains("type")) {
       m_type = json["type"];
@@ -50,5 +50,3 @@ protected:
   std::string m_type;
   nlohmann::json m_config;
 };
-
-#endif //CUTESDR_VK6HL_VARIANTCONFIG_H

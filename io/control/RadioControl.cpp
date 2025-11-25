@@ -8,6 +8,8 @@
 #include "ControlSinkFactory.h"
 #include "ControlSourceFactory.h"
 #include "config/ConfigException.h"
+#include "settings/RadioSettings.h"
+#include "settings/SettingPath.h"
 
 RadioControl::RadioControl() :
   m_internalSink(this),
@@ -75,6 +77,14 @@ RadioControl::applySettings(const RadioSettings& settings)
 }
 
 void
+RadioControl::applySingleSetting(const SingleSetting& setting)
+{
+  for (RadioSettingsSink* pSink : m_controlSinks) {
+    pSink->applySingleSetting(setting);
+  }
+}
+
+void
 RadioControl::start()
 {
   for (auto pSink : m_controlSinks) {
@@ -104,5 +114,7 @@ RadioControl::stop()
 void
 RadioControl::ptt(bool on)
 {
-
+  SettingPath path({RadioSettings::PTT});
+  SingleSetting setting(path, on, SingleSetting::VALUE);
+  applySingleSetting(setting);
 }

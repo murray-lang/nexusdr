@@ -2,8 +2,8 @@
 // Created by murray on 29/9/25.
 //
 
-#ifndef CUTESDR_VK6HL_GPIOLINECONFIG_H
-#define CUTESDR_VK6HL_GPIOLINECONFIG_H
+#pragma once
+
 #include "ConfigBase.h"
 
 
@@ -12,7 +12,7 @@ class GpioLinesConfig : public ConfigBase
 public:
   explicit GpioLinesConfig(const char* type) : ConfigBase(type) {}
   ~GpioLinesConfig() override = default;
-  void initialise(const nlohmann::json& json) override
+  void fromJson(const nlohmann::json& json) override
   {
     if (json.contains("lines")) {
       for (auto& line : json["lines"]) {
@@ -41,4 +41,3 @@ protected:
   std::string m_bias; // "none", "pull-up" or "pull-down"
   std::string m_edge; // "rising", "falling" or "both"
 };
-#endif //CUTESDR_VK6HL_GPIOLINECONFIG_H

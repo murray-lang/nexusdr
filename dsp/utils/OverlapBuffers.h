@@ -2,8 +2,8 @@
 // Created by murray on 13/07/25.
 //
 
-#ifndef OVERLAPBUFFERS_H
-#define OVERLAPBUFFERS_H
+#pragma once
+
 #include "PingPongBuffers.h"
 
 template<typename T>
@@ -47,5 +47,3 @@ protected:
 
 using ComplexOverlapBuffers = OverlapBuffers<sdrcomplex>;
 using RealOverlapBuffers = OverlapBuffers<sdrreal>;
-
-#endif //OVERLAPBUFFERS_H
