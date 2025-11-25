@@ -6,6 +6,7 @@
 
 #include "config/FunCubeConfig.h"
 #include "device/FunCubeDongle/FunCubeDongle.h"
+#include "device/gpio/digital/DigitalOutput.h"
 
 ControlSink*
 ControlSinkFactory::create(const ConfigBase* pConfig)
@@ -26,6 +27,10 @@ ControlSinkFactory::create(const std::string& type)
   if(typeAslower == FunCubeConfig::type)
   {
     return new FunCubeDongle();
+  }
+  if(typeAslower == DigitalOutputConfig::type)
+  {
+    return new DigitalOutput();
   }
   return nullptr;
 }
