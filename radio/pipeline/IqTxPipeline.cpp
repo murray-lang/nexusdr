@@ -20,13 +20,14 @@ IqTxPipeline::IqTxPipeline(QObject* eventTarget) :
   m_pMonitoringStage = new MonitoringStage(
     eventTarget,
     TransmitterIqEvent::TxIqEvent,
-    [this]() { return m_inputSampleRate; }
+    [this]() { return m_outputSampleRate; }
   );
 
   addStage(&m_ifFilter);
-  addStage(m_pMonitoringStage);
   addStage(&m_resampler);
+  
   addStage(&m_oscillatorMixer);
+  addStage(m_pMonitoringStage);
 }
 
 IqTxPipeline::~IqTxPipeline()
@@ -69,7 +70,7 @@ void IqTxPipeline::apply(const TransmitterSettings& settings)
   std::lock_guard<std::mutex> lock(m_settingsMutex);
   if (settings.changed & TransmitterSettings::RF) {
     if (settings.rfSettings.changed & RfSettings::OFFSET) {
-      m_oscillatorMixer.setFrequency(-settings.rfSettings.offset);
+      m_oscillatorMixer.setFrequency(settings.rfSettings.offset);
     }
   }
   if (settings.changed & TransmitterSettings::MODE) {

@@ -529,7 +529,7 @@ MainWindow::initialiseRadio()
     m_radioSettings.rxSettings.mode = mode;
     //m_radioSettings.txSettings.mode = m_radioSettings.modeSettings.getCurrentMode();
 
-    m_radioSettings.rxSettings.rfSettings.frequency = 7100000;
+    m_radioSettings.rxSettings.rfSettings.frequency = 14100000;
     m_radioSettings.rxSettings.rfSettings.offset = 48000;
     m_radioSettings.rxSettings.rfSettings.gain = 30.0;
     m_radioSettings.rxSettings.rfSettings.changed = (RfSettings::FREQUENCY | RfSettings::OFFSET | RfSettings::GAIN);
