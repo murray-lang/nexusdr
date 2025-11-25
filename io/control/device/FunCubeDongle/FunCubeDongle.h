@@ -21,7 +21,7 @@ public:
   void applySettings(const RadioSettings& radioSettings) override;
   void applySingleSetting(const SingleSetting& settingDelta) override
   {
-    throw ControlException("FunCubeDongle::applySingleSetting() not implemented.");
+    // throw ControlException("FunCubeDongle::applySingleSetting() not implemented.");
   }
 
   void ptt(bool on) override;

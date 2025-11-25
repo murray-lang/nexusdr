@@ -27,7 +27,7 @@ DigitalOutput::configure(const ConfigBase* pConfig)
 void
 DigitalOutput::applySettings(const RadioSettings& settings)
 {
-  throw ControlException("DigitalOutput cannot apply RadioSettings, only a single setting.");
+  // throw ControlException("DigitalOutput cannot apply RadioSettings, only a single setting.");
 }
 
 void
