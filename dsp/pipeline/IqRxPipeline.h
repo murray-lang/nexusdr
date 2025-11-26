@@ -12,6 +12,7 @@
 #include "demodulators/Demodulator.h"
 #include "demodulators/FmDemodulator.h"
 #include "demodulators/SsbDemodulator.h"
+#include "demodulators/CwDemodulator.h"
 #include "filters/FastFIR.h"
 #include "oscillators/OscillatorMixer.h"
 #include "settings/ReceiverSettingsSink.h"
@@ -49,6 +50,7 @@ protected:
   AmDemodulator m_amDemodulator;
   FmDemodulator m_fmDemodulator;
   SsbDemodulator m_ssbDemodulator;
+  CwDemodulator m_cwDemodulator;
   Demodulator* m_pDemodulator;
   vsdrreal m_audioBuffer;
   MonitoringStage* m_pMonitoringStage;

@@ -523,7 +523,7 @@ MainWindow::initialiseRadio()
     //    },
     //   .changed = (RadioSettings::RX) 
     // };
-    m_radioSettings.modeSettings.setCurrentMode(Mode::USB);
+    m_radioSettings.modeSettings.setCurrentMode(Mode::CWL);
     const Mode& mode = m_radioSettings.modeSettings.getCurrentMode();
     m_radioSettings.mode = mode;
     m_radioSettings.rxSettings.mode = mode;

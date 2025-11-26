@@ -7,6 +7,7 @@
 
 class CwDemodulator : public Demodulator
 {
+public:  
   CwDemodulator(const Mode& mode, uint32_t sampleRate) :
       Demodulator(mode, sampleRate)
   {}

@@ -5,15 +5,17 @@
 
 #define FFT_SIZE 2048
 #define PING_PONG_LENGTH 8192
+#define DEFAULT_SAMPLE_RATE 48000
 
 #include "settings/ModeSettings.h"
 
 IqRxPipeline::IqRxPipeline(const ModeSettings& modeSettings, QObject* eventTarget) :
   IqPipeline(modeSettings, eventTarget),
   m_ifFilter(FFT_SIZE),
-  m_amDemodulator(modeSettings.getModeByType(Mode::AMN), 48000),
-  m_fmDemodulator(modeSettings.getModeByType(Mode::FMN),48000),
-  m_ssbDemodulator(modeSettings.getModeByType(Mode::USB),48000),
+  m_amDemodulator(modeSettings.getModeByType(Mode::AMN), DEFAULT_SAMPLE_RATE),
+  m_fmDemodulator(modeSettings.getModeByType(Mode::FMN),DEFAULT_SAMPLE_RATE),
+  m_ssbDemodulator(modeSettings.getModeByType(Mode::USB),DEFAULT_SAMPLE_RATE),
+  m_cwDemodulator(modeSettings.getModeByType(Mode::CWU),DEFAULT_SAMPLE_RATE),
   m_pDemodulator(nullptr),
   m_audioBuffer(PING_PONG_LENGTH),
   m_pMonitoringStage(nullptr)
@@ -95,6 +97,9 @@ IqRxPipeline::setDemodulator(const Mode& mode)
   case Mode::Type::LSB:
     m_pDemodulator = &m_ssbDemodulator;
     break;
+  case Mode::Type::CWU:
+  case Mode::Type::CWL:
+    m_pDemodulator = &m_cwDemodulator;
     break;
   default:
     m_pDemodulator = nullptr;
