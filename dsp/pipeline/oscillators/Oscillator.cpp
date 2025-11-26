@@ -1,5 +1,5 @@
 #include "Oscillator.h"
-#include "../utils/constants.h"
+#include "../../utils/constants.h"
 #include <cmath>
 
 Oscillator::Oscillator() :

@@ -7,17 +7,18 @@
 
 #include "IqPipeline.h"
 #include "dsp/utils/HilbertTransform.h"
-#include "../../dsp/pipeline/filters/FastFIR.h"
-#include "../../dsp/pipeline/modulators/SsbModulator.h"
-#include "../../dsp/pipeline/oscillators/OscillatorMixer.h"
-#include "../../dsp/pipeline/resampler/Resampler.h"
+#include "filters/FastFIR.h"
+#include "modulators/SsbModulator.h"
+#include "oscillators/OscillatorMixer.h"
+#include "resampler/Resampler.h"
 #include "dsp/pipeline/monitoring/MonitoringStage.h"
+#include "modulators/CwModulator.h"
 #include "settings/TransmitterSettingsSink.h"
 
 class IqTxPipeline: public IqPipeline, public TransmitterSettingsSink
 {
 public:
-  explicit IqTxPipeline(QObject* eventTarget);
+  explicit IqTxPipeline(const ModeSettings& modeSettings, QObject* eventTarget);
   ~IqTxPipeline() override;
 
   void initialise(IqIo* pIo, AudioSink* pAudioSink) override;
@@ -34,11 +35,12 @@ public:
   void setMode(const Mode& mode) override;
 protected:
 
-  void setModulator(Mode::Type modeType);
+  void setModulator(const Mode& mode);
   static uint32_t interleaveComplexToReal(const vsdrcomplex& vcomplex, vsdrreal& vreal, uint32_t numComplexes);
 
 protected:
   SsbModulator m_ssbModulator;
+  CwModulator m_cwModulator;
   Modulator* m_pModulator;
   Resampler m_resampler;
   OscillatorMixer m_oscillatorMixer;

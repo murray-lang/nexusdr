@@ -4,12 +4,20 @@
 
 #include "IqTxPipeline.h"
 
+#include "settings/ModeSettings.h"
+
 #define FFT_SIZE 2048
 #define PING_PONG_LENGTH 8192
 #define HILBERT_TAPS 63
 
-IqTxPipeline::IqTxPipeline(QObject* eventTarget) :
-  IqPipeline(eventTarget),
+class ModeSettings;
+
+#define DEFAULT_SAMPLE_RATE 48000
+
+IqTxPipeline::IqTxPipeline(const ModeSettings& modeSettings, QObject* eventTarget) :
+  IqPipeline(modeSettings, eventTarget),
+  m_ssbModulator(modeSettings.getModeByType(Mode::USB), DEFAULT_SAMPLE_RATE),
+  m_cwModulator(modeSettings.getModeByType(Mode::CWU), DEFAULT_SAMPLE_RATE),
   m_pModulator(nullptr),
   m_resampler(),
   m_ifFilter(FFT_SIZE),
@@ -83,14 +91,14 @@ void IqTxPipeline::setMode(const Mode& mode)
 
   IqPipeline::setMode(mode);
   m_ifFilter.getKernel().configure(mode.getLoCut(), mode.getHiCut(), mode.getOffset(), m_inputSampleRate * 2);
-  setModulator(mode.getType());
+  setModulator(mode);
 }
 
 void
-IqTxPipeline::setModulator(Mode::Type modeType)
+IqTxPipeline::setModulator(const Mode& mode)
 {
 
-  switch (modeType) {
+  switch (mode.getType()) {
   case Mode::Type::AMN:
   case Mode::Type::AMW:
     m_pModulator = nullptr;
@@ -100,17 +108,20 @@ IqTxPipeline::setModulator(Mode::Type modeType)
     m_pModulator = nullptr;
     break;
   case Mode::Type::USB:
-    m_pModulator = &m_ssbModulator;
-    m_ssbModulator.setMode(SsbModulator::Mode::USB);
-    break;
   case Mode::Type::LSB:
     m_pModulator = &m_ssbModulator;
-    m_ssbModulator.setMode(SsbModulator::Mode::LSB);
+    break;
+  case Mode::Type::CWU:
+  case Mode::Type::CWL:
+    m_pModulator = &m_cwModulator;
     break;
   default:
     m_pModulator = nullptr;
     throw SettingsException("Unknown mode type");
     break;
+  }
+  if (m_pModulator != nullptr) {
+    m_pModulator->setMode(mode);
   }
 }
 

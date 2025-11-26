@@ -18,8 +18,8 @@ Radio::Radio(QObject *pEventTarget) :
   m_control(),
   m_pEventTarget(pEventTarget)
 {
-  m_pReceiver = new IqReceiver(pEventTarget);
-  m_pTransmitter = new IqTransmitter(pEventTarget);
+  m_pReceiver = new IqReceiver(m_settings.modeSettings, pEventTarget);
+  m_pTransmitter = new IqTransmitter(m_settings.modeSettings, pEventTarget);
 }
 
 Radio::~Radio()
@@ -35,13 +35,13 @@ Radio::configure(const RadioConfig* pConfig)
 
   const ReceiverConfig* pRxConfig = pConfig->getReceiver();
   if (pRxConfig != nullptr) {
-    m_pReceiver = new IqReceiver(m_pEventTarget);
+    m_pReceiver = new IqReceiver(m_settings.modeSettings, m_pEventTarget);
     m_pReceiver->configure(pRxConfig);
   }
 
   const TransmitterConfig* pTxConfig = pConfig->getTransmitter();
   if (pTxConfig != nullptr) {
-    m_pTransmitter = new IqTransmitter(m_pEventTarget);
+    m_pTransmitter = new IqTransmitter(m_settings.modeSettings, m_pEventTarget);
     m_pTransmitter->configure(pTxConfig);
   }
 }

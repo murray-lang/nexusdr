@@ -2,7 +2,7 @@
 
 #include <cstdint>
 #include "../../SampleTypes.h"
-#include "../../dsp/utils/PingPongBuffers.h"
+#include "../utils/PingPongBuffers.h"
 
 class IqPipelineStage
 {

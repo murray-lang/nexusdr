@@ -9,8 +9,11 @@
 #include "TransmitterIqEvent.h"
 
 
-IqTransmitter::IqTransmitter(QObject* eventTarget) :
-  m_iqPipeline(eventTarget),
+class ModeSettings;
+
+IqTransmitter::IqTransmitter(const ModeSettings& modeSettings, QObject* eventTarget) :
+  m_modeSettings(modeSettings),
+  m_iqPipeline(modeSettings, eventTarget),
   m_eventTarget(eventTarget)
 {
 }

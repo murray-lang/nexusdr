@@ -12,8 +12,9 @@
 // #define FFT_SIZE 2048
 
 
-IqReceiver::IqReceiver(QObject* eventTarget) :
-  m_iqPipeline(eventTarget),
+IqReceiver::IqReceiver(const ModeSettings& modeSettings, QObject* eventTarget) :
+  m_modeSettings(modeSettings),
+  m_iqPipeline(modeSettings, eventTarget),
   m_eventTarget(eventTarget)
 {
 }

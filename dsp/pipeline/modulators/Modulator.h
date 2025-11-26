@@ -8,13 +8,28 @@
 
 #include "SampleTypes.h"
 
+#include "settings/Mode.h"
+
 class Modulator //: public IqPipelineStage
 {
 public:
-  Modulator() = default;
+  Modulator(const Mode& mode, uint32_t sampleRate) : m_mode(mode), m_sampleRate(sampleRate) {}
   virtual ~Modulator() = default;
 
   virtual uint32_t processSamples(const vsdrcomplex& audio, vsdrcomplex& output, uint32_t inputLength) = 0;
-  // virtual uint32_t processSamples(ComplexPingPongBuffers& buffers, uint32_t inputLength) = 0;
+
+  virtual void setSampleRate(uint32_t sampleRate) {
+    m_sampleRate = sampleRate;
+  }
+  virtual uint32_t getSampleRate() {
+    return m_sampleRate;
+  }
+
+  const Mode& getMode() { return m_mode; }
+  virtual void setMode(const Mode& mode) { m_mode = mode; }
+
+protected:
+  Mode m_mode;
+  uint32_t m_sampleRate;
 
 };

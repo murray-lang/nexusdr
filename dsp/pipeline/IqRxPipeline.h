@@ -5,24 +5,24 @@
 #pragma once
 #include <mutex>
 
-#include "../../dsp/pipeline/DcShift.h"
+#include "DcShift.h"
 #include "IqPipeline.h"
-#include "../../dsp/pipeline/decimator/Decimator.h"
-#include "../../dsp/pipeline/demodulators/AmDemodulator.h"
-#include "../../dsp/pipeline/demodulators/Demodulator.h"
-#include "../../dsp/pipeline/demodulators/FmDemodulator.h"
-#include "../../dsp/pipeline/demodulators/SsbDemodulator.h"
-#include "../../dsp/pipeline/filters/FastFIR.h"
-#include "../../dsp/pipeline/oscillators/OscillatorMixer.h"
+#include "decimator/Decimator.h"
+#include "demodulators/AmDemodulator.h"
+#include "demodulators/Demodulator.h"
+#include "demodulators/FmDemodulator.h"
+#include "demodulators/SsbDemodulator.h"
+#include "filters/FastFIR.h"
+#include "oscillators/OscillatorMixer.h"
 #include "settings/ReceiverSettingsSink.h"
 #include "dsp/pipeline/monitoring/MonitoringStage.h"
 
-
+class ModeSettings;
 
 class IqRxPipeline : public IqPipeline, public ReceiverSettingsSink
 {
 public:
-  explicit IqRxPipeline(QObject* eventTarget);
+  explicit IqRxPipeline(const ModeSettings& modeSettings, QObject* eventTarget);
   ~IqRxPipeline() override = default;
 
   void initialise(IqIo* pIo, AudioSink* pAudioSink) override;
@@ -39,7 +39,7 @@ public:
 
   void setMode(const Mode& mode) override;
 protected:
-  void setDemodulator(Mode::Type modeType);
+  void setDemodulator(const Mode& mode);
 
 protected:
   DcShift m_dcShift;

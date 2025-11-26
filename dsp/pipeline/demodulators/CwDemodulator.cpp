@@ -1,11 +1,11 @@
 //
-// Created by murray on 1/10/25.
+// Created by murray on 26/11/25.
 //
 
-#include "SsbDemodulator.h"
+#include "CwDemodulator.h"
 
 uint32_t
-SsbDemodulator::processSamples(
+CwDemodulator::processSamples(
     const std::vector<sdrcomplex>& in,
     std::vector<sdrreal>& out,
     uint32_t inputLength)
@@ -14,7 +14,7 @@ SsbDemodulator::processSamples(
     return 0;
   }
   out.resize(inputLength);
-  if (m_mode.getType() == Mode::Type::USB) {
+  if (m_mode.getType() == Mode::Type::CWU) {
     for (uint32_t i = 0; i < inputLength; ++i) {
       out[i] = in[i].real() * 10.0;
     }

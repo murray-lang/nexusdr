@@ -1,24 +1,27 @@
 #pragma once
 
+#include <cstdint>
+#include <vector>
+
 #include "./Demodulator.h"
+
+class Mode;
 
 class AmDemodulator : public Demodulator
 {
 public:
-  explicit AmDemodulator(uint32_t sampleRate) :
-    Demodulator(sampleRate),
-    m_z(0.0f)
+  AmDemodulator(const Mode& mode, uint32_t sampleRate) :
+    Demodulator(mode, sampleRate),
+    m_zero(0.0f)
     {}
 
   uint32_t processSamples(
-      const std::vector<sdrcomplex>& in,
-      std::vector<sdrreal>& out,
+      const vsdrcomplex& in,
+      vsdrreal& out,
       uint32_t inputLength
   ) override;
 
-  // uint32_t processSamples(PingPongBuffers<sdrcomplex> buffers, uint32_t inputLength) override;
-
 protected:
-  sdrreal m_z;
+  sdrreal m_zero;
 
 };
