@@ -5,8 +5,9 @@
 #pragma once
 #include <mutex>
 
-#include "DcShift.h"
+#include "correction/DcShift.h"
 #include "IqPipeline.h"
+#include "correction/IqCorrection.h"
 #include "decimator/Decimator.h"
 #include "demodulators/AmDemodulator.h"
 #include "demodulators/Demodulator.h"
@@ -44,6 +45,7 @@ protected:
 
 protected:
   DcShift m_dcShift;
+  IqCorrection m_iqCorrection;
   OscillatorMixer m_oscillatorMixer;
   Decimator m_decimator;
   BandPassFilter m_ifFilter;

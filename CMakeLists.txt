@@ -138,7 +138,7 @@ set(PROJECT_SOURCES
         dsp/pipeline/oscillators/OscillatorMixer.h
         dsp/pipeline/oscillators/OscillatorInjector.h
         dsp/pipeline/filters/FastFIR.h
-        dsp/pipeline/DcShift.h
+        dsp/pipeline/correction/DcShift.h
         dsp/pipeline/demodulators/Demodulator.h
         dsp/pipeline/demodulators/AmDemodulator.h
 
@@ -298,6 +298,7 @@ set(PROJECT_SOURCES
         dsp/pipeline/modulators/CwModulator.h
         dsp/pipeline/demodulators/CwDemodulator.cpp
         dsp/pipeline/demodulators/CwDemodulator.h
+        dsp/pipeline/correction/IqCorrection.h
 
 )
 
