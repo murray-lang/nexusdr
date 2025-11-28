@@ -74,7 +74,7 @@
 			  "sampleRate": 192000,
 			  "channelCount": 2
            },
-            "reverse": false
+            "reverse": true
           }
         },
         "audioOutput": {

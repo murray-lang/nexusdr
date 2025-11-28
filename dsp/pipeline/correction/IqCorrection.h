@@ -5,6 +5,8 @@
 #pragma once
 #include "dsp/pipeline/IqPipelineStage.h"
 #include "settings/IqCorrectionSettings.h"
+#include <qdebug.h>
+
 
 class IqCorrection : public IqPipelineStage
 {
@@ -21,9 +23,11 @@ class IqCorrection : public IqPipelineStage
   {
     if (correctionSettings.changed & IqCorrectionSettings::AMPLITUDE) {
       m_amplitudeCorrection = correctionSettings.amplitude;
+      qDebug() << "Applied IQ Amplitude Correction: " << m_amplitudeCorrection;
     }
     if (correctionSettings.changed & IqCorrectionSettings::PHASE) {
       m_phaseCorrection = correctionSettings.phase;
+      qDebug() << "Applied IQ Phase Correction: " << m_phaseCorrection;
     }
   }
 

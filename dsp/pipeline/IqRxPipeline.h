@@ -25,7 +25,7 @@ class IqRxPipeline : public IqPipeline, public ReceiverSettingsSink
 {
 public:
   explicit IqRxPipeline(const ModeSettings& modeSettings, QObject* eventTarget);
-  ~IqRxPipeline() override = default;
+  ~IqRxPipeline() override;
 
   void initialise(IqIo* pIo, AudioSink* pAudioSink) override;
   void setOutputSampleRate(uint32_t outputSampleRate) override;

@@ -20,11 +20,20 @@ IqRxPipeline::IqRxPipeline(const ModeSettings& modeSettings, QObject* eventTarge
   m_audioBuffer(PING_PONG_LENGTH),
   m_pMonitoringStage(nullptr)
 {
+  m_pMonitoringStage = new MonitoringStage(eventTarget, ReceiverIqEvent::RxIqEvent, [this]() { return this->m_inputSampleRate; });
+
+  addStage(m_pMonitoringStage);
   addStage(&m_iqCorrection);
+  addStage(m_pMonitoringStage);
   addStage(&m_oscillatorMixer);
   addStage(&m_decimator);
   addStage(&m_ifFilter);
 
+}
+
+IqRxPipeline::~IqRxPipeline() 
+{
+  delete m_pMonitoringStage;
 }
 
 void
