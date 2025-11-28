@@ -30,11 +30,10 @@ IqTxPipeline::IqTxPipeline(const ModeSettings& modeSettings, QObject* eventTarge
     TransmitterIqEvent::TxIqEvent,
     [this]() { return m_outputSampleRate; }
   );
-
   addStage(&m_ifFilter);
   addStage(&m_resampler);
-  
   addStage(&m_oscillatorMixer);
+  addStage(&m_iqCorrection);
   addStage(m_pMonitoringStage);
 }
 
@@ -80,6 +79,9 @@ void IqTxPipeline::apply(const TransmitterSettings& settings)
     if (settings.rfSettings.changed & RfSettings::OFFSET) {
       m_oscillatorMixer.setFrequency(settings.rfSettings.offset);
     }
+  }
+  if (settings.changed & TransmitterSettings::CORRECTION) {
+    m_iqCorrection.apply(settings.correctionSettings);
   }
   if (settings.changed & TransmitterSettings::MODE) {
     setMode(settings.mode);

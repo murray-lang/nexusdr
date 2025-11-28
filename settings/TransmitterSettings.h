@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "IqCorrectionSettings.h"
 #include "RfSettings.h"
 
 class TransmitterSettings : public SettingsBase {
@@ -12,7 +13,8 @@ public:
   {
     NONE = 0,
     MODE = 0x01,
-    RF = 0x02
+    RF = 0x02,
+    CORRECTION = 0x04
   };
   TransmitterSettings() = default;
   TransmitterSettings(const TransmitterSettings& rhs) = default;
@@ -43,6 +45,8 @@ public:
     uint32_t feature = setting.getPath().getFeatures()[startIndex];
     if (feature == RF) {
       settingChange = rfSettings.applySetting(setting, startIndex + 1);
+    } else if (feature == CORRECTION) {
+      settingChange = correctionSettings.applySetting(setting, startIndex + 1);
     }
     if (settingChange) {
       changed |= feature;
@@ -70,6 +74,11 @@ public:
       if (startIndex + 1 < featureStrings.size()) {
         RfSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
       }
+    } else if (featureStrings[startIndex] == "correction") {
+      featuresOut.push_back(CORRECTION);
+      if (startIndex + 1 < featureStrings.size()) {
+        IqCorrectionSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
+      }
     } else {
       throw SettingsException("Unknown transmitter feature: " + featureStrings[startIndex]);
     }
@@ -77,4 +86,5 @@ public:
 
   Mode mode;
   RfSettings rfSettings;
+  IqCorrectionSettings correctionSettings;
 };

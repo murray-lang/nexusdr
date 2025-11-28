@@ -67,6 +67,9 @@ void IqRxPipeline::apply(const ReceiverSettings& settings)
       m_oscillatorMixer.setFrequency(-settings.rfSettings.offset);
     }
   }
+  if (settings.changed & ReceiverSettings::CORRECTION) {
+    m_iqCorrection.apply(settings.correctionSettings);
+  }
   if (settings.changed & ReceiverSettings::MODE) {
     setMode(settings.mode);
   }

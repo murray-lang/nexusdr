@@ -7,6 +7,7 @@
 
 #include "RfSettings.h"
 #include "IfSettings.h"
+#include "IqCorrectionSettings.h"
 #include "SettingsException.h"
 #include "Mode.h"
 
@@ -17,7 +18,8 @@ public:
     NONE = 0,
     MODE = 0x01,
     RF = 0x02,
-    IF = 0x04
+    IF = 0x04,
+    CORRECTION = 0x08
   };
 
   ReceiverSettings() : SettingsBase(), mode(), rfSettings(), ifSettings() {};
@@ -54,6 +56,8 @@ public:
       settingChange = rfSettings.applySetting(setting, startIndex + 1);
     } else if (feature == IF) {
       settingChange = ifSettings.applySetting(setting, startIndex + 1);
+    } else if (feature == CORRECTION) {
+      settingChange = correctionSettings.applySetting(setting, startIndex + 1);
     }
     if (settingChange) {
       changed |= feature;
@@ -87,6 +91,11 @@ public:
       if (startIndex + 1 < featureStrings.size()) {
         IfSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
       }
+    } else if (featureStrings[startIndex] == "correction") {
+      featuresOut.push_back(CORRECTION);
+      if (startIndex + 1 < featureStrings.size()) {
+        IqCorrectionSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
+      }
     } else {
       throw SettingsException("Unknown receiver setting: " + featureStrings[startIndex]);
     }
@@ -94,5 +103,6 @@ public:
   Mode mode;
   RfSettings rfSettings;
   IfSettings ifSettings;
+  IqCorrectionSettings correctionSettings;
 };
 

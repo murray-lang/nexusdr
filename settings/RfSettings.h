@@ -55,12 +55,28 @@ public:
         frequency += std::get<int32_t>(setting.getValue()) * frequencyStep;
         settingChange = true;
       }
-    } if (feature == OFFSET) {
+    } if (feature == FREQUENCY_STEP) {
+      if (setting.getMeaning() == SingleSetting::VALUE) {
+        frequencyStep = std::get<int32_t>(setting.getValue());
+        settingChange = true;
+      } else if (setting.getMeaning() == SingleSetting::DELTA) {
+        frequencyStep += std::get<int32_t>(setting.getValue()) * 10;
+        settingChange = true;
+      }
+    } else if (feature == OFFSET) {
       if (setting.getMeaning() == SingleSetting::VALUE) {
         offset = std::get<int32_t>(setting.getValue());
         settingChange = true;
       } else if (setting.getMeaning() == SingleSetting::DELTA) {
         offset += std::get<int32_t>(setting.getValue()) * offsetStep;
+        settingChange = true;
+      }
+    } else if (feature == OFFSET_STEP) {
+      if (setting.getMeaning() == SingleSetting::VALUE) {
+        offsetStep = std::get<int32_t>(setting.getValue());
+        settingChange = true;
+      } else if (setting.getMeaning() == SingleSetting::DELTA) {
+        offsetStep += std::get<int32_t>(setting.getValue()) * 10;
         settingChange = true;
       }
     } else if (feature == GAIN) {
@@ -94,18 +110,22 @@ public:
     }
     if (featureStrings[startIndex] == "frequency") {
       features.push_back(FREQUENCY);
+    } else if (featureStrings[startIndex] == "frequency-step") {
+      features.push_back(FREQUENCY_STEP);
     } else if (featureStrings[startIndex] == "gain") {
       features.push_back(GAIN);
     } else if (featureStrings[startIndex] == "offset") {
       features.push_back(OFFSET);
+    } else if (featureStrings[startIndex] == "offset-step") {
+      features.push_back(OFFSET_STEP);
     } else {
       throw SettingsException("Unknown RF setting: " + featureStrings[startIndex]);
     }
   }
 
   uint32_t frequency;
-  uint32_t frequencyStep;
+  int32_t frequencyStep;
   int32_t  offset;
-  uint32_t offsetStep;
+  int32_t offsetStep;
   float gain;
 };

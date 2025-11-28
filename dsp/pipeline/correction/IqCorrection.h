@@ -4,6 +4,7 @@
 
 #pragma once
 #include "dsp/pipeline/IqPipelineStage.h"
+#include "settings/IqCorrectionSettings.h"
 
 class IqCorrection : public IqPipelineStage
 {
@@ -16,28 +17,34 @@ class IqCorrection : public IqPipelineStage
   }
   ~IqCorrection() override = default;
 
+  void apply(const IqCorrectionSettings& correctionSettings)
+  {
+    if (correctionSettings.changed & IqCorrectionSettings::AMPLITUDE) {
+      m_amplitudeCorrection = correctionSettings.amplitude;
+    }
+    if (correctionSettings.changed & IqCorrectionSettings::PHASE) {
+      m_phaseCorrection = correctionSettings.phase;
+    }
+  }
+
   uint32_t processSamples(ComplexPingPongBuffers& buffers, uint32_t inputLength) override
   {
-    // Calculate correction coefficients once per block for efficiency.
-    // m_amplitudeCorrection is treated as an additive offset (e.g., 0.0 = unity gain).
+    auto& input = buffers.input();
+    auto& output = buffers.output();
+    return processSamples(input, output, inputLength);
+  }
+  uint32_t processSamples(const vsdrcomplex& input, vsdrcomplex& output, uint32_t inputLength) const
+  {
     const sdrreal gain = static_cast<sdrreal>(1.0) + m_amplitudeCorrection;
 
-    // Use std::polar to compute phase components as requested.
-    // This provides the sin/cos values needed to de-skew the I/Q axes.
-    // We create a unit vector with angle 'm_phaseCorrection'.
+    // Compute phase components.
     const std::complex<sdrreal> phasePhasor = std::polar(static_cast<sdrreal>(1.0), m_phaseCorrection);
     const sdrreal cosPhi = phasePhasor.real();
     const sdrreal sinPhi = phasePhasor.imag();
 
-    // Assuming ComplexPingPongBuffers provides access to the current working buffer.
-    // We iterate through the samples to apply the affine transform.
-    // Note: Adjust the buffer access (.exchange, .buffer, or operator[]) according to your specific class definition.
-    auto& input = buffers.input();
-    auto& output = buffers.output();
-
     for (uint32_t i = 0; i < inputLength; ++i)
     {
-      sdrcomplex& sample = input.at(i);
+      const sdrcomplex& sample = input.at(i);
 
       // Apply IQ Imbalance Correction
       // 1. Remove the part of I that "leaked" into Q due to non-orthogonality (Phase Correction).

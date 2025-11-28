@@ -45,7 +45,7 @@
                           "lines": [13, 12],
                           "bias": "pull-up",
                           "debounce": true,
-                          "settingPath": "rx.rf.frequency"
+                          "settingPath": "rx.correction.phase"
                       }
                   },
                   {
@@ -55,7 +55,7 @@
                           "lines": [26, 16],
                           "bias": "pull-up",
                           "debounce": true,
-                          "settingPath": "rx.rf.offset"
+                          "settingPath": "rx.correction.amplitude"
                       }
                   }
               ]

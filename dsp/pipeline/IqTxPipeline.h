@@ -6,6 +6,7 @@
 #include <mutex>
 
 #include "IqPipeline.h"
+#include "correction/IqCorrection.h"
 #include "dsp/utils/HilbertTransform.h"
 #include "filters/FastFIR.h"
 #include "modulators/SsbModulator.h"
@@ -39,6 +40,7 @@ protected:
   static uint32_t interleaveComplexToReal(const vsdrcomplex& vcomplex, vsdrreal& vreal, uint32_t numComplexes);
 
 protected:
+  IqCorrection m_iqCorrection;
   SsbModulator m_ssbModulator;
   CwModulator m_cwModulator;
   Modulator* m_pModulator;
