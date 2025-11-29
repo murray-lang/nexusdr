@@ -212,7 +212,7 @@ MainWindow::customEvent(QEvent* event)
     handleRadioSettingsEvent(radioSettingsEvent->getSettings());
   } else if (event->type() == TransmitterIqEvent::TxIqEvent) {
     auto* iqEvent = dynamic_cast<TransmitterIqEvent*>(event);
-    handleReceiverIqEvent(iqEvent->buffer.get(), iqEvent->dataLength, iqEvent->sampleRate);
+    handleTransmitterIqEvent(iqEvent->buffer.get(), iqEvent->dataLength, iqEvent->sampleRate);
   } else if (event->type() == TransmitterAudioEvent::TxAudioEvent) {
     auto* audioEvent = dynamic_cast<TransmitterAudioEvent*>(event);
     handleTransmitterAudioEvent(audioEvent->buffer.get(), audioEvent->dataLength);
@@ -261,7 +261,7 @@ MainWindow::handleTransmitterIqEvent(const vsdrcomplex* data, uint32_t length, u
   QList<QPointF> timeseriesPoints;
   uint32_t plotX = 0;
   for (uint32_t i = 0; i < length; i++) {
-    timeseriesPoints.append(QPointF(plotX++, std::abs(data->at(i))));
+    timeseriesPoints.append(QPointF(plotX++, data->at(i).imag()));
   }
 
   m_timeseriesLineSeries.replace(timeseriesPoints);

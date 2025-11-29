@@ -28,11 +28,12 @@ IqTxPipeline::IqTxPipeline(const ModeSettings& modeSettings, QObject* eventTarge
   m_pMonitoringStage = new MonitoringStage(
     eventTarget,
     TransmitterIqEvent::TxIqEvent,
-    [this]() { return m_inputSampleRate; }
+    [this]() { return m_outputSampleRate; }
   );
-  addStage(m_pMonitoringStage);
+  
   addStage(&m_ifFilter);
   addStage(&m_resampler);
+  addStage(m_pMonitoringStage);
   addStage(&m_oscillatorMixer);
   addStage(&m_iqCorrection);
   // addStage(m_pMonitoringStage);
