@@ -51,6 +51,7 @@ IqTxPipeline::initialise(IqIo* pIo, AudioSink* pAudioSink)
   setModulatorSampleRate(m_inputSampleRate);
   uint32_t preferredOutputRate = pIo->getOutputSampleRate();
   setOutputSampleRate(preferredOutputRate);
+  m_resampler.configure(m_inputSampleRate, m_outputSampleRate);
 }
 
 void
@@ -64,7 +65,6 @@ void
 IqTxPipeline::setOutputSampleRate(uint32_t outputSampleRate)
 {
   m_outputSampleRate = outputSampleRate;
-  m_resampler.configure(m_inputSampleRate, outputSampleRate);
   m_oscillatorMixer.initialise(outputSampleRate, 0);
 }
 
@@ -96,6 +96,14 @@ void IqTxPipeline::apply(const TransmitterSettings& settings)
     setMode(settings.mode);
   }
 }
+
+void
+IqTxPipeline::ptt(bool on)
+{
+  if (on) {
+    m_resampler.initialise();
+  }
+};
 
 void IqTxPipeline::setMode(const Mode& mode)
 {
