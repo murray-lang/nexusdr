@@ -57,10 +57,13 @@ IqTransmitter::stop() const
 
 void IqTransmitter::ptt(bool on)
 {
+
   if (on) {
+    m_iqPipeline.ptt(true);
     start();
   } else {
     stop();
+    m_iqPipeline.ptt(false);
   }
 }
 

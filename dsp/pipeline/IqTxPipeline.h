@@ -27,7 +27,7 @@ public:
 
   uint32_t sinkIq(const vsdrcomplex& samples, uint32_t length) override;
 
-  void ptt(bool on) override {};
+  void ptt(bool on) override;
 
   void apply(const TransmitterSettings& settings) override;
 
