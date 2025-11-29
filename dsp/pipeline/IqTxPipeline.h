@@ -35,7 +35,7 @@ public:
   [[nodiscard]] uint32_t getMaxFramesPerOutputPacket() const override;
   void setMode(const Mode& mode) override;
 protected:
-
+  void setModulatorSampleRate(uint32_t sampleRate);
   void setModulator(const Mode& mode);
   static uint32_t interleaveComplexToReal(const vsdrcomplex& vcomplex, vsdrreal& vreal, uint32_t numComplexes);
 

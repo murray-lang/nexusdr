@@ -28,13 +28,14 @@ IqTxPipeline::IqTxPipeline(const ModeSettings& modeSettings, QObject* eventTarge
   m_pMonitoringStage = new MonitoringStage(
     eventTarget,
     TransmitterIqEvent::TxIqEvent,
-    [this]() { return m_outputSampleRate; }
+    [this]() { return m_inputSampleRate; }
   );
+  addStage(m_pMonitoringStage);
   addStage(&m_ifFilter);
   addStage(&m_resampler);
   addStage(&m_oscillatorMixer);
   addStage(&m_iqCorrection);
-  addStage(m_pMonitoringStage);
+  // addStage(m_pMonitoringStage);
 }
 
 IqTxPipeline::~IqTxPipeline()
@@ -47,8 +48,16 @@ IqTxPipeline::initialise(IqIo* pIo, AudioSink* pAudioSink)
 {
   IqPipeline::initialise(pIo, pAudioSink);
   m_inputSampleRate = pIo->getInputSampleRate();
+  setModulatorSampleRate(m_inputSampleRate);
   uint32_t preferredOutputRate = pIo->getOutputSampleRate();
   setOutputSampleRate(preferredOutputRate);
+}
+
+void
+IqTxPipeline::setModulatorSampleRate(uint32_t sampleRate)
+{
+  m_ssbModulator.setSampleRate(sampleRate);
+  m_cwModulator.setSampleRate(sampleRate);
 }
 
 void

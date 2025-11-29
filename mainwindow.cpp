@@ -222,6 +222,24 @@ MainWindow::customEvent(QEvent* event)
 void
 MainWindow::handleReceiverIqEvent(const vsdrcomplex* data, uint32_t length, uint32_t sampleRate)
 {
+  // m_reportedIqSampleRate = sampleRate;
+  vsdrreal spectrum(length);
+  powerSpectrum(*data, length, spectrum);
+  // if (spectrum.size() != m_panadapterXmax) {
+  //   setPanadapterX(0, spectrum.size());
+  // }
+  uint32_t centreFrequency = m_radioSettings.rxSettings.rfSettings.frequency;
+  uint32_t xMin = centreFrequency - (sampleRate / 2);
+  uint32_t xMax = centreFrequency + (sampleRate / 2);
+  if (m_panadapterXmin != xMin || m_panadapterXmax != xMax) {
+    setPanadapterX(xMin, xMax);
+  }
+  replaceSpectrumSeries(&spectrum, m_spectrumLineSeries, sampleRate, true);
+}
+
+void
+MainWindow::handleTransmitterIqEvent(const vsdrcomplex* data, uint32_t length, uint32_t sampleRate)
+{
   m_reportedIqSampleRate = sampleRate;
   vsdrreal spectrum(length);
   powerSpectrum(*data, length, spectrum);
@@ -235,6 +253,18 @@ MainWindow::handleReceiverIqEvent(const vsdrcomplex* data, uint32_t length, uint
     setPanadapterX(xMin, xMax);
   }
   replaceSpectrumSeries(&spectrum, m_spectrumLineSeries, sampleRate, true);
+
+  setTimeSeriesX(0, length);
+  //  setTimeSeriesX(0, 48);
+
+  //}
+  QList<QPointF> timeseriesPoints;
+  uint32_t plotX = 0;
+  for (uint32_t i = 0; i < length; i++) {
+    timeseriesPoints.append(QPointF(plotX++, std::abs(data->at(i))));
+  }
+
+  m_timeseriesLineSeries.replace(timeseriesPoints);
 }
 
 void
