@@ -8,6 +8,7 @@
 #include "config/AudioIqSourceConfig.h"
 #include "dsp/utils/HilbertTransform.h"
 #include "io/audio/AudioInput.h"
+#include "qdebug.h"
 
 class AudioIqSource : public IqSource, private AudioSink
 {
@@ -32,6 +33,7 @@ public:
   {
     const auto * config = dynamic_cast<const AudioIqSourceConfig*>(pConfig);
     m_audioInput.configure(&config->getAudioInput());
+    qDebug() << "AudioIqSource max channels:" << m_audioInput.getMaxChannels() << ", num channels:" << m_audioInput.getNumChannels();
   }
 
   void start(uint32_t maxPacketFrames) override
@@ -45,11 +47,12 @@ public:
 
   [[nodiscard]] uint32_t getSampleRate() const override { return m_audioInput.getSampleRate(); }
 
-  uint32_t sinkAudio(const vsdrreal& audioFrames, uint32_t length) override
+  uint32_t sinkAudio(const vsdrreal& audioSamples, uint32_t length) override
   {
     if (m_pIqSink != nullptr) {
-      m_iqOutputBuffer.resize(length);
-      uint32_t outputLength = m_hilbert.transform(audioFrames, m_iqOutputBuffer, length);
+      uint32_t numFrames  = length / m_audioInput.getNumChannels();
+      m_iqOutputBuffer.resize(numFrames);
+      uint32_t outputLength = m_hilbert.transform(audioSamples, m_iqOutputBuffer, length);
       m_pIqSink->sinkIq(m_iqOutputBuffer, outputLength);
       return length;
     }

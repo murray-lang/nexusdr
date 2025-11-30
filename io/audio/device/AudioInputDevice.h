@@ -6,6 +6,7 @@
 #include "../AudioSink.h"
 #include <QMutex>
 #include <QWaitCondition>
+#include <qdebug.h>
 
 
 #define DEFAULT_BUFFER_SIZE 8192
@@ -33,6 +34,14 @@ public:
   {
     AudioInputDevice::stop();
     wait();
+  }
+
+  [[nodiscard]] uint32_t getMaxChannels() const {
+    return m_deviceInfo.inputChannels;
+  }
+
+  [[nodiscard]] uint32_t getNumChannels() const {
+    return m_format.channelCount;
   }
 
   void start(uint32_t maxPacketFrames) override {
@@ -66,6 +75,7 @@ public:
 
   static int rtCallback(void *, void *inputBuffer, unsigned int nframes, double,
                                    RtAudioStreamStatus, void *userData) {
+    // qDebug() << "rtCallback(): " << nframes << " frames.";
     return static_cast<AudioInputDevice*>(userData)->handleCallback(inputBuffer, nframes);
   }
 
@@ -102,7 +112,8 @@ public:
         }
       }
       if (m_numCurrentFrames == m_maxPacketFrames) {
-        m_pSink->sinkAudio(m_outputBuffer, static_cast<uint32_t>(m_numCurrentFrames));
+        // qDebug() << "AudioInputDevice::run(): " << m_numCurrentFrames << " frames.";
+        m_pSink->sinkAudio(m_outputBuffer, static_cast<uint32_t>(m_numCurrentFrames) * m_format.channelCount);
         m_numCurrentFrames = 0;
       }
     }

@@ -29,6 +29,24 @@ public:
     m_pDevice = AudioDeviceFactory::createInputDevice(pConfig, m_pSink);
   }
 
+  [[nodiscard]] uint32_t getMaxChannels() const 
+  {
+    if (m_pDevice == nullptr) {
+      throw AudioException("IqAudioInput not initialised");
+    }
+
+    return m_pDevice->getMaxChannels();
+  }
+
+  [[nodiscard]] uint32_t getNumChannels() const 
+  {
+    if (m_pDevice == nullptr) {
+      throw AudioException("IqAudioInput not initialised");
+    }
+
+    return m_pDevice->getNumChannels();
+  }
+
   [[nodiscard]] uint32_t getSampleRate() const override
   {
     if (m_pDevice == nullptr) {
