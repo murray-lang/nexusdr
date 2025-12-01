@@ -162,7 +162,7 @@ IqTxPipeline::sinkIq(const vsdrcomplex& samples, uint32_t length)
   }
   if (outputLength > 0 && m_pAudioOutSink != nullptr) {
     uint32_t numReals = interleaveComplexToReal(m_buffers.input(), m_audioBuffer, outputLength);
-    m_pAudioOutSink->sinkAudio(m_audioBuffer, numReals);
+    m_pAudioOutSink->sinkAudio(m_audioBuffer, numReals, 2);
   }
   return outputLength;
 }

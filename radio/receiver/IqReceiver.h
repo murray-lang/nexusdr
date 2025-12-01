@@ -23,7 +23,7 @@ public:
   void configure(const ReceiverConfig* pConfig);
 
   uint32_t sinkIq(const vsdrcomplex& samples, uint32_t length) override; // IqSink
-  uint32_t sinkAudio(const vsdrreal& samples, uint32_t length) override; // AudioSink
+  uint32_t sinkAudio(const vsdrreal& samples, uint32_t length, uint32_t numChannels) override; // AudioSink
 
   void start();
   void stop();

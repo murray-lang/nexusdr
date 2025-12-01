@@ -142,7 +142,7 @@ IqRxPipeline::sinkIq(const vsdrcomplex& samples, uint32_t length)
     outputLength = 0;
   }
   if (outputLength > 0 && m_pAudioOutSink != nullptr) {
-    m_pAudioOutSink->sinkAudio(m_audioBuffer, outputLength);
+    m_pAudioOutSink->sinkAudio(m_audioBuffer, outputLength, m_pDemodulator->getNumOutputChannels());
   }
   return outputLength;
 }

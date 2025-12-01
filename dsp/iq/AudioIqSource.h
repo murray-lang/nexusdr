@@ -47,12 +47,12 @@ public:
 
   [[nodiscard]] uint32_t getSampleRate() const override { return m_audioInput.getSampleRate(); }
 
-  uint32_t sinkAudio(const vsdrreal& audioSamples, uint32_t length) override
+  uint32_t sinkAudio(const vsdrreal& audioSamples, uint32_t length, uint32_t numChannels) override
   {
     if (m_pIqSink != nullptr) {
-      uint32_t numFrames  = length / m_audioInput.getNumChannels();
+      uint32_t numFrames  = length / numChannels;
       m_iqOutputBuffer.resize(numFrames);
-      uint32_t outputLength = m_hilbert.transform(audioSamples, m_iqOutputBuffer, length);
+      uint32_t outputLength = m_hilbert.transform(audioSamples, length, numChannels,m_iqOutputBuffer);
       m_pIqSink->sinkIq(m_iqOutputBuffer, outputLength);
       return length;
     }

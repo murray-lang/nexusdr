@@ -21,7 +21,7 @@ public:
   void configure(const IqIoConfig* pConfig);
 
   void setIqSink(IqSink* pIqSink);
-  uint32_t sinkAudio(const vsdrreal& samples, uint32_t length) override;
+  uint32_t sinkAudio(const vsdrreal& samples, uint32_t length, uint32_t numChannels) override;
 
   [[nodiscard]] uint32_t getInputSampleRate() const;
   [[nodiscard]] uint32_t getOutputSampleRate() const;

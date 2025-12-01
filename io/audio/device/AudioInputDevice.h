@@ -113,7 +113,11 @@ public:
       }
       if (m_numCurrentFrames == m_maxPacketFrames) {
         // qDebug() << "AudioInputDevice::run(): " << m_numCurrentFrames << " frames.";
-        m_pSink->sinkAudio(m_outputBuffer, static_cast<uint32_t>(m_numCurrentFrames) * m_format.channelCount);
+        m_pSink->sinkAudio(
+          m_outputBuffer,
+          static_cast<uint32_t>(m_numCurrentFrames) * m_format.channelCount,
+          m_format.channelCount
+        );
         m_numCurrentFrames = 0;
       }
     }

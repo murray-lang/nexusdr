@@ -30,6 +30,8 @@ public:
     return m_sampleRate;
   }
 
+  [[nodiscard]] virtual uint32_t getNumOutputChannels() const { return 1; }
+
 protected:
   Mode m_mode;
   uint32_t m_sampleRate;

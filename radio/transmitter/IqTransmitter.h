@@ -32,7 +32,7 @@ public:
   void setMode(const Mode& mode);
 
   uint32_t sinkIq(const vsdrcomplex& samples, uint32_t length) override; // IqSink
-  uint32_t sinkAudio(const vsdrreal& samples, uint32_t length) override; // AudioSink
+  uint32_t sinkAudio(const vsdrreal& samples, uint32_t length, uint32_t numChannels) override; // AudioSink
 
 protected:
   const ModeSettings& m_modeSettings;

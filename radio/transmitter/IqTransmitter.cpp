@@ -82,8 +82,8 @@ IqTransmitter::sinkIq(const vsdrcomplex& samples, uint32_t length)
 }
 
 uint32_t
-IqTransmitter::sinkAudio(const vsdrreal& samples, uint32_t length)
+IqTransmitter::sinkAudio(const vsdrreal& samples, uint32_t length, uint32_t numChannels)
 {
   // QCoreApplication::postEvent(m_eventTarget, new TransmitterAudioEvent(samples, length));
-  return m_iqIo.sinkAudio(samples, length);
+  return m_iqIo.sinkAudio(samples, length, numChannels);
 }

@@ -24,23 +24,24 @@ public:
   }
   
 
-  uint32_t transform(const vsdrreal& input, vsdrcomplex& output, uint32_t numSamples)
+  uint32_t transform(const vsdrreal& input, uint32_t numSamples, uint32_t numChannels, vsdrcomplex& output)
   {
-    auto N = static_cast<size_t>(numSamples); //input.size();
+    auto N = static_cast<size_t>(numSamples/numChannels);
     size_t taps = m_coefficients.size();
     // output.resize(N);
 
     for (size_t n = 0; n < N; ++n) {
+      size_t i = n * numChannels; // Skip one channel if audio is stereo (for now. Maybe average channels later.)
       // Shift in new sample
       m_delayLine.pop_back();
-      m_delayLine.emplace_front(input.at(n));
+      m_delayLine.emplace_front(input.at(i));
       // Convolve for Hilbert (imag part)
       sdrreal imag = 0.0;
       for (size_t t = 0; t < taps; ++t) {
         imag += m_coefficients.at(t) * m_delayLine.at(t);
       }
       // Real is unchanged, imag is phase-shifted
-      output[n] = sdrcomplex(input[n], imag);
+      output[i] = sdrcomplex(input[i], imag);
     }
     return N;
   }
