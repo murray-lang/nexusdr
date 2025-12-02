@@ -5,22 +5,35 @@
 
 #define FFT_SIZE 2048
 #define PING_PONG_LENGTH 8192
+#define DEFAULT_SAMPLE_RATE 48000
 
-IqRxPipeline::IqRxPipeline(QObject* eventTarget) :
-  IqPipeline(eventTarget),
+#include "settings/ModeSettings.h"
+
+IqRxPipeline::IqRxPipeline(const ModeSettings& modeSettings, QObject* eventTarget) :
+  IqPipeline(modeSettings, eventTarget),
   m_ifFilter(FFT_SIZE),
-  m_amDemodulator(48000),
-  m_fmDemodulator(48000),
-  m_ssbDemodulator(48000),
+  m_amDemodulator(modeSettings.getModeByType(Mode::AMN), DEFAULT_SAMPLE_RATE),
+  m_fmDemodulator(modeSettings.getModeByType(Mode::FMN),DEFAULT_SAMPLE_RATE),
+  m_ssbDemodulator(modeSettings.getModeByType(Mode::USB),DEFAULT_SAMPLE_RATE),
+  m_cwDemodulator(modeSettings.getModeByType(Mode::CWU),DEFAULT_SAMPLE_RATE),
   m_pDemodulator(nullptr),
   m_audioBuffer(PING_PONG_LENGTH),
   m_pMonitoringStage(nullptr)
 {
+  m_pMonitoringStage = new MonitoringStage(eventTarget, ReceiverIqEvent::RxIqEvent, [this]() { return this->m_inputSampleRate; });
+
+  addStage(m_pMonitoringStage);
+  addStage(&m_iqCorrection);
+  addStage(m_pMonitoringStage);
   addStage(&m_oscillatorMixer);
   addStage(&m_decimator);
   addStage(&m_ifFilter);
 
-  m_ssbDemodulator.setMode(SsbDemodulator::Mode::USB);
+}
+
+IqRxPipeline::~IqRxPipeline() 
+{
+  delete m_pMonitoringStage;
 }
 
 void
@@ -37,9 +50,9 @@ void
 IqRxPipeline::setOutputSampleRate(uint32_t preferredOutputRate)
 {
   m_outputSampleRate = m_decimator.configure(m_inputSampleRate, preferredOutputRate);
-  m_amDemodulator.setOutputRate(m_outputSampleRate);
-  m_fmDemodulator.setOutputRate(m_outputSampleRate);
-  m_ssbDemodulator.setOutputRate(m_outputSampleRate);
+  m_amDemodulator.setSampleRate(m_outputSampleRate);
+  m_fmDemodulator.setSampleRate(m_outputSampleRate);
+  m_ssbDemodulator.setSampleRate(m_outputSampleRate);
 }
 
 uint32_t
@@ -63,6 +76,9 @@ void IqRxPipeline::apply(const ReceiverSettings& settings)
       m_oscillatorMixer.setFrequency(-settings.rfSettings.offset);
     }
   }
+  if (settings.changed & ReceiverSettings::CORRECTION) {
+    m_iqCorrection.apply(settings.correctionSettings);
+  }
   if (settings.changed & ReceiverSettings::MODE) {
     setMode(settings.mode);
   }
@@ -75,14 +91,13 @@ IqRxPipeline::setMode(const Mode& mode)
   IqPipeline::setMode(mode);
   const uint32_t decimatorOutputRate = m_decimator.getOutputSampleRate();
   m_ifFilter.getKernel().configure(mode.getLoCut(), mode.getHiCut(), mode.getOffset(), decimatorOutputRate * 2);
-  setDemodulator(mode.getType());
+  setDemodulator(mode);
 }
 
 void
-IqRxPipeline::setDemodulator(Mode::Type modeType)
+IqRxPipeline::setDemodulator(const Mode& mode)
 {
-
-  switch (modeType) {
+  switch (mode.getType()) {
   case Mode::Type::AMN:
   case Mode::Type::AMW:
     m_pDemodulator = &m_amDemodulator;
@@ -92,17 +107,20 @@ IqRxPipeline::setDemodulator(Mode::Type modeType)
     m_pDemodulator = &m_fmDemodulator;
     break;
   case Mode::Type::USB:
-    m_pDemodulator = &m_ssbDemodulator;
-    m_ssbDemodulator.setMode(SsbDemodulator::Mode::USB);
-    break;
   case Mode::Type::LSB:
     m_pDemodulator = &m_ssbDemodulator;
-    m_ssbDemodulator.setMode(SsbDemodulator::Mode::LSB);
+    break;
+  case Mode::Type::CWU:
+  case Mode::Type::CWL:
+    m_pDemodulator = &m_cwDemodulator;
     break;
   default:
     m_pDemodulator = nullptr;
     throw SettingsException("Unknown mode type");
     break;
+  }
+  if (m_pDemodulator != nullptr) {
+    m_pDemodulator->setMode(mode);
   }
 }
 
@@ -124,7 +142,7 @@ IqRxPipeline::sinkIq(const vsdrcomplex& samples, uint32_t length)
     outputLength = 0;
   }
   if (outputLength > 0 && m_pAudioOutSink != nullptr) {
-    m_pAudioOutSink->sinkAudio(m_audioBuffer, outputLength);
+    m_pAudioOutSink->sinkAudio(m_audioBuffer, outputLength, m_pDemodulator->getNumOutputChannels());
   }
   return outputLength;
 }

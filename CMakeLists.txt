@@ -127,18 +127,18 @@ set(PROJECT_SOURCES
 
         dsp/utils/FilterCoefficients.h
         dsp/utils/FftData.h
-        dsp/blocks/Oscillator.h dsp/blocks/Oscillator.cpp
+        dsp/pipeline/oscillators/Oscillator.h dsp/pipeline/oscillators/Oscillator.cpp
         dsp/utils/constants.h
         dsp/utils/PingPongBuffers.h
         dsp/utils/VectorAssembler.h
         dsp/utils/pocketfft/pocketfft_hdronly.h
         radio/receiver/IqReceiver.h radio/receiver/IqReceiver.cpp
-        radio/pipeline/IqPipelineStage.h
+        dsp/pipeline/IqPipelineStage.h
         dsp/pipeline/oscillators/OscillatorStage.h
         dsp/pipeline/oscillators/OscillatorMixer.h
         dsp/pipeline/oscillators/OscillatorInjector.h
         dsp/pipeline/filters/FastFIR.h
-        dsp/pipeline/DcShift.h
+        dsp/pipeline/correction/DcShift.h
         dsp/pipeline/demodulators/Demodulator.h
         dsp/pipeline/demodulators/AmDemodulator.h
 
@@ -185,7 +185,6 @@ set(PROJECT_SOURCES
 
         io/audio/device/AudioDevice.h
         io/audio/AudioInput.h
-        io/audio/device/AudioOutputDevice.cpp
         io/audio/device/AudioOutputDevice.h
         io/audio/device/AudioInputDevice.h
         io/audio/AudioException.h
@@ -279,12 +278,12 @@ set(PROJECT_SOURCES
         dsp/iq/AudioSignalIqSource.h
         io/audio/AudioSink.h
         config/AudioSignalIqSourceConfig.h
-        radio/pipeline/IqPipeline.h
-        radio/pipeline/IqRxPipeline.h
-        radio/pipeline/IqRxPipeline.cpp
-        radio/pipeline/IqPipeline.cpp
-        radio/pipeline/IqTxPipeline.cpp
-        radio/pipeline/IqTxPipeline.h
+        dsp/pipeline/IqPipeline.h
+        dsp/pipeline/IqRxPipeline.h
+        dsp/pipeline/IqRxPipeline.cpp
+        dsp/pipeline/IqPipeline.cpp
+        dsp/pipeline/IqTxPipeline.cpp
+        dsp/pipeline/IqTxPipeline.h
         config/IqIoConfig.h
         io/iq/IqIo.cpp
         io/iq/IqIo.h
@@ -295,6 +294,11 @@ set(PROJECT_SOURCES
         config/DigitalOutputConfig.h
         io/control/device/gpio/digital/DigitalOutputLinesRequest.h
         io/control/device/gpio/digital/DigitalOutputLinesRequest.cpp
+        dsp/pipeline/modulators/CwModulator.h
+        dsp/pipeline/demodulators/CwDemodulator.cpp
+        dsp/pipeline/demodulators/CwDemodulator.h
+        dsp/pipeline/correction/IqCorrection.h
+        settings/IqCorrectionSettings.h
 
 )
 

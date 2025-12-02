@@ -41,21 +41,22 @@ public:
 
   [[nodiscard]] uint32_t getSampleRate() const override { return m_audioInput.getSampleRate(); }
 
-  uint32_t sinkAudio(const vsdrreal& audioFrames, uint32_t length) override
+  uint32_t sinkAudio(const vsdrreal& audioSamples, uint32_t length, uint32_t numChannels) override
   {
+    uint32_t numFrames = length/2; // Assume numChannels == 2
     if (m_pIqSink != nullptr) {
-      m_iqOutputBuffer.resize(length);
+      m_iqOutputBuffer.resize(length/2);
 
       if (m_reverse) {
-        for (size_t i = 0; i < length; i++) {
-          m_iqOutputBuffer.at(i) = sdrcomplex(audioFrames.at(i*2+1), audioFrames.at(i*2));
+        for (size_t i = 0; i < numFrames; i++) {
+          m_iqOutputBuffer.at(i) = sdrcomplex(audioSamples.at(i*2+1), audioSamples.at(i*2));
         }
       } else {
-        for (size_t i = 0; i < length; i++) {
-          m_iqOutputBuffer.at(i) = sdrcomplex(audioFrames.at(i*2), audioFrames.at(i*2+1));
+        for (size_t i = 0; i < numFrames; i++) {
+          m_iqOutputBuffer.at(i) = sdrcomplex(audioSamples.at(i*2), audioSamples.at(i*2+1));
         }
       }
-      m_pIqSink->sinkIq(m_iqOutputBuffer, length);
+      m_pIqSink->sinkIq(m_iqOutputBuffer, numFrames);
       return length;
     }
     return 0;

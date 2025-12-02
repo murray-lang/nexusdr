@@ -6,18 +6,21 @@
 #include <mutex>
 
 #include "IqPipeline.h"
+#include "correction/IqCorrection.h"
 #include "dsp/utils/HilbertTransform.h"
-#include "../../dsp/pipeline/filters/FastFIR.h"
-#include "../../dsp/pipeline/modulators/SsbModulator.h"
-#include "../../dsp/pipeline/oscillators/OscillatorMixer.h"
-#include "../../dsp/pipeline/resampler/Resampler.h"
+#include "filters/FastFIR.h"
+#include "modulators/SsbModulator.h"
+#include "oscillators/OscillatorMixer.h"
+#include "resampler/Resampler.h"
 #include "dsp/pipeline/monitoring/MonitoringStage.h"
+#include "modulators/CwModulator.h"
 #include "settings/TransmitterSettingsSink.h"
+#include <chrono>
 
 class IqTxPipeline: public IqPipeline, public TransmitterSettingsSink
 {
 public:
-  explicit IqTxPipeline(QObject* eventTarget);
+  explicit IqTxPipeline(const ModeSettings& modeSettings, QObject* eventTarget);
   ~IqTxPipeline() override;
 
   void initialise(IqIo* pIo, AudioSink* pAudioSink) override;
@@ -25,7 +28,7 @@ public:
 
   uint32_t sinkIq(const vsdrcomplex& samples, uint32_t length) override;
 
-  void ptt(bool on) override {};
+  void ptt(bool on) override;
 
   void apply(const TransmitterSettings& settings) override;
 
@@ -33,12 +36,14 @@ public:
   [[nodiscard]] uint32_t getMaxFramesPerOutputPacket() const override;
   void setMode(const Mode& mode) override;
 protected:
-
-  void setModulator(Mode::Type modeType);
+  void setModulatorSampleRate(uint32_t sampleRate);
+  void setModulator(const Mode& mode);
   static uint32_t interleaveComplexToReal(const vsdrcomplex& vcomplex, vsdrreal& vreal, uint32_t numComplexes);
 
 protected:
+  IqCorrection m_iqCorrection;
   SsbModulator m_ssbModulator;
+  CwModulator m_cwModulator;
   Modulator* m_pModulator;
   Resampler m_resampler;
   OscillatorMixer m_oscillatorMixer;
@@ -47,4 +52,5 @@ protected:
   uint32_t m_inputSampleRate;
   uint32_t m_outputSampleRate;
   MonitoringStage* m_pMonitoringStage;
+  // std::chrono::steady_clock::time_point m_lastTime;
 };

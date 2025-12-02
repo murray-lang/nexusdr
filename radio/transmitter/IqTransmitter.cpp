@@ -9,8 +9,11 @@
 #include "TransmitterIqEvent.h"
 
 
-IqTransmitter::IqTransmitter(QObject* eventTarget) :
-  m_iqPipeline(eventTarget),
+class ModeSettings;
+
+IqTransmitter::IqTransmitter(const ModeSettings& modeSettings, QObject* eventTarget) :
+  m_modeSettings(modeSettings),
+  m_iqPipeline(modeSettings, eventTarget),
   m_eventTarget(eventTarget)
 {
 }
@@ -54,10 +57,13 @@ IqTransmitter::stop() const
 
 void IqTransmitter::ptt(bool on)
 {
+
   if (on) {
+    m_iqPipeline.ptt(true);
     start();
   } else {
     stop();
+    m_iqPipeline.ptt(false);
   }
 }
 
@@ -76,8 +82,8 @@ IqTransmitter::sinkIq(const vsdrcomplex& samples, uint32_t length)
 }
 
 uint32_t
-IqTransmitter::sinkAudio(const vsdrreal& samples, uint32_t length)
+IqTransmitter::sinkAudio(const vsdrreal& samples, uint32_t length, uint32_t numChannels)
 {
   // QCoreApplication::postEvent(m_eventTarget, new TransmitterAudioEvent(samples, length));
-  return m_iqIo.sinkAudio(samples, length);
+  return m_iqIo.sinkAudio(samples, length, numChannels);
 }

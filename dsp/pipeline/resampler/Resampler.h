@@ -26,7 +26,14 @@ public:
 
   void configure(uint32_t inputSampleRate, uint32_t outputSampleRate)
   {
-    double ratio = static_cast<double>(outputSampleRate) / static_cast<double>(inputSampleRate);
+    m_inputSampleRate = inputSampleRate;
+    m_outputSampleRate = outputSampleRate;
+    initialise();
+  }
+
+  void initialise()
+  {
+    double ratio = static_cast<double>(m_outputSampleRate) / static_cast<double>(m_inputSampleRate);
     int error = 0;
     m_pSrcStateReal = src_new(SRC_SINC_BEST_QUALITY, 1, &error);
     if (!m_pSrcStateReal)
@@ -36,7 +43,6 @@ public:
     if (!m_pSrcStateComplex)
       throw std::runtime_error(src_strerror(error));
     m_ratio = ratio;
-
   }
 
   uint32_t processSamples(
@@ -92,6 +98,7 @@ public:
       throw std::runtime_error(src_strerror(ret));
 
     auto outputLength = static_cast<uint32_t>(src_data.output_frames_gen);
+    // qDebug() << "Resampler: inputLength=" << inputLength << " outputLength=" << outputLength;
     for (size_t i = 0; i < outputLength; ++i) {
       out.at(i) = sdrcomplex(interleavedOut.at(2*i), interleavedOut.at(2*i+1));
     }

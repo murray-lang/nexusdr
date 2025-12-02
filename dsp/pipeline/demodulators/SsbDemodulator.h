@@ -4,15 +4,15 @@
 
 #pragma once
 
+#include <vector>
+
 #include "./Demodulator.h"
 
 class SsbDemodulator : public Demodulator
 {
 public:
-  enum Mode { LSB, USB };
-  explicit SsbDemodulator(uint32_t sampleRate) :
-    Demodulator(sampleRate),
-    m_mode(LSB)
+  SsbDemodulator(const Mode& mode, uint32_t sampleRate) :
+    Demodulator(mode, sampleRate)
   {}
 
   uint32_t processSamples(
@@ -20,13 +20,5 @@ public:
       std::vector<sdrreal>& out,
       uint32_t inputLength
   ) override;
-
-  void setMode(Mode mode) { m_mode = mode; }
-  Mode getMode() { return m_mode; }
-
-  // uint32_t processSamples(PingPongBuffers<sdrcomplex> buffers, uint32_t inputLength) override;
-
-protected:
-  Mode m_mode;
 
 };

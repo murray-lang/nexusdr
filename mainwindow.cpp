@@ -126,7 +126,7 @@ MainWindow::configurePanadapter()
     xAxis->setRange(m_panadapterXmin, m_panadapterXmax);
     xAxis->setLabelFormat(QString("%i"));
   }
-  pChart->axes(Qt::Vertical).first()->setRange(-130, -60);
+  pChart->axes(Qt::Vertical).first()->setRange(-140, -20);
 
   pChart->legend()->hide();
 
@@ -212,7 +212,7 @@ MainWindow::customEvent(QEvent* event)
     handleRadioSettingsEvent(radioSettingsEvent->getSettings());
   } else if (event->type() == TransmitterIqEvent::TxIqEvent) {
     auto* iqEvent = dynamic_cast<TransmitterIqEvent*>(event);
-    handleReceiverIqEvent(iqEvent->buffer.get(), iqEvent->dataLength, iqEvent->sampleRate);
+    handleTransmitterIqEvent(iqEvent->buffer.get(), iqEvent->dataLength, iqEvent->sampleRate);
   } else if (event->type() == TransmitterAudioEvent::TxAudioEvent) {
     auto* audioEvent = dynamic_cast<TransmitterAudioEvent*>(event);
     handleTransmitterAudioEvent(audioEvent->buffer.get(), audioEvent->dataLength);
@@ -222,7 +222,7 @@ MainWindow::customEvent(QEvent* event)
 void
 MainWindow::handleReceiverIqEvent(const vsdrcomplex* data, uint32_t length, uint32_t sampleRate)
 {
-  m_reportedIqSampleRate = sampleRate;
+  // m_reportedIqSampleRate = sampleRate;
   vsdrreal spectrum(length);
   powerSpectrum(*data, length, spectrum);
   // if (spectrum.size() != m_panadapterXmax) {
@@ -235,6 +235,38 @@ MainWindow::handleReceiverIqEvent(const vsdrcomplex* data, uint32_t length, uint
     setPanadapterX(xMin, xMax);
   }
   replaceSpectrumSeries(&spectrum, m_spectrumLineSeries, sampleRate, true);
+}
+
+void
+MainWindow::handleTransmitterIqEvent(const vsdrcomplex* data, uint32_t length, uint32_t sampleRate)
+{
+  m_reportedIqSampleRate = sampleRate;
+  vsdrreal spectrum(length);
+  powerSpectrum(*data, length, spectrum);
+  // if (spectrum.size() != m_panadapterXmax) {
+  //   setPanadapterX(0, spectrum.size());
+  // }
+  uint32_t centreFrequency = m_radioSettings.rxSettings.rfSettings.frequency;
+  // uint32_t xMin = centreFrequency - (sampleRate / 2);
+  // uint32_t xMax = centreFrequency + (sampleRate / 2);
+  uint32_t xMin = 7100000;
+  uint32_t xMax = 7108000;
+  if (m_panadapterXmin != xMin || m_panadapterXmax != xMax) {
+    setPanadapterX(xMin, xMax);
+  }
+  replaceSpectrumSeries(&spectrum, m_spectrumLineSeries, sampleRate, true);
+
+  setTimeSeriesX(0, length);
+  //  setTimeSeriesX(0, 48);
+
+  //}
+  QList<QPointF> timeseriesPoints;
+  uint32_t plotX = 0;
+  for (uint32_t i = 0; i < length; i++) {
+    timeseriesPoints.append(QPointF(plotX++, data->at(i).imag()));
+  }
+
+  m_timeseriesLineSeries.replace(timeseriesPoints);
 }
 
 void
@@ -523,13 +555,13 @@ MainWindow::initialiseRadio()
     //    },
     //   .changed = (RadioSettings::RX) 
     // };
-    m_radioSettings.modeSettings.setCurrentMode(Mode::USB);
+    m_radioSettings.modeSettings.setCurrentMode(Mode::CWL);
     const Mode& mode = m_radioSettings.modeSettings.getCurrentMode();
     m_radioSettings.mode = mode;
     m_radioSettings.rxSettings.mode = mode;
     //m_radioSettings.txSettings.mode = m_radioSettings.modeSettings.getCurrentMode();
 
-    m_radioSettings.rxSettings.rfSettings.frequency = 14100000;
+    m_radioSettings.rxSettings.rfSettings.frequency = 7056000;
     m_radioSettings.rxSettings.rfSettings.offset = 48000;
     m_radioSettings.rxSettings.rfSettings.gain = 30.0;
     m_radioSettings.rxSettings.rfSettings.changed = (RfSettings::FREQUENCY | RfSettings::OFFSET | RfSettings::GAIN);
@@ -541,7 +573,7 @@ MainWindow::initialiseRadio()
     m_radioSettings.changed = RadioSettings::MODE | RadioSettings::RX;
 
     m_radioSettings.txSettings.mode = mode;
-    m_radioSettings.txSettings.rfSettings.frequency = 7050000;
+    m_radioSettings.txSettings.rfSettings.frequency = 7056000;
     m_radioSettings.txSettings.rfSettings.offset = 48000;
     m_radioSettings.txSettings.rfSettings.changed = (RfSettings::FREQUENCY | RfSettings::OFFSET);
     m_radioSettings.txSettings.changed = (TransmitterSettings::MODE | TransmitterSettings::RF);

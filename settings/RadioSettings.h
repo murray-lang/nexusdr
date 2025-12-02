@@ -166,5 +166,4 @@ public:
   ModeSettings modeSettings;
   ReceiverSettings rxSettings;
   TransmitterSettings txSettings;
-
 };

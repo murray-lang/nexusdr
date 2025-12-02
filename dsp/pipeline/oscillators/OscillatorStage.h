@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../../../radio/pipeline/IqPipelineStage.h"
-#include "../../blocks/Oscillator.h"
+#include "../IqPipelineStage.h"
+#include "Oscillator.h"
 #include <algorithm>
 
 class OscillatorStage : public IqPipelineStage

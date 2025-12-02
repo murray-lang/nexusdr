@@ -7,12 +7,14 @@
 #include <vector>
 
 static std::vector<Mode> modes{
-    {Mode::AMN, "AM",  "AM (Narrow)",   -3000,  3000,  0},
-    {Mode::AMW, "AMW", "AM (Wide)",     -9000,  9000,  0},
-    {Mode::LSB, "LSB", "Lower Sideband", -3000,  -300, 0},
-    {Mode::USB, "USB", "Upper Sideband",  300,   3000, 0},
-    {Mode::FMN, "FM",  "FM (Narrow)",    -5000,  5000, 0},
-    {Mode::FMW, "FMW", "FM (Wide)",      -15000, 15000, 0}
+  {Mode::AMN, "AM",  "AM (Narrow)",    -3000,  3000,    0},
+  {Mode::AMW, "AMW", "AM (Wide)",      -9000,  9000,    0},
+  {Mode::LSB, "LSB", "Lower Sideband", -3000,  -300,    0},
+  {Mode::USB, "USB", "Upper Sideband",   300,  3000,    0},
+  {Mode::FMN, "FM",  "FM (Narrow)",    -5000,  5000,    0},
+  {Mode::FMW, "FMW", "FM (Wide)",     -15000, 15000,    0},
+  {Mode::CWL, "CWL", "CW (Lower)",      -800,   -50, -700},
+  {Mode::CWU, "CWU", "CW (Upper)",        50,   800,  700}
 
 };
 

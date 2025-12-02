@@ -5,7 +5,10 @@
 
 #define DEFAULT_PING_PONG_LENGTH 8192
 
-IqPipeline::IqPipeline(QObject* eventTarget) :
+class ModeSettings;
+
+IqPipeline::IqPipeline(const ModeSettings& modeSettings, QObject* eventTarget) :
+  m_modeSettings(modeSettings),
   m_eventTarget(eventTarget),
   m_mode(),
   m_buffers(DEFAULT_PING_PONG_LENGTH),

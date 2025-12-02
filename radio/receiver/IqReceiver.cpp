@@ -12,8 +12,9 @@
 // #define FFT_SIZE 2048
 
 
-IqReceiver::IqReceiver(QObject* eventTarget) :
-  m_iqPipeline(eventTarget),
+IqReceiver::IqReceiver(const ModeSettings& modeSettings, QObject* eventTarget) :
+  m_modeSettings(modeSettings),
+  m_iqPipeline(modeSettings, eventTarget),
   m_eventTarget(eventTarget)
 {
 }
@@ -71,15 +72,15 @@ void IqReceiver::ptt(bool on)
 uint32_t
 IqReceiver::sinkIq(const vsdrcomplex& samples, uint32_t length)
 {
-  QCoreApplication::postEvent(m_eventTarget, new ReceiverIqEvent(samples, length, m_iqIo.getInputSampleRate() ));
+  // QCoreApplication::postEvent(m_eventTarget, new ReceiverIqEvent(samples, length, m_iqIo.getInputSampleRate() ));
   // Straight to the only pipeline for now
   return m_iqPipeline.sinkIq(samples, length);
 }
 
 uint32_t
-IqReceiver::sinkAudio(const vsdrreal& samples, uint32_t length)
+IqReceiver::sinkAudio(const vsdrreal& samples, uint32_t length, uint32_t numChannels)
 {
   QCoreApplication::postEvent(m_eventTarget, new ReceiverAudioEvent(samples, length));
   // TODO: There will need to be a way to distinguish which pipeline this is from and also to combine the audio.
-  return m_iqIo.sinkAudio(samples, length);
+  return m_iqIo.sinkAudio(samples, length, numChannels);
 }

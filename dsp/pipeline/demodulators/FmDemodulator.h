@@ -9,8 +9,8 @@
 class FmDemodulator : public Demodulator
 {
 public:
-  explicit FmDemodulator(uint32_t sampleRate) :
-    Demodulator(sampleRate),
+  explicit FmDemodulator(const Mode& mode, uint32_t sampleRate) :
+    Demodulator(mode, sampleRate),
     m_prevSample(static_cast<sdrreal>(1.0), static_cast<sdrreal>(0.0)),
     m_maxDeviation(0.1f)
   {}

@@ -2,8 +2,7 @@
 // Created by murray on 5/10/25.
 //
 
-#ifndef CUTESDR_VK6HL_MODE_H
-#define CUTESDR_VK6HL_MODE_H
+#pragma once
 #include <cstdint>
 #include <string>
 #include <utility>
@@ -19,10 +18,20 @@ public:
     LSB,
     USB,
     FMN,
-    FMW
+    FMW,
+    CWL,
+    CWU
   };
 
-  Mode() = default;
+  Mode() :
+    m_type(NONE),
+    m_name("none"),
+    m_label("None"),
+    m_loCut(-10000),
+    m_hiCut(10000),
+    m_offset(0)
+  {}
+
   Mode(Type type, std::string  name, std::string  label , int32_t loCut, int32_t hiCut, int32_t offset) :
     m_type(type),
     m_name(std::move(name)),
@@ -46,9 +55,8 @@ protected:
   Type m_type;
   std::string m_name;
   std::string m_label;
-  int32_t m_loCut;
-  int32_t m_hiCut;
-  int32_t m_offset;
+  int32_t m_loCut{};
+  int32_t m_hiCut{};
+  int32_t m_offset{};
 
 };
-#endif //CUTESDR_VK6HL_MODE_H

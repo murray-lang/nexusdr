@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstdint>
-#include "../../SampleTypes.h"
+#include "../../../SampleTypes.h"
 
 class Oscillator
 {
@@ -16,6 +16,7 @@ public:
   Oscillator& increment();
   Oscillator& reset();
 
+  [[nodiscard]] const sdrcomplex& getState() const { return m_state; }
   Oscillator& operator++() { return increment(); }
   explicit operator const sdrcomplex& () const  { return m_state; }
   sdrcomplex operator * (const sdrcomplex& rhs) const { return m_state * rhs; }
