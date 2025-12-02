@@ -15,6 +15,7 @@
 #include "dsp/pipeline/monitoring/MonitoringStage.h"
 #include "modulators/CwModulator.h"
 #include "settings/TransmitterSettingsSink.h"
+#include <chrono>
 
 class IqTxPipeline: public IqPipeline, public TransmitterSettingsSink
 {
@@ -51,4 +52,5 @@ protected:
   uint32_t m_inputSampleRate;
   uint32_t m_outputSampleRate;
   MonitoringStage* m_pMonitoringStage;
+  // std::chrono::steady_clock::time_point m_lastTime;
 };

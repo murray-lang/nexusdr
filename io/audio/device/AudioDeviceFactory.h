@@ -188,6 +188,10 @@ public:
       return 1;
     case RTAUDIO_SINT16:
       return 2;
+    case RTAUDIO_SINT24:
+      return 3;
+    case RTAUDIO_SINT32:
+      return 4;
     case RTAUDIO_FLOAT32:
       return 4;
     case RTAUDIO_FLOAT64:

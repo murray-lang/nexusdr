@@ -3,6 +3,7 @@
 //
 
 #include "AudioOutputDevice.h"
+// #include <qdebug.h>
 
 
 AudioOutputDevice::AudioOutputDevice(const RtAudio::DeviceInfo& deviceInfo, const Format& format) :
@@ -62,6 +63,7 @@ void AudioOutputDevice::stop()
 
 int AudioOutputDevice::pullSamples(void *outputBuffer, unsigned int nFrames)
 {
+  static size_t numUnderruns = 0;
   auto* out = static_cast<int16_t*>(outputBuffer);
   std::lock_guard<std::mutex> lock(m_mutex);
   for (unsigned int i = 0; i < nFrames * 2; i += 2) {
@@ -70,6 +72,7 @@ int AudioOutputDevice::pullSamples(void *outputBuffer, unsigned int nFrames)
       out[i+1] = out[i];
       m_audioBuffer.pop_front();
     } else {
+      // qDebug() << "AudioOutputDevice::pullSamples(): underrun! " << ++numUnderruns;
       out[i] = 0; // silence if no data
       out[i+1] = 0;
     }

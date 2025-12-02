@@ -7,6 +7,7 @@
 #include <deque>
 
 #include "SampleTypes.h"
+#include <qdebug.h>
 
 
 class HilbertTransform
@@ -26,6 +27,7 @@ public:
 
   uint32_t transform(const vsdrreal& input, uint32_t numSamples, uint32_t numChannels, vsdrcomplex& output)
   {
+    // qDebug() << "HilbertTransform::transform(): numSamples =" << numSamples << ", numChannels =" << numChannels;
     auto N = static_cast<size_t>(numSamples/numChannels);
     size_t taps = m_coefficients.size();
     // output.resize(N);
@@ -42,6 +44,7 @@ public:
       }
       // Real is unchanged, imag is phase-shifted
       output[i] = sdrcomplex(input[i], imag);
+      // output[i] = sdrcomplex(1.0f, 0.0f);
     }
     return N;
   }

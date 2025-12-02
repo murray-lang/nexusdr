@@ -32,7 +32,7 @@ IqTxPipeline::IqTxPipeline(const ModeSettings& modeSettings, QObject* eventTarge
   );
   
   addStage(&m_ifFilter);
-  addStage(&m_resampler);
+  // addStage(&m_resampler);
   addStage(m_pMonitoringStage);
   addStage(&m_oscillatorMixer);
   addStage(&m_iqCorrection);
@@ -103,6 +103,7 @@ IqTxPipeline::ptt(bool on)
 {
   if (on) {
     m_resampler.initialise();
+    // m_lastTime =  std::chrono::steady_clock::now();
   }
 };
 
@@ -149,6 +150,11 @@ IqTxPipeline::setModulator(const Mode& mode)
 uint32_t
 IqTxPipeline::sinkIq(const vsdrcomplex& samples, uint32_t length)
 {
+  // auto now = std::chrono::steady_clock::now();
+  // auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(now - m_lastTime).count();
+  // m_lastTime = now;
+  // qDebug() << "IqTxPipeline::sinkIq(): received" << length << "samples in" << duration << "ms";
+
   uint32_t outputLength = 0;
   std::lock_guard<std::mutex> lock(m_settingsMutex);
   if (m_pModulator) {
@@ -160,8 +166,11 @@ IqTxPipeline::sinkIq(const vsdrcomplex& samples, uint32_t length)
       m_buffers.flip();
     }
   }
+  //  outputLength = length;
   if (outputLength > 0 && m_pAudioOutSink != nullptr) {
     uint32_t numReals = interleaveComplexToReal(m_buffers.input(), m_audioBuffer, outputLength);
+    // uint32_t numReals = interleaveComplexToReal(samples, m_audioBuffer, outputLength);
+
     m_pAudioOutSink->sinkAudio(m_audioBuffer, numReals, 2);
   }
   return outputLength;
@@ -171,6 +180,10 @@ uint32_t
 IqTxPipeline::interleaveComplexToReal(const vsdrcomplex& vcomplex, vsdrreal& vreal, uint32_t numComplexes)
 {
   vreal.resize(numComplexes * 2);
+  // for (int i = 0; i < numComplexes; ++i) {
+  //   vreal[2 * i]     = vcomplex[i].real();
+  //   vreal[2 * i + 1] = vcomplex[i].imag();
+  // }
   std::memcpy(vreal.data(), vcomplex.data(), numComplexes * sizeof(sdrcomplex));
   return numComplexes * 2;
 }
