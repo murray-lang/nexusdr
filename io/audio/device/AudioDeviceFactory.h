@@ -15,7 +15,6 @@ class AudioDeviceFactory
 {
   // static const RtAudio::Api defaultApi = RtAudio::Api::LINUX_ALSA;
 public:
-  // template<typename T>
   static AudioInputDevice* createInputDevice(const AudioConfig* pConfig, AudioSink* pSink)
   {
     const RtAudio::Api api = apiFromConfig(pConfig);
@@ -34,7 +33,16 @@ public:
     const RtAudio::DeviceInfo deviceInfo = findOutputDevice(api, pConfig->getSearchExpression());
     AudioDevice::Format format{};
     getOutputFormat(pConfig, deviceInfo, format);
-    return new AudioOutputDevice(deviceInfo, format);
+    if (format.sampleFormat == RTAUDIO_FLOAT32) {
+      return new AudioOutputDeviceT<float>(deviceInfo, format);
+    } else if (format.sampleFormat == RTAUDIO_SINT32) {
+      return new AudioOutputDeviceT<int32_t>(deviceInfo, format);
+    } else if (format.sampleFormat == RTAUDIO_SINT16) {
+      return new AudioOutputDeviceT<int16_t>(deviceInfo, format);
+    } else if (format.sampleFormat == RTAUDIO_SINT8) {
+      return new AudioOutputDeviceT<int8_t>(deviceInfo, format);
+    }
+    return nullptr;
   }
 
   static RtAudio::Api apiFromConfig(const AudioConfig* pConfig)

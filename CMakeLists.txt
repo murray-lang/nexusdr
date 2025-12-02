@@ -185,7 +185,6 @@ set(PROJECT_SOURCES
 
         io/audio/device/AudioDevice.h
         io/audio/AudioInput.h
-        io/audio/device/AudioOutputDevice.cpp
         io/audio/device/AudioOutputDevice.h
         io/audio/device/AudioInputDevice.h
         io/audio/AudioException.h

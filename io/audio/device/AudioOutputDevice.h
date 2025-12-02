@@ -12,24 +12,32 @@
 #include "AudioDevice.h"
 #include "../../../SampleTypes.h"
 
-template <typename T>
 class AudioOutputDevice : public AudioDevice
 {
 public:
+  AudioOutputDevice(const RtAudio::DeviceInfo& deviceInfo, const Format& format) : AudioDevice(deviceInfo, format) {}
+  ~AudioOutputDevice() override = default;
+  virtual uint32_t addAudioData(const vsdrreal& data, uint32_t length) = 0;
+};
 
-  AudioOutputDevice(const RtAudio::DeviceInfo& deviceInfo, const Format& format) :
-    AudioDevice(deviceInfo, format),
+template <typename T>
+class AudioOutputDeviceT : public AudioOutputDevice
+{
+public:
+
+  AudioOutputDeviceT(const RtAudio::DeviceInfo& deviceInfo, const Format& format) :
+    AudioOutputDevice(deviceInfo, format),
     m_running(false),
     m_audioBuffer(),
     m_maxPacketFrames(0)
   {
   }
-  ~AudioOutputDevice() override
+  ~AudioOutputDeviceT() override
   {
-    AudioOutputDevice::stop();
+    AudioOutputDeviceT::stop();
   };
 
-  void AudioOutputDevice::start(uint32_t maxPacketFrames)
+  void start(uint32_t maxPacketFrames) override
   {
     m_maxPacketFrames = maxPacketFrames;
     if (!m_running) {
@@ -49,7 +57,7 @@ public:
 
       RtAudioCallback rtCallback = [](void *outputBuffer, void *, unsigned int nFrames,
                           double, RtAudioStreamStatus, void *userData) -> int {
-        auto *self = static_cast<AudioOutputDevice *>(userData);
+        auto *self = static_cast<AudioOutputDeviceT *>(userData);
         return self->pullSamples(outputBuffer, nFrames);
       };
 
@@ -62,84 +70,60 @@ public:
 
       rc = m_rtAudio.startStream();
     }
+  }
 
-}
-
-void stop()
-{
-  if (m_running) {
-    if (m_rtAudio.isStreamOpen()) {
-      m_rtAudio.stopStream();
-      m_rtAudio.closeStream();
-      m_running = false;
+  void stop() override
+  {
+    if (m_running) {
+      if (m_rtAudio.isStreamOpen()) {
+        m_rtAudio.stopStream();
+        m_rtAudio.closeStream();
+        m_running = false;
+      }
     }
   }
-}
 
-int pullSamples(void *outputBuffer, unsigned int nFrames)
-{
-  static size_t numUnderruns = 0;
-  auto* out = static_cast<T*>(outputBuffer);
-  std::lock_guard<std::mutex> lock(m_mutex);
-  for (unsigned int i = 0; i < nFrames * 2; i += 2) {
-    if (!m_audioBuffer.empty()) {
-      out[i] = m_audioBuffer.front();
-      out[i+1] = out[i];
+  int pullSamples(void *outputBuffer, unsigned int nFrames)
+  {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    T* out = static_cast<T*>(outputBuffer);
+
+    unsigned int samplesNeeded = nFrames * m_format.channelCount;
+
+    unsigned int samplesToCopy = std::min(static_cast<unsigned int>(m_audioBuffer.size()), samplesNeeded);
+
+    for (unsigned int i = 0; i < samplesToCopy; ++i) {
+      *out++ = m_audioBuffer.front();
       m_audioBuffer.pop_front();
-    } else {
-      // qDebug() << "AudioOutputDevice::pullSamples(): underrun! " << ++numUnderruns;
-      out[i] = 0; // silence if no data
-      out[i+1] = 0;
     }
+
+    // Fill the rest with silence if we ran out of data (underrun protection)
+    if (samplesToCopy < samplesNeeded) {
+      std::fill(out, out + (samplesNeeded - samplesToCopy), static_cast<T>(0));
+      // Optionally log underrun here
+    }
+
+    return 0; // 0: continue, nonzero: stop
   }
-  return 0; // 0: continue, nonzero: stop
-}
 
+  uint32_t addAudioData(const vsdrreal& data, uint32_t length) override
+  {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    if (!m_running) return 0;
 
+    constexpr double scale = std::is_integral_v<T>
+        ? static_cast<double>(std::numeric_limits<T>::max())
+        : 1.0;
 
-uint32_t addAudioData(const vsdrreal& data, const uint32_t length)
-{
-  std::lock_guard<std::mutex> lock(m_mutex);
-  std::transform(
-    data.begin(),
-    data.begin() + length,
-    std::back_inserter(m_audioBuffer),
-    [this](const sdrreal& value)
-    {
-      if (m_format.sampleFormat == RTAUDIO_SINT16) {
-        // Scale float [-1.0, 1.0] to int16_t [-32768, 32767]
-        sdrreal scaled = value * static_cast<int16_t>(INT16_MAX);
-        return static_cast<int16_t>(scaled);
-      } else if(m_format.sampleFormat == RTAUDIO_SINT8) {
-        // Scale float [-1.0, 1.0] to int8_t [-128, 127]
-        sdrreal scaled = value * static_cast<int8_t>(INT8_MAX);
-        return static_cast<int16_t>(scaled);
-      } else if(m_format.sampleFormat == RTAUDIO_SINT24) {
-        // Scale float [-1.0, 1.0] to int24_t [-8388608, 8388607]
-        sdrreal scaled = value * 8388607.0f;
-        int32_t int24 = static_cast<int32_t>(scaled);
-        // Store as int16_t by shifting (not ideal, but for demonstration)
-        return static_cast<int16_t>(int24 >> 8);
-      } else if(m_format.sampleFormat == RTAUDIO_SINT32) {
-        // Scale float [-1.0, 1.0] to int32_t [-2147483648, 2147483647]
-        sdrreal scaled = value * static_cast<int32_t>(INT32_MAX);
-        int32_t int32Value = static_cast<int32_t>(scaled);
-        // Store as int16_t by shifting (not ideal, but for demonstration)
-        return static_cast<int16_t>(int32Value >> 16);
-      // For other formats, just return the float value as is (may need adjustment)
-      sdrreal scaled = value * static_cast<int16_t>(INT16_MAX);
-      return static_cast<int16_t>(scaled);
-      // return static_cast<float>(value);
+    for (uint32_t i = 0; i < length; ++i) {
+      m_audioBuffer.push_back(static_cast<T>(data[i] * scale));
     }
-  );
-  return length;
-}
+    return length;
+  }
+
 private:
   std::atomic<bool> m_running;
-
   std::deque<T> m_audioBuffer;
   std::mutex m_mutex;
-
   uint32_t m_maxPacketFrames;
-
 };
