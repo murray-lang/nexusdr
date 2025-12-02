@@ -180,11 +180,23 @@ uint32_t
 IqTxPipeline::interleaveComplexToReal(const vsdrcomplex& vcomplex, vsdrreal& vreal, uint32_t numComplexes)
 {
   vreal.resize(numComplexes * 2);
-  // for (int i = 0; i < numComplexes; ++i) {
-  //   vreal[2 * i]     = vcomplex[i].real();
-  //   vreal[2 * i + 1] = vcomplex[i].imag();
-  // }
-  std::memcpy(vreal.data(), vcomplex.data(), numComplexes * sizeof(sdrcomplex));
+
+  constexpr bool swapIQ = false;
+
+  const auto* src = vcomplex.data();
+  auto* dst = vreal.data();
+
+  if constexpr (swapIQ) {
+    for (uint32_t i = 0; i < numComplexes; ++i) {
+      dst[2 * i]     = src[i].imag(); // Left = Q
+      dst[2 * i + 1] = src[i].real(); // Right = I
+    }
+  } else {
+    for (uint32_t i = 0; i < numComplexes; ++i) {
+      dst[2 * i]     = src[i].real(); // Left = I
+      dst[2 * i + 1] = src[i].imag(); // Right = Q
+    }
+  }
   return numComplexes * 2;
 }
 
