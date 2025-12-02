@@ -126,7 +126,7 @@ MainWindow::configurePanadapter()
     xAxis->setRange(m_panadapterXmin, m_panadapterXmax);
     xAxis->setLabelFormat(QString("%i"));
   }
-  pChart->axes(Qt::Vertical).first()->setRange(-130, -60);
+  pChart->axes(Qt::Vertical).first()->setRange(-140, -20);
 
   pChart->legend()->hide();
 
@@ -247,8 +247,10 @@ MainWindow::handleTransmitterIqEvent(const vsdrcomplex* data, uint32_t length, u
   //   setPanadapterX(0, spectrum.size());
   // }
   uint32_t centreFrequency = m_radioSettings.rxSettings.rfSettings.frequency;
-  uint32_t xMin = centreFrequency - (sampleRate / 2);
-  uint32_t xMax = centreFrequency + (sampleRate / 2);
+  // uint32_t xMin = centreFrequency - (sampleRate / 2);
+  // uint32_t xMax = centreFrequency + (sampleRate / 2);
+  uint32_t xMin = 7100000;
+  uint32_t xMax = 7108000;
   if (m_panadapterXmin != xMin || m_panadapterXmax != xMax) {
     setPanadapterX(xMin, xMax);
   }
@@ -559,7 +561,7 @@ MainWindow::initialiseRadio()
     m_radioSettings.rxSettings.mode = mode;
     //m_radioSettings.txSettings.mode = m_radioSettings.modeSettings.getCurrentMode();
 
-    m_radioSettings.rxSettings.rfSettings.frequency = 70560000;
+    m_radioSettings.rxSettings.rfSettings.frequency = 7056000;
     m_radioSettings.rxSettings.rfSettings.offset = 48000;
     m_radioSettings.rxSettings.rfSettings.gain = 30.0;
     m_radioSettings.rxSettings.rfSettings.changed = (RfSettings::FREQUENCY | RfSettings::OFFSET | RfSettings::GAIN);
@@ -571,8 +573,8 @@ MainWindow::initialiseRadio()
     m_radioSettings.changed = RadioSettings::MODE | RadioSettings::RX;
 
     m_radioSettings.txSettings.mode = mode;
-    m_radioSettings.txSettings.rfSettings.frequency = 7050000;
-    m_radioSettings.txSettings.rfSettings.offset = 10000;
+    m_radioSettings.txSettings.rfSettings.frequency = 7056000;
+    m_radioSettings.txSettings.rfSettings.offset = 48000;
     m_radioSettings.txSettings.rfSettings.changed = (RfSettings::FREQUENCY | RfSettings::OFFSET);
     m_radioSettings.txSettings.changed = (TransmitterSettings::MODE | TransmitterSettings::RF);
 

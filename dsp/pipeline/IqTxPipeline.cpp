@@ -8,7 +8,7 @@
 
 #define FFT_SIZE 2048
 #define PING_PONG_LENGTH 8192
-#define HILBERT_TAPS 63
+#define HILBERT_TAPS 127
 
 class ModeSettings;
 
@@ -32,11 +32,11 @@ IqTxPipeline::IqTxPipeline(const ModeSettings& modeSettings, QObject* eventTarge
   );
   
   addStage(&m_ifFilter);
-  // addStage(&m_resampler);
-  addStage(m_pMonitoringStage);
+  addStage(&m_resampler);
+  // addStage(m_pMonitoringStage);
   addStage(&m_oscillatorMixer);
   addStage(&m_iqCorrection);
-  // addStage(m_pMonitoringStage);
+  addStage(m_pMonitoringStage);
 }
 
 IqTxPipeline::~IqTxPipeline()
