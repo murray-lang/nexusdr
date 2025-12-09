@@ -45,7 +45,7 @@ public:
         phase = std::get<sdrreal>(setting.getValue());
         settingChange = true;
       } else if (setting.getMeaning() == SingleSetting::DELTA) {
-        phase += std::get<int32_t>(setting.getValue()) * phaseStep;
+        phase += static_cast<sdrreal>(std::get<int32_t>(setting.getValue())) * phaseStep;
         settingChange = true;
       }
     } if (feature == PHASE_STEP) {
@@ -53,7 +53,7 @@ public:
         phaseStep = std::get<sdrreal>(setting.getValue());
         settingChange = true;
       } else if (setting.getMeaning() == SingleSetting::DELTA) {
-        phaseStep += std::get<int32_t>(setting.getValue()) * 10;
+        phaseStep += static_cast<sdrreal>(std::get<int32_t>(setting.getValue())) * 10;
         settingChange = true;
       }
     } else if (feature == AMPLITUDE) {
@@ -61,7 +61,7 @@ public:
         amplitude = std::get<sdrreal>(setting.getValue());
         settingChange = true;
       } else if (setting.getMeaning() == SingleSetting::DELTA) {
-        amplitude += std::get<int32_t>(setting.getValue()) * amplitudeStep;
+        amplitude += static_cast<sdrreal>(std::get<int32_t>(setting.getValue())) * amplitudeStep;
         settingChange = true;
       }
     } else if (feature == AMPLITUDE_STEP) {
@@ -69,7 +69,7 @@ public:
         amplitudeStep = std::get<sdrreal>(setting.getValue());
         settingChange = true;
       } else if (setting.getMeaning() == SingleSetting::DELTA) {
-        amplitudeStep += std::get<int32_t>(setting.getValue()) * 10;
+        amplitudeStep += static_cast<sdrreal>(std::get<int32_t>(setting.getValue())) * 10;
         settingChange = true;
       }
     }

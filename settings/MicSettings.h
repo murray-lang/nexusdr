@@ -6,6 +6,8 @@
 #include "SampleTypes.h"
 #include "SettingsBase.h"
 
+#define DEFAULT_GAIN_STEP 0.01
+
 class MicSettings : public SettingsBase
 {
   public:
@@ -14,7 +16,7 @@ class MicSettings : public SettingsBase
     NONE = 0,
     GAIN = 0x01,
   };
-  MicSettings(): gain(1.0) {}
+  MicSettings(): gain(1.0), gainStep(DEFAULT_GAIN_STEP) {}
   MicSettings(const MicSettings& rhs) = default;
   ~MicSettings() override = default;
   MicSettings& operator=(const MicSettings& rhs) = default;
@@ -29,6 +31,15 @@ class MicSettings : public SettingsBase
     if (feature == GAIN) {
       gain = std::get<sdrreal>(setting.getValue());
       settingChange = true;
+
+      if (setting.getMeaning() == SingleSetting::VALUE) {
+        gain = std::get<sdrreal>(setting.getValue());
+        settingChange = true;
+      } else if (setting.getMeaning() == SingleSetting::DELTA) {
+        gain += static_cast<sdrreal>(std::get<int32_t>(setting.getValue())) * gainStep;
+        settingChange = true;
+      }
+
     }
     if (settingChange) {
       changed |= feature;
@@ -53,4 +64,5 @@ class MicSettings : public SettingsBase
   }
 
   sdrreal gain;
+  sdrreal gainStep;
 };
