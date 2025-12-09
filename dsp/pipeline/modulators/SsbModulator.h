@@ -18,11 +18,11 @@ public:
   {
     if (m_mode.getType() == Mode::LSB) {
       for (uint32_t i = 0; i < inputLength; ++i) {
-        output.at(i) = sdrcomplex(audio[i].real(), -audio[i].imag());
+        output.at(i) = sdrcomplex(audio[i].real(), -audio[i].imag()) * m_inputGain;
       }
     } else {
       for (uint32_t i = 0; i < inputLength; ++i) {
-        output.at(i) = audio.at(i);
+        output.at(i) = audio.at(i) * m_inputGain;
       }
     }
     return inputLength;

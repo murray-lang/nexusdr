@@ -299,6 +299,7 @@ set(PROJECT_SOURCES
         dsp/pipeline/demodulators/CwDemodulator.h
         dsp/pipeline/correction/IqCorrection.h
         settings/IqCorrectionSettings.h
+        settings/MicSettings.h
 
 )
 

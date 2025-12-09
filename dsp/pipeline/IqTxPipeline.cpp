@@ -96,6 +96,11 @@ void IqTxPipeline::apply(const TransmitterSettings& settings)
   if (settings.changed & TransmitterSettings::MODE) {
     setMode(settings.mode);
   }
+  if (settings.changed & TransmitterSettings::MIC) {
+    if (settings.micSettings.changed & MicSettings::GAIN) {
+      m_ssbModulator.setInputGain(settings.micSettings.gain);
+    }
+  }
 }
 
 void
