@@ -5,6 +5,7 @@
 #include "IqTxPipeline.h"
 
 #include "settings/ModeSettings.h"
+#include <qdebug.h>
 
 #define FFT_SIZE 2048
 #define PING_PONG_LENGTH 8192
@@ -95,6 +96,12 @@ void IqTxPipeline::apply(const TransmitterSettings& settings)
   }
   if (settings.changed & TransmitterSettings::MODE) {
     setMode(settings.mode);
+  }
+  if (settings.changed & TransmitterSettings::MIC) {
+    if (settings.micSettings.changed & MicSettings::GAIN) {
+      m_ssbModulator.setInputGain(settings.micSettings.gain);
+      qDebug() << "IqTxPipeline::apply(): set SSB modulator input gain to" << settings.micSettings.gain;
+    }
   }
 }
 
