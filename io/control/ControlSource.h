@@ -5,7 +5,6 @@
 #pragma once
 
 #include "ControlBase.h"
-#include <settings/PttSource.h>
 #include <settings/RadioSettingsSource.h>
 
 class ControlSource : public ControlBase, public RadioSettingsSource

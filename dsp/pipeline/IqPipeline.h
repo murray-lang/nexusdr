@@ -9,7 +9,7 @@
 #include "io/audio/AudioSink.h"
 #include "io/iq/IqIo.h"
 #include "settings/Mode.h"
-#include "settings/PttSink.h"
+#include "../../io/control/PttSink.h"
 #include <qcoreevent.h>
 
 

@@ -7,6 +7,7 @@
 #include "IqCorrectionSettings.h"
 #include "MicSettings.h"
 #include "RfSettings.h"
+#include "TestSettings.h"
 
 class TransmitterSettings : public SettingsBase {
 public:
@@ -16,7 +17,8 @@ public:
     MODE = 0x01,
     RF = 0x02,
     CORRECTION = 0x04,
-    MIC = 0x08
+    MIC = 0x08,
+    TEST = 0x10
   };
   TransmitterSettings() = default;
   TransmitterSettings(const TransmitterSettings& rhs) = default;
@@ -29,6 +31,7 @@ public:
       rfSettings = rhs.rfSettings;
       correctionSettings = rhs.correctionSettings;
       micSettings = rhs.micSettings;
+      testSettings = rhs.testSettings;
       mode = rhs.mode;
     }
     return *this;
@@ -53,6 +56,8 @@ public:
       settingChange = correctionSettings.applySetting(setting, startIndex + 1);
     } else if (feature == MIC) {
       settingChange = micSettings.applySetting(setting, startIndex + 1);
+    } else if (feature == TEST) {
+      settingChange = testSettings.applySetting(setting, startIndex + 1);
     }
     if (settingChange) {
       changed |= feature;
@@ -90,6 +95,11 @@ public:
       if (startIndex + 1 < featureStrings.size()) {
         MicSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
       }
+    }  else if (featureStrings[startIndex] == "test") {
+      featuresOut.push_back(TEST);
+      if (startIndex + 1 < featureStrings.size()) {
+       TestSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
+      }
     } else {
       throw SettingsException("Unknown transmitter feature: " + featureStrings[startIndex]);
     }
@@ -99,4 +109,5 @@ public:
   RfSettings rfSettings;
   IqCorrectionSettings correctionSettings;
   MicSettings micSettings;
+  TestSettings testSettings;
 };

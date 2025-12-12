@@ -10,7 +10,6 @@
 #include "config/RadioConfig.h"
 #include <io/control/RadioControl.h>
 #include "receiver/IqReceiver.h"
-#include <settings/PttSink.h>
 #include <settings/RadioSettingsSink.h>
 
 #include "../settings/ModeSettings.h"

@@ -24,13 +24,16 @@ IqTxPipeline::IqTxPipeline(const ModeSettings& modeSettings, QObject* eventTarge
   m_ifFilter(FFT_SIZE),
   m_inputSampleRate(0),
   m_outputSampleRate(0),
-  m_pMonitoringStage(nullptr)
+  m_pMonitoringStage(nullptr),
+  m_twoToneSignal()
 {
   m_pMonitoringStage = new MonitoringStage(
     eventTarget,
     TransmitterIqEvent::TxIqEvent,
     [this]() { return m_outputSampleRate; }
   );
+
+  m_twoToneSignal.setEnabled(true); // For now
   
   addStage(&m_ifFilter);
   addStage(&m_resampler);
@@ -51,6 +54,7 @@ IqTxPipeline::initialise(IqIo* pIo, AudioSink* pAudioSink)
   IqPipeline::initialise(pIo, pAudioSink);
   m_inputSampleRate = pIo->getInputSampleRate();
   setModulatorSampleRate(m_inputSampleRate);
+  m_twoToneSignal.initialise(m_inputSampleRate);
   uint32_t preferredOutputRate = pIo->getOutputSampleRate();
   setOutputSampleRate(preferredOutputRate);
   m_resampler.configure(m_inputSampleRate, m_outputSampleRate);
@@ -165,7 +169,13 @@ IqTxPipeline::sinkIq(const vsdrcomplex& samples, uint32_t length)
   uint32_t outputLength = 0;
   std::lock_guard<std::mutex> lock(m_settingsMutex);
   if (m_pModulator) {
-    outputLength = m_pModulator->processSamples(samples, m_buffers.input(), length);
+    if (m_twoToneSignal.getEnabled()) {
+      outputLength = m_twoToneSignal.processSamples(samples, m_buffers.input(), length);
+      outputLength = m_pModulator->processSamples(m_buffers.input(), m_buffers.output(), length);
+      m_buffers.flip();
+    } else {
+      outputLength = m_pModulator->processSamples(samples, m_buffers.input(), length);
+    }
   }
   if (outputLength > 0) {
     for (auto stage : m_stages) {

@@ -206,7 +206,7 @@ set(PROJECT_SOURCES
         io/control/ControlSinkFactory.cpp
 
         settings/ReceiverSettingsSink.h
-        settings/PttSink.h
+        io/control/PttSink.h
         radio/Radio.cpp
         radio/Radio.h
         settings/RadioSettingsSink.h
@@ -216,7 +216,7 @@ set(PROJECT_SOURCES
         settings/RadioSettingsSource.h
         io/control/ControlSource.cpp
         io/control/ControlSource.h
-        settings/PttSource.h
+        io/control/PttSource.h
         io/control/ControlSourceFactory.cpp
         io/control/ControlSourceFactory.h
 
@@ -300,6 +300,9 @@ set(PROJECT_SOURCES
         dsp/pipeline/correction/IqCorrection.h
         settings/IqCorrectionSettings.h
         settings/MicSettings.h
+        dsp/pipeline/oscillators/TwoToneSignalStage.h
+        settings/TestSettings.h
+        settings/TwoToneSettings.h
 
 )
 
