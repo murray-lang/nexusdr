@@ -26,7 +26,7 @@ public:
   {
     // The input signal provides nothing more than a clock for the CW oscillator
     for (uint32_t i = 0; i < inputLength; i++) {
-      output[i] = m_oscillator.getState() * static_cast<sdrreal>(0.01);
+      output[i] = m_oscillator.getState() * 1.0f; //m_inputGain;
       ++m_oscillator;
     }
     return inputLength;

@@ -17,6 +17,8 @@
 #include "settings/TransmitterSettingsSink.h"
 #include <chrono>
 
+#include "oscillators/TwoToneSignalStage.h"
+
 class IqTxPipeline: public IqPipeline, public TransmitterSettingsSink
 {
 public:
@@ -52,5 +54,6 @@ protected:
   uint32_t m_inputSampleRate;
   uint32_t m_outputSampleRate;
   MonitoringStage* m_pMonitoringStage;
+  TwoToneSignalStage m_twoToneSignal;
   // std::chrono::steady_clock::time_point m_lastTime;
 };
