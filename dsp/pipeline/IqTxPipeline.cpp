@@ -33,14 +33,17 @@ IqTxPipeline::IqTxPipeline(const ModeSettings& modeSettings, QObject* eventTarge
     [this]() { return m_outputSampleRate; }
   );
 
-  m_twoToneSignal.setEnabled(true); // For now
+  m_twoToneSignal.setEnabled(false); // For now
   
+  // addStage(m_pMonitoringStage);
   addStage(&m_ifFilter);
   addStage(&m_resampler);
   // addStage(m_pMonitoringStage);
   addStage(&m_oscillatorMixer);
-  addStage(&m_iqCorrection);
   addStage(m_pMonitoringStage);
+  addStage(&m_iqCorrection);
+  
+  // addStage(m_pMonitoringStage);
 }
 
 IqTxPipeline::~IqTxPipeline()
@@ -171,8 +174,8 @@ IqTxPipeline::sinkIq(const vsdrcomplex& samples, uint32_t length)
   if (m_pModulator) {
     if (m_twoToneSignal.getEnabled()) {
       outputLength = m_twoToneSignal.processSamples(samples, m_buffers.input(), length);
-      outputLength = m_pModulator->processSamples(m_buffers.input(), m_buffers.output(), length);
-      m_buffers.flip();
+      // outputLength = m_pModulator->processSamples(m_buffers.input(), m_buffers.output(), length);
+      // m_buffers.flip();
     } else {
       outputLength = m_pModulator->processSamples(samples, m_buffers.input(), length);
     }

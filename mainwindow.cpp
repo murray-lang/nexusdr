@@ -181,7 +181,7 @@ MainWindow::configureTimeseriesChart()
   pChart->axes(Qt::Horizontal).first()->setRange(m_timeSeriesXmin / 100.0, m_timeSeriesXmax/100.0);
 
 //  pChart->axes(Qt::Vertical).first()->setRange(2038, 2058);
-  pChart->axes(Qt::Vertical).first()->setRange(-0.05, 0.05);
+  pChart->axes(Qt::Vertical).first()->setRange(-1.0, 1.0);
 
 //  pChart->axes(Qt::Vertical).first()->setRange(-0.0000001, 0.0000003);
 
@@ -246,11 +246,13 @@ MainWindow::handleTransmitterIqEvent(const vsdrcomplex* data, uint32_t length, u
   // if (spectrum.size() != m_panadapterXmax) {
   //   setPanadapterX(0, spectrum.size());
   // }
-  uint32_t centreFrequency = m_radioSettings.rxSettings.rfSettings.frequency;
-  // uint32_t xMin = centreFrequency - (sampleRate / 2);
-  // uint32_t xMax = centreFrequency + (sampleRate / 2);
-  uint32_t xMin = 7100000;
-  uint32_t xMax = 7108000;
+  uint32_t centreFrequency = m_radioSettings.txSettings.rfSettings.frequency;
+  uint32_t xMin = centreFrequency - (sampleRate / 2);
+  uint32_t xMax = centreFrequency + (sampleRate / 2);
+  // uint32_t xMin = centreFrequency - 4000;
+  // uint32_t xMax = centreFrequency + 4000;
+  // uint32_t xMin = 7104000;
+  // uint32_t xMax = 7108000;
   if (m_panadapterXmin != xMin || m_panadapterXmax != xMax) {
     setPanadapterX(xMin, xMax);
   }
@@ -555,7 +557,7 @@ MainWindow::initialiseRadio()
     //    },
     //   .changed = (RadioSettings::RX) 
     // };
-    m_radioSettings.modeSettings.setCurrentMode(Mode::CWL);
+    m_radioSettings.modeSettings.setCurrentMode(Mode::LSB);
     const Mode& mode = m_radioSettings.modeSettings.getCurrentMode();
     m_radioSettings.mode = mode;
     m_radioSettings.rxSettings.mode = mode;
