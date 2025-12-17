@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../../SignalEmitter.h"
-#include "../../io/audio/device/AudioOutputDevice.h"
+#include "../../io/audio/drivers/RtAudio/RtAudioOutputDriver.h"
 #include "config/ReceiverConfig.h"
 #include <settings/ReceiverSettingsSink.h>
 #include "../../dsp/pipeline/IqRxPipeline.h"

@@ -7,40 +7,40 @@
 
 #include <regex>
 
-#include "AudioInputDevice.h"
-#include "AudioOutputDevice.h"
+#include "RtAudioInputDriver.h"
+#include "RtAudioOutputDriver.h"
 #include "io/audio/AudioException.h"
 
-class AudioDeviceFactory
+class AudioDriverFactory
 {
   // static const RtAudio::Api defaultApi = RtAudio::Api::LINUX_ALSA;
 public:
-  static AudioInputDevice* createInputDevice(const AudioConfig* pConfig, AudioSink* pSink)
+  static AudioInputDriver* createInputDriver(const AudioConfig* pConfig, AudioSink* pSink)
   {
     const RtAudio::Api api = apiFromConfig(pConfig);
     const RtAudio::DeviceInfo deviceInfo = findInputDevice(api, pConfig->getSearchExpression());
-    AudioDevice::Format format{};
+    AudioDriver::Format format{};
     getInputFormat(pConfig, deviceInfo, format);
     format.channelCount = pConfig->getChannelCount();
-    format.sampleFormat = RTAUDIO_FLOAT32;
+    format.sampleFormat = AUDIO_FLOAT32;
     format.bytesPerFrame = sizeof(float) * format.channelCount;
-    return new AudioInputDevice(deviceInfo, format, pSink);
+    return new RtAudioInputDriver(deviceInfo, format, pSink);
   }
 
-  static AudioOutputDevice * createOutputDevice(const AudioConfig* pConfig)
+  static AudioOutputDriver * createOutputDriver(const AudioConfig* pConfig)
   {
     const RtAudio::Api api = apiFromConfig(pConfig);
     const RtAudio::DeviceInfo deviceInfo = findOutputDevice(api, pConfig->getSearchExpression());
-    AudioDevice::Format format{};
+    AudioDriver::Format format{};
     getOutputFormat(pConfig, deviceInfo, format);
-    if (format.sampleFormat == RTAUDIO_FLOAT32) {
-      return new AudioOutputDeviceT<float>(deviceInfo, format);
-    } else if (format.sampleFormat == RTAUDIO_SINT32) {
-      return new AudioOutputDeviceT<int32_t>(deviceInfo, format);
-    } else if (format.sampleFormat == RTAUDIO_SINT16) {
-      return new AudioOutputDeviceT<int16_t>(deviceInfo, format);
-    } else if (format.sampleFormat == RTAUDIO_SINT8) {
-      return new AudioOutputDeviceT<int8_t>(deviceInfo, format);
+    if (format.sampleFormat == AUDIO_FLOAT32) {
+      return new RtAudioOutputDriverT<float>(deviceInfo, format);
+    } else if (format.sampleFormat == AUDIO_SINT32) {
+      return new RtAudioOutputDriverT<int32_t>(deviceInfo, format);
+    } else if (format.sampleFormat == AUDIO_SINT16) {
+      return new RtAudioOutputDriverT<int16_t>(deviceInfo, format);
+    } else if (format.sampleFormat == AUDIO_SINT8) {
+      return new RtAudioOutputDriverT<int8_t>(deviceInfo, format);
     }
     return nullptr;
   }
@@ -156,7 +156,7 @@ public:
     throw AudioException("No default audio output device found");
   }
 
-  static void getInputFormat(const AudioConfig* pConfig, const RtAudio::DeviceInfo& deviceInfo, AudioDevice::Format& format)
+  static void getInputFormat(const AudioConfig* pConfig, const RtAudio::DeviceInfo& deviceInfo, AudioDriver::Format& format)
   {
     format.sampleFormat = getRtAudioFormatFromConfigOrDefault(pConfig, deviceInfo);
     if (pConfig->getSampleRate() == 0) {
@@ -172,7 +172,7 @@ public:
     format.bytesPerFrame = getBytesPerChannel(format.sampleFormat) * format.channelCount;
   }
 
-  static void getOutputFormat(const AudioConfig* pConfig, const RtAudio::DeviceInfo& deviceInfo, AudioDevice::Format& format)
+  static void getOutputFormat(const AudioConfig* pConfig, const RtAudio::DeviceInfo& deviceInfo, AudioDriver::Format& format)
   {
     format.sampleFormat = getRtAudioFormatFromConfigOrDefault(pConfig, deviceInfo);
     if (pConfig->getSampleRate() == 0) {
@@ -188,21 +188,20 @@ public:
     format.bytesPerFrame = getBytesPerChannel(format.sampleFormat) * format.channelCount;
   }
 
-  static uint32_t getBytesPerChannel(RtAudioFormat rtFormat)
+  static uint32_t getBytesPerChannel(AudioFormat rtFormat)
   {
     switch (rtFormat)
     {
-    case RTAUDIO_SINT8:
+    case AUDIO_SINT8:
       return 1;
-    case RTAUDIO_SINT16:
+    case AUDIO_SINT16:
       return 2;
-    case RTAUDIO_SINT24:
+    case AUDIO_SINT24:
       return 3;
-    case RTAUDIO_SINT32:
+    case AUDIO_SINT32:
+    case AUDIO_FLOAT32:
       return 4;
-    case RTAUDIO_FLOAT32:
-      return 4;
-    case RTAUDIO_FLOAT64:
+    case AUDIO_FLOAT64:
       return 8;
     default:
       return 0;
@@ -216,16 +215,16 @@ public:
 
   static RtAudioFormat getDefaultRtAudioFormat(const RtAudio::DeviceInfo& deviceInfo)
   {
-    if (deviceInfo.nativeFormats & RTAUDIO_FLOAT32) {
-      return RTAUDIO_FLOAT32;
-    } else if (deviceInfo.nativeFormats & RTAUDIO_SINT32) {
-      return RTAUDIO_SINT32;
-    } else if (deviceInfo.nativeFormats & RTAUDIO_SINT24) {
-      return RTAUDIO_SINT24;
-    } else if (deviceInfo.nativeFormats & RTAUDIO_SINT16) {
-      return RTAUDIO_SINT16;
-    } else if (deviceInfo.nativeFormats & RTAUDIO_SINT8) {
-      return RTAUDIO_SINT8;
+    if (deviceInfo.nativeFormats & AUDIO_FLOAT32) {
+      return AUDIO_FLOAT32;
+    } else if (deviceInfo.nativeFormats & AUDIO_SINT32) {
+      return AUDIO_SINT32;
+    } else if (deviceInfo.nativeFormats & AUDIO_SINT24) {
+      return AUDIO_SINT24;
+    } else if (deviceInfo.nativeFormats & AUDIO_SINT16) {
+      return AUDIO_SINT16;
+    } else if (deviceInfo.nativeFormats & AUDIO_SINT8) {
+      return AUDIO_SINT8;
     }
     return 0;
   }
@@ -253,17 +252,17 @@ public:
   static RtAudioFormat getRtAudioFormatFromConfig(const std::string& configFormat)
   {
     if (configFormat == "float32") {
-      return RTAUDIO_FLOAT32;
+      return AUDIO_FLOAT32;
     } else if (configFormat == "float64") {
-      return RTAUDIO_FLOAT64;
+      return AUDIO_FLOAT64;
     } else if (configFormat == "sint8") {
-      return RTAUDIO_SINT8;
+      return AUDIO_SINT8;
     } else if (configFormat == "sint16") {
-      return RTAUDIO_SINT16;
+      return AUDIO_SINT16;
     } else if (configFormat == "sint24") {
-      return RTAUDIO_SINT24;
+      return AUDIO_SINT24;
     } else if (configFormat == "sint32") {
-      return RTAUDIO_SINT32;
+      return AUDIO_SINT32;
     }
     return 0;
   }

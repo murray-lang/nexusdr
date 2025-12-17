@@ -5,7 +5,7 @@
 #pragma once
 
 #include "AudioException.h"
-#include "./device/AudioDeviceFactory.h"
+#include <AudioDriverFactory.h>
 #include "AudioIo.h"
 #include "AudioSink.h"
 #include "config/AudioConfig.h"
@@ -14,62 +14,62 @@
 class AudioInput : public AudioIo
 {
 public:
-  explicit AudioInput(AudioSink* pSink) : AudioIo(), m_pDevice(nullptr), m_pSink(pSink)
+  explicit AudioInput(AudioSink* pSink) : AudioIo(), m_pDriver(nullptr), m_pSink(pSink)
   {
   }
 
   ~AudioInput() override
   {
-    delete m_pDevice;
+    delete m_pDriver;
   }
 
   void configure(const AudioConfig* pConfig) override
   {
     // delete m_pDevice;
-    m_pDevice = AudioDeviceFactory::createInputDevice(pConfig, m_pSink);
+    m_pDriver = AudioDriverFactory::createInputDriver(pConfig, m_pSink);
   }
 
   [[nodiscard]] uint32_t getMaxChannels() const 
   {
-    if (m_pDevice == nullptr) {
+    if (m_pDriver == nullptr) {
       throw AudioException("IqAudioInput not initialised");
     }
 
-    return m_pDevice->getMaxChannels();
+    return m_pDriver->getMaxChannels();
   }
 
   [[nodiscard]] uint32_t getNumChannels() const 
   {
-    if (m_pDevice == nullptr) {
+    if (m_pDriver == nullptr) {
       throw AudioException("IqAudioInput not initialised");
     }
 
-    return m_pDevice->getNumChannels();
+    return m_pDriver->getNumChannels();
   }
 
   [[nodiscard]] uint32_t getSampleRate() const override
   {
-    if (m_pDevice == nullptr) {
+    if (m_pDriver == nullptr) {
       throw AudioException("IqAudioInput not initialised");
     }
 
-    return m_pDevice->getSampleRate();
+    return m_pDriver->getSampleRate();
   }
 
   void start(uint32_t maxPacketFrames) const override
   {
-    if (m_pDevice == nullptr) {
+    if (m_pDriver == nullptr) {
       throw AudioException("IqAudioInput not initialised");
     }
-    m_pDevice->start(maxPacketFrames);
+    m_pDriver->start(maxPacketFrames);
   }
   void stop() const override
   {
-    if (m_pDevice != nullptr) {
-      m_pDevice->stop();
+    if (m_pDriver != nullptr) {
+      m_pDriver->stop();
     }
   }
 protected:
-  AudioInputDevice* m_pDevice;
+  AudioInputDriver* m_pDriver;
   AudioSink* m_pSink;
 };

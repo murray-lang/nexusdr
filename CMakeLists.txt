@@ -25,7 +25,6 @@ list(APPEND CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/cmake")
 set(VOLK_MIN_VERSION "2.4.1")         ## first version with CPU features
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
-#list(APPEND CMAKE_MODULE_PATH "/home/murray/dev/tools/rtaudio/_build_")
 
 find_package(PkgConfig)
 find_package(RtAudio REQUIRED)
@@ -118,6 +117,23 @@ elseif(USE_GPIOD)
     )
 endif()
 
+if (RTAUDIO_FOUND)
+    set (AUDIO_DRIVER_SOURCES
+            io/audio/drivers/RtAudio/RtAudioDriver.h
+            io/audio/drivers/RtAudio/RtAudioOutputDriver.h
+            io/audio/drivers/RtAudio/RtAudioInputDriver.h
+            io/audio/drivers/RtAudio/AudioDriverFactory.h
+    )
+    set (AUDIO_DRIVER_INCLUDE_DIRS
+            /usl/local/include
+            /usr/local/include/rtaudio
+            io/audio/drivers/RtAudio
+    )
+    set (AUDIO_DRIVER_LIBS
+            /usr/local/lib/librtaudio.so
+    )
+endif()
+
 set(PROJECT_SOURCES
         ${PLATFORM_SOURCES}
         main.cpp
@@ -183,16 +199,15 @@ set(PROJECT_SOURCES
         config/ConfigBase.h
         config/ConfigException.h
 
-        io/audio/device/AudioDevice.h
+
         io/audio/AudioInput.h
-        io/audio/device/AudioOutputDevice.h
-        io/audio/device/AudioInputDevice.h
+
         io/audio/AudioException.h
         io/audio/AudioException.cpp
         dsp/iq/PingPongBufferSink.h
         io/audio/AudioIo.h
         io/audio/AudioOutput.h
-        io/audio/device/AudioDeviceFactory.h
+
         dsp/iq/IqSink.h
         radio/receiver/ReceiverIqEvent.h
         radio/receiver/ReceiverIqEvent.cpp
@@ -307,6 +322,9 @@ set(PROJECT_SOURCES
         config/BandSelectorLookupItemConfig.h
         io/control/device/gpio/digital/BandSelector.cpp
         io/control/device/gpio/digital/BandSelector.h
+        io/audio/drivers/AudioDriver.h
+        io/audio/drivers/AudioInputDriver.h
+        io/audio/drivers/AudioOutputDriver.h
 
 )
 
@@ -348,8 +366,7 @@ endif()
 
 target_include_directories(cutesdr-vk6hl PUBLIC
     ${CMAKE_SOURCE_DIR}
-    /usl/local/include
-    /usr/local/include/rtaudio
+    ${AUDIO_DRIVER_INCLUDE_DIRS}
     ${VOLK_INCLUDE_DIRS}
     /usr/include/hidapi/
     ${SAMPLERATE_INCLUDE_DIRS}
@@ -362,7 +379,7 @@ set (COMMON_LIBRARIES
     Qt${QT_VERSION_MAJOR}::Gui
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::Charts
-    /usr/local/lib/librtaudio.so
+    ${AUDIO_DRIVER_LIBS}
     ${AUDIO_LINK_LIBS}
     ${VOLK_LIBRARIES}
     usb-1.0

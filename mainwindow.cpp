@@ -6,7 +6,7 @@
 #include <QValueAxis>
 #include <QLogValueAxis>
 #include <QThreadPool>
-#include "io/audio/device/AudioInputDevice.h"
+#include "io/audio/drivers/RtAudio/RtAudioInputDriver.h"
 #include <cmath>
 #include "io/control/device/usb/UsbException.h"
 #include "io/control/device/FunCubeDongle/FunCubeDongle.h"
