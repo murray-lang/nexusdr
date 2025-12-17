@@ -75,5 +75,5 @@ DigitalOutput::exit()
 void
 DigitalOutput::setValue(bool value)
 {
-  m_pLines->setLineValue(m_lines[0], value);
+  m_pLines->setLineValue(m_lines.at(0), value);
 }

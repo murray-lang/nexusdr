@@ -4,8 +4,10 @@
 #include "ControlSinkFactory.h"
 #include <nlohmann/json.hpp>
 
+#include "config/BandSelectorConfig.h"
 #include "config/FunCubeConfig.h"
 #include "device/FunCubeDongle/FunCubeDongle.h"
+#include "device/gpio/digital/BandSelector.h"
 #include "device/gpio/digital/DigitalOutput.h"
 
 ControlSink*
@@ -23,14 +25,15 @@ ControlSinkFactory::create(const ConfigBase* pConfig)
 ControlSink*
 ControlSinkFactory::create(const std::string& type)
 {
-  std::string typeAslower = StringUtils::toLowerCase(type);
-  if(typeAslower == FunCubeConfig::type)
-  {
+  std::string typeAsLower = StringUtils::toLowerCase(type);
+  if(typeAsLower == FunCubeConfig::type) {
     return new FunCubeDongle();
   }
-  if(typeAslower == DigitalOutputConfig::type)
-  {
+  if(typeAsLower == DigitalOutputConfig::type) {
     return new DigitalOutput();
+  }
+  if (typeAsLower == BandSelectorConfig::type) {
+    return new BandSelector();
   }
   return nullptr;
 }

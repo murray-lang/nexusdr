@@ -52,7 +52,22 @@ DigitalOutputLinesRequestImplGpiod::request(const char * contextId, const std::v
 int
 DigitalOutputLinesRequestImplGpiod::setLineValue(uint32_t line, bool value)
 {
-  return  gpiod_line_request_set_value(m_pLineRequest, line, value ? GPIOD_LINE_VALUE_ACTIVE : GPIOD_LINE_VALUE_INACTIVE);
+  return gpiod_line_request_set_value(m_pLineRequest, line, value ? GPIOD_LINE_VALUE_ACTIVE : GPIOD_LINE_VALUE_INACTIVE);
+}
+
+int
+DigitalOutputLinesRequestImplGpiod::setLineValues(const std::vector<uint32_t>& lines, const std::vector<bool>& values)
+{
+  std::vector<enum gpiod_line_value> gpiodValues(values.size());
+  for (size_t i = 0; i < values.size(); i++) {
+    gpiodValues[i] = values[i] ? GPIOD_LINE_VALUE_ACTIVE : GPIOD_LINE_VALUE_INACTIVE;
+  }
+  return gpiod_line_request_set_values_subset(
+    m_pLineRequest,
+lines.size(),
+lines.data(),
+gpiodValues.data()
+  );
 }
 
 void

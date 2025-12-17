@@ -17,6 +17,7 @@ public:
 
   void release() override;
   int setLineValue(uint32_t line, bool value) override;
+  int setLineValues(const std::vector<uint32_t>& lines, const std::vector<bool>& values) override;
 
 protected:
   gpiod_chip* m_pChip;

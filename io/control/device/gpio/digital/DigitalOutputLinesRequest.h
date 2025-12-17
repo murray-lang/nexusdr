@@ -21,6 +21,7 @@ public:
 
   virtual void release() = 0;
   virtual int setLineValue(uint32_t line, bool value) = 0;
+  virtual int setLineValues(const std::vector<uint32_t>& lines, const std::vector<bool>& values) = 0;
 
 protected:
   Gpio& m_gpio;

@@ -32,6 +32,7 @@ public:
 
   int getLineValue(uint32_t line) override;
 
+
 protected:  
   bool isDebounced(int line) const;
   int getLineStateChanges(LineStateMap& changes);

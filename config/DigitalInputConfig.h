@@ -31,7 +31,7 @@ public:
     } else {
       m_debounce = false;
     }
-    if (m_lines.empty()) {
+    if (lines.empty()) {
       throw ConfigException("DigitalInputConfig: lines empty");
     }
     if (json.contains("settingPath")) {

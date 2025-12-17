@@ -6,38 +6,54 @@
 
 #include "ConfigBase.h"
 
+struct GpioLinesConfigFields
+{
+  std::vector<uint32_t> lines;
+  std::string direction; // "input" or "output"
+  std::string bias; //"none", "pull-up" or "pull-down"
+  std::string edge; //"rising", "falling" or "both"
+};
 
-class GpioLinesConfig : public ConfigBase
+class GpioLinesConfig : public ConfigBase, public GpioLinesConfigFields
 {
 public:
   explicit GpioLinesConfig(const char* type) : ConfigBase(type) {}
   ~GpioLinesConfig() override = default;
+  GpioLinesConfig(const GpioLinesConfig& rhs) = default;
+
+  GpioLinesConfig& operator=(const GpioLinesConfig& rhs)
+  {
+    if (this != &rhs) {
+      static_cast<GpioLinesConfigFields&>(*this) = static_cast<const GpioLinesConfigFields&>(rhs);
+    }
+    return *this;
+  }
+
+  void setFields(const GpioLinesConfigFields& f)
+  {
+    static_cast<GpioLinesConfigFields&>(*this) = f;
+  }
+
+  [[nodiscard]] GpioLinesConfigFields getFields() const
+  {
+    return static_cast<const GpioLinesConfigFields&>(*this);
+  }
+
   void fromJson(const nlohmann::json& json) override
   {
     if (json.contains("lines")) {
       for (auto& line : json["lines"]) {
-        m_lines.push_back(line);
+        lines.push_back(line);
       }
     }
     if (json.contains("direction")) {
-      m_direction = json["direction"];
+      direction = json["direction"];
     }
     if (json.contains("bias")) {
-      m_bias = json["bias"];
+      bias = json["bias"];
     }
     if (json.contains("edge")) {
-      m_edge = json["edge"];
+      edge = json["edge"];
     }
   }
-
-  [[nodiscard]] const std::vector<uint32_t>& getLines() const { return m_lines; }
-  [[nodiscard]] const std::string& getDirection() const { return m_direction; }
-  [[nodiscard]] const std::string& getBias() const { return m_bias; }
-  [[nodiscard]] const std::string& getEdge() const { return m_edge; }
-
-protected:
-  std::vector<uint32_t> m_lines;
-  std::string m_direction; // "input" or "output"
-  std::string m_bias; // "none", "pull-up" or "pull-down"
-  std::string m_edge; // "rising", "falling" or "both"
 };
