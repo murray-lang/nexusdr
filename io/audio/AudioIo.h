@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "device/AudioDevice.h"
+#include "drivers/RtAudio/RtAudioDriver.h"
 #include "config/AudioConfig.h"
 
 class AudioIo

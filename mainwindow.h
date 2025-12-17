@@ -11,7 +11,7 @@
 #include <QGraphicsLineItem>
 #include <QValueAxis>
 
-#include "io/audio/device/AudioOutputDevice.h"
+#include "io/audio/drivers/RtAudio/RtAudioOutputDriver.h"
 #include "radio/Radio.h"
 #include "config/RadioConfig.h"
 #include "settings/RadioSettingsEventPublisher.h"

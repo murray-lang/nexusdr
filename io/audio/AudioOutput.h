@@ -5,65 +5,66 @@
 #pragma once
 
 
+#include "AudioException.h"
 #include "AudioIo.h"
-#include "./device/AudioOutputDevice.h"
-#include "./device/AudioDeviceFactory.h"
+#include "drivers/RtAudio/RtAudioOutputDriver.h"
+#include <AudioDriverFactory.h>
 
 class AudioOutput : public AudioIo, public AudioSink
 {
   public:
-  AudioOutput() : AudioIo(), m_pDevice(nullptr)
+  AudioOutput() : AudioIo(), m_pDriver(nullptr)
   {
   }
 
   ~AudioOutput() override
   {
-    delete m_pDevice;
+    delete m_pDriver;
   }
 
   void configure(const AudioConfig* pConfig) override
   {
-    delete m_pDevice;
-    m_pDevice = AudioDeviceFactory::createOutputDevice(pConfig);
+    delete m_pDriver;
+    m_pDriver = AudioDriverFactory::createOutputDriver(pConfig);
   }
 
   void start(uint32_t maxPacketFrames) const override
   {
-    if (m_pDevice == nullptr)
+    if (m_pDriver == nullptr)
     {
       throw AudioException("AudioOutput not initialised");
     }
-    m_pDevice->start(maxPacketFrames);
+    m_pDriver->start(maxPacketFrames);
     // m_pSink->setVolume(1.0); How to do this with RtAudio???
   }
 
   void stop() const override
   {
-    if (m_pDevice != nullptr) {
-      m_pDevice->stop();
+    if (m_pDriver != nullptr) {
+      m_pDriver->stop();
     }
   }
 
   [[nodiscard]] uint32_t getSampleRate() const override
   {
-    if (m_pDevice == nullptr) {
+    if (m_pDriver == nullptr) {
       throw AudioException("IqAudioOutput not initialised");
     }
 
-    return m_pDevice->getSampleRate();
+    return m_pDriver->getSampleRate();
   }
 
   uint32_t sinkAudio(const vsdrreal& data, uint32_t length, uint32_t numChannels) override
   {
-    if (m_pDevice == nullptr)
+    if (m_pDriver == nullptr)
     {
       return 0;
       // throw AudioException("AudioOutput not initialised");
     }
-    return m_pDevice->addAudioData(data, length);
+    return m_pDriver->addAudioData(data, length);
   }
 protected:
-  AudioOutputDevice* m_pDevice;
+  AudioOutputDriver* m_pDriver;
 
 };
 

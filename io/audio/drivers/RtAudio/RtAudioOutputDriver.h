@@ -9,32 +9,36 @@
 #include <mutex>
 
 
-#include "AudioDevice.h"
-#include "../../../SampleTypes.h"
+#include "RtAudioDriver.h"
+#include "../../../../SampleTypes.h"
+#include "io/audio/drivers/AudioOutputDriver.h"
 
-class AudioOutputDevice : public AudioDevice
+class RtAudioOutputDriver : public AudioOutputDriver, public RtAudioDriver
 {
 public:
-  AudioOutputDevice(const RtAudio::DeviceInfo& deviceInfo, const Format& format) : AudioDevice(deviceInfo, format) {}
-  ~AudioOutputDevice() override = default;
-  virtual uint32_t addAudioData(const vsdrreal& data, uint32_t length) = 0;
+  RtAudioOutputDriver(const RtAudio::DeviceInfo& deviceInfo, const Format& format) :
+    AudioOutputDriver(format),
+    RtAudioDriver(deviceInfo)
+  {}
+  ~RtAudioOutputDriver() override = default;
+  uint32_t addAudioData(const vsdrreal& data, uint32_t length) override = 0;
 };
 
 template <typename T>
-class AudioOutputDeviceT : public AudioOutputDevice
+class RtAudioOutputDriverT : public RtAudioOutputDriver
 {
 public:
 
-  AudioOutputDeviceT(const RtAudio::DeviceInfo& deviceInfo, const Format& format) :
-    AudioOutputDevice(deviceInfo, format),
+  RtAudioOutputDriverT(const RtAudio::DeviceInfo& deviceInfo, const Format& format) :
+    RtAudioOutputDriver(deviceInfo, format),
     m_running(false),
     m_audioBuffer(),
     m_maxPacketFrames(0)
   {
   }
-  ~AudioOutputDeviceT() override
+  ~RtAudioOutputDriverT() override
   {
-    AudioOutputDeviceT::stop();
+    RtAudioOutputDriverT::stop();
   };
 
   void start(uint32_t maxPacketFrames) override
@@ -57,7 +61,7 @@ public:
 
       RtAudioCallback rtCallback = [](void *outputBuffer, void *, unsigned int nFrames,
                           double, RtAudioStreamStatus, void *userData) -> int {
-        auto *self = static_cast<AudioOutputDeviceT *>(userData);
+        auto *self = static_cast<RtAudioOutputDriverT *>(userData);
         return self->pullSamples(outputBuffer, nFrames);
       };
 
