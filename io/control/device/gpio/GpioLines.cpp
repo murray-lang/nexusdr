@@ -64,7 +64,7 @@ GpioLines::operator=(const GpioLines& other)
 void
 GpioLines::configure(const GpioLinesConfig* pConfig)
 {
-  const std::string& dir = pConfig->getDirection();
+  const std::string& dir = pConfig->direction;
   if (dir == "input") {
     m_direction = Direction::INPUT;
   } else if (dir == "output") {
@@ -72,7 +72,7 @@ GpioLines::configure(const GpioLinesConfig* pConfig)
   } else {
     m_direction = Direction::AS_IS;
   }
-  const std::string& bias = pConfig->getBias();
+  const std::string& bias = pConfig->bias;
   if (bias == "disabled") {
     m_bias = Bias::DISABLED;
   } else if (bias == "pull-up") {
@@ -82,7 +82,7 @@ GpioLines::configure(const GpioLinesConfig* pConfig)
   } else {
     m_bias = Bias::AS_IS;
   }
-  const std::string& edge = pConfig->getEdge();
+  const std::string& edge = pConfig->edge;
   if (edge == "none") {
     m_edge = Edge::NONE;
   } else if (edge == "rising") {
@@ -94,5 +94,5 @@ GpioLines::configure(const GpioLinesConfig* pConfig)
   } else {
     m_edge = Edge::NONE;
   }
-  m_lines = pConfig->getLines();
+  m_lines = pConfig->lines;
 }

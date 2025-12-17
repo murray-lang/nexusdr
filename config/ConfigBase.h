@@ -23,10 +23,6 @@ public:
   // Derived classes should override to include their fields.
   [[nodiscard]] virtual nlohmann::json toJson() const { return nlohmann::json::object(); }
 
-  // Provide a self-documenting description/schema of this configuration.
-  // Default: returns an object with the config type only.
-  [[nodiscard]] virtual nlohmann::json describe() const { return nlohmann::json{{"type", m_type}}; }
-
   [[nodiscard]] const std::string& getType() const { return m_type; }
 protected:
   std::string m_type;

@@ -19,7 +19,7 @@ public:
   void fromJson(const nlohmann::json& json) override
   {
     GpioLinesConfig::fromJson(json);
-    if (m_lines.empty()) {
+    if (lines.empty()) {
       throw ConfigException("DigitalOutputConfig: lines empty");
     }
     if (json.contains("settingPath")) {

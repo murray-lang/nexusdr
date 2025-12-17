@@ -29,18 +29,16 @@ public:
   {
   }
 
-  AudioConfig(const AudioConfig& rhs) :
-    ConfigBase(dynamic_cast<const ConfigBase&>(rhs))
-  {
-    operator=(rhs);
-  }
+  AudioConfig(const AudioConfig& rhs) = default;
 
-  AudioConfig& operator=(const AudioConfig& rhs)
-  {
-    // Copy the struct portion directly (since we inherit from it)
-    static_cast<AudioConfigFields&>(*this) = static_cast<const AudioConfigFields&>(rhs);
-    return *this;
-  }
+  AudioConfig& operator=(const AudioConfig& rhs) = default;
+  // {
+  //   // Copy the struct portion directly (since we inherit from it)
+  //   if (this != &rhs) {
+  //     static_cast<AudioConfigFields&>(*this) = static_cast<const AudioConfigFields&>(rhs);
+  //   }
+  //   return *this;
+  // }
 
   // Populate from a plain Fields struct
   void setFields(const AudioConfigFields& f)

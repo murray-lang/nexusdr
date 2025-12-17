@@ -303,6 +303,10 @@ set(PROJECT_SOURCES
         dsp/pipeline/oscillators/TwoToneSignalStage.h
         settings/TestSettings.h
         settings/TwoToneSettings.h
+        config/BandSelectorConfig.h
+        config/BandSelectorLookupItemConfig.h
+        io/control/device/gpio/digital/BandSelector.cpp
+        io/control/device/gpio/digital/BandSelector.h
 
 )
 

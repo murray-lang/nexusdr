@@ -44,11 +44,6 @@ int main(int argc, char *argv[])
     qDebug() << "No config file found at" << configPath << "; using defaults.";
   }
 
-  if (dumpSchema) {
-    nlohmann::json out = nlohmann::json{{"radio", radioConfig.describe()}};
-    std::cout << out.dump(2) << std::endl;
-    return 0;
-  }
   if (dumpConfig) {
     nlohmann::json out = nlohmann::json{{"radio", radioConfig.toJson()}};
     std::cout << out.dump(2) << std::endl;
