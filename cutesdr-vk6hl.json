@@ -19,6 +19,7 @@
             "config": {
               "lines": [9, 10, 11, 17],
               "defaultOut": 8,
+              "settingPath": "tx.rf.frequency",
               "bands": [
                 {
                   "fromFrequency": 1800000,
@@ -99,7 +100,7 @@
                           "lines": [13, 12],
                           "bias": "pull-up",
                           "debounce": true,
-                          "settingPath": "rx.correction.phase"
+                          "settingPath": "tx.mic.gain"
                       }
                   },
                   {
@@ -135,7 +136,7 @@
           "type": "audio",
           "config": {
             "soundApi": "alsa",
-            "searchExpression": "C-Media",
+            "searchExpression": "LifeChat",
             "sampleRate": 48000,
             "format": "sint16"
           }
@@ -149,7 +150,7 @@
           "config": {
             "audioInput": {
 			  "soundApi": "alsa",
-			  "searchExpression": "C-Media",
+			  "searchExpression": "LifeChat",
 			  "sampleRate": 48000,
 			  "format": "sint16",
 			  "channelCount": 1

@@ -5,7 +5,7 @@
 #pragma once
 
 #include "ConfigException.h"
-#include "GpioLinesConfig.h"
+#include "DigitalOutputConfig.h"
 #include "BandSelectorLookupItemConfig.h"
 
 
@@ -15,17 +15,17 @@ struct BandSelectorConfigFields
   std::vector<BandSelectorLookupItemConfigFields> bands;
 };
 
-class BandSelectorConfig : public GpioLinesConfig, public BandSelectorConfigFields
+class BandSelectorConfig : public DigitalOutputConfig, public BandSelectorConfigFields
 {
 public:
-  static constexpr auto type = "bandSelector";
+  static constexpr auto type = "bandselector";
 
-  BandSelectorConfig() : GpioLinesConfig(type) {}
+  BandSelectorConfig() : DigitalOutputConfig(type) {}
   ~BandSelectorConfig() override  = default;
 
   void fromJson(const nlohmann::json& json) override
   {
-    GpioLinesConfig::fromJson(json);
+    DigitalOutputConfig::fromJson(json);
     if (lines.empty()) {
       throw ConfigException("BandSelectorConfig: lines empty");
     }

@@ -21,6 +21,7 @@ BandSelector::BandSelector() :
 void
 BandSelector::configure(const ConfigBase* pConfig)
 {
+  DigitalOutput::configure(pConfig);
   auto* config = dynamic_cast<const BandSelectorConfig*>(pConfig);
   m_defaultOut = config->defaultOut;
   m_bands = config->bands;
@@ -46,7 +47,13 @@ BandSelector::applySettings(const RadioSettings& settings)
 void
 BandSelector::applySingleSetting(const SingleSetting& setting)
 {
-  // Not implemented
+  if (setting.getPath() == m_settingPath) {
+    uint32_t frequency = std::get<uint32_t>(setting.getValue());
+    uint32_t output = getBandOutput(frequency);
+    if (output != m_currentOut) { 
+      applyOutput(output);
+    }
+  }
 }
 
 uint32_t
@@ -65,7 +72,7 @@ void
 BandSelector::applyOutput(uint32_t output)
 {
   m_currentOut = output;
-  std::vector<bool> values(m_bands.size(), false);
+  std::vector<bool> values(m_lines.size(), false);
   for (size_t i = 0; i < m_lines.size(); ++i) {
     values.at(i) = ((output >> i) & 0x1u) != 0;
   }

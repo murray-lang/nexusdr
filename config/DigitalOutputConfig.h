@@ -14,6 +14,7 @@ public:
   static constexpr auto type = "digitaloutput";
 
   DigitalOutputConfig() : GpioLinesConfig(type) {}
+  DigitalOutputConfig(const char* typeName) : GpioLinesConfig(typeName) {}
   ~DigitalOutputConfig() override  = default;
 
   void fromJson(const nlohmann::json& json) override

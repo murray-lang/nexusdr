@@ -16,6 +16,7 @@
 #include "DigitalInputsConfig.h"
 #include "DigitalOutputConfig.h"
 #include "FunCubeConfig.h"
+#include "BandSelectorConfig.h"
 #include "RotaryEncoderConfig.h"
 #include "dsp/iq/AudioSignalIqSource.h"
 #include "util/StringUtils.h"
@@ -95,6 +96,10 @@ ConfigFactory::create(const std::string& type)
   }
   if (typeAsLower == IqIoConfig::type) {
     auto * result = new IqIoConfig();
+    return result;
+  }
+  if (typeAsLower == BandSelectorConfig::type) {
+    auto * result = new BandSelectorConfig();
     return result;
   }
   return nullptr;
