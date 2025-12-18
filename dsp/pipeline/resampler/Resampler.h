@@ -39,7 +39,7 @@ public:
     // Liquid-dsp resampler parameters
     unsigned int m = 12;      // filter semi-length (delay)
     float bw = 0.45f;         // resampling bandwidth
-    float as = 60.0f;         // stop-band attenuation [dB]
+    float as = 100.0f;         // stop-band attenuation [dB]
 
     m_pResampleStateReal = resamp_rrrf_create(ratio, m, bw, as, 32);
     m_pResampleStateComplex = resamp_crcf_create(ratio, m, bw, as, 32);
