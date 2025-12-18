@@ -7,6 +7,7 @@
 #include <deque>
 #include <QIODevice>
 #include <mutex>
+#include <qdebug.h>
 
 
 #include "RtAudioDriver.h"
@@ -21,7 +22,7 @@ public:
     RtAudioDriver(deviceInfo)
   {}
   ~RtAudioOutputDriver() override = default;
-  uint32_t addAudioData(const vsdrreal& data, uint32_t length) override = 0;
+  uint32_t addAudioData(const vsdrreal& data, uint32_t length, uint32_t numChannels) override = 0;
 };
 
 template <typename T>
@@ -105,12 +106,13 @@ public:
     if (samplesToCopy < samplesNeeded) {
       std::fill(out, out + (samplesNeeded - samplesToCopy), static_cast<T>(0));
       // Optionally log underrun here
+      // qDebug() << "Audio underrun: needed" << samplesNeeded << "but got" << samplesToCopy;
     }
 
     return 0; // 0: continue, nonzero: stop
   }
 
-  uint32_t addAudioData(const vsdrreal& data, uint32_t length) override
+  uint32_t addAudioData(const vsdrreal& data, uint32_t length, uint32_t numChannels) override
   {
     std::lock_guard<std::mutex> lock(m_mutex);
     if (!m_running) return 0;
@@ -118,9 +120,12 @@ public:
     constexpr double scale = std::is_integral_v<T>
         ? static_cast<double>(std::numeric_limits<T>::max())
         : 1.0;
-
+    uint32_t repeats = m_format.channelCount / numChannels;
     for (uint32_t i = 0; i < length; ++i) {
-      m_audioBuffer.push_back(static_cast<T>(data[i] * scale));
+      T sample = static_cast<T>(data[i] * scale);
+      for (uint32_t r = 0; r < repeats; ++r) {
+        m_audioBuffer.push_back(sample);
+      }
     }
     return length;
   }

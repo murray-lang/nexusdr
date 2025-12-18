@@ -61,7 +61,7 @@ class AudioOutput : public AudioIo, public AudioSink
       return 0;
       // throw AudioException("AudioOutput not initialised");
     }
-    return m_pDriver->addAudioData(data, length);
+    return m_pDriver->addAudioData(data, length, numChannels);
   }
 protected:
   AudioOutputDriver* m_pDriver;
