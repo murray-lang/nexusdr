@@ -17,6 +17,7 @@
 #include "settings/TransmitterSettingsSink.h"
 #include <chrono>
 
+#include "modulators/FmModulator.h"
 #include "oscillators/TwoToneSignalStage.h"
 
 class IqTxPipeline: public IqPipeline, public TransmitterSettingsSink
@@ -46,6 +47,7 @@ protected:
   IqCorrection m_iqCorrection;
   SsbModulator m_ssbModulator;
   CwModulator m_cwModulator;
+  FmModulator m_fmModulator;
   Modulator* m_pModulator;
   Resampler m_resampler;
   OscillatorMixer m_oscillatorMixer;

@@ -12,15 +12,18 @@ FmDemodulator::processSamples(
 {
   for(uint32_t i=0; i<inputLength; i++) {
     sdrcomplex sample = in.at(i);
-    out.at(i) = demodulateSample(sample);
+    float outSample;
+    freqdem_demodulate(m_demod, sample, &outSample);
+    out.at(i) = outSample;
   }
   return inputLength;
 }
 
-sdrreal
-FmDemodulator::demodulateSample(const sdrcomplex& sample) {
-  sdrreal phaseDiff = std::arg(sample * std::conj(m_prevSample));
-  m_prevSample = sample;
-  return phaseDiff;
-
+void
+FmDemodulator::clearState()
+{
+  if (m_demod) {
+    freqdem_destroy(m_demod);
+    m_demod = nullptr;
+  }
 }

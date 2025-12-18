@@ -13,7 +13,8 @@ IqRxPipeline::IqRxPipeline(const ModeSettings& modeSettings, QObject* eventTarge
   IqPipeline(modeSettings, eventTarget),
   m_ifFilter(FFT_SIZE),
   m_amDemodulator(modeSettings.getModeByType(Mode::AMN), DEFAULT_SAMPLE_RATE),
-  m_fmDemodulator(modeSettings.getModeByType(Mode::FMN),DEFAULT_SAMPLE_RATE),
+  m_fmnDemodulator(modeSettings.getModeByType(Mode::FMN),DEFAULT_SAMPLE_RATE),
+  m_fmwDemodulator(modeSettings.getModeByType(Mode::FMW),DEFAULT_SAMPLE_RATE),
   m_ssbDemodulator(modeSettings.getModeByType(Mode::USB),DEFAULT_SAMPLE_RATE),
   m_cwDemodulator(modeSettings.getModeByType(Mode::CWU),DEFAULT_SAMPLE_RATE),
   m_pDemodulator(nullptr),
@@ -51,7 +52,7 @@ IqRxPipeline::setOutputSampleRate(uint32_t preferredOutputRate)
 {
   m_outputSampleRate = m_decimator.configure(m_inputSampleRate, preferredOutputRate);
   m_amDemodulator.setSampleRate(m_outputSampleRate);
-  m_fmDemodulator.setSampleRate(m_outputSampleRate);
+  m_fmnDemodulator.setSampleRate(m_outputSampleRate);
   m_ssbDemodulator.setSampleRate(m_outputSampleRate);
 }
 
@@ -103,8 +104,10 @@ IqRxPipeline::setDemodulator(const Mode& mode)
     m_pDemodulator = &m_amDemodulator;
     break;
   case Mode::Type::FMN:
+    m_pDemodulator = &m_fmnDemodulator;
+    break;
   case Mode::Type::FMW:
-    m_pDemodulator = &m_fmDemodulator;
+    m_pDemodulator = &m_fmwDemodulator;
     break;
   case Mode::Type::USB:
   case Mode::Type::LSB:

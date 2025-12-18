@@ -334,6 +334,7 @@ set(PROJECT_SOURCES
         io/audio/drivers/AudioDriver.h
         io/audio/drivers/AudioInputDriver.h
         io/audio/drivers/AudioOutputDriver.h
+        dsp/pipeline/modulators/FmModulator.h
 
 )
 

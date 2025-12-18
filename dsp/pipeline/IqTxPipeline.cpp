@@ -19,6 +19,7 @@ IqTxPipeline::IqTxPipeline(const ModeSettings& modeSettings, QObject* eventTarge
   IqPipeline(modeSettings, eventTarget),
   m_ssbModulator(modeSettings.getModeByType(Mode::USB), DEFAULT_SAMPLE_RATE),
   m_cwModulator(modeSettings.getModeByType(Mode::CWU), DEFAULT_SAMPLE_RATE),
+  m_fmModulator(modeSettings.getModeByType(Mode::FMN), DEFAULT_SAMPLE_RATE),
   m_pModulator(nullptr),
   m_resampler(),
   m_ifFilter(FFT_SIZE),
@@ -140,7 +141,7 @@ IqTxPipeline::setModulator(const Mode& mode)
     break;
   case Mode::Type::FMN:
   case Mode::Type::FMW:
-    m_pModulator = nullptr;
+    m_pModulator = &m_fmModulator;
     break;
   case Mode::Type::USB:
   case Mode::Type::LSB:
