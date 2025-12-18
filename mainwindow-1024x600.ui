@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
+    <width>1024</width>
     <height>600</height>
    </rect>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>1024</width>
+    <height>600</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
@@ -18,8 +24,8 @@
     <property name="geometry">
      <rect>
       <x>50</x>
-      <y>30</y>
-      <width>700</width>
+      <y>120</y>
+      <width>931</width>
       <height>200</height>
      </rect>
     </property>
@@ -46,7 +52,7 @@
      </rect>
     </property>
     <property name="orientation">
-     <enum>Qt::Horizontal</enum>
+     <enum>Qt::Orientation::Horizontal</enum>
     </property>
    </widget>
    <widget class="QProgressBar" name="gauge">
@@ -68,23 +74,53 @@
    <widget class="QChartView" name="timeseriesView">
     <property name="geometry">
      <rect>
-      <x>50</x>
-      <y>240</y>
-      <width>700</width>
-      <height>200</height>
+      <x>630</x>
+      <y>350</y>
+      <width>350</width>
+      <height>100</height>
      </rect>
-    </property>
-    <property name="sizePolicy">
-     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-      <horstretch>0</horstretch>
-      <verstretch>0</verstretch>
-     </sizepolicy>
     </property>
     <property name="minimumSize">
      <size>
-      <width>700</width>
-      <height>200</height>
+      <width>350</width>
+      <height>100</height>
      </size>
+    </property>
+   </widget>
+   <widget class="QLCDNumber" name="cursorFrequencyLcd">
+    <property name="geometry">
+     <rect>
+      <x>340</x>
+      <y>30</y>
+      <width>311</width>
+      <height>41</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLCDNumber" name="centreFrequencyLcd">
+    <property name="geometry">
+     <rect>
+      <x>440</x>
+      <y>80</y>
+      <width>151</width>
+      <height>31</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="centreFrequencyLabel">
+    <property name="geometry">
+     <rect>
+      <x>370</x>
+      <y>90</y>
+      <width>58</width>
+      <height>15</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Centre</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
     </property>
    </widget>
   </widget>
@@ -93,7 +129,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>1024</width>
      <height>20</height>
     </rect>
    </property>

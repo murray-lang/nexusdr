@@ -147,7 +147,7 @@ set(PROJECT_SOURCES
         ${PLATFORM_SOURCES}
         main.cpp
         mainwindow.h mainwindow.cpp
-        mainwindow.ui
+        mainwindow-1024x600.ui
         SampleTypes.h
 
         dsp/utils/FilterCoefficients.h

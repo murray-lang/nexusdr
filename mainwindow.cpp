@@ -1,5 +1,5 @@
 #include "mainwindow.h"
-#include "./ui_mainwindow.h"
+#include "./ui_mainwindow-1024x600.h"
 #include <QSlider>
 #include <QPushButton>
 #include <QLineSeries>
@@ -25,7 +25,6 @@
 MainWindow::MainWindow(RadioConfig& radioConfig, QWidget *parent)
     : QMainWindow(parent)
     , m_radioConfig(radioConfig)
-    // , m_pIqReceiver(nullptr)
     , m_pRadio(nullptr)
     , m_spectrumLineSeries()
     , m_spectrumAreaSeries()
@@ -39,7 +38,6 @@ MainWindow::MainWindow(RadioConfig& radioConfig, QWidget *parent)
     m_verticalCursorLine(new QGraphicsLineItem()),
     m_filterPassbandRect(nullptr)
 {
-    //m_pIqReceiver = new IqReceiver(2048);
     ui->setupUi(this);
 
     initializeWindow();
@@ -49,14 +47,6 @@ MainWindow::MainWindow(RadioConfig& radioConfig, QWidget *parent)
 
     //m_iqProcessor.start();
     //QThreadPool::globalInstance()->start(m_pIqReceiver);
-
-//    QLineSeries *series = new QLineSeries();
-//    series->append(0, 6);
-//    series->append(2, 4);
-//    series->append(3, 8);
-//    series->append(7, 4);
-//    series->append(10, 5);
-//    *series << QPointF(11, 1) << QPointF(13, 3) << QPointF(17, 6) << QPointF(18, 3) << QPointF(20, 2);
 
     //ui->panadapterView->chart()
     //QChart* pChart = ui->panadapterView->chart();
@@ -315,6 +305,10 @@ MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings)
     int32_t centreFrequency = static_cast<int32_t>(m_radioSettings.rxSettings.rfSettings.frequency);
     int32_t offset = m_radioSettings.rxSettings.rfSettings.offset;
     int32_t frequencyAtOffset = centreFrequency + offset;
+
+    ui->centreFrequencyLcd->display(centreFrequency);
+    ui->cursorFrequencyLcd->display(frequencyAtOffset);
+
     QChart *chart = ui->panadapterView->chart();
     auto *axisY = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
     double yMin = axisY->min();
