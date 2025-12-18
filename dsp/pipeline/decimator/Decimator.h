@@ -7,7 +7,7 @@
 #include <cstdint>
 #include "../IqPipelineStage.h"
 #include "../../utils/PingPongBuffers.h"
-#include "MyFirCoefficients.h"
+#include <liquid/liquid.h>
 
 
 class Decimator : public IqPipelineStage
@@ -16,42 +16,39 @@ public:
   Decimator() :
     m_inputSampleRate(192000),
     m_outputSampleRate(48000),
-    m_decimationFactor(192000/48000),
-    m_taps(nullptr)
+    m_pResampleState(nullptr)
   {}
 
   Decimator(uint32_t inputSampleRate, uint32_t outputSampleRate) :
     m_inputSampleRate(inputSampleRate),
     m_outputSampleRate(outputSampleRate),
-    m_decimationFactor(outputSampleRate/inputSampleRate),
-    m_taps(nullptr)
+    m_pResampleState(nullptr)
   {
     configure(inputSampleRate, outputSampleRate);
   }
 
-  uint32_t configure(uint32_t inputSampleRate, uint32_t preferredOutputRate)
+  ~Decimator() override {
+    clearState();
+  }
+
+  uint32_t configure(uint32_t inputSampleRate, uint32_t outputSampleRate)
   {
     m_inputSampleRate = inputSampleRate;
-    //m_outputSampleRate = outputSampleRate;
+    m_outputSampleRate = outputSampleRate;
+
+    clearState();
+
     //m_decimationFactor = inputSampleRate/outputSampleRate;
-    if (inputSampleRate == 192000)
-    {
-      if (preferredOutputRate == 48000)
-      {
-        m_taps = &fir_taps_192k_48k;
-        m_overlap.assign(m_taps->size() - 1, sdrcomplex{});
-        m_decimationFactor = 192000/48000;
-        m_outputSampleRate = 48000;
-        return 48000;
-      }
-    } else if (inputSampleRate == 256000) {
-      m_taps = &fir_taps_256k_64k;
-      m_overlap.assign(m_taps->size() - 1, sdrcomplex{});
-      m_decimationFactor = 256000/64000;
-      m_outputSampleRate = 64000;
-      return 64000;
-    }
-    return 0;
+    float ratio = static_cast<float>(outputSampleRate) / static_cast<float>(inputSampleRate);
+
+    // Design parameters
+    unsigned int m = 12;    // Filter delay
+    float bw = 0.45f;       // Bandwidth
+    float as = 60.0f;       // Stop-band attenuation (dB)
+    unsigned int npb = 32;  // Number of polyphase banks
+
+    m_pResampleState = resamp_crcf_create(ratio, m, bw, as, npb);
+    return outputSampleRate;
   }
 
   [[nodiscard]] uint32_t getOutputSampleRate() const { return m_outputSampleRate; }
@@ -60,33 +57,30 @@ public:
   {
     vsdrcomplex& input = buffers.input();
     vsdrcomplex& output = buffers.output();
-    uint32_t numTaps = m_taps->size();
-    uint32_t outputPos = 0;
+    uint32_t numWritten = 0;
 
-    vsdrcomplex work(m_overlap);
-    work.insert(work.end(), input.begin(), input.begin() + inputLength);
-    uint32_t workLength = work.size();
-
-    for (uint32_t i = 0; i + numTaps <= workLength; i += m_decimationFactor)
+    for (uint32_t i = 0; i < inputLength; ++i)
     {
-      sdrcomplex acc{};
-      for (uint32_t k = 0; k < numTaps; k++)
-      {
-        acc += work.at(i+k) * m_taps->at(k);
-      }
-      output.at(outputPos++) = acc;
+      unsigned int n;
+      resamp_crcf_execute(m_pResampleState, input.at(i), &output.at(numWritten), &n);
+      numWritten += n;
     }
-    if (workLength >= numTaps - 1)
-      std::copy(work.end() - (numTaps - 1), work.end(), m_overlap.begin());
 
-    return outputPos;
+    return numWritten;
+  }
+
+protected:
+  void clearState()
+  {
+    if (m_pResampleState) {
+      resamp_crcf_destroy(m_pResampleState);
+      m_pResampleState = nullptr;
+    }
   }
 
 protected:
   uint32_t m_inputSampleRate;
   uint32_t m_outputSampleRate;
-  const vsdrreal* m_taps;
-  uint32_t m_decimationFactor;
-  vsdrcomplex m_overlap;
+  resamp_crcf m_pResampleState;
 };
 

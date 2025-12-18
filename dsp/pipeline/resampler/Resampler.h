@@ -6,7 +6,7 @@
 #include <cstdint>
 #include <vector>
 #include "SampleTypes.h"
-#include <samplerate.h>
+#include <liquid/liquid.h>
 
 class Resampler: public IqPipelineStage
 {
@@ -14,14 +14,14 @@ public:
   Resampler() :
     m_inputSampleRate(0),
     m_outputSampleRate(0),
-    m_pSrcStateReal(nullptr),
-    m_pSrcStateComplex(nullptr),
+    m_pResampleStateReal(nullptr),
+    m_pResampleStateComplex(nullptr),
     m_ratio(0.0)
   {
 
   }
   ~Resampler() override {
-    src_delete(m_pSrcStateReal);
+    clearState();
   }
 
   void configure(uint32_t inputSampleRate, uint32_t outputSampleRate)
@@ -33,15 +33,17 @@ public:
 
   void initialise()
   {
-    double ratio = static_cast<double>(m_outputSampleRate) / static_cast<double>(m_inputSampleRate);
-    int error = 0;
-    m_pSrcStateReal = src_new(SRC_SINC_BEST_QUALITY, 1, &error);
-    if (!m_pSrcStateReal)
-      throw std::runtime_error(src_strerror(error));
+    clearState();
+    float ratio = static_cast<float>(m_outputSampleRate) / static_cast<float>(m_inputSampleRate);
 
-    m_pSrcStateComplex = src_new(SRC_SINC_BEST_QUALITY, 2, &error);
-    if (!m_pSrcStateComplex)
-      throw std::runtime_error(src_strerror(error));
+    // Liquid-dsp resampler parameters
+    unsigned int m = 12;      // filter semi-length (delay)
+    float bw = 0.45f;         // resampling bandwidth
+    float as = 100.0f;         // stop-band attenuation [dB]
+
+    m_pResampleStateReal = resamp_rrrf_create(ratio, m, bw, as, 32);
+    m_pResampleStateComplex = resamp_crcf_create(ratio, m, bw, as, 32);
+
     m_ratio = ratio;
   }
 
@@ -51,21 +53,13 @@ public:
     uint32_t inputLength
     ) const
   {
-    auto max_out = static_cast<long>(inputLength * m_ratio + 32);
-    // out.resize(max_out);
-
-    SRC_DATA src_data = {};
-    src_data.data_in = in.data();
-    src_data.input_frames = inputLength;
-    src_data.data_out = out.data();
-    src_data.output_frames = max_out;
-    src_data.end_of_input = 0;
-    src_data.src_ratio = m_ratio;
-
-    int ret = src_process(m_pSrcStateReal, &src_data);
-    if (ret != 0)
-      throw std::runtime_error(src_strerror(ret));
-    return static_cast<uint32_t>(src_data.output_frames_gen);
+    unsigned int numWritten = 0;
+    for (uint32_t i = 0; i < inputLength; ++i) {
+      unsigned int n;
+      resamp_rrrf_execute(m_pResampleStateReal, in.at(i), &out.at(numWritten), &n);
+      numWritten += n;
+    }
+    return numWritten;
   }
 
   uint32_t processSamples(
@@ -75,41 +69,34 @@ public:
   {
     vsdrcomplex& in = buffers.input();
     vsdrcomplex& out = buffers.output();
-    auto max_out = static_cast<long>(inputLength * m_ratio + 32);
-
-    std::vector<float> interleavedIn(inputLength * 2);
-    for (size_t i = 0; i < inputLength; ++i) {
-      interleavedIn.at(2*i)  = in.at(i).real();
-      interleavedIn.at(2*i+1) = in.at(i).imag();
+    unsigned int numWritten = 0;
+    for (uint32_t i = 0; i < inputLength; ++i) {
+      unsigned int n;
+      // liquid-dsp uses float complex which is usually binary compatible with std::complex<float>
+      resamp_crcf_execute(m_pResampleStateComplex, in.at(i), &out.at(numWritten), &n);
+      numWritten += n;
     }
-    // out.resize(max_out);
-    std::vector<float> interleavedOut(max_out * 2);
 
-    SRC_DATA src_data = {};
-    src_data.data_in = interleavedIn.data();
-    src_data.input_frames = inputLength;
-    src_data.data_out = interleavedOut.data();
-    src_data.output_frames = max_out;
-    src_data.end_of_input = 0;
-    src_data.src_ratio = m_ratio;
+    return numWritten;
+  }
 
-    int ret = src_process(m_pSrcStateComplex, &src_data);
-    if (ret != 0)
-      throw std::runtime_error(src_strerror(ret));
-
-    auto outputLength = static_cast<uint32_t>(src_data.output_frames_gen);
-    // qDebug() << "Resampler: inputLength=" << inputLength << " outputLength=" << outputLength;
-    for (size_t i = 0; i < outputLength; ++i) {
-      out.at(i) = sdrcomplex(interleavedOut.at(2*i), interleavedOut.at(2*i+1));
+protected:
+  void clearState()
+  {
+    if (m_pResampleStateReal) {
+      resamp_rrrf_destroy(m_pResampleStateReal);
+      m_pResampleStateReal = nullptr;
     }
-    return outputLength;
+    if (m_pResampleStateComplex) {
+      resamp_crcf_destroy(m_pResampleStateComplex);
+      m_pResampleStateComplex = nullptr;
+    }
   }
 
 protected:
   uint32_t m_inputSampleRate;
   uint32_t m_outputSampleRate;
-  SRC_STATE* m_pSrcStateReal;
-  SRC_STATE* m_pSrcStateComplex;
+  resamp_rrrf m_pResampleStateReal;
+  resamp_crcf m_pResampleStateComplex;
   double m_ratio;
-  // int m_channels;
 };

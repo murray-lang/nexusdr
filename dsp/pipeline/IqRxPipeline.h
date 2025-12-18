@@ -50,7 +50,8 @@ protected:
   Decimator m_decimator;
   BandPassFilter m_ifFilter;
   AmDemodulator m_amDemodulator;
-  FmDemodulator m_fmDemodulator;
+  FmDemodulator m_fmnDemodulator;
+  FmDemodulator m_fmwDemodulator;
   SsbDemodulator m_ssbDemodulator;
   CwDemodulator m_cwDemodulator;
   Demodulator* m_pDemodulator;
