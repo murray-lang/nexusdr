@@ -29,7 +29,16 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
 find_package(PkgConfig)
 find_package(RtAudio REQUIRED)
 
-pkg_check_modules(SAMPLERATE REQUIRED samplerate)
+#pkg_check_modules(SAMPLERATE REQUIRED samplerate)
+
+find_path(LIQUID_INCLUDE_DIR NAMES liquid/liquid.h)
+find_library(LIQUID_LIBRARY NAMES liquid)
+
+if(LIQUID_INCLUDE_DIR AND LIQUID_LIBRARY)
+    message(STATUS "Found liquid-dsp: ${LIQUID_LIBRARY}")
+else()
+    message(FATAL_ERROR "liquid-dsp not found!")
+endif()
 
 
 # find_path(PIGPIO_INCLUDE_DIR pigpio.h PATHS /usr/local/include /usr/include)   
@@ -369,7 +378,8 @@ target_include_directories(cutesdr-vk6hl PUBLIC
     ${AUDIO_DRIVER_INCLUDE_DIRS}
     ${VOLK_INCLUDE_DIRS}
     /usr/include/hidapi/
-    ${SAMPLERATE_INCLUDE_DIRS}
+#    ${SAMPLERATE_INCLUDE_DIRS}
+    ${LIQUID_INCLUDE_DIR}
     ${PLATFORM_INCLUDE_DIRS}
 )
 target_link_directories(cutesdr-vk6hl PRIVATE ${DSPL_DIR})
@@ -379,13 +389,15 @@ set (COMMON_LIBRARIES
     Qt${QT_VERSION_MAJOR}::Gui
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::Charts
+
     ${AUDIO_DRIVER_LIBS}
     ${AUDIO_LINK_LIBS}
     ${VOLK_LIBRARIES}
     usb-1.0
     hidapi-libusb
     nlohmann_json::nlohmann_json
-    ${SAMPLERATE_LIBRARIES}
+#    ${SAMPLERATE_LIBRARIES}
+    ${LIQUID_LIBRARY}
 )
 
 
