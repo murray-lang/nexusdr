@@ -74,10 +74,10 @@
    <widget class="QChartView" name="timeseriesView">
     <property name="geometry">
      <rect>
-      <x>630</x>
+      <x>59</x>
       <y>350</y>
-      <width>350</width>
-      <height>100</height>
+      <width>921</width>
+      <height>201</height>
      </rect>
     </property>
     <property name="minimumSize">
