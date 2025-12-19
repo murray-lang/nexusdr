@@ -86,12 +86,12 @@ public:
       SingleSetting frequencySetting(setting);
       frequencySetting.setPath(SettingPath({ReceiverSettings::RF, RfSettings::FREQUENCY}));
       if (rxSettings.applySetting(frequencySetting, 0)) {
-        changed |= FREQUENCY;
+        changed |= RX | FREQUENCY;
         settingChange = true;
       }
       frequencySetting.setPath(SettingPath({TransmitterSettings::RF, RfSettings::FREQUENCY}));
       if (txSettings.applySetting(frequencySetting, 0)) {
-        changed |= FREQUENCY;
+        changed |= TX | FREQUENCY;
         settingChange = true;
       }
     }
@@ -99,12 +99,12 @@ public:
       SingleSetting offsetSetting(setting);
       offsetSetting.setPath(SettingPath({ReceiverSettings::RF, RfSettings::OFFSET}));
       if (rxSettings.applySetting(offsetSetting, 0)) {
-        changed |= OFFSET;
+        changed |= RX | OFFSET;
         settingChange = true;
       }
       offsetSetting.setPath(SettingPath({TransmitterSettings::RF, RfSettings::OFFSET}));
       if (txSettings.applySetting(offsetSetting, 0)) {
-        changed |= OFFSET;
+        changed |= TX | OFFSET;
         settingChange = true;
       }
     }

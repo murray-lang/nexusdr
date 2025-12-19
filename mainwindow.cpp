@@ -467,6 +467,8 @@ MainWindow::replaceSpectrumSeries(
 
 void MainWindow::initializeWindow()
 {
+  ui->centreFrequencyLcd->setDigitCount(8);
+  ui->cursorFrequencyLcd->setDigitCount(8);
     // const QAudioDevice &defaultOutputDeviceInfo = QMediaDevices::defaultAudioOutput();
 //
 //    ui->deviceList->addItem(defaultDeviceInfo.description(), QVariant::fromValue(defaultDeviceInfo));

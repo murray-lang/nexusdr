@@ -30,8 +30,8 @@ public:
   {
     for (uint32_t i = 0; i < inputLength; i++) {
       liquid_float_complex sampleOut;
-      // freqmod only needs a real value, so we take the real part of the analytic signal
-      freqmod_modulate(m_mod, in.at(i).real(), &sampleOut);
+      // freqmod only needs a real value, so we take the hypotenuse of the analytic signal
+      freqmod_modulate(m_mod, std::abs(in.at(i)), &sampleOut);
       out.at(i) = sdrcomplex(sampleOut.real(), sampleOut.imag());
     }
     return inputLength;
