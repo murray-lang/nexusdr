@@ -86,6 +86,9 @@
       <height>100</height>
      </size>
     </property>
+    <property name="acceptDrops">
+     <bool>false</bool>
+    </property>
    </widget>
    <widget class="QLCDNumber" name="cursorFrequencyLcd">
     <property name="geometry">
@@ -96,6 +99,18 @@
       <height>41</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <italic>true</italic>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::Shape::NoFrame</enum>
+    </property>
+    <property name="digitCount">
+     <number>10</number>
+    </property>
    </widget>
    <widget class="QLCDNumber" name="centreFrequencyLcd">
     <property name="geometry">
@@ -105,6 +120,12 @@
       <width>151</width>
       <height>31</height>
      </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::Shape::NoFrame</enum>
+    </property>
+    <property name="digitCount">
+     <number>10</number>
     </property>
    </widget>
    <widget class="QLabel" name="centreFrequencyLabel">
