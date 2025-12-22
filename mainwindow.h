@@ -30,6 +30,9 @@ public:
 
   void customEvent(QEvent* event) override;
 
+public slots:
+  void on_actionShowTabs_triggered(bool checked);
+
 protected:
   void handleReceiverIqEvent(const vsdrcomplex* data, uint32_t length, uint32_t sampleRate);
   void handleReceiverAudioEvent(const vsdrreal* data, uint32_t length);

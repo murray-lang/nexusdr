@@ -1,5 +1,5 @@
 #include "mainwindow.h"
-#include "./ui_mainwindow-1024x600.h"
+#include "ui_mainwindow-1024x600.h"
 #include <QSlider>
 #include <QPushButton>
 #include <QLineSeries>
@@ -18,6 +18,8 @@
 #include "radio/receiver/ReceiverIqEvent.h"
 #include "radio/transmitter/TransmitterAudioEvent.h"
 #include "radio/transmitter/TransmitterIqEvent.h"
+
+#include <QToolButton>
 
 #define FFT_SIZE 2048
 #define SAMPLE_RATE 192000
@@ -38,7 +40,7 @@ MainWindow::MainWindow(RadioConfig& radioConfig, QWidget *parent)
     m_verticalCursorLine(new QGraphicsLineItem()),
     m_filterPassbandRect(nullptr)
 {
-    ui->setupUi(this);
+
 
     initializeWindow();
     initialiseRadio();
@@ -465,19 +467,20 @@ MainWindow::replaceSpectrumSeries(
   spectrumSeries.replace(spectrumPoints);
 }
 
+void
+MainWindow::on_actionShowTabs_triggered(bool show)
+{
+  qDebug() << "on_actionShowTabs_triggered() " << show;
+}
+
 void MainWindow::initializeWindow()
 {
-  ui->centreFrequencyLcd->setDigitCount(8);
-  ui->cursorFrequencyLcd->setDigitCount(8);
-    // const QAudioDevice &defaultOutputDeviceInfo = QMediaDevices::defaultAudioOutput();
-//
-//    ui->deviceList->addItem(defaultDeviceInfo.description(), QVariant::fromValue(defaultDeviceInfo));
-//    for (auto &deviceInfo : m_devices->audioInputs()) {
-//        if (deviceInfo != defaultDeviceInfo)
-//            ui->deviceList->addItem(deviceInfo.description(), QVariant::fromValue(deviceInfo));
-//    }
-//
-//    connect(ui->deviceList, &QComboBox::activated, this, &MainWindow::deviceChanged);
+  ui->setupUi(this);
+
+  auto* tabsBtn = new QToolButton();
+  tabsBtn->setDefaultAction(ui->actionShowTabs);
+  tabsBtn->setFixedWidth(100);
+  ui->toolBar->addWidget(tabsBtn);
 
     //m_volumeSlider = new QSlider(Qt::Horizontal, this);
     ui->volumeSlider->setRange(0, 100);
