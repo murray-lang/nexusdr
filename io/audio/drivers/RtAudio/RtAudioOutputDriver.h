@@ -7,6 +7,7 @@
 #include <deque>
 #include <QIODevice>
 #include <mutex>
+#include <bit>
 #include <qdebug.h>
 
 
@@ -95,25 +96,6 @@ public:
     unsigned int samplesNeeded = nFrames * m_format.channelCount;
     unsigned int samplesToCopy = std::min(static_cast<unsigned int>(m_audioBuffer.size()), samplesNeeded);
 
-    if constexpr (std::is_same_v<T, int32_t>) {
-      if (m_format.sampleFormat == RTAUDIO_SINT24) {
-        // "True 24-bit": Pack 3 bytes manually into the output stream
-        auto* out = static_cast<unsigned char*>(outputBuffer);
-        for (unsigned int i = 0; i < samplesToCopy; ++i) {
-          int32_t val = m_audioBuffer.front();
-          m_audioBuffer.pop_front();
-          *out++ = static_cast<unsigned char>(val & 0xFF);
-          *out++ = static_cast<unsigned char>((val >> 8) & 0xFF);
-          *out++ = static_cast<unsigned char>((val >> 16) & 0xFF);
-        }
-        // Fill silence
-        if (samplesToCopy < samplesNeeded) {
-          std::fill_n(out, (samplesNeeded - samplesToCopy) * 3, 0);
-        }
-        return 0;
-      }
-    }
-
     T* out = static_cast<T*>(outputBuffer);
 
     for (unsigned int i = 0; i < samplesToCopy; ++i) {
@@ -125,7 +107,7 @@ public:
     if (samplesToCopy < samplesNeeded) {
       std::fill(out, out + (samplesNeeded - samplesToCopy), static_cast<T>(0));
       // Optionally log underrun here
-      // qDebug() << "Audio underrun: needed" << samplesNeeded << "but got" << samplesToCopy;
+      qDebug() << "Audio underrun: needed" << samplesNeeded << "but got" << samplesToCopy;
     }
 
     return 0; // 0: continue, nonzero: stop

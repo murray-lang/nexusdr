@@ -110,7 +110,17 @@
                           "lines": [26, 16],
                           "bias": "pull-up",
                           "debounce": true,
-                          "settingPath": "rx.correction.amplitude"
+                          "settingPath": "frequency"
+                      }
+                  },
+                  {
+
+                      "type": "rotaryEncoder",
+                      "config": {
+                          "lines": [15, 14],
+                          "bias": "none",
+                          "debounce": false,
+                          "settingPath": "offset"
                       }
                   }
               ]
@@ -136,9 +146,8 @@
           "type": "audio",
           "config": {
             "soundApi": "alsa",
-            "searchExpression": "LifeChat",
-            "sampleRate": 48000,
-            "format": "sint16"
+            "searchExpression": "Modu",
+            "sampleRate": 48000
           }
         }
       }
@@ -150,10 +159,8 @@
           "config": {
             "audioInput": {
 			  "soundApi": "alsa",
-			  "searchExpression": "LifeChat",
-			  "sampleRate": 48000,
-			  "format": "sint16",
-			  "channelCount": 1
+			  "searchExpression": "Modu"
+
             }
           }
         },

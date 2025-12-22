@@ -21,7 +21,7 @@ public:
     const RtAudio::DeviceInfo deviceInfo = findInputDevice(api, pConfig->getSearchExpression());
     AudioDriver::Format format{};
     getInputFormat(pConfig, deviceInfo, format);
-    format.channelCount = pConfig->getChannelCount();
+    // format.channelCount = pConfig->getChannelCount();
     format.sampleFormat = AUDIO_FLOAT32;
     format.bytesPerFrame = sizeof(float) * format.channelCount;
     return new RtAudioInputDriver(deviceInfo, format, pSink);
@@ -181,7 +181,7 @@ public:
       format.sampleRate = static_cast<int>(pConfig->getSampleRate());
     }
     if (pConfig->getChannelCount() == 0) {
-      format.channelCount = deviceInfo.inputChannels;
+      format.channelCount = deviceInfo.outputChannels;
     } else {
       format.channelCount = static_cast<int>(pConfig->getChannelCount());
     }
@@ -197,7 +197,7 @@ public:
     case AUDIO_SINT16:
       return 2;
     case AUDIO_SINT24:
-      // return 3;
+      return 3;
     case AUDIO_SINT32:
     case AUDIO_FLOAT32:
       return 4;
