@@ -480,6 +480,21 @@ void MainWindow::initializeWindow()
   auto* tabsBtn = new QToolButton();
   tabsBtn->setDefaultAction(ui->actionShowTabs);
   tabsBtn->setFixedWidth(100);
+  // Force the button to draw its background based on the current palette
+  tabsBtn->setAutoFillBackground(true);
+  // Use QSS to force a persistent border using theme-relative colors
+  // 'palette(mid)' or 'palette(shadow)' ensures the outline matches the theme
+  tabsBtn->setStyleSheet(
+      "QToolButton {"
+      "  border: 1px solid palette(mid);"
+      "  border-radius: 0px;"
+      "  background-color: palette(button);"
+      "}"
+      "QToolButton:pressed {"
+      "  background-color: palette(midlight);"
+      "}"
+  );
+
   ui->toolBar->addWidget(tabsBtn);
 
     //m_volumeSlider = new QSlider(Qt::Horizontal, this);

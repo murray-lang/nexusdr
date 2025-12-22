@@ -185,7 +185,6 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionShowTabs"/>
   </widget>
   <action name="actionShowTabs">
    <property name="text">
