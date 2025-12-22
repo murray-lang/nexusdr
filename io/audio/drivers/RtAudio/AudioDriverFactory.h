@@ -35,7 +35,7 @@ public:
     getOutputFormat(pConfig, deviceInfo, format);
     if (format.sampleFormat == AUDIO_FLOAT32) {
       return new RtAudioOutputDriverT<float>(deviceInfo, format);
-    } else if (format.sampleFormat == AUDIO_SINT32) {
+    } else if (format.sampleFormat == AUDIO_SINT32 || format.sampleFormat == AUDIO_SINT24) {
       return new RtAudioOutputDriverT<int32_t>(deviceInfo, format);
     } else if (format.sampleFormat == AUDIO_SINT16) {
       return new RtAudioOutputDriverT<int16_t>(deviceInfo, format);
@@ -197,7 +197,7 @@ public:
     case AUDIO_SINT16:
       return 2;
     case AUDIO_SINT24:
-      return 3;
+      // return 3;
     case AUDIO_SINT32:
     case AUDIO_FLOAT32:
       return 4;

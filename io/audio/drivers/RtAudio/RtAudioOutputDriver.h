@@ -117,12 +117,23 @@ public:
     std::lock_guard<std::mutex> lock(m_mutex);
     if (!m_running) return 0;
 
-    constexpr double scale = std::is_integral_v<T>
+    double scale = std::is_integral_v<T>
         ? static_cast<double>(std::numeric_limits<T>::max())
         : 1.0;
+    if constexpr (std::is_same_v<T, int32_t>) {
+      if (m_format.sampleFormat == AUDIO_SINT24) {
+        scale = 8388607.0; // 2^23 - 1
+      }
+    }
+
     uint32_t repeats = m_format.channelCount / numChannels;
     for (uint32_t i = 0; i < length; ++i) {
       T sample = static_cast<T>(data[i] * scale);
+      if constexpr (std::is_same_v<T, int32_t>) {
+        if (m_format.sampleFormat == AUDIO_SINT24) {
+          sample <<= 8; // Shift to upper 24 bits
+        }
+      }
       for (uint32_t r = 0; r < repeats; ++r) {
         m_audioBuffer.push_back(sample);
       }
