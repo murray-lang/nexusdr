@@ -91,11 +91,30 @@ public:
   int pullSamples(void *outputBuffer, unsigned int nFrames)
   {
     std::lock_guard<std::mutex> lock(m_mutex);
-    T* out = static_cast<T*>(outputBuffer);
 
     unsigned int samplesNeeded = nFrames * m_format.channelCount;
-
     unsigned int samplesToCopy = std::min(static_cast<unsigned int>(m_audioBuffer.size()), samplesNeeded);
+
+    if constexpr (std::is_same_v<T, int32_t>) {
+      if (m_format.sampleFormat == RTAUDIO_SINT24) {
+        // "True 24-bit": Pack 3 bytes manually into the output stream
+        auto* out = static_cast<unsigned char*>(outputBuffer);
+        for (unsigned int i = 0; i < samplesToCopy; ++i) {
+          int32_t val = m_audioBuffer.front();
+          m_audioBuffer.pop_front();
+          *out++ = static_cast<unsigned char>(val & 0xFF);
+          *out++ = static_cast<unsigned char>((val >> 8) & 0xFF);
+          *out++ = static_cast<unsigned char>((val >> 16) & 0xFF);
+        }
+        // Fill silence
+        if (samplesToCopy < samplesNeeded) {
+          std::fill_n(out, (samplesNeeded - samplesToCopy) * 3, 0);
+        }
+        return 0;
+      }
+    }
+
+    T* out = static_cast<T*>(outputBuffer);
 
     for (unsigned int i = 0; i < samplesToCopy; ++i) {
       *out++ = m_audioBuffer.front();
@@ -129,11 +148,6 @@ public:
     uint32_t repeats = m_format.channelCount / numChannels;
     for (uint32_t i = 0; i < length; ++i) {
       T sample = static_cast<T>(data[i] * scale);
-      if constexpr (std::is_same_v<T, int32_t>) {
-        if (m_format.sampleFormat == AUDIO_SINT24) {
-          sample <<= 8; // Shift to upper 24 bits
-        }
-      }
       for (uint32_t r = 0; r < repeats; ++r) {
         m_audioBuffer.push_back(sample);
       }
