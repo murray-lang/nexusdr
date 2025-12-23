@@ -118,7 +118,7 @@ MainWindow::configurePanadapter()
     xAxis->setRange(m_panadapterXmin, m_panadapterXmax);
     xAxis->setLabelFormat(QString("%i"));
   }
-  pChart->axes(Qt::Vertical).first()->setRange(-120, -20);
+  pChart->axes(Qt::Vertical).first()->setRange(-110, -50);
 
   pChart->legend()->hide();
 
@@ -480,6 +480,7 @@ void MainWindow::initializeWindow()
   auto* tabsBtn = new QToolButton();
   tabsBtn->setDefaultAction(ui->actionShowTabs);
   tabsBtn->setFixedWidth(100);
+  tabsBtn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
   // Force the button to draw its background based on the current palette
   tabsBtn->setAutoFillBackground(true);
   // Use QSS to force a persistent border using theme-relative colors

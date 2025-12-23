@@ -25,10 +25,11 @@ IqRxPipeline::IqRxPipeline(const ModeSettings& modeSettings, QObject* eventTarge
 
   addStage(m_pMonitoringStage);
   addStage(&m_iqCorrection);
-  addStage(m_pMonitoringStage);
+  // addStage(m_pMonitoringStage);
   addStage(&m_oscillatorMixer);
-  addStage(&m_decimator);
   addStage(&m_ifFilter);
+  addStage(&m_decimator);
+  // addStage(&m_ifFilter);
 
 }
 
@@ -90,8 +91,8 @@ IqRxPipeline::setMode(const Mode& mode)
 {
 
   IqPipeline::setMode(mode);
-  const uint32_t decimatorOutputRate = m_decimator.getOutputSampleRate();
-  m_ifFilter.getKernel().configure(mode.getLoCut(), mode.getHiCut(), mode.getOffset(), decimatorOutputRate * 2);
+  // const uint32_t decimatorOutputRate = m_decimator.getOutputSampleRate();
+  m_ifFilter.getKernel().configure(mode.getLoCut(), mode.getHiCut(), mode.getOffset(), m_inputSampleRate);
   setDemodulator(mode);
 }
 
