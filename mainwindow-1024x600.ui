@@ -153,6 +153,22 @@
      <string>Centre</string>
     </property>
    </widget>
+   <widget class="QWidget" name="dummyPanadapterPropertyWidget" native="true">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>140</y>
+      <width>0</width>
+      <height>0</height>
+     </rect>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>0</width>
+      <height>0</height>
+     </size>
+    </property>
+   </widget>
   </widget>
   <widget class="QToolBar" name="toolBar">
    <property name="minimumSize">
@@ -186,12 +202,35 @@
     <bool>false</bool>
    </attribute>
   </widget>
-  <action name="actionShowTabs">
+  <action name="actionConfigure">
+   <property name="icon">
+    <iconset theme="system-run">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
    <property name="text">
-    <string>Tabs</string>
+    <string/>
    </property>
    <property name="menuRole">
     <enum>QAction::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionBand">
+   <property name="text">
+    <string>Band</string>
+   </property>
+  </action>
+  <action name="actionMode">
+   <property name="text">
+    <string>Mode</string>
+   </property>
+  </action>
+  <action name="actionLevels">
+   <property name="icon">
+    <iconset theme="preferences-desktop-personal">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string/>
    </property>
   </action>
  </widget>

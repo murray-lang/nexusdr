@@ -18,6 +18,7 @@ public:
   ~RadioConfig() override
   {
     delete m_pReceiver;
+    delete m_pTransmitter;
     delete m_pControl;
   }
 //   RadioConfig(const RadioConfig& rhs) :

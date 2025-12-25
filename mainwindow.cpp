@@ -6,6 +6,9 @@
 #include <QValueAxis>
 #include <QLogValueAxis>
 #include <QThreadPool>
+#include <QStyle>
+#include <QColor>
+#include <QVariant>
 #include "io/audio/drivers/RtAudio/RtAudioInputDriver.h"
 #include <cmath>
 #include "io/control/device/usb/UsbException.h"
@@ -44,40 +47,17 @@ MainWindow::MainWindow(RadioConfig& radioConfig, QWidget *parent)
 
     initializeWindow();
     initialiseRadio();
-    //initializeAudio(QMediaDevices::defaultAudioInput());
     initializeAudio();
-
-    //m_iqProcessor.start();
-    //QThreadPool::globalInstance()->start(m_pIqReceiver);
-
-    //ui->panadapterView->chart()
-    //QChart* pChart = ui->panadapterView->chart();
 
     ui->panadapterView->setRenderHint(QPainter::Antialiasing);
     ui->timeseriesView->setRenderHint(QPainter::Antialiasing);
 
-   //pChart->legend()->hide();
-
-    //pChart->addSeries(&m_fftSeries);
-    //pChart->addSeries(&m_realSeries);
-    //pChart->addSeries(&m_imagSeries);
-    //QPen pen = m_fftSeries.pen();
-    //pen.setWidth(0);
-
-
-
-    //pChart->createDefaultAxes();
-    //pChart->axisY()->setRange(0, 25);
-    //pChart->axisY()->setRange(0.005, 0.025);
-    //pChart->axisX()->setRange(0, FFT_SIZE);
-    //pChart->setTitle("FunCube FFT");
     configurePanadapter();
     configureTimeseriesChart();
 }
 
 MainWindow::~MainWindow()
 {
-  // delete m_pIqReceiver;
   delete m_pRadio;
   delete ui;
 }
@@ -85,7 +65,20 @@ MainWindow::~MainWindow()
 void
 MainWindow::configurePanadapter()
 {
+
   QChart* pChart = ui->panadapterView->chart();
+
+  pChart->setTheme(QChart::ChartThemeBlueCerulean);
+
+  // Force the widget to resolve its stylesheet properties immediately
+  // ui->dummyPanadapterPropertyWidget->setObjectName("dummyPanadapterPropertyWidget");
+  // ui->dummyPanadapterPropertyWidget->style()->unpolish(ui->dummyPanadapterPropertyWidget);
+  // ui->dummyPanadapterPropertyWidget->style()->polish(ui->dummyPanadapterPropertyWidget);
+  //
+  // // Read the property as a String to avoid QVariant template issues
+  // QString colorString = ui->dummyPanadapterPropertyWidget->property("plotLineColor").toString();
+  // QColor plotLineColor = colorString.isEmpty() ? QColor(QRgb(0xffffff)) : QColor(colorString);
+
 //    m_spectrumAreaSeries.setUpperSeries(&m_spectrumLineSeries);
 
 //    QGradient plotAreaGradient(QGradient::Preset::MorpheusDen);
@@ -93,7 +86,7 @@ MainWindow::configurePanadapter()
 //    pChart->setBackgroundBrush(plotAreaBrush);
 
   //QPen pen(QRgb(0xccd0e1)); //0x0080ff
-  QPen pen(QRgb(0x0080ff));
+  QPen pen(QRgb(0x00952d));
   pen.setWidth(0);
 //  m_spectrumAreaSeries.setPen(pen);
   m_spectrumLineSeries.setPen(pen);
@@ -468,35 +461,74 @@ MainWindow::replaceSpectrumSeries(
 }
 
 void
-MainWindow::on_actionShowTabs_triggered(bool show)
+MainWindow::on_actionConfigure_triggered()
 {
-  qDebug() << "on_actionShowTabs_triggered() " << show;
+  qDebug() << "on_actionConfigure_triggered()";
+}
+
+void
+MainWindow::on_actionBand_triggered()
+{
+  qDebug() << "on_actionBand_triggered()";
+}
+
+void
+MainWindow::on_actionMode_triggered()
+{
+  qDebug() << "on_actionMode_triggered()";
+}
+
+void
+MainWindow::on_actionLevels_triggered()
+{
+  qDebug() << "on_actionLevels_triggered()";
 }
 
 void MainWindow::initializeWindow()
 {
   ui->setupUi(this);
 
-  auto* tabsBtn = new QToolButton();
-  tabsBtn->setDefaultAction(ui->actionShowTabs);
-  tabsBtn->setFixedWidth(100);
-  tabsBtn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+  auto* configBtn = new QToolButton();
+  configBtn->setDefaultAction(ui->actionConfigure);
+  // tabsBtn->setFixedWidth(100);
+  configBtn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
   // Force the button to draw its background based on the current palette
-  tabsBtn->setAutoFillBackground(true);
-  // Use QSS to force a persistent border using theme-relative colors
-  // 'palette(mid)' or 'palette(shadow)' ensures the outline matches the theme
-  tabsBtn->setStyleSheet(
-      "QToolButton {"
-      "  border: 1px solid palette(mid);"
-      "  border-radius: 0px;"
-      "  background-color: palette(button);"
-      "}"
-      "QToolButton:pressed {"
-      "  background-color: palette(midlight);"
-      "}"
-  );
+  configBtn->setAutoFillBackground(true);
+  configBtn->setProperty("class", "toolbarButtonA");
+  ui->toolBar->addWidget(configBtn);
 
-  ui->toolBar->addWidget(tabsBtn);
+  auto* bandBtn = new QToolButton();
+  bandBtn->setDefaultAction(ui->actionBand);
+  // tabsBtn->setFixedWidth(100);
+  bandBtn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+  // Force the button to draw its background based on the current palette
+  bandBtn->setAutoFillBackground(true);
+  bandBtn->setProperty("class", "toolbarButtonB");
+  ui->toolBar->addWidget(bandBtn);
+
+  QWidget* spacer1 = new QWidget();
+  spacer1->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+  ui->toolBar->addWidget(spacer1);
+
+  auto* modeBtn = new QToolButton();
+  modeBtn->setDefaultAction(ui->actionMode);
+  // tabsBtn->setFixedWidth(100);
+  modeBtn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+  // Force the button to draw its background based on the current palette
+  modeBtn->setAutoFillBackground(true);
+  modeBtn->setProperty("class", "toolbarButtonC");
+  ui->toolBar->addWidget(modeBtn);
+
+  auto* levelsBtn = new QToolButton();
+  levelsBtn->setDefaultAction(ui->actionLevels);
+  // tabsBtn->setFixedWidth(100);
+  levelsBtn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+  // Force the button to draw its background based on the current palette
+  levelsBtn->setAutoFillBackground(true);
+  levelsBtn->setProperty("class", "toolbarButtonD");
+  ui->toolBar->addWidget(levelsBtn);
+
+
 
     //m_volumeSlider = new QSlider(Qt::Horizontal, this);
     ui->volumeSlider->setRange(0, 100);
@@ -578,7 +610,7 @@ MainWindow::initialiseRadio()
     m_radioSettings.rxSettings.mode = mode;
     //m_radioSettings.txSettings.mode = m_radioSettings.modeSettings.getCurrentMode();
 
-    m_radioSettings.rxSettings.rfSettings.frequency = 7056000;
+    m_radioSettings.rxSettings.rfSettings.frequency = 14100000;
     m_radioSettings.rxSettings.rfSettings.offset = 48000;
     m_radioSettings.rxSettings.rfSettings.gain = 30.0;
     m_radioSettings.rxSettings.rfSettings.changed = (RfSettings::FREQUENCY | RfSettings::OFFSET | RfSettings::GAIN);
@@ -590,7 +622,7 @@ MainWindow::initialiseRadio()
     m_radioSettings.changed = RadioSettings::MODE | RadioSettings::RX;
 
     m_radioSettings.txSettings.mode = mode;
-    m_radioSettings.txSettings.rfSettings.frequency = 7056000;
+    m_radioSettings.txSettings.rfSettings.frequency = 14100000;
     m_radioSettings.txSettings.rfSettings.offset = 48000;
     m_radioSettings.txSettings.rfSettings.changed = (RfSettings::FREQUENCY | RfSettings::OFFSET);
     m_radioSettings.txSettings.changed = (TransmitterSettings::MODE | TransmitterSettings::RF);

@@ -15,7 +15,7 @@ Radio::Radio(QObject *pEventTarget) :
   m_settings(),
   m_pReceiver(nullptr),
   m_pTransmitter(nullptr),
-  m_control(),
+  m_pControl(nullptr),
   m_pEventTarget(pEventTarget)
 {
   m_pReceiver = new IqReceiver(m_settings.modeSettings, pEventTarget);
@@ -26,13 +26,17 @@ Radio::~Radio()
 {
   delete m_pReceiver;
   delete m_pTransmitter;
+  delete m_pControl;
 }
 
 void
 Radio::configure(const RadioConfig* pConfig)
 {
-  m_control.configure(pConfig->getControl());
-
+  const ControlConfig* pControlConfig = pConfig->getControl();
+  if (pControlConfig != nullptr) {
+    m_pControl = new RadioControl();
+    m_pControl->configure(pControlConfig);
+  }
   const ReceiverConfig* pRxConfig = pConfig->getReceiver();
   if (pRxConfig != nullptr) {
     m_pReceiver = new IqReceiver(m_settings.modeSettings, m_pEventTarget);
@@ -49,18 +53,25 @@ Radio::configure(const RadioConfig* pConfig)
 void
 Radio::start()
 {
-  m_control.connect(this);
+  if (m_pControl != nullptr) {
+    m_pControl->connect(this);
+  }
   if (m_pReceiver != nullptr) {
     m_pReceiver->start();
   }
-  m_control.start();
+  if (m_pControl != nullptr) {
+    m_pControl->start();
+  }
+
 }
 
 void
 Radio::stop()
 {
-  m_control.stop();
-  m_control.connect(nullptr);
+  if (m_pControl != nullptr) {
+    m_pControl->stop();
+    m_pControl->connect(nullptr);
+  }
   if (m_pReceiver != nullptr) {
     m_pReceiver->stop();
   }
@@ -88,7 +99,10 @@ Radio::applySettings(const RadioSettings& settings)
       m_pTransmitter->setMode(m_settings.mode);
     }
   }
-  m_control.applySettings(m_settings);
+  if (m_pControl != nullptr) {
+    m_pControl->applySettings(m_settings);
+  }
+
   if (settings.changed & RadioSettings::RX) {
     if (m_pReceiver != nullptr) {
       m_pReceiver->apply(m_settings.rxSettings);
@@ -133,7 +147,9 @@ Radio::pttOn()
   if (m_pReceiver != nullptr) {
     m_pReceiver->ptt(true);
   }
-  m_control.ptt(true);
+  if (m_pControl != nullptr) {
+    m_pControl->ptt(true);
+  }
   if (m_pTransmitter != nullptr) {
     m_pTransmitter->ptt(true);
   }
@@ -145,7 +161,9 @@ Radio::pttOff()
   if (m_pTransmitter != nullptr) {
     m_pTransmitter->ptt(false);
   }
-  m_control.ptt(false);
+  if (m_pControl != nullptr) {
+    m_pControl->ptt(false);
+  }
   if (m_pReceiver != nullptr) {
     m_pReceiver->ptt(false);
   }

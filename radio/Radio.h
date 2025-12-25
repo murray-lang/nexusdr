@@ -39,7 +39,7 @@ protected:
   RadioSettings m_settings;
   IqReceiver* m_pReceiver;
   IqTransmitter* m_pTransmitter;
-  RadioControl m_control;
+  RadioControl* m_pControl;
 
   QObject* m_pEventTarget;
 };

@@ -69,7 +69,7 @@ public:
       sampleRate = json["sampleRate"].get<uint32_t>();
     }
     if (json.contains("channelCount")) {
-      channelCount = json["channelCount"].get<uint32_t>();
+      channelCount = std::min(json["channelCount"].get<uint32_t>(), 2u);
     }
     if (json.contains("format")) {
       format = json["format"].get<std::string>();
