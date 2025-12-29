@@ -1,0 +1,108 @@
+QMainWindow {
+    background-color: #0c394c;
+}
+QChartView {
+    background-color: #0c394c;
+}
+
+#panadapterTheme {
+    qproperty-textColor: "white";
+    qproperty-backgroundColor: "#065a7f";
+    qproperty-plotAreaColor: "#065a7f";
+    qproperty-seriesLineColor: "#00d03f";
+    qproperty-seriesAreaColor: "#00952d";
+    qproperty-gridColor: "#061922";
+    qproperty-cursorLineColor: "#ca1c00";
+    qproperty-cursorAreaColor: "#80791d0e";
+}
+
+QToolBar {
+    background-color: #0c394c;
+    qproperty-iconSize: 48px 48px;
+}
+
+QToolButton {
+    color: palette(window-text);
+    border-radius: 0px;
+    qproperty-iconSize: 48px 48px;
+    min-width: 100px;
+    max-width: 100px;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+QToolButton.toolbarButtonA {
+    background-color: #1d679f;
+    border: 1px solid #1d679f;
+    margin-right: 10px;
+}
+
+QToolButton.toolbarButtonA:pressed {
+    background-color: #0c8cef;
+    border: 1px solid #0c8cef;
+}
+
+QToolButton.toolbarButtonB {
+    background-color: #eb1d3a;
+    border: 1px solid #eb1d3a;
+}
+
+QToolButton.toolbarButtonB:pressed {
+    background-color: #fd0023;
+    border: 1px solid #fd0023;
+}
+
+QToolButton.toolbarButtonC {
+    background-color: #00952d;
+    border: 1px solid #00952d;
+}
+
+QToolButton.toolbarButtonC:pressed {
+    background-color: #00d03f;
+    border: 1px solid #00d03f;
+}
+
+QToolButton.toolbarButtonD {
+    background-color: #f79b1f;
+    border: 1px solid #f79b1f;
+     margin-left: 10px;
+}
+
+QToolButton.toolbarButtonD:pressed {
+    background-color: #ff9200;
+    border: 1px solid #ff9200;
+}
+
+QMenu.toolbarMenu {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+QMenu.toolbarMenu::item:selected {
+    font-style: italic;
+}
+
+QMenu.toolbarMenu::item:checked {
+    font-size: 18px;
+}
+
+QMenu.toolbarMenu::item:checked:selected {
+    font-size: 18px;
+}
+
+QMenu.toolbarMenu.mode {
+    background-color: #00952d;
+    border: 1px solid #00952d;
+}
+
+/* Style items for any menu with the 'toolbarMenu' class */
+QMenu.toolbarMenu::item {
+    padding: 10px 30px;
+    color: black;
+}
+
+/* Hover state for those items */
+QMenu.toolbarMenu.mode::item:selected {
+    background-color: #0b5922;
+    color: white;
+}

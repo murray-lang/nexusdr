@@ -335,6 +335,7 @@ set(PROJECT_SOURCES
         io/audio/drivers/AudioInputDriver.h
         io/audio/drivers/AudioOutputDriver.h
         dsp/pipeline/modulators/FmModulator.h
+        ui/qt/ChartTheme.h
 
 )
 

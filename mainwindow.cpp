@@ -9,6 +9,8 @@
 #include <QStyle>
 #include <QColor>
 #include <QVariant>
+#include <QMenu>
+#include <QActionGroup>
 #include "io/audio/drivers/RtAudio/RtAudioInputDriver.h"
 #include <cmath>
 #include "io/control/device/usb/UsbException.h"
@@ -24,36 +26,39 @@
 
 #include <QToolButton>
 
+#include "ui/qt/ChartTheme.h"
+
 #define FFT_SIZE 2048
 #define SAMPLE_RATE 192000
 
 MainWindow::MainWindow(RadioConfig& radioConfig, QWidget *parent)
-    : QMainWindow(parent)
-    , m_radioConfig(radioConfig)
-    , m_pRadio(nullptr)
-    , m_spectrumLineSeries()
-    , m_spectrumAreaSeries()
-    , m_timeseriesLineSeries()
-    , ui(new Ui::MainWindow)
-    , m_reportedIqSampleRate(0)
-    , m_panadapterXmin(0)
-    , m_panadapterXmax(FFT_SIZE)
-    , m_timeSeriesXmin(0)
-    , m_timeSeriesXmax(FFT_SIZE),
-    m_verticalCursorLine(new QGraphicsLineItem()),
-    m_filterPassbandRect(nullptr)
+  : QMainWindow(parent)
+  , m_radioConfig(radioConfig)
+  , m_pRadio(nullptr)
+  , m_spectrumLineSeries()
+  , m_spectrumAreaSeries()
+  , m_timeseriesLineSeries()
+  , ui(new Ui::MainWindow)
+  , m_reportedIqSampleRate(0)
+  , m_panadapterXmin(0)
+  , m_panadapterXmax(FFT_SIZE)
+  , m_timeSeriesXmin(0)
+  , m_timeSeriesXmax(FFT_SIZE),
+  m_verticalCursorLine(new QGraphicsLineItem()),
+  m_filterPassbandRect(nullptr),
+  m_modeButton(nullptr)
 {
 
+  initialiseRadio();
+  initializeWindow();
 
-    initializeWindow();
-    initialiseRadio();
-    initializeAudio();
+  initializeAudio();
 
-    ui->panadapterView->setRenderHint(QPainter::Antialiasing);
-    ui->timeseriesView->setRenderHint(QPainter::Antialiasing);
+  ui->panadapterView->setRenderHint(QPainter::Antialiasing);
+  ui->timeseriesView->setRenderHint(QPainter::Antialiasing);
 
-    configurePanadapter();
-    configureTimeseriesChart();
+  configurePanadapter();
+  configureTimeseriesChart();
 }
 
 MainWindow::~MainWindow()
@@ -68,37 +73,50 @@ MainWindow::configurePanadapter()
 
   QChart* pChart = ui->panadapterView->chart();
 
-  pChart->setTheme(QChart::ChartThemeBlueCerulean);
+  m_spectrumAreaSeries.setUpperSeries(&m_spectrumLineSeries);
 
-  // Force the widget to resolve its stylesheet properties immediately
-  // ui->dummyPanadapterPropertyWidget->setObjectName("dummyPanadapterPropertyWidget");
-  // ui->dummyPanadapterPropertyWidget->style()->unpolish(ui->dummyPanadapterPropertyWidget);
-  // ui->dummyPanadapterPropertyWidget->style()->polish(ui->dummyPanadapterPropertyWidget);
-  //
-  // // Read the property as a String to avoid QVariant template issues
-  // QString colorString = ui->dummyPanadapterPropertyWidget->property("plotLineColor").toString();
-  // QColor plotLineColor = colorString.isEmpty() ? QColor(QRgb(0xffffff)) : QColor(colorString);
+  auto* theme = findChild<ChartTheme*>("panadapterTheme");
+  theme->ensurePolished();
 
-//    m_spectrumAreaSeries.setUpperSeries(&m_spectrumLineSeries);
+  QString backgroundColorStr = theme->property("backgroundColor").toString();
+  auto backgroundColor = QColor(backgroundColorStr);
+  pChart->setBackgroundBrush(backgroundColor);
 
-//    QGradient plotAreaGradient(QGradient::Preset::MorpheusDen);
-//    QBrush plotAreaBrush(plotAreaGradient);
-//    pChart->setBackgroundBrush(plotAreaBrush);
+  QString plotAreaColorStr = theme->property("plotAreaColor").toString();
+  pChart->setPlotAreaBackgroundBrush(QBrush(QColor(plotAreaColorStr)));
+  pChart->setPlotAreaBackgroundVisible(true);
 
-  //QPen pen(QRgb(0xccd0e1)); //0x0080ff
-  QPen pen(QRgb(0x00952d));
+  QString seriesLineColorStr = theme->property("seriesLineColor").toString();
+  auto seriesLineColor = QColor(seriesLineColorStr);
+  QPen pen(seriesLineColor); //0x0080ff
   pen.setWidth(0);
-//  m_spectrumAreaSeries.setPen(pen);
-  m_spectrumLineSeries.setPen(pen);
+  // m_spectrumLineSeries.setPen(pen);
+  m_spectrumAreaSeries.setPen(pen);
 
-//    QGradient seriesGradient(QGradient::Preset::EternalConstance);
-//    QBrush seriesBrush(seriesGradient);
-//    m_spectrumAreaSeries.setBrush(seriesBrush);
+  QString seriesAreaColorStr = theme->property("seriesAreaColor").toString();
+  auto seriesAreaColor = QColor(seriesAreaColorStr);
+  QBrush seriesBrush(seriesAreaColor);
+  m_spectrumAreaSeries.setBrush(seriesBrush);
 
-//  pChart->addSeries(&m_spectrumAreaSeries);
-  pChart->addSeries(&m_spectrumLineSeries);
+  QString gridColorStr = theme->property("gridColor").toString();
+  QPen gridPen(gridColorStr);
+
+
+  pChart->addSeries(&m_spectrumAreaSeries);
+  // pChart->addSeries(&m_spectrumLineSeries);
   pChart->setTitle("Panadapter");
+
+  QString textColorStr = theme->property("textColor").toString();
+  QColor textColor(textColorStr);
+  pChart->setTitleBrush(QBrush(textColor));
+
   pChart->createDefaultAxes();
+
+  for (auto* axis : pChart->axes()) {
+    axis->setGridLinePen(gridPen);
+    axis->setLinePen(gridPen);
+    axis->setLabelsColor(textColor);
+  }
 
   // QLogValueAxis *yAxis = new QLogValueAxis();
   // yAxis->setBase(10.0);
@@ -107,7 +125,7 @@ MainWindow::configurePanadapter()
 
   QList<QAbstractAxis*> xAxes = pChart->axes(Qt::Horizontal);
   if (!xAxes.isEmpty()) {
-    QValueAxis *xAxis = qobject_cast<QValueAxis*>(xAxes.first());
+    auto *xAxis = qobject_cast<QValueAxis*>(xAxes.first());
     xAxis->setRange(m_panadapterXmin, m_panadapterXmax);
     xAxis->setLabelFormat(QString("%i"));
   }
@@ -115,31 +133,9 @@ MainWindow::configurePanadapter()
 
   pChart->legend()->hide();
 
-  m_verticalCursorLine->setPen(QPen(Qt::red, 1.5, Qt::SolidLine));
+  QString cursorLineColorStr = theme->property("cursorLineColor").toString();
+  m_verticalCursorLine->setPen(QPen(QColor(cursorLineColorStr), 1.5, Qt::SolidLine));
   pChart->scene()->addItem(m_verticalCursorLine);
-    /*
-    pChart->addSeries(pSeries);
-    pChart->legend()->hide();
-    pChart->setTitle("Panadapter");
-    QValueAxis *axisX = new QValueAxis();
-    axisX->setTitleText("Frequency");
-    axisX->setLabelFormat("%i");
-    //axisX->setTickCount(pSeries->count());
-    axisX->setRange(0, FFT_SIZE);
-    pChart->addAxis(axisX, Qt::AlignBottom);
-    pSeries->attachAxis(axisX);
-    */
-    /*
-    //QLogValueAxis *axisY = new QLogValueAxis();
-    QValueAxis *axisY = new QValueAxis();
-    axisY->setTitleText("Level");
-    axisY->setLabelFormat("%g");
-    //axisY->setBase(10.0);
-    axisY->setRange(-140, 0);
-    //axisY->setMinorTickCount(-1);
-    pChart->addAxis(axisY, Qt::AlignLeft);
-    pSeries->attachAxis(axisY);
-    */
 }
 
 void
@@ -328,6 +324,7 @@ MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings)
     int32_t loCutWrtFreq = frequencyAtOffset + mode.getLoCut();
     int32_t hioCutWrtFreq = frequencyAtOffset + mode.getHiCut();
     updatePassbandOverlay(chart, loCutWrtFreq, hioCutWrtFreq);
+    updateModeButton(mode);
   }
   m_radioSettings.clearChanged();
 }
@@ -335,8 +332,12 @@ MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings)
 void
 MainWindow::addPassbandOverlay(QChart *chart, int32_t loCut, int32_t hiCut)
 {
+  auto* theme = findChild<ChartTheme*>("panadapterTheme");
+  QString cursorAreaColorStr = theme->property("cursorAreaColor").toString();
+
   m_filterPassbandRect = new QGraphicsRectItem(loCut, 0, hiCut - loCut, 100);
-  m_filterPassbandRect->setBrush(QColor(100, 50, 200, 80)); // Semi-transparent
+  m_filterPassbandRect->setBrush(QColor(cursorAreaColorStr));
+  // m_filterPassbandRect->setBrush(QColor(100, 50, 200, 80)); // Semi-transparent
   m_filterPassbandRect->setPen(Qt::NoPen);
   chart->scene()->addItem(m_filterPassbandRect);
 
@@ -472,11 +473,11 @@ MainWindow::on_actionBand_triggered()
   qDebug() << "on_actionBand_triggered()";
 }
 
-void
-MainWindow::on_actionMode_triggered()
-{
-  qDebug() << "on_actionMode_triggered()";
-}
+// void
+// MainWindow::on_actionMode_triggered()
+// {
+//   qDebug() << "on_actionMode_triggered()";
+// }
 
 void
 MainWindow::on_actionLevels_triggered()
@@ -488,13 +489,17 @@ void MainWindow::initializeWindow()
 {
   ui->setupUi(this);
 
+  auto* panadapterTheme = new ChartTheme(this);
+  panadapterTheme->setObjectName("panadapterTheme");
+  panadapterTheme->setFixedSize(0, 0); // User can't see it, but Style Engine will style it
+
   auto* configBtn = new QToolButton();
   configBtn->setDefaultAction(ui->actionConfigure);
   // tabsBtn->setFixedWidth(100);
   configBtn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
   // Force the button to draw its background based on the current palette
   configBtn->setAutoFillBackground(true);
-  configBtn->setProperty("class", "toolbarButtonA");
+  configBtn->setProperty("class", "toolbarButton toolbarButtonA");
   ui->toolBar->addWidget(configBtn);
 
   auto* bandBtn = new QToolButton();
@@ -503,21 +508,14 @@ void MainWindow::initializeWindow()
   bandBtn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
   // Force the button to draw its background based on the current palette
   bandBtn->setAutoFillBackground(true);
-  bandBtn->setProperty("class", "toolbarButtonB");
+  bandBtn->setProperty("class", "toolbarButton toolbarButtonB");
   ui->toolBar->addWidget(bandBtn);
 
   QWidget* spacer1 = new QWidget();
   spacer1->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   ui->toolBar->addWidget(spacer1);
 
-  auto* modeBtn = new QToolButton();
-  modeBtn->setDefaultAction(ui->actionMode);
-  // tabsBtn->setFixedWidth(100);
-  modeBtn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
-  // Force the button to draw its background based on the current palette
-  modeBtn->setAutoFillBackground(true);
-  modeBtn->setProperty("class", "toolbarButtonC");
-  ui->toolBar->addWidget(modeBtn);
+  addModeButton();
 
   auto* levelsBtn = new QToolButton();
   levelsBtn->setDefaultAction(ui->actionLevels);
@@ -525,7 +523,7 @@ void MainWindow::initializeWindow()
   levelsBtn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
   // Force the button to draw its background based on the current palette
   levelsBtn->setAutoFillBackground(true);
-  levelsBtn->setProperty("class", "toolbarButtonD");
+  levelsBtn->setProperty("class", "toolbarButton toolbarButtonD");
   ui->toolBar->addWidget(levelsBtn);
 
 
@@ -543,6 +541,81 @@ void MainWindow::initializeWindow()
 //    m_suspendResumeButton = new QPushButton(this);
 //    connect(ui->suspendButton, &QPushButton::clicked, this, &MainWindow::toggleSuspend);
 //    layout->addWidget(m_suspendResumeButton);
+}
+
+void
+MainWindow::addModeButton()
+{
+  if (m_pRadio == nullptr) {
+    throw std::runtime_error("No radio instance");
+  }
+  RadioSettings& radioSettings = m_pRadio->getSettings();
+  ModeSettings& modeSettings = radioSettings.getModeSettings();
+
+  delete m_modeButton;
+  m_modeButton = new QToolButton();
+  // modeBtn->setDefaultAction(ui->actionMode);
+  // tabsBtn->setFixedWidth(100);
+  QMenu* modeMenu = createModeMenu(modeSettings, radioSettings.mode);
+  updateModeButton(radioSettings.mode);
+  modeMenu->setProperty("class", "toolbarMenu mode");
+  // modeBtn->setMenu(modeMenu);
+  // Set popup mode (InstantPopup makes the button act like a dropdown)
+  // modeBtn->setPopupMode(QToolButton::InstantPopup);
+  m_modeButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
+  m_modeButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+  // Force the button to draw its background based on the current palette
+  m_modeButton->setAutoFillBackground(true);
+  m_modeButton->setProperty("class", "toolbarButton toolbarButtonC");
+
+  connect(m_modeButton, &QToolButton::pressed, this, [this, modeMenu]() {
+    // Calculate the top-left position of the button in global screen coordinates
+    QPoint pos = m_modeButton->mapToGlobal(QPoint(0, 0));
+
+    // Move the point up by the height of the menu
+    // hint: sizeHint() is usually accurate for menus before they are shown
+    pos.setY(pos.y() - modeMenu->sizeHint().height());
+
+    modeMenu->exec(pos);
+  });
+
+  ui->toolBar->addWidget(m_modeButton);
+}
+
+QMenu*
+MainWindow::createModeMenu(const ModeSettings& modeSettings, const Mode& currentMode)
+{
+  auto modeMenu = new QMenu(this);
+
+  auto* actionGroup = new QActionGroup(this);
+  actionGroup->setExclusive(true); // Only one can be checked at a time
+
+  const std::vector<Mode>& allModes = modeSettings.getAll();
+
+  SettingPath settingPath({RadioSettings::Features::MODE});
+  for (const auto& mode : allModes) {
+    QAction* action = modeMenu->addAction(mode.getName().c_str(), this, [this, mode, settingPath]()
+    {
+      SingleSetting setting(settingPath, mode.getType(), SingleSetting::Meaning::VALUE);
+      m_pRadio->applySingleSetting(setting);
+    });
+    action->setCheckable(true);
+    action->setActionGroup(actionGroup);
+
+    // Highlight the currently active mode
+    if (mode.getType() == currentMode.getType()) {
+      action->setChecked(true);
+    }
+  }
+  return modeMenu;
+}
+
+void
+MainWindow::updateModeButton(const Mode& mode)
+{
+  if (m_modeButton != nullptr) {
+    m_modeButton->setText(mode.getName().c_str());
+  }
 }
 
 void MainWindow::initializeAudio()

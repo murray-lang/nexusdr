@@ -20,6 +20,8 @@ QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
+class QToolButton;
+
 class MainWindow : public QMainWindow
 {
   Q_OBJECT
@@ -33,7 +35,7 @@ public:
 public slots:
   void on_actionConfigure_triggered();
   void on_actionBand_triggered();
-  void on_actionMode_triggered();
+  // void on_actionMode_triggered();
   void on_actionLevels_triggered();
 
 protected:
@@ -76,6 +78,11 @@ private:
   void updatePassbandOverlay(QChart *chart, int32_t loCut, int32_t hiCut);
 
   void initialiseRadio();
+
+  void addModeButton();
+  QMenu* createModeMenu(const ModeSettings& modeSettings, const Mode& currentMode);
+  void updateModeButton(const Mode& mode);
+
 private:
   RadioConfig& m_radioConfig;
   Ui::MainWindow *ui;
@@ -96,6 +103,8 @@ private:
 
   QGraphicsLineItem *m_verticalCursorLine;
   QGraphicsRectItem * m_filterPassbandRect;
+
+  QToolButton* m_modeButton;
 
 };
 

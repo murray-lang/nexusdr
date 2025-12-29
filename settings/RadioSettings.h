@@ -47,6 +47,8 @@ public:
     return *this;
   }
 
+  ModeSettings& getModeSettings() { return modeSettings; }
+
   bool applySetting(const SingleSetting& setting, int startIndex) override
   {
     if (startIndex >= setting.getPath().getFeatures().size()) {

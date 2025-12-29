@@ -29,6 +29,8 @@ public:
   void applySettings(const RadioSettings& settings) override;
   void applySingleSetting(const SingleSetting& settingDelta) override;
 
+  RadioSettings& getSettings() { return m_settings; }
+
   void ptt(bool on) override;
 
 protected:
