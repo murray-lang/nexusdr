@@ -9,8 +9,8 @@
 static std::vector<Mode> modes{
   {Mode::AMN, "AM",  "AM (Narrow)",    -3000,  3000,    0},
   {Mode::AMW, "AMW", "AM (Wide)",      -9000,  9000,    0},
-  {Mode::LSB, "LSB", "Lower Sideband", -6000,  -100,    0},
-  {Mode::USB, "USB", "Upper Sideband",   100,   6000,    0},
+  {Mode::LSB, "LSB", "Lower Sideband", -4000,  -200,    0},
+  {Mode::USB, "USB", "Upper Sideband",   200,   4000,    0},
   {Mode::FMN, "FM",  "FM (Narrow)",    -5000,  5000,    0},
   {Mode::FMW, "FMW", "FM (Wide)",     -15000, 15000,    0},
   {Mode::CWL, "CWL", "CW (Lower)",      -1000,   -50, -700},

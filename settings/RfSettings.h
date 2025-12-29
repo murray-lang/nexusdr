@@ -23,7 +23,7 @@ public:
     GAIN = 0x10,
 
   };
-  RfSettings() : frequency(0), frequencyStep(10000), offset(0), offsetStep(100), gain(0.0) {}
+  RfSettings() : frequency(0), frequencyStep(10000), offset(0), offsetStep(50), gain(0.0) {}
   RfSettings(const RfSettings& rhs) = default;
   ~RfSettings() override = default;
 
