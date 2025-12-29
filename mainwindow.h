@@ -33,10 +33,10 @@ public:
   void customEvent(QEvent* event) override;
 
 public slots:
-  void on_actionConfigure_triggered();
+  // void on_actionConfigure_triggered();
   void on_actionBand_triggered();
   // void on_actionMode_triggered();
-  void on_actionLevels_triggered();
+  // void on_actionLevels_triggered();
 
 protected:
   void handleReceiverIqEvent(const vsdrcomplex* data, uint32_t length, uint32_t sampleRate);
@@ -82,6 +82,8 @@ private:
   void addModeButton();
   QMenu* createModeMenu(const ModeSettings& modeSettings, const Mode& currentMode);
   void updateModeButton(const Mode& mode);
+  void addLevelsButton();
+  void addConfigButton();
 
 private:
   RadioConfig& m_radioConfig;

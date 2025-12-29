@@ -148,6 +148,7 @@ set(PROJECT_SOURCES
         main.cpp
         mainwindow.h mainwindow.cpp
         mainwindow-1024x600.ui
+        resources.qrc
         SampleTypes.h
 
         dsp/utils/FilterCoefficients.h

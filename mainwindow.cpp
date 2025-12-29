@@ -461,11 +461,11 @@ MainWindow::replaceSpectrumSeries(
   spectrumSeries.replace(spectrumPoints);
 }
 
-void
-MainWindow::on_actionConfigure_triggered()
-{
-  qDebug() << "on_actionConfigure_triggered()";
-}
+// void
+// MainWindow::on_actionConfigure_triggered()
+// {
+//   qDebug() << "on_actionConfigure_triggered()";
+// }
 
 void
 MainWindow::on_actionBand_triggered()
@@ -479,11 +479,11 @@ MainWindow::on_actionBand_triggered()
 //   qDebug() << "on_actionMode_triggered()";
 // }
 
-void
-MainWindow::on_actionLevels_triggered()
-{
-  qDebug() << "on_actionLevels_triggered()";
-}
+// void
+// MainWindow::on_actionLevels_triggered()
+// {
+//   qDebug() << "on_actionLevels_triggered()";
+// }
 
 void MainWindow::initializeWindow()
 {
@@ -493,14 +493,10 @@ void MainWindow::initializeWindow()
   panadapterTheme->setObjectName("panadapterTheme");
   panadapterTheme->setFixedSize(0, 0); // User can't see it, but Style Engine will style it
 
-  auto* configBtn = new QToolButton();
-  configBtn->setDefaultAction(ui->actionConfigure);
-  // tabsBtn->setFixedWidth(100);
-  configBtn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
-  // Force the button to draw its background based on the current palette
-  configBtn->setAutoFillBackground(true);
-  configBtn->setProperty("class", "toolbarButton toolbarButtonA");
-  ui->toolBar->addWidget(configBtn);
+  // qDebug() << "Current Icon Theme:" << QIcon::themeName();
+  // qDebug() << "Icon Search Paths:" << QIcon::themeSearchPaths();
+
+  addConfigButton();
 
   auto* bandBtn = new QToolButton();
   bandBtn->setDefaultAction(ui->actionBand);
@@ -516,15 +512,8 @@ void MainWindow::initializeWindow()
   ui->toolBar->addWidget(spacer1);
 
   addModeButton();
+  addLevelsButton();
 
-  auto* levelsBtn = new QToolButton();
-  levelsBtn->setDefaultAction(ui->actionLevels);
-  // tabsBtn->setFixedWidth(100);
-  levelsBtn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
-  // Force the button to draw its background based on the current palette
-  levelsBtn->setAutoFillBackground(true);
-  levelsBtn->setProperty("class", "toolbarButton toolbarButtonD");
-  ui->toolBar->addWidget(levelsBtn);
 
 
 
@@ -616,6 +605,35 @@ MainWindow::updateModeButton(const Mode& mode)
   if (m_modeButton != nullptr) {
     m_modeButton->setText(mode.getName().c_str());
   }
+}
+
+void
+MainWindow::addLevelsButton()
+{
+  auto* levelsBtn = new QToolButton();
+  // levelsBtn->setDefaultAction(ui->actionLevels);
+  // tabsBtn->setFixedWidth(100);
+  levelsBtn->setIcon(QIcon(":ui//icons/sliders.svg"));
+  levelsBtn->setToolButtonStyle(Qt::ToolButtonIconOnly);
+  levelsBtn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+  // Force the button to draw its background based on the current palette
+  levelsBtn->setAutoFillBackground(true);
+  levelsBtn->setProperty("class", "toolbarButton toolbarButtonD");
+  ui->toolBar->addWidget(levelsBtn);
+}
+
+void
+MainWindow::addConfigButton()
+{
+  auto* configBtn = new QToolButton();
+  // configBtn->setDefaultAction(ui->actionConfigure);
+  // tabsBtn->setFixedWidth(100);
+  configBtn->setIcon(QIcon(":ui//icons/gear.svg"));
+  configBtn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+  // Force the button to draw its background based on the current palette
+  configBtn->setAutoFillBackground(true);
+  configBtn->setProperty("class", "toolbarButton toolbarButtonA");
+  ui->toolBar->addWidget(configBtn);
 }
 
 void MainWindow::initializeAudio()
