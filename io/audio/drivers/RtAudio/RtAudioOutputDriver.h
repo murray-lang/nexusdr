@@ -107,7 +107,7 @@ public:
     if (samplesToCopy < samplesNeeded) {
       std::fill(out, out + (samplesNeeded - samplesToCopy), static_cast<T>(0));
       // Optionally log underrun here
-      qDebug() << "Audio underrun: needed" << samplesNeeded << "but got" << samplesToCopy;
+      // qDebug() << "Audio underrun: needed" << samplesNeeded << "but got" << samplesToCopy;
     }
 
     return 0; // 0: continue, nonzero: stop

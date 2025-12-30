@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>BandDialog</class>
+ <widget class="QDialog" name="BandDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>250</width>
+    <height>200</height>
+   </rect>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>250</width>
+    <height>200</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string/>
+  </property>
+  <property name="class" stdset="0">
+   <string>toolbarDialog</string>
+  </property>
+  <widget class="QTabWidget" name="tabWidget">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>250</width>
+     <height>200</height>
+    </rect>
+   </property>
+   <property name="currentIndex">
+    <number>-1</number>
+   </property>
+   <property name="class" stdset="0">
+    <string>toolbarDialogTabs</string>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

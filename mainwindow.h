@@ -84,6 +84,7 @@ private:
   void updateModeButton(const Mode& mode);
   void addLevelsButton();
   void addConfigButton();
+  void addBandButton();
 
 private:
   RadioConfig& m_radioConfig;
@@ -107,6 +108,6 @@ private:
   QGraphicsRectItem * m_filterPassbandRect;
 
   QToolButton* m_modeButton;
-
+  QToolButton* m_bandButton;
 };
 

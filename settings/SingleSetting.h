@@ -11,7 +11,7 @@
 class SingleSetting
 {
 public:
-  using ValueType = std::variant<uint32_t, int32_t, Mode::Type, float, double, std::string, bool>;
+  using ValueType = std::variant<uint64_t, uint32_t, int32_t, Mode::Type, float, double, std::string, bool>;
 
   enum Meaning
   {

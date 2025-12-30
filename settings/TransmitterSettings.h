@@ -8,6 +8,7 @@
 #include "MicSettings.h"
 #include "RfSettings.h"
 #include "TestSettings.h"
+#include "ModeSettings.h"
 
 class TransmitterSettings : public SettingsBase {
 public:
@@ -18,9 +19,12 @@ public:
     RF = 0x02,
     CORRECTION = 0x04,
     MIC = 0x08,
-    TEST = 0x10
+    TEST = 0x10,
+    BAND = 0x20
   };
-  TransmitterSettings() = default;
+  TransmitterSettings(const Bands& bands, const ModeSettings& modeSettings) :
+    modeSettings(modeSettings), bands(bands), rfSettings()
+  {}
   TransmitterSettings(const TransmitterSettings& rhs) = default;
   ~TransmitterSettings() override = default;
 
@@ -33,6 +37,7 @@ public:
       micSettings = rhs.micSettings;
       testSettings = rhs.testSettings;
       mode = rhs.mode;
+      band = rhs.band;
     }
     return *this;
   }
@@ -43,6 +48,24 @@ public:
   }
   [[nodiscard]] const Mode& getMode() const { return mode; }
 
+  bool setBand(const Band& newBand)
+  {
+    if (band.getName() != newBand.getName()) {
+      band = newBand;
+      changed |= BAND;
+      if (band.isValid()) {
+        if (rfSettings.setBand(band)) {
+          changed |= RF;
+          Mode newMode = modeSettings.getModeByType(band.getDefaultMode());
+          setMode(newMode);
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+  [[nodiscard]] const Band& getBand() const { return band; }
+
   bool applySetting(const SingleSetting& setting, int startIndex) override
   {
     if (startIndex >= setting.getPath().getFeatures().size()) {
@@ -52,6 +75,18 @@ public:
     uint32_t feature = setting.getPath().getFeatures()[startIndex];
     if (feature == RF) {
       settingChange = rfSettings.applySetting(setting, startIndex + 1);
+      if (rfSettings.changed & RfSettings::FREQUENCY || rfSettings.changed & RfSettings::OFFSET) {
+        uint64_t frequency = rfSettings.frequency + rfSettings.offset;
+        if (!band.isValid() || !band.containsFrequency(frequency)) {
+          const Band* newBand = bands.findBand(frequency);
+          if (newBand != nullptr) {
+            band = *newBand;
+          } else {
+            band.invalidate();
+          }
+          changed |= BAND;
+        }
+      }
     } else if (feature == CORRECTION) {
       settingChange = correctionSettings.applySetting(setting, startIndex + 1);
     } else if (feature == MIC) {
@@ -106,6 +141,9 @@ public:
   }
 
   Mode mode;
+  const ModeSettings& modeSettings;
+  Band band;
+  const Bands& bands;
   RfSettings rfSettings;
   IqCorrectionSettings correctionSettings;
   MicSettings micSettings;

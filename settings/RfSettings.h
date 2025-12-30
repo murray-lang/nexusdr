@@ -7,6 +7,7 @@
 
 #include <cstdint>
 
+#include "Bands.h"
 #include "SettingsBase.h"
 #include "SettingsException.h"
 
@@ -20,8 +21,7 @@ public:
     FREQUENCY_STEP = 0x02,
     OFFSET = 0x04,
     OFFSET_STEP = 0x08,
-    GAIN = 0x10,
-
+    GAIN = 0x10
   };
   RfSettings() : frequency(0), frequencyStep(10000), offset(0), offsetStep(50), gain(0.0) {}
   RfSettings(const RfSettings& rhs) = default;
@@ -38,6 +38,20 @@ public:
       gain = rhs.gain;
     }
     return *this;
+  }
+
+  bool setBand(const Band& band)
+  {
+    if (band.isValid()) {
+      uint64_t freqPlusOffset = frequency + offset;
+      if (!band.containsFrequency(freqPlusOffset)) {
+        frequency = band.getLandingFrequency();
+        offset = 0;
+        changed |= FREQUENCY | OFFSET;
+        return true;
+      }
+    }
+    return false;
   }
 
   bool applySetting(const SingleSetting& setting, int startIndex) override

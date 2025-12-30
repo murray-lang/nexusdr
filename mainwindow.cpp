@@ -11,6 +11,8 @@
 #include <QVariant>
 #include <QMenu>
 #include <QActionGroup>
+#include <QDialog>
+#include <QVBoxLayout>
 #include "io/audio/drivers/RtAudio/RtAudioInputDriver.h"
 #include <cmath>
 #include "io/control/device/usb/UsbException.h"
@@ -25,8 +27,9 @@
 #include "radio/transmitter/TransmitterIqEvent.h"
 
 #include <QToolButton>
-
 #include "ui/qt/ChartTheme.h"
+#include "settings/Bands.h"
+#include "ui/qt/BandDialog.h"
 
 #define FFT_SIZE 2048
 #define SAMPLE_RATE 192000
@@ -104,7 +107,7 @@ MainWindow::configurePanadapter()
 
   pChart->addSeries(&m_spectrumAreaSeries);
   // pChart->addSeries(&m_spectrumLineSeries);
-  pChart->setTitle("Panadapter");
+  // pChart->setTitle("Panadapter");
 
   QString textColorStr = theme->property("textColor").toString();
   QColor textColor(textColorStr);
@@ -470,7 +473,18 @@ MainWindow::replaceSpectrumSeries(
 void
 MainWindow::on_actionBand_triggered()
 {
-  qDebug() << "on_actionBand_triggered()";
+  if (m_bandButton != nullptr) {
+    auto* dialog = new BandDialog(m_pRadio, this);
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+
+    // Position it
+    dialog->adjustSize();
+    QPoint pos = m_bandButton->mapToGlobal(QPoint(0, 0));
+    pos.setY(pos.y() - dialog->frameGeometry().height());
+
+    dialog->move(pos);
+    dialog->show();
+  }
 }
 
 // void
@@ -497,15 +511,7 @@ void MainWindow::initializeWindow()
   // qDebug() << "Icon Search Paths:" << QIcon::themeSearchPaths();
 
   addConfigButton();
-
-  auto* bandBtn = new QToolButton();
-  bandBtn->setDefaultAction(ui->actionBand);
-  // tabsBtn->setFixedWidth(100);
-  bandBtn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
-  // Force the button to draw its background based on the current palette
-  bandBtn->setAutoFillBackground(true);
-  bandBtn->setProperty("class", "toolbarButton toolbarButtonB");
-  ui->toolBar->addWidget(bandBtn);
+  addBandButton();
 
   QWidget* spacer1 = new QWidget();
   spacer1->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
@@ -513,9 +519,6 @@ void MainWindow::initializeWindow()
 
   addModeButton();
   addLevelsButton();
-
-
-
 
     //m_volumeSlider = new QSlider(Qt::Horizontal, this);
     ui->volumeSlider->setRange(0, 100);
@@ -613,7 +616,7 @@ MainWindow::addLevelsButton()
   auto* levelsBtn = new QToolButton();
   // levelsBtn->setDefaultAction(ui->actionLevels);
   // tabsBtn->setFixedWidth(100);
-  levelsBtn->setIcon(QIcon(":ui//icons/sliders.svg"));
+  levelsBtn->setIcon(QIcon(":ui//icons/solid/sliders.svg"));
   levelsBtn->setToolButtonStyle(Qt::ToolButtonIconOnly);
   levelsBtn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
   // Force the button to draw its background based on the current palette
@@ -628,12 +631,23 @@ MainWindow::addConfigButton()
   auto* configBtn = new QToolButton();
   // configBtn->setDefaultAction(ui->actionConfigure);
   // tabsBtn->setFixedWidth(100);
-  configBtn->setIcon(QIcon(":ui//icons/gear.svg"));
+  configBtn->setIcon(QIcon(":ui//icons/solid/gear.svg"));
   configBtn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
   // Force the button to draw its background based on the current palette
   configBtn->setAutoFillBackground(true);
   configBtn->setProperty("class", "toolbarButton toolbarButtonA");
   ui->toolBar->addWidget(configBtn);
+}
+
+void
+MainWindow::addBandButton()
+{
+  m_bandButton = new QToolButton();
+  m_bandButton->setDefaultAction(ui->actionBand);
+  m_bandButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+  m_bandButton->setAutoFillBackground(true);
+  m_bandButton->setProperty("class", "toolbarButton toolbarButtonB");
+  ui->toolBar->addWidget(m_bandButton);
 }
 
 void MainWindow::initializeAudio()

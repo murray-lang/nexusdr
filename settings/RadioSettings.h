@@ -13,6 +13,8 @@
 #include <string>
 #include <vector>
 
+#include "Band.h"
+#include "Bands.h"
 #include "SettingsException.h"
 #include "../util/StringUtils.h"
 
@@ -27,11 +29,13 @@ public:
     FREQUENCY = 0x04,
     OFFSET = 0x08,
     TX = 0x10,
-    RX = 0x20//,
-    // TXRX = TX | RX
+    RX = 0x20,
+    BAND = 0x40
   };
 
-  RadioSettings() : ptt(false), mode(), modeSettings(), rxSettings(), txSettings() {};
+  RadioSettings() :
+  ptt(false), mode(), band(), bands(), modeSettings(), rxSettings(bands, modeSettings), txSettings(bands, modeSettings)
+  {};
   RadioSettings(const RadioSettings& rhs) = default;
   
   ~RadioSettings() override = default;
@@ -41,6 +45,7 @@ public:
     if (this != &rhs) {
       SettingsBase::operator=(rhs);
       mode = rhs.mode;
+      band = rhs.band;
       rxSettings = rhs.rxSettings;
       txSettings = rhs.txSettings;
     }
@@ -84,32 +89,55 @@ public:
         settingChange = true;
       }
     }
-    if ((feature & FREQUENCY) != 0) {
-      SingleSetting frequencySetting(setting);
-      frequencySetting.setPath(SettingPath({ReceiverSettings::RF, RfSettings::FREQUENCY}));
-      if (rxSettings.applySetting(frequencySetting, 0)) {
-        changed |= RX | FREQUENCY;
-        settingChange = true;
+    if ((feature & BAND) != 0) {
+      const std::string bandName = std::get<std::string>(setting.getValue());
+      const Band* newBand = bands.findBand(bandName);
+      if (newBand != nullptr) {
+        if (band.getName() != newBand->getName()) {
+          band = *newBand;
+          changed |= BAND;
+          if (txSettings.setBand(band)) {
+            changed |= TX;
+          }
+          if (rxSettings.setBand(band)) {
+            changed |= RX;
+          }
+          settingChange = true;
+        }
       }
-      frequencySetting.setPath(SettingPath({TransmitterSettings::RF, RfSettings::FREQUENCY}));
-      if (txSettings.applySetting(frequencySetting, 0)) {
-        changed |= TX | FREQUENCY;
-        settingChange = true;
+
+    } else {
+      if ((feature & FREQUENCY) != 0) {
+        SingleSetting frequencySetting(setting);
+        frequencySetting.setPath(SettingPath({ReceiverSettings::RF, RfSettings::FREQUENCY}));
+        if (rxSettings.applySetting(frequencySetting, 0)) {
+          changed |= RX | FREQUENCY;
+          band = rxSettings.band;
+          settingChange = true;
+        }
+        frequencySetting.setPath(SettingPath({TransmitterSettings::RF, RfSettings::FREQUENCY}));
+        if (txSettings.applySetting(frequencySetting, 0)) {
+          changed |= TX | FREQUENCY;
+          band = rxSettings.band;
+          settingChange = true;
+        }
+      }
+      if ((feature & OFFSET) != 0) {
+        SingleSetting offsetSetting(setting);
+        offsetSetting.setPath(SettingPath({ReceiverSettings::RF, RfSettings::OFFSET}));
+        if (rxSettings.applySetting(offsetSetting, 0)) {
+          changed |= RX | OFFSET;
+          settingChange = true;
+        }
+        offsetSetting.setPath(SettingPath({TransmitterSettings::RF, RfSettings::OFFSET}));
+        if (txSettings.applySetting(offsetSetting, 0)) {
+          changed |= TX | OFFSET;
+          settingChange = true;
+        }
       }
     }
-    if ((feature & OFFSET) != 0) {
-      SingleSetting offsetSetting(setting);
-      offsetSetting.setPath(SettingPath({ReceiverSettings::RF, RfSettings::OFFSET}));
-      if (rxSettings.applySetting(offsetSetting, 0)) {
-        changed |= RX | OFFSET;
-        settingChange = true;
-      }
-      offsetSetting.setPath(SettingPath({TransmitterSettings::RF, RfSettings::OFFSET}));
-      if (txSettings.applySetting(offsetSetting, 0)) {
-        changed |= TX | OFFSET;
-        settingChange = true;
-      }
-    }
+
+
     return settingChange;
   }
 
@@ -165,6 +193,8 @@ public:
   }
   bool ptt;
   Mode mode;
+  Band band;
+  Bands bands;
   ModeSettings modeSettings;
   ReceiverSettings rxSettings;
   TransmitterSettings txSettings;

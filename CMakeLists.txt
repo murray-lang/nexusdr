@@ -337,6 +337,12 @@ set(PROJECT_SOURCES
         io/audio/drivers/AudioOutputDriver.h
         dsp/pipeline/modulators/FmModulator.h
         ui/qt/ChartTheme.h
+        ui/qt/BandDialog.cpp
+        ui/qt/BandDialog.h
+        settings/Band.h
+        settings/BandCategory.h
+        settings/Bands.h
+        settings/Bands.cpp
 
 )
 

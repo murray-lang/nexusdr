@@ -132,6 +132,14 @@ Radio::applySingleSetting(const SingleSetting& setting)
   }
 }
 
+void
+Radio::applyBand(const std::string& bandName)
+{
+  SettingPath bandPath({RadioSettings::Features::BAND});
+  SingleSetting bandSetting(bandPath, bandName, SingleSetting::Meaning::VALUE);
+  applySingleSetting( bandSetting);
+}
+
 void Radio::ptt(bool on)
 {
   if (on) {
