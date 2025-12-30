@@ -7,8 +7,8 @@ QChartView {
 
 #panadapterTheme {
     qproperty-textColor: "white";
-    qproperty-backgroundColor: "#065a7f";
-    qproperty-plotAreaColor: "#065a7f";
+    qproperty-backgroundColor: "#0c394c";
+    qproperty-plotAreaColor: "#0c394c";
     qproperty-seriesLineColor: "#00d03f";
     qproperty-seriesAreaColor: "#00952d";
     qproperty-gridColor: "#061922";
@@ -105,4 +105,47 @@ QMenu.toolbarMenu::item {
 QMenu.toolbarMenu.mode::item:selected {
     background-color: #0b5922;
     color: white;
+}
+
+.toolbarDialog {
+    background-color: #ff0c394c;
+    opacity: 1;
+}
+
+.toolbarDialogTabs {
+    background-color: #ff0384bc;
+    opacity: 1;
+}
+
+.toolbarDialogTabs QTabBar::tab {
+    background-color: #065a7f;
+    opacity: 1;
+    font-weight: bold;
+}
+
+.toolbarDialogTabs QTabBar::tab:selected {
+    background-color: #ff0384bc;
+    opacity: 1;
+}
+/*
+.toolbarDialogTabs::pane {
+    background-color: red;
+    opacity: 1;
+}
+*/
+
+.toolbarDialogTab {
+    opacity: 1;
+}
+
+QPushButton.toolbarDialogButton {
+    background-color: #0c394c;
+    opacity: 1;
+    color: white;
+}
+
+QPushButton.toolbarDialogButton[selected=true] {
+    background-color: #0384bc;
+    opacity: 1;
+    color: black;
 }
