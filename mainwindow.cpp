@@ -206,7 +206,7 @@ MainWindow::customEvent(QEvent* event)
 void
 MainWindow::handleReceiverIqEvent(const vsdrcomplex* data, uint32_t length, uint32_t sampleRate)
 {
-  // m_reportedIqSampleRate = sampleRate;
+  m_reportedIqSampleRate = sampleRate;
   vsdrreal spectrum(length);
   powerSpectrum(*data, length, spectrum);
   // if (spectrum.size() != m_panadapterXmax) {
@@ -296,7 +296,7 @@ MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings)
   bool modeChanged = (m_radioSettings.changed & RadioSettings::Features::MODE) != 0;
 
   if (frequencyChanged || offsetChanged || modeChanged) {
-    int32_t centreFrequency = static_cast<int32_t>(m_radioSettings.rxSettings.rfSettings.frequency);
+    auto centreFrequency = static_cast<int32_t>(m_radioSettings.rxSettings.rfSettings.frequency);
     int32_t offset = m_radioSettings.rxSettings.rfSettings.offset;
     int32_t frequencyAtOffset = centreFrequency + offset;
 
