@@ -101,6 +101,11 @@ public:
           }
           if (rxSettings.setBand(band)) {
             changed |= RX;
+            if (rxSettings.changed & ReceiverSettings::MODE) {
+              mode = rxSettings.getMode();
+              txSettings.setMode(mode);
+              changed |= MODE;
+            }
           }
           settingChange = true;
         }
