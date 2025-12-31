@@ -15,7 +15,7 @@
 #include "radio/Radio.h"
 
 BandDialog::BandDialog(Radio* pRadio, QWidget *parent) :
-  QDialog(parent, Qt::Tool | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint), // Set flags here
+  QDialog(parent, Qt::ToolTip | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint), // Set flags here
   ui(new Ui::BandDialog),
   m_pRadio(pRadio)
 {
