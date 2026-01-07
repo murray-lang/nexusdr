@@ -19,6 +19,7 @@ public:
     // void applySettings(const RadioSettings& radioSettings) override;
     // void readSettings(RadioSettings& radioSettings) override;
   void applySettings(const RadioSettings& radioSettings, BandSettings* pBandSettings) override;
+  void applySettings(const RadioSettings& radioSettings) override {}
   void applySingleSetting(const SingleSetting& settingDelta) override
   {
     // throw ControlException("FunCubeDongle::applySingleSetting() not implemented.");

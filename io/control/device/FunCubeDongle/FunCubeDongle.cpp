@@ -49,6 +49,7 @@ FunCubeDongle::applySettings(const RadioSettings& radioSettings, BandSettings* p
   }
 }
 
+
 void FunCubeDongle::ptt(bool on)
 {
 

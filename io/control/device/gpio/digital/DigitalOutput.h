@@ -32,6 +32,8 @@ public:
   void ptt(bool on) override {};
 
   void applySingleSetting(const SingleSetting& setting) override;
+  void applySettings(const RadioSettings& radioSettings, BandSettings* pBandSettings) override {}
+  void applySettings(const RadioSettings& radioSettings) override {}
 
   void setValue(bool value);
 
