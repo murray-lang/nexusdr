@@ -148,15 +148,16 @@ public:
     } else if (featureStrings[startIndex] == "pipeline") {
       featuresOut.push_back(PIPELINE);
       if (startIndex + 1 < featureStrings.size()) {
-        bool validSettingForRxPipeline = true;
-        try {
-          RxPipelineSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
-        } catch (SettingsException& e) {
-          validSettingForRxPipeline = false;
-        }
-        if (!validSettingForRxPipeline) {
-          TxPipelineSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
-        }
+        BandSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
+        // bool validSettingForRxPipeline = true;
+        // try {
+        //   RxPipelineSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
+        // } catch (SettingsException& e) {
+        //   validSettingForRxPipeline = false;
+        // }
+        // if (!validSettingForRxPipeline) {
+        //   TxPipelineSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
+        // }
       }
     } else {
       throw SettingsException("Unknown Radio setting: " + featureStrings[startIndex]);

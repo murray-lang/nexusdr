@@ -93,7 +93,12 @@ public:
     size_t startIndex
     )
   {
+    int numFeaturesBefore = featuresOut.size(); // Temporary kludge to detect no feature matched
     PipelineSettings::getFeaturePath(featureStrings, featuresOut, startIndex);
+    int numFeaturesAfter = featuresOut.size();
+    if (numFeaturesAfter > numFeaturesBefore) {
+      return; // A feature was matched by the base class
+    }
 
     if (startIndex >= featureStrings.size()) {
       throw SettingsException("Invalid feature path");

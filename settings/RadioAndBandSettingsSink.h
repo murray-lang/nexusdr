@@ -8,8 +8,8 @@
 class RadioAndBandSettingsSink : public RadioSettingsSink
 {
 public:
-  virtual void applySettings(const RadioSettings& settings, BandSettings* pBandSettings)
-  {
-    throw ControlException("RadioAndBandSettingsSink::applySettings() not implemented.");
-  }
+  virtual void applySettings(const RadioSettings& settings, BandSettings* pBandSettings) = 0;
+  // {
+  //   throw ControlException("RadioAndBandSettingsSink::applySettings() not implemented.");
+  // }
 };
