@@ -27,17 +27,17 @@ public:
   }
   void setCycle(bool cycle) { m_cycle = cycle;}
 
-  [[nodiscard]] const std::vector<Mode>& getAll() const { return m_modes; }
+  static const std::vector<Mode>& getAll();
   [[nodiscard]] bool getCycle() const { return m_cycle; }
-  [[nodiscard]] size_t getCount() const { return m_modes.size(); }
-  [[nodiscard]] int getIndexByType(Mode::Type type) const;
-  [[nodiscard]] int getIndexByName(const std::string& name) const;
-  [[nodiscard]] const Mode& getModeByType(Mode::Type type) const;
-  [[nodiscard]] const Mode& getModeByName(const std::string& name) const;
-  [[nodiscard]] const Mode& getModeAt(size_t index) { return m_modes.at(index); }
-  [[nodiscard]] const Mode& getCurrentMode() { return m_modes.at(m_currentIndex); }
+  static size_t getCount();
+  static int getIndexByType(Mode::Type type);
+  static int getIndexByName(const std::string& name);
+  static const Mode& getModeByType(Mode::Type type);
+  static const Mode& getModeByName(const std::string& name);
+  static const Mode& getModeAt(size_t index);
+  [[nodiscard]] const Mode& getCurrentMode() const;
   [[nodiscard]] int getCurrentIndex() const { return m_currentIndex; }
-  [[nodiscard]] int getNumModes() const { return static_cast<int>(m_modes.size()); }
+  static int getNumModes();
   bool increment();
   bool decrement();
 
@@ -47,5 +47,5 @@ public:
 protected:
   bool m_cycle;
   int m_currentIndex;
-  std::vector<Mode> m_modes;
+  // std::vector<Mode> m_modes;
 };

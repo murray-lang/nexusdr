@@ -38,7 +38,18 @@ public:
   Band(const Band& rhs) = default;
   ~Band() = default;
 
-  Band& operator=(const Band& rhs) = default;
+  Band& operator=(const Band& rhs)
+  {
+    if (this != &rhs) {
+      m_name = rhs.m_name;
+      m_label = rhs.m_label;
+      m_lowestFrequency = rhs.m_lowestFrequency;
+      m_highestFrequency = rhs.m_highestFrequency;
+      m_landingFrequency = rhs.m_landingFrequency;
+      m_defaultMode = rhs.m_defaultMode;
+    }
+    return *this;
+  }
 
   Band& invalidate()
   {

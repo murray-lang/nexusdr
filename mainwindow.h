@@ -14,7 +14,7 @@
 #include "io/audio/drivers/RtAudio/RtAudioOutputDriver.h"
 #include "radio/Radio.h"
 #include "config/RadioConfig.h"
-#include "settings/RadioSettingsEventPublisher.h"
+// #include "settings/RadioSettingsEventPublisher.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -43,19 +43,21 @@ protected:
   void handleReceiverAudioEvent(const vsdrreal* data, uint32_t length);
   void handleTransmitterIqEvent(const vsdrcomplex* data, uint32_t length, uint32_t sampleRate);
   void handleTransmitterAudioEvent(const vsdrreal* data, uint32_t length);
-  void handleRadioSettingsEvent(const RadioSettings& radioSettings);
+  void handleRadioSettingsEvent(const RadioSettings& radioSettings, const BandSettings& bandSettings);
   static void powerSpectrum(const std::vector<sdrcomplex>& timeSeries, uint32_t timeSeriesLength, vsdrreal& spectrumOut);
 
   void replaceSpectrumSeries(
     const vsdrreal* spectrumData,
     QLineSeries& spectrumSeries,
     uint32_t sampleRate,
+    uint32_t centreFrequency,
     bool shuffle = true
   );
   void replaceSpectrumSeries(
     const vsdrcomplex* spectrumData,
     QLineSeries& spectrumSeries,
     uint32_t sampleRate,
+    uint32_t centreFrequency,
     bool shuffle = true
   );
 
@@ -80,7 +82,7 @@ private:
   void initialiseRadio();
 
   void addModeButton();
-  QMenu* createModeMenu(const ModeSettings& modeSettings, const Mode& currentMode);
+  QMenu* createModeMenu(const Mode& currentMode);
   void updateModeButton(const Mode& mode);
   void addLevelsButton();
   void addConfigButton();
@@ -103,6 +105,7 @@ private:
   uint32_t m_timeSeriesXmin;
   uint32_t m_timeSeriesXmax;
   RadioSettings m_radioSettings;
+  BandSettings m_bandSettings;
 
   QGraphicsLineItem *m_verticalCursorLine;
   QGraphicsRectItem * m_filterPassbandRect;

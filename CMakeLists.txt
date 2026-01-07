@@ -239,7 +239,6 @@ set(PROJECT_SOURCES
         io/control/ControlSink.cpp
         io/control/ControlSink.h
         settings/RadioSettingsSource.h
-        io/control/ControlSource.cpp
         io/control/ControlSource.h
         io/control/PttSource.h
         io/control/ControlSourceFactory.cpp
@@ -279,7 +278,6 @@ set(PROJECT_SOURCES
         config/FunCubeConfig.h
         settings/RadioSettingsEvent.cpp
         settings/RadioSettingsEvent.h
-        settings/RadioSettingsEventPublisher.h
         settings/SingleSettingEvent.cpp
         settings/SingleSettingEvent.h
         io/control/device/gpio/GpioLines.cpp
@@ -343,6 +341,13 @@ set(PROJECT_SOURCES
         settings/BandCategory.h
         settings/Bands.h
         settings/Bands.cpp
+        settings/PipelineSettings.h
+        settings/RxPipelineSettings.h
+        settings/BandSettings.h
+        settings/TxPipelineSettings.h
+        settings/RadioAndBandSettingsSink.h
+        settings/SingleSettingSink.h
+        settings/SingleSettingSource.h
 
 )
 

@@ -3,17 +3,24 @@
 //
 
 #pragma once
+#include "SingleSettingSink.h"
+#include "io/control/ControlException.h"
 
 // #include "RadioSettings.h"
 
 class RadioSettings;
 class SingleSetting;
+class BandSettings;
 
-class RadioSettingsSink
+class RadioSettingsSink : public SingleSettingSink
 {
 public:
-  virtual ~RadioSettingsSink() = default;
-  virtual void applySettings(const RadioSettings& settings) = 0;
-  virtual void applySingleSetting(const SingleSetting& settingDelta) = 0;
+  ~RadioSettingsSink() override = default;
+  virtual void applySettings(const RadioSettings& settings)
+  {
+    throw ControlException("RadioSettingsSink::applySettings() not implemented.");
+  }
+  // virtual void applySettings(const RadioSettings& settings, PerBandSettings* pBandSettings) = 0;
+
 
 };

@@ -77,6 +77,14 @@ RadioControl::applySettings(const RadioSettings& settings)
 }
 
 void
+RadioControl::applySettings(const RadioSettings& settings, BandSettings* pBandSettings)
+{
+  for (RadioAndBandSettingsSink* pSink : m_controlSinks) {
+    pSink->applySettings(settings, pBandSettings);
+  }
+}
+
+void
 RadioControl::applySingleSetting(const SingleSetting& setting)
 {
   for (RadioSettingsSink* pSink : m_controlSinks) {

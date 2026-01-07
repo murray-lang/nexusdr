@@ -29,6 +29,7 @@
 #include <QToolButton>
 #include "ui/qt/ChartTheme.h"
 #include "settings/Bands.h"
+#include "settings/RadioSettingsEvent.h"
 #include "ui/qt/BandDialog.h"
 
 #define FFT_SIZE 2048
@@ -193,7 +194,7 @@ MainWindow::customEvent(QEvent* event)
     handleReceiverAudioEvent(audioEvent->buffer.get(), audioEvent->dataLength);
   } else if (event->type() == RadioSettingsEvent::RadioSettingsEventType) {
     auto* radioSettingsEvent = dynamic_cast<RadioSettingsEvent*>(event);
-    handleRadioSettingsEvent(radioSettingsEvent->getSettings());
+    handleRadioSettingsEvent(radioSettingsEvent->getRadioSettings(), radioSettingsEvent->getBandSettings());
   } else if (event->type() == TransmitterIqEvent::TxIqEvent) {
     auto* iqEvent = dynamic_cast<TransmitterIqEvent*>(event);
     handleTransmitterIqEvent(iqEvent->buffer.get(), iqEvent->dataLength, iqEvent->sampleRate);
@@ -212,13 +213,17 @@ MainWindow::handleReceiverIqEvent(const vsdrcomplex* data, uint32_t length, uint
   // if (spectrum.size() != m_panadapterXmax) {
   //   setPanadapterX(0, spectrum.size());
   // }
-  uint32_t centreFrequency = m_radioSettings.rxSettings.rfSettings.frequency;
-  uint32_t xMin = centreFrequency - (sampleRate / 2);
-  uint32_t xMax = centreFrequency + (sampleRate / 2);
-  if (m_panadapterXmin != xMin || m_panadapterXmax != xMax) {
-    setPanadapterX(xMin, xMax);
+  RxPipelineSettings* rxPipelineSettings = m_bandSettings.getFocusRxPipelineSettings();
+  if (rxPipelineSettings != nullptr) {
+    const RfSettings& rfSettings = rxPipelineSettings->getRfSettings();
+    uint32_t centreFrequency = rfSettings.frequency;
+    uint32_t xMin = centreFrequency - (sampleRate / 2);
+    uint32_t xMax = centreFrequency + (sampleRate / 2);
+    if (m_panadapterXmin != xMin || m_panadapterXmax != xMax) {
+      setPanadapterX(xMin, xMax);
+    }
+    replaceSpectrumSeries(&spectrum, m_spectrumLineSeries, sampleRate, rfSettings.frequency, true);
   }
-  replaceSpectrumSeries(&spectrum, m_spectrumLineSeries, sampleRate, true);
 }
 
 void
@@ -230,17 +235,17 @@ MainWindow::handleTransmitterIqEvent(const vsdrcomplex* data, uint32_t length, u
   // if (spectrum.size() != m_panadapterXmax) {
   //   setPanadapterX(0, spectrum.size());
   // }
-  uint32_t centreFrequency = m_radioSettings.txSettings.rfSettings.frequency;
-  uint32_t xMin = centreFrequency - (sampleRate / 2);
-  uint32_t xMax = centreFrequency + (sampleRate / 2);
-  // uint32_t xMin = centreFrequency - 4000;
-  // uint32_t xMax = centreFrequency + 4000;
-  // uint32_t xMin = 7104000;
-  // uint32_t xMax = 7108000;
-  if (m_panadapterXmin != xMin || m_panadapterXmax != xMax) {
-    setPanadapterX(xMin, xMax);
+  TxPipelineSettings* txPipelineSettings = m_bandSettings.getTxPipelineSettings();
+  if (txPipelineSettings != nullptr) {
+    const RfSettings& rfSettings = txPipelineSettings->getRfSettings();
+    uint32_t centreFrequency = rfSettings.frequency;
+    uint32_t xMin = centreFrequency - (sampleRate / 2);
+    uint32_t xMax = centreFrequency + (sampleRate / 2);
+    if (m_panadapterXmin != xMin || m_panadapterXmax != xMax) {
+      setPanadapterX(xMin, xMax);
+    }
+    replaceSpectrumSeries(&spectrum, m_spectrumLineSeries, sampleRate, rfSettings.frequency, true);
   }
-  replaceSpectrumSeries(&spectrum, m_spectrumLineSeries, sampleRate, true);
 
   setTimeSeriesX(0, length);
   //  setTimeSeriesX(0, 48);
@@ -288,16 +293,22 @@ MainWindow::handleTransmitterAudioEvent(const vsdrreal* data, uint32_t length)
 }
 
 void
-MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings)
+MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings, const BandSettings& bandSettings)
 {
   m_radioSettings = radioSettings;
-  bool frequencyChanged = (m_radioSettings.rxSettings.rfSettings.changed & RfSettings::Features::FREQUENCY) != 0;
-  bool offsetChanged = (m_radioSettings.rxSettings.rfSettings.changed & RfSettings::Features::OFFSET) != 0;
-  bool modeChanged = (m_radioSettings.changed & RadioSettings::Features::MODE) != 0;
+  m_bandSettings = bandSettings;
+  RxPipelineSettings* rxPipelineSettings = m_bandSettings.getFocusRxPipelineSettings();
+  if (rxPipelineSettings == nullptr) {
+    return;
+  }
+  RfSettings& rfSettings = rxPipelineSettings->getRfSettings();
+  bool frequencyChanged = (rfSettings.changed & RfSettings::Features::FREQUENCY) != 0;
+  bool offsetChanged = (rfSettings.changed & RfSettings::Features::OFFSET) != 0;
+  bool modeChanged = (rxPipelineSettings->changed & PipelineSettings::Features::MODE) != 0;
 
   if (frequencyChanged || offsetChanged || modeChanged) {
-    auto centreFrequency = static_cast<int32_t>(m_radioSettings.rxSettings.rfSettings.frequency);
-    int32_t offset = m_radioSettings.rxSettings.rfSettings.offset;
+    auto centreFrequency = static_cast<int32_t>(rfSettings.frequency);
+    int32_t offset = rfSettings.offset;
     int32_t frequencyAtOffset = centreFrequency + offset;
 
     ui->centreFrequencyLcd->display(centreFrequency);
@@ -323,7 +334,7 @@ MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings)
     m_verticalCursorLine->setLine(QLineF(p1, p2));
     m_verticalCursorLine->show();
   
-    const Mode& mode = m_radioSettings.mode;
+    const Mode& mode = rxPipelineSettings->mode;
     int32_t loCutWrtFreq = frequencyAtOffset + mode.getLoCut();
     int32_t hioCutWrtFreq = frequencyAtOffset + mode.getHiCut();
     updatePassbandOverlay(chart, loCutWrtFreq, hioCutWrtFreq);
@@ -401,10 +412,10 @@ MainWindow::replaceSpectrumSeries(
   const vsdrreal * spectrumData,
   QLineSeries& spectrumSeries,
   uint32_t sampleRate,
+  uint32_t centreFrequency,
   bool shuffle
 )
 {
-  uint32_t centreFrequency = m_radioSettings.rxSettings.rfSettings.frequency;
   qreal plotX = centreFrequency - (sampleRate / 2);
   qreal binWidth = static_cast<qreal>(sampleRate) / static_cast<qreal>(spectrumData->size());
 
@@ -434,11 +445,11 @@ void
 MainWindow::replaceSpectrumSeries(
   const std::vector<sdrcomplex> * spectrumData,
   QLineSeries& spectrumSeries,
-  uint32_t sampleRate, 
+  uint32_t sampleRate,
+  uint32_t centreFrequency,
   bool shuffle
 )
 {
-  uint32_t centreFrequency = m_radioSettings.rxSettings.rfSettings.frequency;
   qreal plotX = centreFrequency - (sampleRate / 2);
   qreal binWidth = sampleRate / spectrumData->size();
 
@@ -476,14 +487,14 @@ MainWindow::on_actionBand_triggered()
   if (m_bandButton != nullptr) {
     auto* dialog = new BandDialog(m_pRadio, this);
     dialog->setAttribute(Qt::WA_DeleteOnClose);
-
+    dialog->exec();
     // Position it
-    dialog->adjustSize();
-    QPoint pos = m_bandButton->mapToGlobal(QPoint(0, 0));
-    pos.setY(pos.y() - dialog->frameGeometry().height());
-
-    dialog->move(pos);
-    dialog->show();
+    // dialog->adjustSize();
+    // QPoint pos = m_bandButton->mapToGlobal(QPoint(0, 0));
+    // pos.setY(pos.y() - dialog->frameGeometry().height());
+    //
+    // dialog->move(pos);
+    // dialog->show();
   }
 }
 
@@ -541,15 +552,23 @@ MainWindow::addModeButton()
   if (m_pRadio == nullptr) {
     throw std::runtime_error("No radio instance");
   }
-  RadioSettings& radioSettings = m_pRadio->getSettings();
-  ModeSettings& modeSettings = radioSettings.getModeSettings();
+  RadioSettings& radioSettings = m_pRadio->getRadioSettings();
+  const std::string selectedBandName = radioSettings.getBandName();
+  BandSettings* bandSettings = m_pRadio->getBandSettings(selectedBandName);
+  if (bandSettings == nullptr) {
+    throw SettingsException("Band settings not found for selected band");
+  }
+  RxPipelineSettings* rxPipelineSettings = bandSettings->getFocusRxPipelineSettings();
+  if (rxPipelineSettings == nullptr) {
+    throw SettingsException("Radio pipeline settings not found for selected band");
+  }
 
   delete m_modeButton;
   m_modeButton = new QToolButton();
   // modeBtn->setDefaultAction(ui->actionMode);
   // tabsBtn->setFixedWidth(100);
-  QMenu* modeMenu = createModeMenu(modeSettings, radioSettings.mode);
-  updateModeButton(radioSettings.mode);
+  QMenu* modeMenu = createModeMenu(rxPipelineSettings->mode);
+  updateModeButton(rxPipelineSettings->mode);
   modeMenu->setProperty("class", "toolbarMenu mode");
   // modeBtn->setMenu(modeMenu);
   // Set popup mode (InstantPopup makes the button act like a dropdown)
@@ -575,14 +594,14 @@ MainWindow::addModeButton()
 }
 
 QMenu*
-MainWindow::createModeMenu(const ModeSettings& modeSettings, const Mode& currentMode)
+MainWindow::createModeMenu(const Mode& currentMode)
 {
   auto modeMenu = new QMenu(this);
 
   auto* actionGroup = new QActionGroup(this);
   actionGroup->setExclusive(true); // Only one can be checked at a time
 
-  const std::vector<Mode>& allModes = modeSettings.getAll();
+  const std::vector<Mode>& allModes = ModeSettings::getAll();
 
   SettingPath settingPath({RadioSettings::Features::MODE});
   for (const auto& mode : allModes) {
@@ -701,40 +720,22 @@ MainWindow::initialiseRadio()
     m_pRadio->configure(&m_radioConfig);
     m_pRadio->start();
 
-    // RadioSettings radioSettings = {
-    //   .rxSettings = {
-    //     .rfSettings = { .frequency = 10000000, .gain = 0.0, .changed = (RfSettings::FREQUENCY | RfSettings::GAIN)},
-    //     .ifSettings = { .bandwidth = 200000, .gain = 0.0, .changed = (IfSettings::BANDWIDTH | IfSettings::GAIN) },
-    //     .changed = (ReceiverSettings::RF | ReceiverSettings::IF)
-    //    },
-    //   .changed = (RadioSettings::RX) 
-    // };
-    m_radioSettings.modeSettings.setCurrentMode(Mode::USB);
-    const Mode& mode = m_radioSettings.modeSettings.getCurrentMode();
-    m_radioSettings.mode = mode;
-    m_radioSettings.rxSettings.mode = mode;
-    //m_radioSettings.txSettings.mode = m_radioSettings.modeSettings.getCurrentMode();
-
-    m_radioSettings.rxSettings.rfSettings.frequency = 14100000;
-    m_radioSettings.rxSettings.rfSettings.offset = 48000;
-    m_radioSettings.rxSettings.rfSettings.gain = 30.0;
-    m_radioSettings.rxSettings.rfSettings.changed = (RfSettings::FREQUENCY | RfSettings::OFFSET | RfSettings::GAIN);
-    m_radioSettings.rxSettings.ifSettings.bandwidth = 200000;
-    m_radioSettings.rxSettings.ifSettings.gain = 0.0;
-    m_radioSettings.rxSettings.ifSettings.changed = (IfSettings::BANDWIDTH | IfSettings::GAIN);
-    m_radioSettings.rxSettings.changed = (ReceiverSettings::MODE | ReceiverSettings::RF | ReceiverSettings::IF);
-
-    m_radioSettings.changed = RadioSettings::MODE | RadioSettings::RX;
-
-    m_radioSettings.txSettings.mode = mode;
-    m_radioSettings.txSettings.rfSettings.frequency = 14100000;
-    m_radioSettings.txSettings.rfSettings.offset = 48000;
-    m_radioSettings.txSettings.rfSettings.changed = (RfSettings::FREQUENCY | RfSettings::OFFSET);
-    m_radioSettings.txSettings.changed = (TransmitterSettings::MODE | TransmitterSettings::RF);
-
-    m_radioSettings.changed = RadioSettings::MODE | RadioSettings::RX | RadioSettings::TX;
+    m_radioSettings.modeType = Mode::USB;
+    m_radioSettings.bandName = "20m";
+    m_radioSettings.changed = RadioSettings::MODE | RadioSettings::BAND;
 
     m_pRadio->applySettings(m_radioSettings);
+
+    RfSettings rfSettings;
+    rfSettings.gain = 30.0;
+    rfSettings.changed = RfSettings::GAIN;
+    m_pRadio->applyRfSettings(rfSettings);
+
+    IfSettings ifSettings;
+    ifSettings.gain = 0.0;
+    ifSettings.bandwidth = 200000;
+    ifSettings.changed = IfSettings::GAIN | IfSettings::BANDWIDTH;
+    m_pRadio->applyIfSettings(ifSettings);
   }
   catch (std::runtime_error& error)
   {

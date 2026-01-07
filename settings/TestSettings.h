@@ -14,6 +14,7 @@ class TestSettings : SettingsBase
   {
     NONE = 0,
     TWO_TONE = 0x01,
+    ALL = static_cast<uint32_t>(~0U)
   };
 
   TestSettings() : SettingsBase(), twoToneSettings() {}
@@ -29,6 +30,16 @@ class TestSettings : SettingsBase
     return *this;
   }
 
+  bool applySettings(const TestSettings& settings)
+  {
+    bool somethingChanged = false;
+    if (settings.changed & TWO_TONE) {
+      twoToneSettings = settings.twoToneSettings;
+      changed |= TWO_TONE;
+      somethingChanged = true;
+    }
+    return somethingChanged;
+  }
 
 
   bool applySetting(const SingleSetting& setting, int startIndex) override

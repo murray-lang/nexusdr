@@ -15,11 +15,23 @@ class MicSettings : public SettingsBase
   {
     NONE = 0,
     GAIN = 0x01,
+    ALL = static_cast<uint32_t>(~0U)
   };
   MicSettings(): gain(1.0), gainStep(DEFAULT_GAIN_STEP) {}
   MicSettings(const MicSettings& rhs) = default;
   ~MicSettings() override = default;
   MicSettings& operator=(const MicSettings& rhs) = default;
+
+  bool applySettings(const MicSettings& settings)
+  {
+    bool somethingChanged = false;
+    if (settings.changed & GAIN) {
+      gain = settings.gain;
+      changed |= GAIN;
+      somethingChanged = true;
+    }
+    return somethingChanged;
+  }
 
   bool applySetting(const SingleSetting& setting, int startIndex) override
   {

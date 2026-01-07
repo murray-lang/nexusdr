@@ -28,6 +28,11 @@ public:
   virtual void clearChanged() { changed = 0; }
   [[nodiscard]] bool isChanged() const { return !!changed; }
 
+  template<uint32_t FeatureValue>
+    static void addFeature(const std::vector<std::string>&, std::vector<uint32_t>& featuresOut, size_t) {
+    featuresOut.push_back(FeatureValue);
+  }
+
   // virtual uint32_t getFeatureFromString(const char * strFeature) = 0;
   // virtual FeaturePath getFeaturePathFromString(const std::vector<std::string>& featureStrings) = 0;
 

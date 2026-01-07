@@ -18,7 +18,7 @@ public:
 
     // void applySettings(const RadioSettings& radioSettings) override;
     // void readSettings(RadioSettings& radioSettings) override;
-  void applySettings(const RadioSettings& radioSettings) override;
+  void applySettings(const RadioSettings& radioSettings, BandSettings* pBandSettings) override;
   void applySingleSetting(const SingleSetting& settingDelta) override
   {
     // throw ControlException("FunCubeDongle::applySingleSetting() not implemented.");
@@ -46,5 +46,6 @@ protected:
 
 protected:
   HidUsbControl m_control;
-  RadioSettings m_lastSettings;
+  float m_lastRfGain;
+  float m_lastIfGain;
 };

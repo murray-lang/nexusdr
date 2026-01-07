@@ -21,10 +21,14 @@ public:
     FREQUENCY_STEP = 0x02,
     OFFSET = 0x04,
     OFFSET_STEP = 0x08,
-    GAIN = 0x10
+    GAIN = 0x10,
+    ALL = static_cast<uint32_t>(~0U)
   };
-  RfSettings() : frequency(0), frequencyStep(10000), offset(0), offsetStep(50), gain(0.0) {}
-  RfSettings(const RfSettings& rhs) = default;
+  RfSettings() : frequency(0), frequencyStep(10000), offset(0), offsetStep(50), gain(0.0)
+  {
+    changed = ALL;
+  }
+  // RfSettings(const RfSettings& rhs) = default;
   ~RfSettings() override = default;
 
   RfSettings& operator=(const RfSettings& rhs)
@@ -40,6 +44,15 @@ public:
     return *this;
   }
 
+  void copyFrequencies(const RfSettings& rhs)
+  {
+    frequency = rhs.frequency;
+    offset = rhs.offset;
+    frequencyStep = rhs.frequencyStep;
+    offsetStep = rhs.offsetStep;
+    changed |= FREQUENCY | OFFSET | FREQUENCY_STEP | OFFSET_STEP;
+  }
+
   bool setBand(const Band& band)
   {
     if (band.isValid()) {
@@ -52,6 +65,22 @@ public:
       }
     }
     return false;
+  }
+
+  bool applySettings(const RfSettings& settings)
+  {
+    bool somethingChanged = false;
+    if (settings.changed & FREQUENCY) {
+      frequency = settings.frequency;
+      changed |= FREQUENCY;
+      somethingChanged = true;
+    }
+    if (settings.changed & OFFSET) {
+      offset = settings.offset;
+      changed |= OFFSET;
+      somethingChanged = true;
+    }
+    return somethingChanged;
   }
 
   bool applySetting(const SingleSetting& setting, int startIndex) override

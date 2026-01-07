@@ -14,21 +14,23 @@
 #include "Band.h"
 #include "Bands.h"
 #include "ModeSettings.h"
+#include <map>
 
 class ReceiverSettings : public SettingsBase {
 public:
   enum Features
   {
     NONE = 0,
-    MODE = 0x01,
-    RF = 0x02,
-    IF = 0x04,
+    // MODE = 0x01,
+    // RF = 0x02,
+    // IF = 0x04,
     CORRECTION = 0x08,
-    BAND= 0x10
+    // BAND= 0x10
+    ALL = static_cast<uint32_t>(~0U)
   };
 
-  explicit ReceiverSettings(const Bands& bands, const ModeSettings& modeSettings) :
-    SettingsBase(), mode(), modeSettings(modeSettings), band(), bands(bands), rfSettings(), ifSettings()
+  explicit ReceiverSettings(/*const Bands& bands, const ModeSettings& modeSettings*/) :
+    SettingsBase() //, mode(), modeSettings(modeSettings), band(), bands(bands), rfSettings(), ifSettings()
   {};
   ReceiverSettings(const ReceiverSettings& rhs) = default;
 
@@ -38,37 +40,21 @@ public:
   {
     if (this != &rhs) {
       SettingsBase::operator=(rhs);
-      mode = rhs.mode;
-      rfSettings = rhs.rfSettings;
-      ifSettings = rhs.ifSettings;
+      correctionSettings = rhs.correctionSettings;
     }
     return *this;
   }
 
-  void setMode( const Mode& newMode )
+  bool applySettings(const ReceiverSettings& settings)
   {
-    mode = newMode;
-    changed |= MODE;
-  }
-  [[nodiscard]] const Mode& getMode() const { return mode; }
-
-  bool setBand( const Band& newBand)
-  {
-    if (band.getName() != newBand.getName()) {
-      band = newBand;
-      changed |= BAND;
-      if (band.isValid()) {
-        if (rfSettings.setBand(band)) {
-          changed |= RF;
-          Mode newMode = modeSettings.getModeByType(band.getDefaultMode());
-          setMode(newMode);
-        }
-      }
-      return true;
+    bool somethingChanged = false;
+    if (settings.changed & CORRECTION) {
+      correctionSettings = settings.correctionSettings;
+      changed |= CORRECTION;
+      somethingChanged = true;
     }
-    return false;
+    return somethingChanged;
   }
-  [[nodiscard]] const Band& getBand() const { return band; }
 
   bool applySetting(const SingleSetting& setting, int startIndex) override
   {
@@ -77,24 +63,25 @@ public:
     }
     bool settingChange = false;
     uint32_t feature = setting.getPath().getFeatures()[startIndex];
-    if (feature & RF) {
-      settingChange = rfSettings.applySetting(setting, startIndex + 1);
-      if (rfSettings.changed & RfSettings::FREQUENCY || rfSettings.changed & RfSettings::OFFSET) {
-        uint64_t frequency = rfSettings.frequency + rfSettings.offset;
-        if (!band.isValid() || !band.containsFrequency(frequency)) {
-          const Band* newBand = bands.findBand(frequency);
-          if (newBand != nullptr) {
-            band = *newBand;
-          } else {
-            band.invalidate();
-          }
-          changed |= BAND;
-        }
-      }
-
-    } else if (feature & IF) {
-      settingChange = ifSettings.applySetting(setting, startIndex + 1);
-    } else if (feature == CORRECTION) {
+    // if (feature & RF) {
+    //   settingChange = rfSettings.applySetting(setting, startIndex + 1);
+    //   if (rfSettings.changed & RfSettings::FREQUENCY || rfSettings.changed & RfSettings::OFFSET) {
+    //     uint64_t frequency = rfSettings.frequency + rfSettings.offset;
+    //     if (!band.isValid() || !band.containsFrequency(frequency)) {
+    //       const Band* newBand = bands.findBand(frequency);
+    //       if (newBand != nullptr) {
+    //         band = *newBand;
+    //       } else {
+    //         band.invalidate();
+    //       }
+    //       changed |= BAND;
+    //     }
+    //   }
+    //
+    // } else if (feature & IF) {
+    //   settingChange = ifSettings.applySetting(setting, startIndex + 1);
+    // } else
+    if (feature == CORRECTION) {
       settingChange = correctionSettings.applySetting(setting, startIndex + 1);
     }
     if (settingChange) {
@@ -106,8 +93,8 @@ public:
   void clearChanged() override
   {
     SettingsBase::clearChanged();
-    rfSettings.clearChanged();
-    ifSettings.clearChanged();
+    // rfSettings.clearChanged();
+    // ifSettings.clearChanged();
   }
 
   static void getFeaturePath(
@@ -119,31 +106,30 @@ public:
     if (startIndex >= featureStrings.size()) {
       throw SettingsException("Invalid feature path");
     }
-    if (featureStrings[startIndex] == "rf") {
-      featuresOut.push_back(RF);
-      if (startIndex + 1 < featureStrings.size()) {
-        RfSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
-      }
-    } else if (featureStrings[startIndex] == "if") {
-      featuresOut.push_back(IF);
-      if (startIndex + 1 < featureStrings.size()) {
-        IfSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
-      }
-    } else if (featureStrings[startIndex] == "correction") {
-      featuresOut.push_back(CORRECTION);
-      if (startIndex + 1 < featureStrings.size()) {
-        IqCorrectionSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
+    const std::string& key = featureStrings[startIndex];
+
+    using PathFunc = void(*)(const std::vector<std::string>&, std::vector<uint32_t>&, size_t);
+    static const std::map<std::string, std::pair<Features, PathFunc>> dispatch = {
+      // {"rf",         {RF,         &RfSettings::getFeaturePath}},
+      // {"if",         {IF,         &IfSettings::getFeaturePath}},
+      {"correction", {CORRECTION, &IqCorrectionSettings::getFeaturePath}}
+    };
+
+    if (auto it = dispatch.find(key); it != dispatch.end()) {
+      featuresOut.push_back(it->second.first);
+      if (startIndex + 1 < featureStrings.size() && it->second.second) {
+        it->second.second(featureStrings, featuresOut, startIndex + 1);
       }
     } else {
-      throw SettingsException("Unknown receiver setting: " + featureStrings[startIndex]);
+      throw SettingsException("Unknown receiver setting: " + key);
     }
   }
-  Mode mode;
-  const ModeSettings& modeSettings;
-  Band band;
-  const Bands& bands;
-  RfSettings rfSettings;
-  IfSettings ifSettings;
+  // Mode mode;
+  // const ModeSettings& modeSettings;
+  // Band band;
+  // const Bands& bands;
+  // RfSettings rfSettings;
+  // IfSettings ifSettings;
   IqCorrectionSettings correctionSettings;
 };
 

@@ -7,8 +7,8 @@
 
 class ModeSettings;
 
-IqPipeline::IqPipeline(const ModeSettings& modeSettings, QObject* eventTarget) :
-  m_modeSettings(modeSettings),
+IqPipeline::IqPipeline(QObject* eventTarget) :
+  // m_modeSettings(modeSettings),
   m_eventTarget(eventTarget),
   m_mode(),
   m_buffers(DEFAULT_PING_PONG_LENGTH),

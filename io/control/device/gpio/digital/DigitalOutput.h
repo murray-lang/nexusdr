@@ -31,7 +31,6 @@ public:
   // to respond here as well would be circular.
   void ptt(bool on) override {};
 
-  void applySettings(const RadioSettings& settings) override;
   void applySingleSetting(const SingleSetting& setting) override;
 
   void setValue(bool value);

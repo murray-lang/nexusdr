@@ -28,18 +28,15 @@ BandSelector::configure(const ConfigBase* pConfig)
 }
 
 void
-BandSelector::applySettings(const RadioSettings& settings)
+BandSelector::applySettings(const RadioSettings& settings, BandSettings* pBandSettings)
 {
-  if (settings.changed & RadioSettings::TX) {
-    if (settings.txSettings.changed & TransmitterSettings::RF) {
-      if (settings.txSettings.rfSettings.changed & (RfSettings::FREQUENCY | RfSettings::OFFSET)) {
-        uint32_t frequency = settings.txSettings.rfSettings.frequency;
-        frequency += settings.txSettings.rfSettings.offset;
-        uint32_t output = getBandOutput(frequency);
-        if (output != m_currentOut) { // otherwise the outputs will be tickled on every frequency step.
-          applyOutput(output);
-        }
-      }
+  if (settings.changed & RadioSettings::PIPELINE) {
+    const RfSettings& rfSettings = pBandSettings->getTxRfSettings();
+    if (rfSettings.changed & (RfSettings::FREQUENCY | RfSettings::OFFSET)) {
+      uint32_t frequency = rfSettings.frequency;
+      frequency += rfSettings.offset;
+      uint32_t output = getBandOutput(frequency);
+      applyOutput(output);
     }
   }
 }

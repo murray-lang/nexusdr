@@ -5,6 +5,8 @@
 #include "DigitalInput.h"
 #include <settings/RadioSettings.h>
 
+#include "settings/SingleSettingSink.h"
+
 DigitalInput::DigitalInput() :
   GpioLines(Direction::INPUT),
   m_activeHigh(true),
@@ -27,7 +29,7 @@ DigitalInput::configure(const DigitalInputConfig* pConfig)
 }
 
 void
-DigitalInput::connect(RadioSettingsSink* pSink)
+DigitalInput::connect(SingleSettingSink* pSink)
 {
   m_pSink = pSink;
 }

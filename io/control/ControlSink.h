@@ -7,8 +7,8 @@
 
 #include "ControlBase.h"
 #include "PttSink.h"
-#include "settings/RadioSettingsSink.h"
+#include "settings/RadioAndBandSettingsSink.h"
 
-class ControlSink : public ControlBase, public RadioSettingsSink, public PttSink
+class ControlSink : public ControlBase, public RadioAndBandSettingsSink, public PttSink
 {
 };

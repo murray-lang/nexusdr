@@ -19,10 +19,6 @@ public:
   bool handleLineChange(DigitalInputLinesRequest::LineStates& changedLines) override;
 
 protected:
-  void notifySettings(const RadioSettings& settings) override
-  {
-    throw ControlException("GpioRotaryEncoder cannot notify settings, only a single setting.");
-  }
   void notifyMovement(int movement);
   static int calculateMovement(DigitalInputLinesRequest::LineState& a, DigitalInputLinesRequest::LineState& b);
 };

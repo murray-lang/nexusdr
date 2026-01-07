@@ -15,6 +15,7 @@
 
 #include "Band.h"
 #include "Bands.h"
+#include "BandSettings.h"
 #include "SettingsException.h"
 #include "../util/StringUtils.h"
 
@@ -26,15 +27,15 @@ public:
     NONE = 0,
     PTT = 0x01,
     MODE = 0x02,
-    FREQUENCY = 0x04,
-    OFFSET = 0x08,
-    TX = 0x10,
-    RX = 0x20,
-    BAND = 0x40
+    PIPELINE = 0x04,
+    TX = 0x08,
+    RX = 0x10,
+    BAND = 0x20,
+    ALL = static_cast<uint32_t>(~0U)
   };
 
-  RadioSettings() :
-  ptt(false), mode(), band(), bands(), modeSettings(), rxSettings(bands, modeSettings), txSettings(bands, modeSettings)
+  RadioSettings() : modeType(Mode::Type::NONE),
+    ptt(false)
   {};
   RadioSettings(const RadioSettings& rhs) = default;
   
@@ -44,15 +45,16 @@ public:
   {
     if (this != &rhs) {
       SettingsBase::operator=(rhs);
-      mode = rhs.mode;
-      band = rhs.band;
+      modeType = rhs.modeType;
+      bandName = rhs.bandName;
       rxSettings = rhs.rxSettings;
       txSettings = rhs.txSettings;
     }
     return *this;
   }
 
-  ModeSettings& getModeSettings() { return modeSettings; }
+  const std::string& getBandName() const { return bandName; }
+
 
   bool applySetting(const SingleSetting& setting, int startIndex) override
   {
@@ -81,67 +83,23 @@ public:
       }
     }
     if ((feature & MODE) != 0) {
-      if (modeSettings.applySetting(setting, startIndex)) {
-        mode = modeSettings.getCurrentMode();
-        txSettings.setMode(mode);
-        rxSettings.setMode(mode);
-        changed |= MODE;
+      modeType = std::get<Mode::Type>(setting.getValue());
+      changed |= MODE;
+      settingChange = true;
+
+    }
+    if ((feature & BAND) != 0) {
+      const std::string newBandName = std::get<std::string>(setting.getValue());
+      if (bandName != newBandName) {
+        bandName = newBandName;
+        changed |= BAND | PIPELINE;
         settingChange = true;
       }
     }
-    if ((feature & BAND) != 0) {
-      const std::string bandName = std::get<std::string>(setting.getValue());
-      const Band* newBand = bands.findBand(bandName);
-      if (newBand != nullptr) {
-        if (band.getName() != newBand->getName()) {
-          band = *newBand;
-          changed |= BAND;
-          if (txSettings.setBand(band)) {
-            changed |= TX;
-          }
-          if (rxSettings.setBand(band)) {
-            changed |= RX;
-            if (rxSettings.changed & ReceiverSettings::MODE) {
-              mode = rxSettings.getMode();
-              txSettings.setMode(mode);
-              changed |= MODE;
-            }
-          }
-          settingChange = true;
-        }
-      }
-
-    } else {
-      if ((feature & FREQUENCY) != 0) {
-        SingleSetting frequencySetting(setting);
-        frequencySetting.setPath(SettingPath({ReceiverSettings::RF, RfSettings::FREQUENCY}));
-        if (rxSettings.applySetting(frequencySetting, 0)) {
-          changed |= RX | FREQUENCY;
-          band = rxSettings.band;
-          settingChange = true;
-        }
-        frequencySetting.setPath(SettingPath({TransmitterSettings::RF, RfSettings::FREQUENCY}));
-        if (txSettings.applySetting(frequencySetting, 0)) {
-          changed |= TX | FREQUENCY;
-          band = rxSettings.band;
-          settingChange = true;
-        }
-      }
-      if ((feature & OFFSET) != 0) {
-        SingleSetting offsetSetting(setting);
-        offsetSetting.setPath(SettingPath({ReceiverSettings::RF, RfSettings::OFFSET}));
-        if (rxSettings.applySetting(offsetSetting, 0)) {
-          changed |= RX | OFFSET;
-          settingChange = true;
-        }
-        offsetSetting.setPath(SettingPath({TransmitterSettings::RF, RfSettings::OFFSET}));
-        if (txSettings.applySetting(offsetSetting, 0)) {
-          changed |= TX | OFFSET;
-          settingChange = true;
-        }
-      }
+    if (feature & PIPELINE) {
+      changed |= PIPELINE;
+      settingChange = true;
     }
-
 
     return settingChange;
   }
@@ -149,7 +107,7 @@ public:
   void clearChanged() override
   {
     SettingsBase::clearChanged();
-    modeSettings.clearChanged();
+    // modeSettings.clearChanged();
     rxSettings.clearChanged();
     txSettings.clearChanged();
   }
@@ -187,20 +145,58 @@ public:
       }
     } else if (featureStrings[startIndex] == "mode") {
       featuresOut.push_back(MODE);
-    } else if (featureStrings[startIndex] == "frequency") {
-      featuresOut.push_back(FREQUENCY);
-    } else if (featureStrings[startIndex] == "offset") {
-      featuresOut.push_back(OFFSET);
+    } else if (featureStrings[startIndex] == "pipeline") {
+      featuresOut.push_back(PIPELINE);
+      if (startIndex + 1 < featureStrings.size()) {
+        bool validSettingForRxPipeline = true;
+        try {
+          RxPipelineSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
+        } catch (SettingsException& e) {
+          validSettingForRxPipeline = false;
+        }
+        if (!validSettingForRxPipeline) {
+          TxPipelineSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
+        }
+      }
     } else {
       throw SettingsException("Unknown Radio setting: " + featureStrings[startIndex]);
     }
 
   }
   bool ptt;
-  Mode mode;
-  Band band;
-  Bands bands;
-  ModeSettings modeSettings;
+  Mode::Type modeType;
+  // Band band;
+  std::string bandName;
+  // Bands bands;
+  // ModeSettings modeSettings;
   ReceiverSettings rxSettings;
   TransmitterSettings txSettings;
+  // std::unordered_map<std::string, PerBandSettings> perBandSettings; //TODO: Load these from JSON at startup
+
+// protected:
+//   PerBandSettings* getCurrentBandSettings()
+//   {
+//     return findBandSettingsForBand(band.getName());
+//   }
+//
+//   const PerBandSettings* getCurrentBandSettings() const
+//   {
+//     return findBandSettingsForBand(band.getName());
+//   }
+//
+//   PerBandSettings* findBandSettingsForBand(const std::string& bandName)
+//   {
+//     if (perBandSettings.contains(bandName)) {
+//       return &perBandSettings.at(bandName);
+//     }
+//     return nullptr;
+//   }
+//
+//   const PerBandSettings* findBandSettingsForBand(const std::string& bandName) const
+//   {
+//     if (perBandSettings.contains(bandName)) {
+//       return &perBandSettings.at(bandName);
+//     }
+//     return nullptr;
+//   }
 };

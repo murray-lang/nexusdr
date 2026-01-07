@@ -15,7 +15,7 @@
 #include "radio/Radio.h"
 
 BandDialog::BandDialog(Radio* pRadio, QWidget *parent) :
-  QDialog(parent, Qt::ToolTip | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint), // Set flags here
+  QDialog(parent), // Set flags here
   ui(new Ui::BandDialog),
   m_pRadio(pRadio)
 {
@@ -24,6 +24,7 @@ BandDialog::BandDialog(Radio* pRadio, QWidget *parent) :
   }
   ui->setupUi(this);
   addCategoryTabs(pRadio);
+  ui->tabWidget->style()->polish(ui->tabWidget);
 }
 
 BandDialog::~BandDialog() {
@@ -41,19 +42,20 @@ void
 BandDialog::addCategoryTabs(Radio* pRadio)
 {
   if (pRadio != nullptr) {
-    RadioSettings& settings = pRadio->getSettings();
-    Band& selectedBand = settings.band;
-    const BandCategory* selectedCategory = settings.bands.findCategoryOfBand(selectedBand.getName());
+    RadioSettings& settings = pRadio->getRadioSettings();
+    const Bands& bands = pRadio->getBands();
+    const std::string& selectedBandName = settings.getBandName();
+    const BandCategory* selectedCategory = bands.findCategoryOfBand(selectedBandName);
 
     int selectedTabIndex = 0;
     int currentTabIndex = 0;
-    const std::vector<BandCategory>& categories = settings.bands.getCategories();
+    const std::vector<BandCategory>& categories = bands.getCategories();
     for (const auto& category : categories) {
       bool isSelected = selectedCategory != nullptr && category.getName() == selectedCategory->getName();
       if (isSelected) {
         selectedTabIndex = currentTabIndex;
       }
-      addCategoryTab(category, isSelected, selectedBand.getName());
+      addCategoryTab(category, isSelected, selectedBandName);
       currentTabIndex++;
     }
     ui->tabWidget->setCurrentIndex(selectedTabIndex);

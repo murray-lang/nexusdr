@@ -12,7 +12,9 @@
 #define FCDPROPLUS_PRODUCT_ID   0xfb31
 
 FunCubeDongle::FunCubeDongle() :
-  m_control(FCDPROPLUS_VENDOR_ID, FCDPROPLUS_PRODUCT_ID)
+  m_control(FCDPROPLUS_VENDOR_ID, FCDPROPLUS_PRODUCT_ID),
+  m_lastRfGain(0.0),
+  m_lastIfGain(0.0)
 {
 
 }
@@ -20,26 +22,28 @@ FunCubeDongle::FunCubeDongle() :
 FunCubeDongle::~FunCubeDongle() = default;
 
 void
-FunCubeDongle::applySettings(const RadioSettings& radioSettings)
+FunCubeDongle::applySettings(const RadioSettings& radioSettings, BandSettings* pBandSettings)
 {
-  if (radioSettings.changed & RadioSettings::RX) {
-    m_lastSettings = radioSettings;
-    if (radioSettings.rxSettings.changed & ReceiverSettings::RF) {
-      if (radioSettings.rxSettings.rfSettings.changed & RfSettings::FREQUENCY) {
-        setFrequency(radioSettings.rxSettings.rfSettings.frequency);
-        setRfFilter(radioSettings.rxSettings.rfSettings.frequency);
-      }
-      if (radioSettings.rxSettings.rfSettings.changed & RfSettings::GAIN) {
-        setLnaGain(radioSettings.rxSettings.rfSettings.gain);
-      }
-
-      if (radioSettings.rxSettings.ifSettings.changed & IfSettings::BANDWIDTH) {
-        setIfFilter(radioSettings.rxSettings.ifSettings.bandwidth);
-      }
-      if (radioSettings.rxSettings.ifSettings.changed & IfSettings::GAIN) {
-        setIfGain(radioSettings.rxSettings.ifSettings.gain);
-      }
+  if (radioSettings.changed & (RadioSettings::PIPELINE)) {
+    const RfSettings& rfSettings = pBandSettings->getFocusRxRfSettings();
+    if (rfSettings.changed & RfSettings::FREQUENCY) {
+      setFrequency(rfSettings.frequency);
+      setRfFilter(rfSettings.frequency);
     }
+    if (rfSettings.changed & RfSettings::GAIN) {
+      setLnaGain(rfSettings.gain);
+      m_lastRfGain = rfSettings.gain;
+    }
+
+    const IfSettings& ifSettings = pBandSettings->getFocusRxIfSettings();
+    if (ifSettings.changed & IfSettings::BANDWIDTH) {
+      setIfFilter(ifSettings.bandwidth);
+    }
+    if (ifSettings.changed & IfSettings::GAIN) {
+      setIfGain(ifSettings.gain);
+      m_lastIfGain = ifSettings.gain;
+    }
+
     //setRfFilter(TRFE_8_16);
     //setIfFilter(TIFE_200KHZ);
   }
@@ -47,12 +51,13 @@ FunCubeDongle::applySettings(const RadioSettings& radioSettings)
 
 void FunCubeDongle::ptt(bool on)
 {
+
     if (on) {
-        setLnaGain(-100.0); // Mute LNA when transmitting
-        setIfGain(0.0f);   // Mute IF when transmitting
+      setLnaGain(-100.0); // Mute LNA when transmitting
+      setIfGain(0.0f);   // Mute IF when transmitting
     } else {
-        setLnaGain(m_lastSettings.rxSettings.rfSettings.gain);
-        setIfGain(m_lastSettings.rxSettings.ifSettings.gain);
+      setLnaGain(m_lastRfGain);
+      setIfGain(m_lastRfGain);
     }
 }
 
