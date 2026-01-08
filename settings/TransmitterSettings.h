@@ -94,7 +94,7 @@ public:
     // rfSettings.clearChanged();
   }
 
-  static void getFeaturePath(
+  static bool getFeaturePath(
     const std::vector<std::string>& featureStrings,
     std::vector<uint32_t>& featuresOut,
     size_t startIndex
@@ -112,21 +112,29 @@ public:
     if (featureStrings[startIndex] == "correction") {
       featuresOut.push_back(CORRECTION);
       if (startIndex + 1 < featureStrings.size()) {
-        IqCorrectionSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
+        if (!IqCorrectionSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1)) {
+          featuresOut.pop_back();
+          return false;
+        }
       }
     } else if (featureStrings[startIndex] == "mic") {
       featuresOut.push_back(MIC);
       if (startIndex + 1 < featureStrings.size()) {
-        MicSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
+        if (!MicSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1)) {
+          featuresOut.pop_back();
+          return false;
+        }
       }
     }  else if (featureStrings[startIndex] == "test") {
       featuresOut.push_back(TEST);
       if (startIndex + 1 < featureStrings.size()) {
-       TestSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
+        if (!TestSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1)) {
+          featuresOut.pop_back();
+          return false;
+        }
       }
-    } else {
-      throw SettingsException("Unknown transmitter feature: " + featureStrings[startIndex]);
     }
+    return false;
   }
 
   // Mode mode;

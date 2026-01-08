@@ -92,15 +92,10 @@ public:
       const std::string newBandName = std::get<std::string>(setting.getValue());
       if (bandName != newBandName) {
         bandName = newBandName;
-        changed |= BAND | PIPELINE;
+        changed |= BAND;
         settingChange = true;
       }
     }
-    if (feature & PIPELINE) {
-      changed |= PIPELINE;
-      settingChange = true;
-    }
-
     return settingChange;
   }
 

@@ -142,7 +142,7 @@ public:
     SettingsBase::clearChanged();
   }
 
-  static void getFeaturePath(
+  static bool getFeaturePath(
     const std::vector<std::string>& featureStrings,
     std::vector<uint32_t>& features,
     size_t startIndex
@@ -162,8 +162,9 @@ public:
     } else if (featureStrings[startIndex] == "offset-step") {
       features.push_back(OFFSET_STEP);
     } else {
-      throw SettingsException("Unknown RF setting: " + featureStrings[startIndex]);
+      return false;
     }
+    return true;
   }
 
   uint32_t frequency;

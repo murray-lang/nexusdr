@@ -87,17 +87,14 @@ public:
     return settingChange;
   }
 
-  static void getFeaturePath(
+  static bool getFeaturePath(
     const std::vector<std::string>& featureStrings,
     std::vector<uint32_t>& featuresOut,
     size_t startIndex
     )
   {
-    int numFeaturesBefore = featuresOut.size(); // Temporary kludge to detect no feature matched
-    PipelineSettings::getFeaturePath(featureStrings, featuresOut, startIndex);
-    int numFeaturesAfter = featuresOut.size();
-    if (numFeaturesAfter > numFeaturesBefore) {
-      return; // A feature was matched by the base class
+    if (PipelineSettings::getFeaturePath(featureStrings, featuresOut, startIndex)) {
+      return true;
     }
 
     if (startIndex >= featureStrings.size()) {
@@ -105,7 +102,7 @@ public:
     }
     const std::string& key = featureStrings[startIndex];
 
-    using PathFunc = void(*)(const std::vector<std::string>&, std::vector<uint32_t>&, size_t);
+    using PathFunc = bool(*)(const std::vector<std::string>&, std::vector<uint32_t>&, size_t);
     static const std::map<std::string, std::pair<Features, PathFunc>> dispatch = {
   {"if",   {IF,  &IfSettings::getFeaturePath}},
   {"mute", {MUTE, &SettingsBase::addFeature<MUTE>}},
@@ -115,11 +112,14 @@ public:
     if (auto it = dispatch.find(key); it != dispatch.end()) {
       featuresOut.push_back(it->second.first);
       if (startIndex + 1 < featureStrings.size() && it->second.second) {
-        it->second.second(featureStrings, featuresOut, startIndex + 1);
+        if (!it->second.second(featureStrings, featuresOut, startIndex + 1)) {
+          featuresOut.pop_back();
+          return false;
+        }
       }
-    } else {
-      throw SettingsException("Unknown RxPipeline setting: " + key);
+      return true;
     }
+    return false;
   }
 
   bool mute;

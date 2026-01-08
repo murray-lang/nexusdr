@@ -58,7 +58,7 @@ class TestSettings : SettingsBase
     return settingChange;
   }
 
-  static void getFeaturePath(
+  static bool getFeaturePath(
     const std::vector<std::string>& featureStrings,
     std::vector<uint32_t>& featuresOut,
     size_t startIndex
@@ -70,11 +70,14 @@ class TestSettings : SettingsBase
     if (featureStrings[startIndex] == "two-tone") {
       featuresOut.push_back(TWO_TONE);
       if (startIndex + 1 < featureStrings.size()) {
-        TwoToneSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
+        if (!TwoToneSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1)) {
+          featuresOut.pop_back();
+          return false;
+        }
       }
-    } else {
-      throw SettingsException("Unknown receiver setting: " + featureStrings[startIndex]);
+      return true;
     }
+    return false;
   }
 
   TwoToneSettings twoToneSettings;

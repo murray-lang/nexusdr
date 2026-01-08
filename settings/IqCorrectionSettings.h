@@ -110,7 +110,7 @@ public:
     SettingsBase::clearChanged();
   }
 
-  static void getFeaturePath(
+  static bool getFeaturePath(
     const std::vector<std::string>& featureStrings,
     std::vector<uint32_t>& features,
     size_t startIndex
@@ -128,8 +128,9 @@ public:
     } else if (featureStrings[startIndex] == "amplitude-step") {
       features.push_back(AMPLITUDE_STEP);
     } else {
-      throw SettingsException("Unknown IQ correction setting: " + featureStrings[startIndex]);
+      return false;
     }
+    return true;
   }
 
   sdrreal phase;

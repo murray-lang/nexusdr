@@ -65,7 +65,7 @@ public:
     return settingChange;
   }
 
-  static void getFeaturePath(
+  static bool getFeaturePath(
     const std::vector<std::string>& featureStrings,
     std::vector<uint32_t>& features,
     size_t startIndex
@@ -79,8 +79,9 @@ public:
     } else if (featureStrings[startIndex] == "gain") {
       features.push_back(GAIN);
     } else {
-      throw SettingsException("Unknown TwoTone setting: " + featureStrings[startIndex]);
+      return false;
     }
+    return true;
   }
 
   bool enabled;

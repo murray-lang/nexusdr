@@ -137,7 +137,7 @@ public:
     return settingChange;
   }
 
-  static void getFeaturePath(
+  static bool getFeaturePath(
     const std::vector<std::string>& featureStrings,
     std::vector<uint32_t>& featuresOut,
     size_t startIndex
@@ -148,7 +148,7 @@ public:
     }
     const std::string& key = featureStrings[startIndex];
 
-    using PathFunc = void(*)(const std::vector<std::string>&, std::vector<uint32_t>&, size_t);
+    using PathFunc = bool(*)(const std::vector<std::string>&, std::vector<uint32_t>&, size_t);
     static const std::map<std::string, std::pair<Features, PathFunc>> dispatch = {
   {"tx-pipeline",{TX_PIPELINE, &TxPipelineSettings::getFeaturePath}},
   {"rx-pipeline",{RX_PIPELINE, &RxPipelineSettings::getFeaturePath}},
@@ -159,11 +159,14 @@ public:
     if (auto it = dispatch.find(key); it != dispatch.end()) {
       featuresOut.push_back(it->second.first);
       if (startIndex + 1 < featureStrings.size() && it->second.second) {
-        it->second.second(featureStrings, featuresOut, startIndex + 1);
+        if ( !it->second.second(featureStrings, featuresOut, startIndex + 1)) {
+          featuresOut.pop_back();
+          return false;
+        }
       }
-    } else {
-      throw SettingsException("Unknown Band setting: " + key);
+      return true;
     }
+    return false;
   }
 
   bool applyRxPipelineSetting(const SingleSetting& setting, int index)

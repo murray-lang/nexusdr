@@ -56,7 +56,7 @@ class MicSettings : public SettingsBase
     return settingChange;
   }
 
-  static void getFeaturePath(
+  static bool getFeaturePath(
     const std::vector<std::string>& featureStrings,
     std::vector<uint32_t>& features,
     size_t startIndex
@@ -67,9 +67,9 @@ class MicSettings : public SettingsBase
     }
     if (featureStrings[startIndex] == "gain") {
       features.push_back(GAIN);
-    } else {
-      throw SettingsException("Unknown RF setting: " + featureStrings[startIndex]);
+      return true;
     }
+    return false;
   }
 
   sdrreal gain;
