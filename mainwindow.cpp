@@ -603,7 +603,11 @@ MainWindow::createModeMenu(const Mode& currentMode)
 
   const std::vector<Mode>& allModes = ModeSettings::getAll();
 
-  SettingPath settingPath({RadioSettings::Features::MODE});
+  SettingPath settingPath({
+    RadioSettings::Features::PIPELINE,
+    BandSettings::Features::RX_PIPELINE,
+    PipelineSettings::Features::MODE
+  });
   for (const auto& mode : allModes) {
     QAction* action = modeMenu->addAction(mode.getName().c_str(), this, [this, mode, settingPath]()
     {
@@ -720,11 +724,12 @@ MainWindow::initialiseRadio()
     m_pRadio->configure(&m_radioConfig);
     m_pRadio->start();
 
-    m_radioSettings.modeType = Mode::USB;
-    m_radioSettings.bandName = "20m";
-    m_radioSettings.changed = RadioSettings::MODE | RadioSettings::BAND;
+    m_pRadio->applyBand("20m");
 
-    m_pRadio->applySettings(m_radioSettings);
+    // m_radioSettings.bandName = "20m";
+    // m_radioSettings.changed = RadioSettings::BAND;
+    //
+    // m_pRadio->applySettings(m_radioSettings);
 
     RfSettings rfSettings;
     rfSettings.gain = 30.0;

@@ -173,15 +173,15 @@ public:
 protected:
   bool applyRfSetting(const SingleSetting& setting, int index)
   {
-    return rfSettings.applySetting(setting, index + 1);
+    return rfSettings.applySetting(setting, index);
   }
 
   bool applyModeSetting(const SingleSetting& setting, int index)
   {
     if (modeSettings.applySetting(setting, index)) {
     }
-    const auto& modeName = std::get<std::string>(setting.getValue());
-    Mode newMode = modeSettings.getModeByName(modeName);
+    const auto& modeType = std::get<Mode::Type>(setting.getValue());
+    Mode newMode = modeSettings.getModeByType(modeType);
     if (newMode.getType() != mode.getType()) {
       setMode(newMode);
       return true;

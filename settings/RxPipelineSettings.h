@@ -157,7 +157,7 @@ protected:
 
   bool applyIfSettings(const SingleSetting& setting, int index)
   {
-    return ifSettings.applySetting(setting, index + 1);
+    return ifSettings.applySetting(setting, index);
   }
 
   bool applyAgcSetting(const SingleSetting& setting, int index)

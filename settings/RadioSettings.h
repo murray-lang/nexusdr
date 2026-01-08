@@ -26,18 +26,16 @@ public:
   {
     NONE = 0,
     PTT = 0x01,
-    MODE = 0x02,
-    PIPELINE = 0x04,
-    TX = 0x08,
-    RX = 0x10,
-    BAND = 0x20,
+    PIPELINE = 0x02,
+    TX = 0x04,
+    RX = 0x08,
+    BAND = 0x10,
     ALL = static_cast<uint32_t>(~0U)
   };
 
-  RadioSettings() : modeType(Mode::Type::NONE),
-    ptt(false)
+  RadioSettings() : ptt(false)
   {
-    setAllChanged();
+    RadioSettings::setAllChanged();
   };
   RadioSettings(const RadioSettings& rhs) = default;
   
@@ -47,7 +45,6 @@ public:
   {
     if (this != &rhs) {
       SettingsBase::operator=(rhs);
-      modeType = rhs.modeType;
       bandName = rhs.bandName;
       rxSettings = rhs.rxSettings;
       txSettings = rhs.txSettings;
@@ -84,12 +81,6 @@ public:
         settingChange = true;
       }
     }
-    if ((feature & MODE) != 0) {
-      modeType = std::get<Mode::Type>(setting.getValue());
-      changed |= MODE;
-      settingChange = true;
-
-    }
     if ((feature & BAND) != 0) {
       const std::string newBandName = std::get<std::string>(setting.getValue());
       //if (bandName != newBandName) {
@@ -113,6 +104,8 @@ public:
     SettingsBase::setAllChanged();
     rxSettings.setAllChanged();
     txSettings.setAllChanged();
+    // Not PTT! That being set will short-circuit all other changes
+    changed &= ~PTT;
   }
 
   static SettingPath getSettingPath(const std::string& strDottedFeatures)
@@ -146,8 +139,6 @@ public:
       if (startIndex + 1 < featureStrings.size()) {
         TransmitterSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
       }
-    } else if (featureStrings[startIndex] == "mode") {
-      featuresOut.push_back(MODE);
     } else if (featureStrings[startIndex] == "pipeline") {
       featuresOut.push_back(PIPELINE);
       if (startIndex + 1 < featureStrings.size()) {
@@ -168,7 +159,6 @@ public:
 
   }
   bool ptt;
-  Mode::Type modeType;
   // Band band;
   std::string bandName;
   // Bands bands;

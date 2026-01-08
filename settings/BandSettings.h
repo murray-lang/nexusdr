@@ -29,7 +29,7 @@ public:
    focusRxPipeline(0),
    rxPipelineTrackedByTx (0)
   {
-    setAllChanged();
+    BandSettings::setAllChanged();
   }
 
   BandSettings(const Band& band) :
@@ -42,7 +42,7 @@ public:
   {
     addRxPipeline();
     applyBandDefaults(band);
-    setAllChanged();
+    BandSettings::setAllChanged();
   }
   ~BandSettings() override = default;
   // BandSettings(const BandSettings& rhs) = default;
@@ -197,10 +197,15 @@ public:
   bool applyRxPipeline(const SingleSetting& setting, int index)
   {
     RxPipelineSettings& focusPipelineSettings = rxPipelineSettings[focusRxPipeline];
-    bool change = focusPipelineSettings.applySetting(setting, index );
+    bool change = focusPipelineSettings.applySetting(setting, index);
     if (change) {
-      if (focusRxPipeline == rxPipelineTrackedByTx && focusPipelineSettings.changed & PipelineSettings::RF) {
-        txPipelineSettings.rfSettings.copyFrequencies(focusPipelineSettings.rfSettings);
+      if (focusRxPipeline == rxPipelineTrackedByTx) {
+        if (focusPipelineSettings.changed & PipelineSettings::RF) {
+          txPipelineSettings.rfSettings.copyFrequencies(focusPipelineSettings.rfSettings);
+        }
+        if (focusPipelineSettings.changed & PipelineSettings::MODE) {
+          txPipelineSettings.setMode(focusPipelineSettings.mode);
+        }
       }
       return true;
     }
@@ -276,7 +281,7 @@ protected:
 
   bool applyTxPipeline(const SingleSetting& setting, int index)
   {
-    return txPipelineSettings.applySetting(setting, index + 1);
+    return txPipelineSettings.applySetting(setting, index);
   }
 
 

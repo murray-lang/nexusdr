@@ -129,7 +129,6 @@ Radio::applySettings(const RadioSettings& settings) {
 
   BandSettings* pBandSettings = getBandSettings(settings.bandName);
   if (pBandSettings != nullptr) {
-    
     applySettings(settings, pBandSettings);
   }
 }
