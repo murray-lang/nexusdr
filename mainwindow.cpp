@@ -728,7 +728,7 @@ MainWindow::initialiseRadio()
 
     // m_radioSettings.bandName = "20m";
     // m_radioSettings.changed = RadioSettings::BAND;
-    //
+    
     // m_pRadio->applySettings(m_radioSettings);
 
     RfSettings rfSettings;

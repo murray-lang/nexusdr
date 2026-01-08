@@ -127,7 +127,7 @@ public:
 
     for (const auto& h : dispatchTable) {
       if (feature & h.feature) {
-        if ((this->*h.method)(setting, startIndex)) {
+        if ((this->*h.method)(setting, startIndex + 1)) {
           settingChange = true;
           changed |= h.feature;
         }
