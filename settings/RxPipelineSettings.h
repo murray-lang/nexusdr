@@ -5,6 +5,7 @@
 #pragma once
 #include "IfSettings.h"
 #include "PipelineSettings.h"
+#include <QDebug>
 
 class RxPipelineSettings : public PipelineSettings
 {
@@ -12,9 +13,10 @@ public:
   enum Features
   {
     NONE = 0,
-    IF = 0x01,
-    MUTE = 0x02,
-    AGC = 0x04,
+    // 0x01 and 0x02 are used by PipelineSettings
+    IF = 0x04,
+    MUTE = 0x08,
+    AGC = 0x10,
     ALL = static_cast<uint32_t>(~0U)
   };
   RxPipelineSettings() : PipelineSettings(), mute(false)
@@ -33,6 +35,18 @@ public:
     return *this;
   }
 
+  void clearChanged() override
+  {
+    PipelineSettings::clearChanged();
+    ifSettings.clearChanged();
+  }
+
+  void setAllChanged() override
+  {
+    PipelineSettings::setAllChanged();
+    ifSettings.setAllChanged();
+  }
+
   IfSettings& getIfSettings()
   {
     return ifSettings;
@@ -45,6 +59,7 @@ public:
 
   bool applySettings(const RxPipelineSettings& settings)
   {
+    qDebug() << "RxPipelineSettings::applySettings called";
     bool somethingChanged = PipelineSettings::applySettings(settings);
     if (settings.changed & IF) {
       if (ifSettings.applySettings(settings.ifSettings)) {
@@ -75,9 +90,9 @@ public:
     };
 
     static constexpr Handler dispatchTable[] = {
-  { MUTE,   &RxPipelineSettings::applyMuteSetting },
-  { IF,     &RxPipelineSettings::applyIfSettings },
-  { AGC,     &RxPipelineSettings::applyAgcSetting },
+      { MUTE,   &RxPipelineSettings::applyMuteSetting },
+      { IF,     &RxPipelineSettings::applyIfSettings },
+      { AGC,     &RxPipelineSettings::applyAgcSetting },
     };
 
     for (const auto& h : dispatchTable) {

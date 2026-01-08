@@ -36,7 +36,9 @@ public:
 
   RadioSettings() : modeType(Mode::Type::NONE),
     ptt(false)
-  {};
+  {
+    setAllChanged();
+  };
   RadioSettings(const RadioSettings& rhs) = default;
   
   ~RadioSettings() override = default;
@@ -90,11 +92,11 @@ public:
     }
     if ((feature & BAND) != 0) {
       const std::string newBandName = std::get<std::string>(setting.getValue());
-      if (bandName != newBandName) {
+      //if (bandName != newBandName) {
         bandName = newBandName;
-        changed |= BAND;
+        changed |= BAND | PIPELINE;
         settingChange = true;
-      }
+      //}
     }
     return settingChange;
   }
@@ -102,9 +104,15 @@ public:
   void clearChanged() override
   {
     SettingsBase::clearChanged();
-    // modeSettings.clearChanged();
     rxSettings.clearChanged();
     txSettings.clearChanged();
+  }
+
+  void setAllChanged() override
+  {
+    SettingsBase::setAllChanged();
+    rxSettings.setAllChanged();
+    txSettings.setAllChanged();
   }
 
   static SettingPath getSettingPath(const std::string& strDottedFeatures)

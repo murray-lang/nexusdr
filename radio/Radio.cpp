@@ -9,6 +9,7 @@
 #include "settings/RadioSettings.h"
 #include "settings/RadioSettingsEvent.h"
 #include "settings/SingleSettingEvent.h"
+#include <QDebug>
 
 
 Radio::Radio(QObject *pEventTarget) :
@@ -124,8 +125,11 @@ Radio::applyIfSettings(const IfSettings& settings)
 
 void
 Radio::applySettings(const RadioSettings& settings) {
+
+
   BandSettings* pBandSettings = getBandSettings(settings.bandName);
   if (pBandSettings != nullptr) {
+    
     applySettings(settings, pBandSettings);
   }
 }
@@ -141,15 +145,6 @@ Radio::applySettings(const RadioSettings& settings, BandSettings* pBandSettings)
     m_settings.clearChanged();
     return; // Don't try to do anything else concurrently with PTT.
   }
-  // if (settings.changed & RadioSettings::BAND) {
-  //   const std::string& bandName = m_settings.bandName;
-  //   if (m_perBandSettings.find(bandName) == m_perBandSettings.end()) {
-  //     const Band* bandInfo = m_bands.findBand(bandName);
-  //     if (bandInfo) {
-  //       m_perBandSettings.emplace(bandName, PerBandSettings(bandInfo));
-  //     }
-  //   }
-  // }
 
   if (settings.changed & (RadioSettings::PIPELINE | RadioSettings::BAND)) {
     RxPipelineSettings* rxPipelineSettings = pBandSettings->getFocusRxPipelineSettings();
@@ -181,6 +176,7 @@ Radio::applySettings(const RadioSettings& settings, BandSettings* pBandSettings)
     QCoreApplication::postEvent(m_pEventTarget, new RadioSettingsEvent(settings, *pBandSettings));
   }
   m_settings.clearChanged();
+  pBandSettings->clearChanged();
 }
 
 void
@@ -189,13 +185,27 @@ Radio::applySingleSetting(const SingleSetting& setting)
   if (m_pEventTarget != nullptr) {
     // QCoreApplication::postEvent(m_pEventTarget, new SingleSettingEvent(setting));
   }
+
+  // Intercept BAND changes so that any change can be detected and the new band settings marked as all changed to force updates
+  if (setting.getPath().getFeatures()[0] == RadioSettings::Features::BAND) {
+    std::string newBandName = std::get<std::string>(setting.getValue());
+    if (m_settings.bandName != newBandName) {
+      BandSettings* pBandSettings = getBandSettings(newBandName);
+      if (pBandSettings != nullptr) {
+        pBandSettings->setAllChanged();
+      }
+    }
+  }
+
   if (m_settings.applySetting(setting, 0)) {
     applySettings(m_settings);
   } else if (setting.getPath().getFeatures()[0] == RadioSettings::Features::PIPELINE) {
     BandSettings* pBandSettings = getBandSettings(m_settings.bandName);
     if (pBandSettings != nullptr) {
       if (pBandSettings->applySetting(setting, 1)) {
+        m_settings.changed |= RadioSettings::PIPELINE;
         applySettings(m_settings, pBandSettings);
+        pBandSettings->clearChanged();
       }
     }
   }
@@ -204,6 +214,7 @@ Radio::applySingleSetting(const SingleSetting& setting)
 void
 Radio::applyBand(const std::string& bandName)
 {
+  // qDebug() << "Radio::applyBand(): applying band " << bandName.c_str() << ". Existing band: " << m_settings.bandName.c_str() ;
   SettingPath bandPath({RadioSettings::Features::BAND});
   SingleSetting bandSetting(bandPath, bandName, SingleSetting::Meaning::VALUE);
   applySingleSetting(bandSetting);

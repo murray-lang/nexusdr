@@ -91,7 +91,17 @@ public:
   void clearChanged() override
   {
     SettingsBase::clearChanged();
-    // rfSettings.clearChanged();
+    correctionSettings.clearChanged();
+    micSettings.clearChanged();
+    testSettings.clearChanged();
+  }
+
+  void setAllChanged() override
+  {
+    SettingsBase::setAllChanged();
+    correctionSettings.setAllChanged();
+    micSettings.setAllChanged();
+    testSettings.setAllChanged();
   }
 
   static bool getFeaturePath(

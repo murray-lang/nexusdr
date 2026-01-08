@@ -6,7 +6,7 @@
 #include "SettingsBase.h"
 #include "TwoToneSettings.h"
 
-class TestSettings : SettingsBase
+class TestSettings : public SettingsBase
 {
   public:
 

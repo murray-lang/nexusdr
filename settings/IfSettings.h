@@ -27,8 +27,7 @@ public:
       SettingsBase::operator=(rhs);
       bandwidth = rhs.bandwidth;
       gain = rhs.gain;
-      changed = rhs.changed;
-    }
+     }
     return *this;
   }
 
@@ -77,12 +76,7 @@ public:
     return settingChange;
   }
 
-  void clearChanged() override
-  {
-    SettingsBase::clearChanged();
-  }
-
-  static bool getFeaturePath(
+    static bool getFeaturePath(
     const std::vector<std::string>& featureStrings,
     std::vector<uint32_t>& features,
     size_t startIndex

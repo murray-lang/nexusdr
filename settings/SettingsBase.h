@@ -26,6 +26,7 @@ public:
   virtual bool applySetting(const SingleSetting& setting, int startIndex) = 0;
 
   virtual void clearChanged() { changed = 0; }
+  virtual void setAllChanged() { changed = ~0U; }
   [[nodiscard]] bool isChanged() const { return !!changed; }
 
   template<uint32_t FeatureValue>

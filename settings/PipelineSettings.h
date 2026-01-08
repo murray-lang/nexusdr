@@ -33,6 +33,19 @@ public:
     return *this;
   }
 
+  void clearChanged() override
+  {
+    SettingsBase::clearChanged();
+    rfSettings.clearChanged();
+  }
+
+  void setAllChanged() override
+  {
+    SettingsBase::setAllChanged();
+    rfSettings.setAllChanged();
+  }
+
+
   void copyBasicsForTracking(const PipelineSettings& rhs)
   {
     mode = rhs.mode;

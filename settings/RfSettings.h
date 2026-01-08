@@ -10,6 +10,7 @@
 #include "Bands.h"
 #include "SettingsBase.h"
 #include "SettingsException.h"
+#include <QDebug>
 
 class RfSettings : public SettingsBase
 {
@@ -40,9 +41,22 @@ public:
       offset = rhs.offset;
       offsetStep = rhs.offsetStep;
       gain = rhs.gain;
+
     }
     return *this;
   }
+
+  // void clearChanged() override
+  // {
+  //   qDebug() << "RfSettings::clearChanged called";
+  //   SettingsBase::clearChanged();
+  // }
+
+  // void setAllChanged() override
+  // {
+  //   qDebug() << "RfSettings::setAllChanged called";
+  //   SettingsBase::setAllChanged();
+  // }
 
   void copyFrequencies(const RfSettings& rhs)
   {
@@ -135,11 +149,6 @@ public:
       changed |= feature;
     }
     return settingChange;
-  }
-
-  void clearChanged() override
-  {
-    SettingsBase::clearChanged();
   }
 
   static bool getFeaturePath(

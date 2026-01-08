@@ -8,6 +8,7 @@
 #include "TxPipelineSettings.h"
 #include "RxPipelineSettings.h"
 #include "SettingsBase.h"
+#include <QDebug>
 
 
 class BandSettings : public SettingsBase
@@ -28,7 +29,7 @@ public:
    focusRxPipeline(0),
    rxPipelineTrackedByTx (0)
   {
-    changed = ALL;
+    setAllChanged();
   }
 
   BandSettings(const Band& band) :
@@ -41,7 +42,7 @@ public:
   {
     addRxPipeline();
     applyBandDefaults(band);
-    changed = ALL;
+    setAllChanged();
   }
   ~BandSettings() override = default;
   // BandSettings(const BandSettings& rhs) = default;
@@ -57,6 +58,30 @@ public:
       rxPipelineTrackedByTx = rhs.rxPipelineTrackedByTx;
     }
     return *this;
+  }
+
+  void clearChanged() override
+  {
+    SettingsBase::clearChanged();
+    txPipelineSettings.clearChanged();
+    for (auto& rxSettings : rxPipelineSettings) {
+      rxSettings.clearChanged();
+    }
+  }
+
+  void setAllChanged() override
+  {
+    SettingsBase::setAllChanged();
+    txPipelineSettings.setAllChanged();
+    for (auto& rxSettings : rxPipelineSettings) {
+      rxSettings.setAllChanged();
+    }
+  }
+
+  bool hasRxFrequencyChanged() const
+  {
+    const RfSettings& rfSettings = getFocusRxRfSettings();
+    return rfSettings.changed & RfSettings::FREQUENCY;
   }
 
   void addRxPipeline()
@@ -121,14 +146,14 @@ public:
 
     static constexpr HandlerEntry dispatchTable[] = {
       {TX_PIPELINE, &BandSettings::applyTxPipeline },
-      {RX_PIPELINE, &BandSettings::applyRxPipelineSetting },
+      {RX_PIPELINE, &BandSettings::applyRxPipeline },
       {FOCUS_RX_PIPELINE, &BandSettings::applyFocusRxPipeline },
       {RX_PIPELINE_TRACKED_BY_TX, &BandSettings::applyRxPipelineTrackedByTx }
     };
 
     for (const auto& h : dispatchTable) {
       if (feature & h.feature) {
-        if ((this->*h.method)(setting, startIndex)) {
+        if ((this->*h.method)(setting, startIndex + 1)) {
           settingChange = true;
           changed |= h.feature;
         }
@@ -150,10 +175,10 @@ public:
 
     using PathFunc = bool(*)(const std::vector<std::string>&, std::vector<uint32_t>&, size_t);
     static const std::map<std::string, std::pair<Features, PathFunc>> dispatch = {
-  {"tx-pipeline",{TX_PIPELINE, &TxPipelineSettings::getFeaturePath}},
-  {"rx-pipeline",{RX_PIPELINE, &RxPipelineSettings::getFeaturePath}},
-  {"focus-rx-pipeline",{FOCUS_RX_PIPELINE, &SettingsBase::addFeature<FOCUS_RX_PIPELINE>}},
-  {"rx-pipeline-tracked-by-tx",{RX_PIPELINE_TRACKED_BY_TX, &SettingsBase::addFeature<RX_PIPELINE_TRACKED_BY_TX>}}
+      {"tx-pipeline",{TX_PIPELINE, &TxPipelineSettings::getFeaturePath}},
+      {"rx-pipeline",{RX_PIPELINE, &RxPipelineSettings::getFeaturePath}},
+      {"focus-rx-pipeline",{FOCUS_RX_PIPELINE, &SettingsBase::addFeature<FOCUS_RX_PIPELINE>}},
+      {"rx-pipeline-tracked-by-tx",{RX_PIPELINE_TRACKED_BY_TX, &SettingsBase::addFeature<RX_PIPELINE_TRACKED_BY_TX>}}
     };
 
     if (auto it = dispatch.find(key); it != dispatch.end()) {
@@ -169,10 +194,10 @@ public:
     return false;
   }
 
-  bool applyRxPipelineSetting(const SingleSetting& setting, int index)
+  bool applyRxPipeline(const SingleSetting& setting, int index)
   {
     RxPipelineSettings& focusPipelineSettings = rxPipelineSettings[focusRxPipeline];
-    bool change = focusPipelineSettings.applySetting(setting, index + 1);
+    bool change = focusPipelineSettings.applySetting(setting, index );
     if (change) {
       if (focusRxPipeline == rxPipelineTrackedByTx && focusPipelineSettings.changed & PipelineSettings::RF) {
         txPipelineSettings.rfSettings.copyFrequencies(focusPipelineSettings.rfSettings);

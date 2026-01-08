@@ -90,13 +90,6 @@ public:
     return settingChange;
   }
 
-  void clearChanged() override
-  {
-    SettingsBase::clearChanged();
-    // rfSettings.clearChanged();
-    // ifSettings.clearChanged();
-  }
-
   static bool getFeaturePath(
     const std::vector<std::string>& featureStrings,
     std::vector<uint32_t>& featuresOut,
