@@ -61,6 +61,10 @@ public:
       throw SettingsException("Invalid setting path");
     }
 
+    if (PipelineSettings::applySetting(setting, startIndex)) {
+      return true;
+    }
+
     uint32_t targetFeature = setting.getPath().getFeatures()[startIndex];
     bool settingChange = false;
 
