@@ -6,7 +6,7 @@
 #include "SettingsBase.h"
 #include "TwoToneSettings.h"
 
-class TestSettings : SettingsBase
+class TestSettings : public SettingsBase
 {
   public:
 
@@ -14,6 +14,7 @@ class TestSettings : SettingsBase
   {
     NONE = 0,
     TWO_TONE = 0x01,
+    ALL = static_cast<uint32_t>(~0U)
   };
 
   TestSettings() : SettingsBase(), twoToneSettings() {}
@@ -29,6 +30,16 @@ class TestSettings : SettingsBase
     return *this;
   }
 
+  bool applySettings(const TestSettings& settings)
+  {
+    bool somethingChanged = false;
+    if (settings.changed & TWO_TONE) {
+      twoToneSettings = settings.twoToneSettings;
+      changed |= TWO_TONE;
+      somethingChanged = true;
+    }
+    return somethingChanged;
+  }
 
 
   bool applySetting(const SingleSetting& setting, int startIndex) override
@@ -47,7 +58,7 @@ class TestSettings : SettingsBase
     return settingChange;
   }
 
-  static void getFeaturePath(
+  static bool getFeaturePath(
     const std::vector<std::string>& featureStrings,
     std::vector<uint32_t>& featuresOut,
     size_t startIndex
@@ -59,11 +70,14 @@ class TestSettings : SettingsBase
     if (featureStrings[startIndex] == "two-tone") {
       featuresOut.push_back(TWO_TONE);
       if (startIndex + 1 < featureStrings.size()) {
-        TwoToneSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
+        if (!TwoToneSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1)) {
+          featuresOut.pop_back();
+          return false;
+        }
       }
-    } else {
-      throw SettingsException("Unknown receiver setting: " + featureStrings[startIndex]);
+      return true;
     }
+    return false;
   }
 
   TwoToneSettings twoToneSettings;

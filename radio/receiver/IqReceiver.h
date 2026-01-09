@@ -7,6 +7,7 @@
 #include "../../dsp/pipeline/IqRxPipeline.h"
 #include "io/iq/IqIo.h"
 
+class RxPipelineSettings;
 
 //#define PING_PONG_LENGTH 2048
 // #define PING_PONG_LENGTH 8192
@@ -15,7 +16,7 @@ class ModeSettings;
 
 class IqReceiver : public ReceiverSettingsSink, public IqSink, public AudioSink, public PttSink, public SignalEmitter {
 public:
-  explicit IqReceiver(const ModeSettings& modeSettings, QObject *eventTarget = nullptr);
+  explicit IqReceiver(QObject *eventTarget = nullptr);
 
   ~IqReceiver() override = default;
 
@@ -28,13 +29,14 @@ public:
   void stop();
 
   void apply(const ReceiverSettings& settings) override;
+  void apply(const RxPipelineSettings* settings);
 
   void ptt(bool on) override;
 
   void setMode(const Mode& mode);
 
 protected:
-  const ModeSettings& m_modeSettings;
+  // const ModeSettings& m_modeSettings;
   IqIo m_iqIo;
   IqRxPipeline m_iqPipeline;
   QObject* m_eventTarget;

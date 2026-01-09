@@ -1,25 +1,24 @@
 //
 // Created by murray on 20/11/25.
 //
-
+#include "settings/TxPipelineSettings.h"
 #include "IqTxPipeline.h"
-
 #include "settings/ModeSettings.h"
 #include <qdebug.h>
+
+
 
 #define FFT_SIZE 2048
 #define PING_PONG_LENGTH 8192
 #define HILBERT_TAPS 127
 
-class ModeSettings;
-
 #define DEFAULT_SAMPLE_RATE 48000
 
-IqTxPipeline::IqTxPipeline(const ModeSettings& modeSettings, QObject* eventTarget) :
-  IqPipeline(modeSettings, eventTarget),
-  m_ssbModulator(modeSettings.getModeByType(Mode::USB), DEFAULT_SAMPLE_RATE),
-  m_cwModulator(modeSettings.getModeByType(Mode::CWU), DEFAULT_SAMPLE_RATE),
-  m_fmModulator(modeSettings.getModeByType(Mode::FMN), DEFAULT_SAMPLE_RATE),
+IqTxPipeline::IqTxPipeline(QObject* eventTarget) :
+  IqPipeline(eventTarget),
+  m_ssbModulator(ModeSettings::getModeByType(Mode::USB), DEFAULT_SAMPLE_RATE),
+  m_cwModulator(ModeSettings::getModeByType(Mode::CWU), DEFAULT_SAMPLE_RATE),
+  m_fmModulator(ModeSettings::getModeByType(Mode::FMN), DEFAULT_SAMPLE_RATE),
   m_pModulator(nullptr),
   m_resampler(),
   m_ifFilter(FFT_SIZE),
@@ -91,24 +90,33 @@ IqTxPipeline::getMaxFramesPerOutputPacket() const
   return m_buffers.getSize() / 2; // 2 is the number of channels (I + Q)
 }
 
-void IqTxPipeline::apply(const TransmitterSettings& settings)
+void
+IqTxPipeline::apply(const TransmitterSettings& settings)
 {
   std::lock_guard<std::mutex> lock(m_settingsMutex);
-  if (settings.changed & TransmitterSettings::RF) {
-    if (settings.rfSettings.changed & RfSettings::OFFSET) {
-      m_oscillatorMixer.setFrequency(settings.rfSettings.offset);
-    }
-  }
   if (settings.changed & TransmitterSettings::CORRECTION) {
     m_iqCorrection.apply(settings.correctionSettings);
-  }
-  if (settings.changed & TransmitterSettings::MODE) {
-    setMode(settings.mode);
   }
   if (settings.changed & TransmitterSettings::MIC) {
     if (settings.micSettings.changed & MicSettings::GAIN) {
       m_ssbModulator.setInputGain(settings.micSettings.gain);
       qDebug() << "IqTxPipeline::apply(): set SSB modulator input gain to" << settings.micSettings.gain;
+    }
+  }
+}
+
+void
+IqTxPipeline::apply(const TxPipelineSettings* settings)
+{
+  if (settings != nullptr) {
+    std::lock_guard<std::mutex> lock(m_settingsMutex);
+    if (settings->changed & PipelineSettings::RF) {
+      if (settings->rfSettings.changed & RfSettings::OFFSET) {
+        m_oscillatorMixer.setFrequency(settings->rfSettings.offset);
+      }
+    }
+    if (settings->changed & PipelineSettings::MODE) {
+      setMode(settings->mode);
     }
   }
 }

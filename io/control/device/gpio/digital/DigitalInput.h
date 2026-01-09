@@ -9,11 +9,11 @@
 #include <config/DigitalInputConfig.h>
 #include "settings/SettingPath.h"
 #include "DigitalInputLinesRequest.h"
-#include "settings/RadioSettingsSource.h"
+#include "settings/SingleSettingSource.h"
 #include "io/control/ControlException.h"
 
 
-class DigitalInput : public GpioLines, public RadioSettingsSource
+class DigitalInput : public GpioLines, public SingleSettingSource
 {
 public:
 
@@ -30,19 +30,15 @@ public:
 
   virtual bool handleLineChange(DigitalInputLinesRequest::LineStates& changedLines);
 
-  void connect(RadioSettingsSink* pSink) override;
+  void connect(SingleSettingSink* pSink) override;
 protected:
   void notifyChange(const DigitalInputLinesRequest::LineState& lineState);
   void notifySingleSetting(const SingleSetting& settingDelta) override;
-  void notifySettings(const RadioSettings& settings) override
-  {
-    throw ControlException("DigitalInput cannot notify settings, only a single setting.");
-  }
 
   std::string m_id;
   bool m_activeHigh;
   bool m_debounce;
   bool m_detectEdge;
   SettingPath m_settingPath;
-  RadioSettingsSink* m_pSink;
+  SingleSettingSink* m_pSink;
 };

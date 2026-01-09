@@ -17,7 +17,7 @@ public:
   ~BandSelector() override = default;
   void configure(const ConfigBase* pConfig) override;
 
-  void applySettings(const RadioSettings& settings) override;
+  void applySettings(const RadioSettings& settings, BandSettings* pBandSettings) override;
   void applySingleSetting(const SingleSetting& setting) override;
   void ptt(bool on) override {};
 

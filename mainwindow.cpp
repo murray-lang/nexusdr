@@ -1,11 +1,18 @@
 #include "mainwindow.h"
-#include "./ui_mainwindow.h"
+#include "ui_mainwindow-1024x600.h"
 #include <QSlider>
 #include <QPushButton>
 #include <QLineSeries>
 #include <QValueAxis>
 #include <QLogValueAxis>
 #include <QThreadPool>
+#include <QStyle>
+#include <QColor>
+#include <QVariant>
+#include <QMenu>
+#include <QActionGroup>
+#include <QDialog>
+#include <QVBoxLayout>
 #include "io/audio/drivers/RtAudio/RtAudioInputDriver.h"
 #include <cmath>
 #include "io/control/device/usb/UsbException.h"
@@ -19,73 +26,47 @@
 #include "radio/transmitter/TransmitterAudioEvent.h"
 #include "radio/transmitter/TransmitterIqEvent.h"
 
+#include <QToolButton>
+#include "ui/qt/ChartTheme.h"
+#include "settings/Bands.h"
+#include "settings/RadioSettingsEvent.h"
+#include "ui/qt/BandDialog.h"
+
 #define FFT_SIZE 2048
 #define SAMPLE_RATE 192000
 
 MainWindow::MainWindow(RadioConfig& radioConfig, QWidget *parent)
-    : QMainWindow(parent)
-    , m_radioConfig(radioConfig)
-    // , m_pIqReceiver(nullptr)
-    , m_pRadio(nullptr)
-    , m_spectrumLineSeries()
-    , m_spectrumAreaSeries()
-    , m_timeseriesLineSeries()
-    , ui(new Ui::MainWindow)
-    , m_reportedIqSampleRate(0)
-    , m_panadapterXmin(0)
-    , m_panadapterXmax(FFT_SIZE)
-    , m_timeSeriesXmin(0)
-    , m_timeSeriesXmax(FFT_SIZE),
-    m_verticalCursorLine(new QGraphicsLineItem()),
-    m_filterPassbandRect(nullptr)
+  : QMainWindow(parent)
+  , m_radioConfig(radioConfig)
+  , m_pRadio(nullptr)
+  , m_spectrumLineSeries()
+  , m_spectrumAreaSeries()
+  , m_timeseriesLineSeries()
+  , ui(new Ui::MainWindow)
+  , m_reportedIqSampleRate(0)
+  , m_panadapterXmin(0)
+  , m_panadapterXmax(FFT_SIZE)
+  , m_timeSeriesXmin(0)
+  , m_timeSeriesXmax(FFT_SIZE),
+  m_verticalCursorLine(new QGraphicsLineItem()),
+  m_filterPassbandRect(nullptr),
+  m_modeButton(nullptr)
 {
-    //m_pIqReceiver = new IqReceiver(2048);
-    ui->setupUi(this);
 
-    initializeWindow();
-    initialiseRadio();
-    //initializeAudio(QMediaDevices::defaultAudioInput());
-    initializeAudio();
+  initialiseRadio();
+  initializeWindow();
 
-    //m_iqProcessor.start();
-    //QThreadPool::globalInstance()->start(m_pIqReceiver);
+  initializeAudio();
 
-//    QLineSeries *series = new QLineSeries();
-//    series->append(0, 6);
-//    series->append(2, 4);
-//    series->append(3, 8);
-//    series->append(7, 4);
-//    series->append(10, 5);
-//    *series << QPointF(11, 1) << QPointF(13, 3) << QPointF(17, 6) << QPointF(18, 3) << QPointF(20, 2);
+  ui->panadapterView->setRenderHint(QPainter::Antialiasing);
+  ui->timeseriesView->setRenderHint(QPainter::Antialiasing);
 
-    //ui->panadapterView->chart()
-    //QChart* pChart = ui->panadapterView->chart();
-
-    ui->panadapterView->setRenderHint(QPainter::Antialiasing);
-    ui->timeseriesView->setRenderHint(QPainter::Antialiasing);
-
-   //pChart->legend()->hide();
-
-    //pChart->addSeries(&m_fftSeries);
-    //pChart->addSeries(&m_realSeries);
-    //pChart->addSeries(&m_imagSeries);
-    //QPen pen = m_fftSeries.pen();
-    //pen.setWidth(0);
-
-
-
-    //pChart->createDefaultAxes();
-    //pChart->axisY()->setRange(0, 25);
-    //pChart->axisY()->setRange(0.005, 0.025);
-    //pChart->axisX()->setRange(0, FFT_SIZE);
-    //pChart->setTitle("FunCube FFT");
-    configurePanadapter();
-    configureTimeseriesChart();
+  configurePanadapter();
+  configureTimeseriesChart();
 }
 
 MainWindow::~MainWindow()
 {
-  // delete m_pIqReceiver;
   delete m_pRadio;
   delete ui;
 }
@@ -93,27 +74,53 @@ MainWindow::~MainWindow()
 void
 MainWindow::configurePanadapter()
 {
+
   QChart* pChart = ui->panadapterView->chart();
-//    m_spectrumAreaSeries.setUpperSeries(&m_spectrumLineSeries);
 
-//    QGradient plotAreaGradient(QGradient::Preset::MorpheusDen);
-//    QBrush plotAreaBrush(plotAreaGradient);
-//    pChart->setBackgroundBrush(plotAreaBrush);
+  m_spectrumAreaSeries.setUpperSeries(&m_spectrumLineSeries);
 
-  //QPen pen(QRgb(0xccd0e1)); //0x0080ff
-  QPen pen(QRgb(0x0080ff));
+  auto* theme = findChild<ChartTheme*>("panadapterTheme");
+  theme->ensurePolished();
+
+  QString backgroundColorStr = theme->property("backgroundColor").toString();
+  auto backgroundColor = QColor(backgroundColorStr);
+  pChart->setBackgroundBrush(backgroundColor);
+
+  QString plotAreaColorStr = theme->property("plotAreaColor").toString();
+  pChart->setPlotAreaBackgroundBrush(QBrush(QColor(plotAreaColorStr)));
+  pChart->setPlotAreaBackgroundVisible(true);
+
+  QString seriesLineColorStr = theme->property("seriesLineColor").toString();
+  auto seriesLineColor = QColor(seriesLineColorStr);
+  QPen pen(seriesLineColor); //0x0080ff
   pen.setWidth(0);
-//  m_spectrumAreaSeries.setPen(pen);
-  m_spectrumLineSeries.setPen(pen);
+  // m_spectrumLineSeries.setPen(pen);
+  m_spectrumAreaSeries.setPen(pen);
 
-//    QGradient seriesGradient(QGradient::Preset::EternalConstance);
-//    QBrush seriesBrush(seriesGradient);
-//    m_spectrumAreaSeries.setBrush(seriesBrush);
+  QString seriesAreaColorStr = theme->property("seriesAreaColor").toString();
+  auto seriesAreaColor = QColor(seriesAreaColorStr);
+  QBrush seriesBrush(seriesAreaColor);
+  m_spectrumAreaSeries.setBrush(seriesBrush);
 
-//  pChart->addSeries(&m_spectrumAreaSeries);
-  pChart->addSeries(&m_spectrumLineSeries);
-  pChart->setTitle("Panadapter");
+  QString gridColorStr = theme->property("gridColor").toString();
+  QPen gridPen(gridColorStr);
+
+
+  pChart->addSeries(&m_spectrumAreaSeries);
+  // pChart->addSeries(&m_spectrumLineSeries);
+  // pChart->setTitle("Panadapter");
+
+  QString textColorStr = theme->property("textColor").toString();
+  QColor textColor(textColorStr);
+  pChart->setTitleBrush(QBrush(textColor));
+
   pChart->createDefaultAxes();
+
+  for (auto* axis : pChart->axes()) {
+    axis->setGridLinePen(gridPen);
+    axis->setLinePen(gridPen);
+    axis->setLabelsColor(textColor);
+  }
 
   // QLogValueAxis *yAxis = new QLogValueAxis();
   // yAxis->setBase(10.0);
@@ -122,39 +129,17 @@ MainWindow::configurePanadapter()
 
   QList<QAbstractAxis*> xAxes = pChart->axes(Qt::Horizontal);
   if (!xAxes.isEmpty()) {
-    QValueAxis *xAxis = qobject_cast<QValueAxis*>(xAxes.first());
+    auto *xAxis = qobject_cast<QValueAxis*>(xAxes.first());
     xAxis->setRange(m_panadapterXmin, m_panadapterXmax);
     xAxis->setLabelFormat(QString("%i"));
   }
-  pChart->axes(Qt::Vertical).first()->setRange(-140, -20);
+  pChart->axes(Qt::Vertical).first()->setRange(-110, -50);
 
   pChart->legend()->hide();
 
-  m_verticalCursorLine->setPen(QPen(Qt::red, 1.5, Qt::SolidLine));
+  QString cursorLineColorStr = theme->property("cursorLineColor").toString();
+  m_verticalCursorLine->setPen(QPen(QColor(cursorLineColorStr), 1.5, Qt::SolidLine));
   pChart->scene()->addItem(m_verticalCursorLine);
-    /*
-    pChart->addSeries(pSeries);
-    pChart->legend()->hide();
-    pChart->setTitle("Panadapter");
-    QValueAxis *axisX = new QValueAxis();
-    axisX->setTitleText("Frequency");
-    axisX->setLabelFormat("%i");
-    //axisX->setTickCount(pSeries->count());
-    axisX->setRange(0, FFT_SIZE);
-    pChart->addAxis(axisX, Qt::AlignBottom);
-    pSeries->attachAxis(axisX);
-    */
-    /*
-    //QLogValueAxis *axisY = new QLogValueAxis();
-    QValueAxis *axisY = new QValueAxis();
-    axisY->setTitleText("Level");
-    axisY->setLabelFormat("%g");
-    //axisY->setBase(10.0);
-    axisY->setRange(-140, 0);
-    //axisY->setMinorTickCount(-1);
-    pChart->addAxis(axisY, Qt::AlignLeft);
-    pSeries->attachAxis(axisY);
-    */
 }
 
 void
@@ -181,7 +166,7 @@ MainWindow::configureTimeseriesChart()
   pChart->axes(Qt::Horizontal).first()->setRange(m_timeSeriesXmin / 100.0, m_timeSeriesXmax/100.0);
 
 //  pChart->axes(Qt::Vertical).first()->setRange(2038, 2058);
-  pChart->axes(Qt::Vertical).first()->setRange(-1.0, 1.0);
+  pChart->axes(Qt::Vertical).first()->setRange(-0.05, 0.05);
 
 //  pChart->axes(Qt::Vertical).first()->setRange(-0.0000001, 0.0000003);
 
@@ -209,7 +194,7 @@ MainWindow::customEvent(QEvent* event)
     handleReceiverAudioEvent(audioEvent->buffer.get(), audioEvent->dataLength);
   } else if (event->type() == RadioSettingsEvent::RadioSettingsEventType) {
     auto* radioSettingsEvent = dynamic_cast<RadioSettingsEvent*>(event);
-    handleRadioSettingsEvent(radioSettingsEvent->getSettings());
+    handleRadioSettingsEvent(radioSettingsEvent->getRadioSettings(), radioSettingsEvent->getBandSettings());
   } else if (event->type() == TransmitterIqEvent::TxIqEvent) {
     auto* iqEvent = dynamic_cast<TransmitterIqEvent*>(event);
     handleTransmitterIqEvent(iqEvent->buffer.get(), iqEvent->dataLength, iqEvent->sampleRate);
@@ -222,19 +207,23 @@ MainWindow::customEvent(QEvent* event)
 void
 MainWindow::handleReceiverIqEvent(const vsdrcomplex* data, uint32_t length, uint32_t sampleRate)
 {
-  // m_reportedIqSampleRate = sampleRate;
+  m_reportedIqSampleRate = sampleRate;
   vsdrreal spectrum(length);
   powerSpectrum(*data, length, spectrum);
   // if (spectrum.size() != m_panadapterXmax) {
   //   setPanadapterX(0, spectrum.size());
   // }
-  uint32_t centreFrequency = m_radioSettings.rxSettings.rfSettings.frequency;
-  uint32_t xMin = centreFrequency - (sampleRate / 2);
-  uint32_t xMax = centreFrequency + (sampleRate / 2);
-  if (m_panadapterXmin != xMin || m_panadapterXmax != xMax) {
-    setPanadapterX(xMin, xMax);
+  RxPipelineSettings* rxPipelineSettings = m_bandSettings.getFocusRxPipelineSettings();
+  if (rxPipelineSettings != nullptr) {
+    const RfSettings& rfSettings = rxPipelineSettings->getRfSettings();
+    uint32_t centreFrequency = rfSettings.frequency;
+    uint32_t xMin = centreFrequency - (sampleRate / 2);
+    uint32_t xMax = centreFrequency + (sampleRate / 2);
+    if (m_panadapterXmin != xMin || m_panadapterXmax != xMax) {
+      setPanadapterX(xMin, xMax);
+    }
+    replaceSpectrumSeries(&spectrum, m_spectrumLineSeries, sampleRate, rfSettings.frequency, true);
   }
-  replaceSpectrumSeries(&spectrum, m_spectrumLineSeries, sampleRate, true);
 }
 
 void
@@ -246,17 +235,17 @@ MainWindow::handleTransmitterIqEvent(const vsdrcomplex* data, uint32_t length, u
   // if (spectrum.size() != m_panadapterXmax) {
   //   setPanadapterX(0, spectrum.size());
   // }
-  uint32_t centreFrequency = m_radioSettings.txSettings.rfSettings.frequency;
-  uint32_t xMin = centreFrequency - (sampleRate / 2);
-  uint32_t xMax = centreFrequency + (sampleRate / 2);
-  // uint32_t xMin = centreFrequency - 4000;
-  // uint32_t xMax = centreFrequency + 4000;
-  // uint32_t xMin = 7104000;
-  // uint32_t xMax = 7108000;
-  if (m_panadapterXmin != xMin || m_panadapterXmax != xMax) {
-    setPanadapterX(xMin, xMax);
+  TxPipelineSettings* txPipelineSettings = m_bandSettings.getTxPipelineSettings();
+  if (txPipelineSettings != nullptr) {
+    const RfSettings& rfSettings = txPipelineSettings->getRfSettings();
+    uint32_t centreFrequency = rfSettings.frequency;
+    uint32_t xMin = centreFrequency - (sampleRate / 2);
+    uint32_t xMax = centreFrequency + (sampleRate / 2);
+    if (m_panadapterXmin != xMin || m_panadapterXmax != xMax) {
+      setPanadapterX(xMin, xMax);
+    }
+    replaceSpectrumSeries(&spectrum, m_spectrumLineSeries, sampleRate, rfSettings.frequency, true);
   }
-  replaceSpectrumSeries(&spectrum, m_spectrumLineSeries, sampleRate, true);
 
   setTimeSeriesX(0, length);
   //  setTimeSeriesX(0, 48);
@@ -304,17 +293,27 @@ MainWindow::handleTransmitterAudioEvent(const vsdrreal* data, uint32_t length)
 }
 
 void
-MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings)
+MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings, const BandSettings& bandSettings)
 {
   m_radioSettings = radioSettings;
-  bool frequencyChanged = (m_radioSettings.rxSettings.rfSettings.changed & RfSettings::Features::FREQUENCY) != 0;
-  bool offsetChanged = (m_radioSettings.rxSettings.rfSettings.changed & RfSettings::Features::OFFSET) != 0;
-  bool modeChanged = (m_radioSettings.changed & RadioSettings::Features::MODE) != 0;
+  m_bandSettings = bandSettings;
+  RxPipelineSettings* rxPipelineSettings = m_bandSettings.getFocusRxPipelineSettings();
+  if (rxPipelineSettings == nullptr) {
+    return;
+  }
+  RfSettings& rfSettings = rxPipelineSettings->getRfSettings();
+  bool frequencyChanged = (rfSettings.changed & RfSettings::Features::FREQUENCY) != 0;
+  bool offsetChanged = (rfSettings.changed & RfSettings::Features::OFFSET) != 0;
+  bool modeChanged = (rxPipelineSettings->changed & PipelineSettings::Features::MODE) != 0;
 
   if (frequencyChanged || offsetChanged || modeChanged) {
-    int32_t centreFrequency = static_cast<int32_t>(m_radioSettings.rxSettings.rfSettings.frequency);
-    int32_t offset = m_radioSettings.rxSettings.rfSettings.offset;
+    auto centreFrequency = static_cast<int32_t>(rfSettings.frequency);
+    int32_t offset = rfSettings.offset;
     int32_t frequencyAtOffset = centreFrequency + offset;
+
+    ui->centreFrequencyLcd->display(centreFrequency);
+    ui->cursorFrequencyLcd->display(frequencyAtOffset);
+
     QChart *chart = ui->panadapterView->chart();
     auto *axisY = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
     double yMin = axisY->min();
@@ -335,10 +334,11 @@ MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings)
     m_verticalCursorLine->setLine(QLineF(p1, p2));
     m_verticalCursorLine->show();
   
-    const Mode& mode = m_radioSettings.mode;
+    const Mode& mode = rxPipelineSettings->mode;
     int32_t loCutWrtFreq = frequencyAtOffset + mode.getLoCut();
     int32_t hioCutWrtFreq = frequencyAtOffset + mode.getHiCut();
     updatePassbandOverlay(chart, loCutWrtFreq, hioCutWrtFreq);
+    updateModeButton(mode);
   }
   m_radioSettings.clearChanged();
 }
@@ -346,8 +346,12 @@ MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings)
 void
 MainWindow::addPassbandOverlay(QChart *chart, int32_t loCut, int32_t hiCut)
 {
+  auto* theme = findChild<ChartTheme*>("panadapterTheme");
+  QString cursorAreaColorStr = theme->property("cursorAreaColor").toString();
+
   m_filterPassbandRect = new QGraphicsRectItem(loCut, 0, hiCut - loCut, 100);
-  m_filterPassbandRect->setBrush(QColor(100, 50, 200, 80)); // Semi-transparent
+  m_filterPassbandRect->setBrush(QColor(cursorAreaColorStr));
+  // m_filterPassbandRect->setBrush(QColor(100, 50, 200, 80)); // Semi-transparent
   m_filterPassbandRect->setPen(Qt::NoPen);
   chart->scene()->addItem(m_filterPassbandRect);
 
@@ -408,10 +412,10 @@ MainWindow::replaceSpectrumSeries(
   const vsdrreal * spectrumData,
   QLineSeries& spectrumSeries,
   uint32_t sampleRate,
+  uint32_t centreFrequency,
   bool shuffle
 )
 {
-  uint32_t centreFrequency = m_radioSettings.rxSettings.rfSettings.frequency;
   qreal plotX = centreFrequency - (sampleRate / 2);
   qreal binWidth = static_cast<qreal>(sampleRate) / static_cast<qreal>(spectrumData->size());
 
@@ -441,11 +445,11 @@ void
 MainWindow::replaceSpectrumSeries(
   const std::vector<sdrcomplex> * spectrumData,
   QLineSeries& spectrumSeries,
-  uint32_t sampleRate, 
+  uint32_t sampleRate,
+  uint32_t centreFrequency,
   bool shuffle
 )
 {
-  uint32_t centreFrequency = m_radioSettings.rxSettings.rfSettings.frequency;
   qreal plotX = centreFrequency - (sampleRate / 2);
   qreal binWidth = sampleRate / spectrumData->size();
 
@@ -471,17 +475,61 @@ MainWindow::replaceSpectrumSeries(
   spectrumSeries.replace(spectrumPoints);
 }
 
+// void
+// MainWindow::on_actionConfigure_triggered()
+// {
+//   qDebug() << "on_actionConfigure_triggered()";
+// }
+
+void
+MainWindow::on_actionBand_triggered()
+{
+  if (m_bandButton != nullptr) {
+    auto* dialog = new BandDialog(m_pRadio, this);
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+    dialog->exec();
+    // Position it
+    // dialog->adjustSize();
+    // QPoint pos = m_bandButton->mapToGlobal(QPoint(0, 0));
+    // pos.setY(pos.y() - dialog->frameGeometry().height());
+    //
+    // dialog->move(pos);
+    // dialog->show();
+  }
+}
+
+// void
+// MainWindow::on_actionMode_triggered()
+// {
+//   qDebug() << "on_actionMode_triggered()";
+// }
+
+// void
+// MainWindow::on_actionLevels_triggered()
+// {
+//   qDebug() << "on_actionLevels_triggered()";
+// }
+
 void MainWindow::initializeWindow()
 {
-    // const QAudioDevice &defaultOutputDeviceInfo = QMediaDevices::defaultAudioOutput();
-//
-//    ui->deviceList->addItem(defaultDeviceInfo.description(), QVariant::fromValue(defaultDeviceInfo));
-//    for (auto &deviceInfo : m_devices->audioInputs()) {
-//        if (deviceInfo != defaultDeviceInfo)
-//            ui->deviceList->addItem(deviceInfo.description(), QVariant::fromValue(deviceInfo));
-//    }
-//
-//    connect(ui->deviceList, &QComboBox::activated, this, &MainWindow::deviceChanged);
+  ui->setupUi(this);
+
+  auto* panadapterTheme = new ChartTheme(this);
+  panadapterTheme->setObjectName("panadapterTheme");
+  panadapterTheme->setFixedSize(0, 0); // User can't see it, but Style Engine will style it
+
+  // qDebug() << "Current Icon Theme:" << QIcon::themeName();
+  // qDebug() << "Icon Search Paths:" << QIcon::themeSearchPaths();
+
+  addConfigButton();
+  addBandButton();
+
+  QWidget* spacer1 = new QWidget();
+  spacer1->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+  ui->toolBar->addWidget(spacer1);
+
+  addModeButton();
+  addLevelsButton();
 
     //m_volumeSlider = new QSlider(Qt::Horizontal, this);
     ui->volumeSlider->setRange(0, 100);
@@ -496,6 +544,133 @@ void MainWindow::initializeWindow()
 //    m_suspendResumeButton = new QPushButton(this);
 //    connect(ui->suspendButton, &QPushButton::clicked, this, &MainWindow::toggleSuspend);
 //    layout->addWidget(m_suspendResumeButton);
+}
+
+void
+MainWindow::addModeButton()
+{
+  if (m_pRadio == nullptr) {
+    throw std::runtime_error("No radio instance");
+  }
+  RadioSettings& radioSettings = m_pRadio->getRadioSettings();
+  const std::string selectedBandName = radioSettings.getBandName();
+  BandSettings* bandSettings = m_pRadio->getBandSettings(selectedBandName);
+  if (bandSettings == nullptr) {
+    throw SettingsException("Band settings not found for selected band");
+  }
+  RxPipelineSettings* rxPipelineSettings = bandSettings->getFocusRxPipelineSettings();
+  if (rxPipelineSettings == nullptr) {
+    throw SettingsException("Radio pipeline settings not found for selected band");
+  }
+
+  delete m_modeButton;
+  m_modeButton = new QToolButton();
+  // modeBtn->setDefaultAction(ui->actionMode);
+  // tabsBtn->setFixedWidth(100);
+  QMenu* modeMenu = createModeMenu(rxPipelineSettings->mode);
+  updateModeButton(rxPipelineSettings->mode);
+  modeMenu->setProperty("class", "toolbarMenu mode");
+  // modeBtn->setMenu(modeMenu);
+  // Set popup mode (InstantPopup makes the button act like a dropdown)
+  // modeBtn->setPopupMode(QToolButton::InstantPopup);
+  m_modeButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
+  m_modeButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+  // Force the button to draw its background based on the current palette
+  m_modeButton->setAutoFillBackground(true);
+  m_modeButton->setProperty("class", "toolbarButton toolbarButtonC");
+
+  connect(m_modeButton, &QToolButton::pressed, this, [this, modeMenu]() {
+    // Calculate the top-left position of the button in global screen coordinates
+    QPoint pos = m_modeButton->mapToGlobal(QPoint(0, 0));
+
+    // Move the point up by the height of the menu
+    // hint: sizeHint() is usually accurate for menus before they are shown
+    pos.setY(pos.y() - modeMenu->sizeHint().height());
+
+    modeMenu->exec(pos);
+  });
+
+  ui->toolBar->addWidget(m_modeButton);
+}
+
+QMenu*
+MainWindow::createModeMenu(const Mode& currentMode)
+{
+  auto modeMenu = new QMenu(this);
+
+  auto* actionGroup = new QActionGroup(this);
+  actionGroup->setExclusive(true); // Only one can be checked at a time
+
+  const std::vector<Mode>& allModes = ModeSettings::getAll();
+
+  SettingPath settingPath({
+    RadioSettings::Features::PIPELINE,
+    BandSettings::Features::RX_PIPELINE,
+    PipelineSettings::Features::MODE
+  });
+  for (const auto& mode : allModes) {
+    QAction* action = modeMenu->addAction(mode.getName().c_str(), this, [this, mode, settingPath]()
+    {
+      SingleSetting setting(settingPath, mode.getType(), SingleSetting::Meaning::VALUE);
+      m_pRadio->applySingleSetting(setting);
+    });
+    action->setCheckable(true);
+    action->setActionGroup(actionGroup);
+
+    // Highlight the currently active mode
+    if (mode.getType() == currentMode.getType()) {
+      action->setChecked(true);
+    }
+  }
+  return modeMenu;
+}
+
+void
+MainWindow::updateModeButton(const Mode& mode)
+{
+  if (m_modeButton != nullptr) {
+    m_modeButton->setText(mode.getName().c_str());
+  }
+}
+
+void
+MainWindow::addLevelsButton()
+{
+  auto* levelsBtn = new QToolButton();
+  // levelsBtn->setDefaultAction(ui->actionLevels);
+  // tabsBtn->setFixedWidth(100);
+  levelsBtn->setIcon(QIcon(":ui//icons/solid/sliders.svg"));
+  levelsBtn->setToolButtonStyle(Qt::ToolButtonIconOnly);
+  levelsBtn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+  // Force the button to draw its background based on the current palette
+  levelsBtn->setAutoFillBackground(true);
+  levelsBtn->setProperty("class", "toolbarButton toolbarButtonD");
+  ui->toolBar->addWidget(levelsBtn);
+}
+
+void
+MainWindow::addConfigButton()
+{
+  auto* configBtn = new QToolButton();
+  // configBtn->setDefaultAction(ui->actionConfigure);
+  // tabsBtn->setFixedWidth(100);
+  configBtn->setIcon(QIcon(":ui//icons/solid/gear.svg"));
+  configBtn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+  // Force the button to draw its background based on the current palette
+  configBtn->setAutoFillBackground(true);
+  configBtn->setProperty("class", "toolbarButton toolbarButtonA");
+  ui->toolBar->addWidget(configBtn);
+}
+
+void
+MainWindow::addBandButton()
+{
+  m_bandButton = new QToolButton();
+  m_bandButton->setDefaultAction(ui->actionBand);
+  m_bandButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+  m_bandButton->setAutoFillBackground(true);
+  m_bandButton->setProperty("class", "toolbarButton toolbarButtonB");
+  ui->toolBar->addWidget(m_bandButton);
 }
 
 void MainWindow::initializeAudio()
@@ -549,40 +724,23 @@ MainWindow::initialiseRadio()
     m_pRadio->configure(&m_radioConfig);
     m_pRadio->start();
 
-    // RadioSettings radioSettings = {
-    //   .rxSettings = {
-    //     .rfSettings = { .frequency = 10000000, .gain = 0.0, .changed = (RfSettings::FREQUENCY | RfSettings::GAIN)},
-    //     .ifSettings = { .bandwidth = 200000, .gain = 0.0, .changed = (IfSettings::BANDWIDTH | IfSettings::GAIN) },
-    //     .changed = (ReceiverSettings::RF | ReceiverSettings::IF)
-    //    },
-    //   .changed = (RadioSettings::RX) 
-    // };
-    m_radioSettings.modeSettings.setCurrentMode(Mode::LSB);
-    const Mode& mode = m_radioSettings.modeSettings.getCurrentMode();
-    m_radioSettings.mode = mode;
-    m_radioSettings.rxSettings.mode = mode;
-    //m_radioSettings.txSettings.mode = m_radioSettings.modeSettings.getCurrentMode();
+    m_pRadio->applyBand("20m");
 
-    m_radioSettings.rxSettings.rfSettings.frequency = 7056000;
-    m_radioSettings.rxSettings.rfSettings.offset = 48000;
-    m_radioSettings.rxSettings.rfSettings.gain = 30.0;
-    m_radioSettings.rxSettings.rfSettings.changed = (RfSettings::FREQUENCY | RfSettings::OFFSET | RfSettings::GAIN);
-    m_radioSettings.rxSettings.ifSettings.bandwidth = 200000;
-    m_radioSettings.rxSettings.ifSettings.gain = 0.0;
-    m_radioSettings.rxSettings.ifSettings.changed = (IfSettings::BANDWIDTH | IfSettings::GAIN);
-    m_radioSettings.rxSettings.changed = (ReceiverSettings::MODE | ReceiverSettings::RF | ReceiverSettings::IF);
+    // m_radioSettings.bandName = "20m";
+    // m_radioSettings.changed = RadioSettings::BAND;
+    
+    // m_pRadio->applySettings(m_radioSettings);
 
-    m_radioSettings.changed = RadioSettings::MODE | RadioSettings::RX;
+    RfSettings rfSettings;
+    rfSettings.gain = 30.0;
+    rfSettings.changed = RfSettings::GAIN;
+    m_pRadio->applyRfSettings(rfSettings);
 
-    m_radioSettings.txSettings.mode = mode;
-    m_radioSettings.txSettings.rfSettings.frequency = 7056000;
-    m_radioSettings.txSettings.rfSettings.offset = 48000;
-    m_radioSettings.txSettings.rfSettings.changed = (RfSettings::FREQUENCY | RfSettings::OFFSET);
-    m_radioSettings.txSettings.changed = (TransmitterSettings::MODE | TransmitterSettings::RF);
-
-    m_radioSettings.changed = RadioSettings::MODE | RadioSettings::RX | RadioSettings::TX;
-
-    m_pRadio->applySettings(m_radioSettings);
+    IfSettings ifSettings;
+    ifSettings.gain = 0.0;
+    ifSettings.bandwidth = 200000;
+    ifSettings.changed = IfSettings::GAIN | IfSettings::BANDWIDTH;
+    m_pRadio->applyIfSettings(ifSettings);
   }
   catch (std::runtime_error& error)
   {

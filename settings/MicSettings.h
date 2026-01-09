@@ -15,11 +15,23 @@ class MicSettings : public SettingsBase
   {
     NONE = 0,
     GAIN = 0x01,
+    ALL = static_cast<uint32_t>(~0U)
   };
   MicSettings(): gain(1.0), gainStep(DEFAULT_GAIN_STEP) {}
   MicSettings(const MicSettings& rhs) = default;
   ~MicSettings() override = default;
   MicSettings& operator=(const MicSettings& rhs) = default;
+
+  bool applySettings(const MicSettings& settings)
+  {
+    bool somethingChanged = false;
+    if (settings.changed & GAIN) {
+      gain = settings.gain;
+      changed |= GAIN;
+      somethingChanged = true;
+    }
+    return somethingChanged;
+  }
 
   bool applySetting(const SingleSetting& setting, int startIndex) override
   {
@@ -44,7 +56,7 @@ class MicSettings : public SettingsBase
     return settingChange;
   }
 
-  static void getFeaturePath(
+  static bool getFeaturePath(
     const std::vector<std::string>& featureStrings,
     std::vector<uint32_t>& features,
     size_t startIndex
@@ -55,9 +67,9 @@ class MicSettings : public SettingsBase
     }
     if (featureStrings[startIndex] == "gain") {
       features.push_back(GAIN);
-    } else {
-      throw SettingsException("Unknown RF setting: " + featureStrings[startIndex]);
+      return true;
     }
+    return false;
   }
 
   sdrreal gain;

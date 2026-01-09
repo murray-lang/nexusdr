@@ -2,6 +2,7 @@
 // Created by murray on 11/11/25.
 //
 
+#include "settings/TxPipelineSettings.h"
 #include "IqTransmitter.h"
 #include "TransmitterAudioEvent.h"
 #include <qcoreapplication.h>
@@ -9,11 +10,11 @@
 #include "TransmitterIqEvent.h"
 
 
+
 class ModeSettings;
 
-IqTransmitter::IqTransmitter(const ModeSettings& modeSettings, QObject* eventTarget) :
-  m_modeSettings(modeSettings),
-  m_iqPipeline(modeSettings, eventTarget),
+IqTransmitter::IqTransmitter(QObject* eventTarget) :
+  m_iqPipeline(eventTarget),
   m_eventTarget(eventTarget)
 {
 }
@@ -39,6 +40,14 @@ void
 IqTransmitter::apply(const TransmitterSettings& settings)
 {
   m_iqPipeline.apply(settings);
+}
+
+void
+IqTransmitter::apply(const TxPipelineSettings* settings)
+{
+  if (settings != nullptr) {
+    m_iqPipeline.apply(settings);
+  }
 }
 
 void

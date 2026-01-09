@@ -7,8 +7,10 @@
 
 #include <cstdint>
 
+#include "Bands.h"
 #include "SettingsBase.h"
 #include "SettingsException.h"
+#include <QDebug>
 
 class RfSettings : public SettingsBase
 {
@@ -21,10 +23,13 @@ public:
     OFFSET = 0x04,
     OFFSET_STEP = 0x08,
     GAIN = 0x10,
-
+    ALL = static_cast<uint32_t>(~0U)
   };
-  RfSettings() : frequency(0), frequencyStep(10000), offset(0), offsetStep(200), gain(0.0) {}
-  RfSettings(const RfSettings& rhs) = default;
+  RfSettings() : frequency(0), frequencyStep(10000), offset(0), offsetStep(50), gain(0.0)
+  {
+    changed = ALL;
+  }
+  // RfSettings(const RfSettings& rhs) = default;
   ~RfSettings() override = default;
 
   RfSettings& operator=(const RfSettings& rhs)
@@ -36,8 +41,60 @@ public:
       offset = rhs.offset;
       offsetStep = rhs.offsetStep;
       gain = rhs.gain;
+
     }
     return *this;
+  }
+
+  // void clearChanged() override
+  // {
+  //   qDebug() << "RfSettings::clearChanged called";
+  //   SettingsBase::clearChanged();
+  // }
+
+  // void setAllChanged() override
+  // {
+  //   qDebug() << "RfSettings::setAllChanged called";
+  //   SettingsBase::setAllChanged();
+  // }
+
+  void copyFrequencies(const RfSettings& rhs)
+  {
+    frequency = rhs.frequency;
+    offset = rhs.offset;
+    frequencyStep = rhs.frequencyStep;
+    offsetStep = rhs.offsetStep;
+    changed |= FREQUENCY | OFFSET | FREQUENCY_STEP | OFFSET_STEP;
+  }
+
+  bool setBand(const Band& band)
+  {
+    if (band.isValid()) {
+      uint64_t freqPlusOffset = frequency + offset;
+      if (!band.containsFrequency(freqPlusOffset)) {
+        frequency = band.getLandingFrequency();
+        offset = 0;
+        changed |= FREQUENCY | OFFSET;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool applySettings(const RfSettings& settings)
+  {
+    bool somethingChanged = false;
+    if (settings.changed & FREQUENCY) {
+      frequency = settings.frequency;
+      changed |= FREQUENCY;
+      somethingChanged = true;
+    }
+    if (settings.changed & OFFSET) {
+      offset = settings.offset;
+      changed |= OFFSET;
+      somethingChanged = true;
+    }
+    return somethingChanged;
   }
 
   bool applySetting(const SingleSetting& setting, int startIndex) override
@@ -94,12 +151,7 @@ public:
     return settingChange;
   }
 
-  void clearChanged() override
-  {
-    SettingsBase::clearChanged();
-  }
-
-  static void getFeaturePath(
+  static bool getFeaturePath(
     const std::vector<std::string>& featureStrings,
     std::vector<uint32_t>& features,
     size_t startIndex
@@ -119,8 +171,9 @@ public:
     } else if (featureStrings[startIndex] == "offset-step") {
       features.push_back(OFFSET_STEP);
     } else {
-      throw SettingsException("Unknown RF setting: " + featureStrings[startIndex]);
+      return false;
     }
+    return true;
   }
 
   uint32_t frequency;

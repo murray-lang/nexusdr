@@ -6,13 +6,13 @@
 
 
 #include "RadioSettingsSink.h"
+#include "SingleSettingSource.h"
 
-class RadioSettingsSource
+class RadioSettingsSource : public SingleSettingSource
 {
 public:
-  virtual ~RadioSettingsSource() = default;
+  ~RadioSettingsSource() override = default;
   virtual void connect(RadioSettingsSink* pSink) = 0;
 protected:
   virtual void notifySettings(const RadioSettings& radioSettings) = 0;
-  virtual void notifySingleSetting(const SingleSetting& settingDelta) = 0;
 };

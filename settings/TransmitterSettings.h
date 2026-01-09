@@ -8,40 +8,50 @@
 #include "MicSettings.h"
 #include "RfSettings.h"
 #include "TestSettings.h"
+#include "ModeSettings.h"
 
 class TransmitterSettings : public SettingsBase {
 public:
   enum Features
   {
     NONE = 0,
-    MODE = 0x01,
-    RF = 0x02,
+    // MODE = 0x01,
+    // RF = 0x02,
     CORRECTION = 0x04,
     MIC = 0x08,
-    TEST = 0x10
+    TEST = 0x10,
+    // BAND = 0x20
+    ALL = static_cast<uint32_t>(~0U)
   };
-  TransmitterSettings() = default;
-  TransmitterSettings(const TransmitterSettings& rhs) = default;
+  TransmitterSettings(/*const Bands& bands, const ModeSettings& modeSettings*/)
+  // :
+  //   modeSettings(modeSettings), bands(bands), rfSettings()
+  {}
+  // TransmitterSettings(const TransmitterSettings& rhs) = default;
   ~TransmitterSettings() override = default;
 
   TransmitterSettings& operator=(const TransmitterSettings& rhs)
   {
     if (this != &rhs) {
       SettingsBase::operator=(rhs);
-      rfSettings = rhs.rfSettings;
+      // rfSettings = rhs.rfSettings;
       correctionSettings = rhs.correctionSettings;
       micSettings = rhs.micSettings;
       testSettings = rhs.testSettings;
-      mode = rhs.mode;
+      // mode = rhs.mode;
+      // band = rhs.band;
     }
     return *this;
   }
-  void setMode( const Mode& newMode )
+
+  bool applySettings(const TransmitterSettings& settings)
   {
-    mode = newMode;
-    changed |= MODE;
+    bool somethingChanged = correctionSettings.applySettings(settings.correctionSettings);
+    somethingChanged |= micSettings.applySettings(settings.micSettings);
+    somethingChanged |= testSettings.applySettings(settings.testSettings);
+    return somethingChanged;
+
   }
-  [[nodiscard]] const Mode& getMode() const { return mode; }
 
   bool applySetting(const SingleSetting& setting, int startIndex) override
   {
@@ -50,9 +60,22 @@ public:
     }
     bool settingChange = false;
     uint32_t feature = setting.getPath().getFeatures()[startIndex];
-    if (feature == RF) {
-      settingChange = rfSettings.applySetting(setting, startIndex + 1);
-    } else if (feature == CORRECTION) {
+    // if (feature == RF) {
+    //   settingChange = rfSettings.applySetting(setting, startIndex + 1);
+    //   if (rfSettings.changed & RfSettings::FREQUENCY || rfSettings.changed & RfSettings::OFFSET) {
+    //     uint64_t frequency = rfSettings.frequency + rfSettings.offset;
+    //     if (!band.isValid() || !band.containsFrequency(frequency)) {
+    //       const Band* newBand = bands.findBand(frequency);
+    //       if (newBand != nullptr) {
+    //         band = *newBand;
+    //       } else {
+    //         band.invalidate();
+    //       }
+    //       changed |= BAND;
+    //     }
+    //   }
+    // } else
+    if (feature == CORRECTION) {
       settingChange = correctionSettings.applySetting(setting, startIndex + 1);
     } else if (feature == MIC) {
       settingChange = micSettings.applySetting(setting, startIndex + 1);
@@ -68,10 +91,20 @@ public:
   void clearChanged() override
   {
     SettingsBase::clearChanged();
-    rfSettings.clearChanged();
+    correctionSettings.clearChanged();
+    micSettings.clearChanged();
+    testSettings.clearChanged();
   }
 
-  static void getFeaturePath(
+  void setAllChanged() override
+  {
+    SettingsBase::setAllChanged();
+    correctionSettings.setAllChanged();
+    micSettings.setAllChanged();
+    testSettings.setAllChanged();
+  }
+
+  static bool getFeaturePath(
     const std::vector<std::string>& featureStrings,
     std::vector<uint32_t>& featuresOut,
     size_t startIndex
@@ -80,33 +113,45 @@ public:
     if (startIndex >= featureStrings.size()) {
       throw SettingsException("Invalid feature path");
     }
-    if (featureStrings[startIndex] == "rf") {
-      featuresOut.push_back(RF);
-      if (startIndex + 1 < featureStrings.size()) {
-        RfSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
-      }
-    } else if (featureStrings[startIndex] == "correction") {
+    // if (featureStrings[startIndex] == "rf") {
+    //   featuresOut.push_back(RF);
+    //   if (startIndex + 1 < featureStrings.size()) {
+    //     RfSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
+    //   }
+    // } else
+    if (featureStrings[startIndex] == "correction") {
       featuresOut.push_back(CORRECTION);
       if (startIndex + 1 < featureStrings.size()) {
-        IqCorrectionSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
+        if (!IqCorrectionSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1)) {
+          featuresOut.pop_back();
+          return false;
+        }
       }
     } else if (featureStrings[startIndex] == "mic") {
       featuresOut.push_back(MIC);
       if (startIndex + 1 < featureStrings.size()) {
-        MicSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
+        if (!MicSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1)) {
+          featuresOut.pop_back();
+          return false;
+        }
       }
     }  else if (featureStrings[startIndex] == "test") {
       featuresOut.push_back(TEST);
       if (startIndex + 1 < featureStrings.size()) {
-       TestSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
+        if (!TestSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1)) {
+          featuresOut.pop_back();
+          return false;
+        }
       }
-    } else {
-      throw SettingsException("Unknown transmitter feature: " + featureStrings[startIndex]);
     }
+    return false;
   }
 
-  Mode mode;
-  RfSettings rfSettings;
+  // Mode mode;
+  // const ModeSettings& modeSettings;
+  // Band band;
+  // const Bands& bands;
+  // RfSettings rfSettings;
   IqCorrectionSettings correctionSettings;
   MicSettings micSettings;
   TestSettings testSettings;

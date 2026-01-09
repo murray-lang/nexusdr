@@ -17,7 +17,8 @@ public:
     PHASE = 0x01,
     PHASE_STEP = 0x02,
     AMPLITUDE = 0x04,
-    AMPLITUDE_STEP = 0x08
+    AMPLITUDE_STEP = 0x08,
+    ALL = static_cast<uint32_t>(~0U)
   };
   IqCorrectionSettings() : phase(0.0), phaseStep(DEFAULT_STEP_SIZE), amplitude(0.0), amplitudeStep(DEFAULT_STEP_SIZE) {}
   IqCorrectionSettings(const IqCorrectionSettings& rhs) = default;
@@ -31,6 +32,32 @@ public:
       amplitude = rhs.amplitude;
     }
     return *this;
+  }
+
+  bool applySettings(const IqCorrectionSettings& settings)
+  {
+    bool somethingChanged = false;
+    if (settings.changed & PHASE) {
+      phase = settings.phase;
+      changed |= PHASE;
+      somethingChanged = true;
+    }
+    if (settings.changed & PHASE_STEP) {
+      phaseStep = settings.phaseStep;
+      changed |= PHASE_STEP;
+      somethingChanged = true;
+    }
+    if (settings.changed & AMPLITUDE) {
+      amplitude = settings.amplitude;
+      changed |= AMPLITUDE;
+      somethingChanged = true;
+    }
+    if (settings.changed & AMPLITUDE_STEP) {
+      amplitudeStep = settings.amplitudeStep;
+      changed |= AMPLITUDE_STEP;
+      somethingChanged = true;
+    }
+    return somethingChanged;
   }
 
   bool applySetting(const SingleSetting& setting, int startIndex) override
@@ -78,12 +105,8 @@ public:
     }
     return settingChange;
   }
-  void clearChanged() override
-  {
-    SettingsBase::clearChanged();
-  }
-
-  static void getFeaturePath(
+  
+  static bool getFeaturePath(
     const std::vector<std::string>& featureStrings,
     std::vector<uint32_t>& features,
     size_t startIndex
@@ -101,8 +124,9 @@ public:
     } else if (featureStrings[startIndex] == "amplitude-step") {
       features.push_back(AMPLITUDE_STEP);
     } else {
-      throw SettingsException("Unknown IQ correction setting: " + featureStrings[startIndex]);
+      return false;
     }
+    return true;
   }
 
   sdrreal phase;

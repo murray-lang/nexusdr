@@ -9,8 +9,8 @@
 static std::vector<Mode> modes{
   {Mode::AMN, "AM",  "AM (Narrow)",    -3000,  3000,    0},
   {Mode::AMW, "AMW", "AM (Wide)",      -9000,  9000,    0},
-  {Mode::LSB, "LSB", "Lower Sideband", -6000,  -100,    0},
-  {Mode::USB, "USB", "Upper Sideband",   100,   6000,    0},
+  {Mode::LSB, "LSB", "Lower Sideband", -4000,  -200,    0},
+  {Mode::USB, "USB", "Upper Sideband",   200,   4000,    0},
   {Mode::FMN, "FM",  "FM (Narrow)",    -5000,  5000,    0},
   {Mode::FMW, "FMW", "FM (Wide)",     -15000, 15000,    0},
   {Mode::CWL, "CWL", "CW (Lower)",      -1000,   -50, -700},
@@ -21,10 +21,28 @@ static std::vector<Mode> modes{
 ModeSettings::ModeSettings() :
 
  m_cycle(false),
- m_currentIndex(0),
- m_modes(modes)
+ m_currentIndex(0)
+ // m_modes(modes)
 {
 
+}
+
+const std::vector<Mode>&
+ModeSettings::getAll()
+{
+  return modes;
+}
+
+size_t
+ModeSettings::getCount()
+{
+  return modes.size();
+}
+
+int
+ModeSettings::getNumModes()
+{
+  return static_cast<int>(modes.size());
 }
 
 bool
@@ -58,10 +76,10 @@ ModeSettings::applySetting(const SingleSetting& setting, int startIndex)
 }
 
 int
-ModeSettings::getIndexByType(const Mode::Type type) const
+ModeSettings::getIndexByType(const Mode::Type type)
 {
-  for (int i = 0; i < m_modes.size(); i++) {
-    if (m_modes[i].getType() == type) {
+  for (int i = 0; i < modes.size(); i++) {
+    if (modes[i].getType() == type) {
       return i;
     }
   }
@@ -69,10 +87,10 @@ ModeSettings::getIndexByType(const Mode::Type type) const
 }
 
 int
-ModeSettings::getIndexByName(const std::string& name) const
+ModeSettings::getIndexByName(const std::string& name)
 {
-  for (int i = 0; i < m_modes.size(); i++) {
-    if (m_modes[i].getName() == name) {
+  for (int i = 0; i < modes.size(); i++) {
+    if (modes[i].getName() == name) {
       return i;
     }
   }
@@ -80,17 +98,23 @@ ModeSettings::getIndexByName(const std::string& name) const
 }
 
 const Mode&
-ModeSettings::getModeByType(Mode::Type type) const
+ModeSettings::getModeByType(Mode::Type type)
 {
   int index = getIndexByType(type);
-  return m_modes.at(index);
+  return modes.at(index);
 }
 
 const Mode&
-ModeSettings::getModeByName(const std::string& name) const
+ModeSettings::getModeByName(const std::string& name)
 {
   int index = getIndexByName(name);
-  return m_modes.at(index);
+  return modes.at(index);
+}
+
+const Mode&
+ModeSettings::getModeAt(size_t index)
+{
+  return modes.at(index);
 }
 
 bool
@@ -100,7 +124,7 @@ ModeSettings::increment()
     m_currentIndex = (m_currentIndex + 1) % getNumModes();
     return true;
   } else {
-    if (m_currentIndex >= static_cast<int>(m_modes.size()) - 1) {
+    if (m_currentIndex >= static_cast<int>(modes.size()) - 1) {
       return false;
     }
     m_currentIndex++;
@@ -121,6 +145,12 @@ ModeSettings::decrement()
     m_currentIndex--;
     return true;
   }
+}
+
+const Mode&
+ModeSettings::getCurrentMode() const
+{
+  return modes.at(m_currentIndex);
 }
 
 bool

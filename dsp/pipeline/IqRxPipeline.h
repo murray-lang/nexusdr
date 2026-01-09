@@ -20,11 +20,12 @@
 #include "dsp/pipeline/monitoring/MonitoringStage.h"
 
 class ModeSettings;
+class RxPipelineSettings;
 
 class IqRxPipeline : public IqPipeline, public ReceiverSettingsSink
 {
 public:
-  explicit IqRxPipeline(const ModeSettings& modeSettings, QObject* eventTarget);
+  explicit IqRxPipeline(QObject* eventTarget);
   ~IqRxPipeline() override;
 
   void initialise(IqIo* pIo, AudioSink* pAudioSink) override;
@@ -35,6 +36,8 @@ public:
   void ptt(bool on) override {};
 
   void apply(const ReceiverSettings& settings) override;
+
+  void apply(const RxPipelineSettings* settings);
 
   [[nodiscard]] uint32_t getMaxFramesPerInputPacket() const override;
   [[nodiscard]] uint32_t getMaxFramesPerOutputPacket() const override;

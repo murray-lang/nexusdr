@@ -8,15 +8,16 @@
 #define DEFAULT_SAMPLE_RATE 48000
 
 #include "settings/ModeSettings.h"
+#include "settings/RxPipelineSettings.h"
 
-IqRxPipeline::IqRxPipeline(const ModeSettings& modeSettings, QObject* eventTarget) :
-  IqPipeline(modeSettings, eventTarget),
+IqRxPipeline::IqRxPipeline(QObject* eventTarget) :
+  IqPipeline(eventTarget),
   m_ifFilter(FFT_SIZE),
-  m_amDemodulator(modeSettings.getModeByType(Mode::AMN), DEFAULT_SAMPLE_RATE),
-  m_fmnDemodulator(modeSettings.getModeByType(Mode::FMN),DEFAULT_SAMPLE_RATE),
-  m_fmwDemodulator(modeSettings.getModeByType(Mode::FMW),DEFAULT_SAMPLE_RATE),
-  m_ssbDemodulator(modeSettings.getModeByType(Mode::USB),DEFAULT_SAMPLE_RATE),
-  m_cwDemodulator(modeSettings.getModeByType(Mode::CWU),DEFAULT_SAMPLE_RATE),
+  m_amDemodulator(ModeSettings::getModeByType(Mode::AMN), DEFAULT_SAMPLE_RATE),
+  m_fmnDemodulator(ModeSettings::getModeByType(Mode::FMN),DEFAULT_SAMPLE_RATE),
+  m_fmwDemodulator(ModeSettings::getModeByType(Mode::FMW),DEFAULT_SAMPLE_RATE),
+  m_ssbDemodulator(ModeSettings::getModeByType(Mode::USB),DEFAULT_SAMPLE_RATE),
+  m_cwDemodulator(ModeSettings::getModeByType(Mode::CWU),DEFAULT_SAMPLE_RATE),
   m_pDemodulator(nullptr),
   m_audioBuffer(PING_PONG_LENGTH),
   m_pMonitoringStage(nullptr)
@@ -25,10 +26,11 @@ IqRxPipeline::IqRxPipeline(const ModeSettings& modeSettings, QObject* eventTarge
 
   addStage(m_pMonitoringStage);
   addStage(&m_iqCorrection);
-  addStage(m_pMonitoringStage);
+  // addStage(m_pMonitoringStage);
   addStage(&m_oscillatorMixer);
-  addStage(&m_decimator);
   addStage(&m_ifFilter);
+  addStage(&m_decimator);
+  // addStage(&m_ifFilter);
 
 }
 
@@ -69,19 +71,28 @@ IqRxPipeline::getMaxFramesPerOutputPacket() const
   return inputMaxFrames * m_outputSampleRate / m_inputSampleRate;
 }
 
-void IqRxPipeline::apply(const ReceiverSettings& settings)
+void
+IqRxPipeline::apply(const ReceiverSettings& settings)
 {
   std::lock_guard<std::mutex> lock(m_settingsMutex);
-  if (settings.changed & ReceiverSettings::RF) {
-    if (settings.rfSettings.changed & RfSettings::OFFSET) {
-      m_oscillatorMixer.setFrequency(-settings.rfSettings.offset);
-    }
-  }
   if (settings.changed & ReceiverSettings::CORRECTION) {
     m_iqCorrection.apply(settings.correctionSettings);
   }
-  if (settings.changed & ReceiverSettings::MODE) {
-    setMode(settings.mode);
+}
+
+void
+IqRxPipeline::apply(const RxPipelineSettings* settings)
+{
+  if (settings != nullptr) {
+    std::lock_guard<std::mutex> lock(m_settingsMutex);
+    if (settings->changed & PipelineSettings::RF) {
+      if (settings->rfSettings.changed & RfSettings::OFFSET) {
+        m_oscillatorMixer.setFrequency(-settings->rfSettings.offset);
+      }
+    }
+    if (settings->changed & PipelineSettings::MODE) {
+      setMode(settings->mode);
+    }
   }
 }
 
@@ -90,8 +101,8 @@ IqRxPipeline::setMode(const Mode& mode)
 {
 
   IqPipeline::setMode(mode);
-  const uint32_t decimatorOutputRate = m_decimator.getOutputSampleRate();
-  m_ifFilter.getKernel().configure(mode.getLoCut(), mode.getHiCut(), mode.getOffset(), decimatorOutputRate * 2);
+  // const uint32_t decimatorOutputRate = m_decimator.getOutputSampleRate();
+  m_ifFilter.getKernel().configure(mode.getLoCut(), mode.getHiCut(), mode.getOffset(), m_inputSampleRate);
   setDemodulator(mode);
 }
 

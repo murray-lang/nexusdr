@@ -10,7 +10,7 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --enable-threads")
@@ -147,7 +147,8 @@ set(PROJECT_SOURCES
         ${PLATFORM_SOURCES}
         main.cpp
         mainwindow.h mainwindow.cpp
-        mainwindow.ui
+        mainwindow-1024x600.ui
+        resources.qrc
         SampleTypes.h
 
         dsp/utils/FilterCoefficients.h
@@ -238,7 +239,6 @@ set(PROJECT_SOURCES
         io/control/ControlSink.cpp
         io/control/ControlSink.h
         settings/RadioSettingsSource.h
-        io/control/ControlSource.cpp
         io/control/ControlSource.h
         io/control/PttSource.h
         io/control/ControlSourceFactory.cpp
@@ -278,7 +278,6 @@ set(PROJECT_SOURCES
         config/FunCubeConfig.h
         settings/RadioSettingsEvent.cpp
         settings/RadioSettingsEvent.h
-        settings/RadioSettingsEventPublisher.h
         settings/SingleSettingEvent.cpp
         settings/SingleSettingEvent.h
         io/control/device/gpio/GpioLines.cpp
@@ -335,6 +334,20 @@ set(PROJECT_SOURCES
         io/audio/drivers/AudioInputDriver.h
         io/audio/drivers/AudioOutputDriver.h
         dsp/pipeline/modulators/FmModulator.h
+        ui/qt/ChartTheme.h
+        ui/qt/BandDialog.cpp
+        ui/qt/BandDialog.h
+        settings/Band.h
+        settings/BandCategory.h
+        settings/Bands.h
+        settings/Bands.cpp
+        settings/PipelineSettings.h
+        settings/RxPipelineSettings.h
+        settings/BandSettings.h
+        settings/TxPipelineSettings.h
+        settings/RadioAndBandSettingsSink.h
+        settings/SingleSettingSink.h
+        settings/SingleSettingSource.h
 
 )
 
@@ -414,6 +427,7 @@ set_target_properties(cutesdr-vk6hl PROPERTIES
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
     MACOSX_BUNDLE TRUE
     WIN32_EXECUTABLE TRUE
+    AUTOUIC_SEARCH_PATHS "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
 install(TARGETS cutesdr-vk6hl

@@ -20,7 +20,7 @@ class ModeSettings;
 class IqTransmitter : public TransmitterSettingsSink, public IqSink, public AudioSink, public PttSink, public SignalEmitter
 {
 public:
-  explicit IqTransmitter(const ModeSettings& modeSettings, QObject *eventTarget = nullptr);
+  explicit IqTransmitter(QObject *eventTarget = nullptr);
 
   ~IqTransmitter() override = default;
 
@@ -28,6 +28,7 @@ public:
   void start() const;
   void stop() const;
   void apply(const TransmitterSettings& settings) override;
+  void apply(const TxPipelineSettings* settings);
   void ptt(bool on) override;
   void setMode(const Mode& mode);
 
@@ -35,7 +36,7 @@ public:
   uint32_t sinkAudio(const vsdrreal& samples, uint32_t length, uint32_t numChannels) override; // AudioSink
 
 protected:
-  const ModeSettings& m_modeSettings;
+  // const ModeSettings& m_modeSettings;
   IqIo m_iqIo;
   IqTxPipeline m_iqPipeline;
   QObject* m_eventTarget;

@@ -23,7 +23,7 @@
 class IqTxPipeline: public IqPipeline, public TransmitterSettingsSink
 {
 public:
-  explicit IqTxPipeline(const ModeSettings& modeSettings, QObject* eventTarget);
+  explicit IqTxPipeline(QObject* eventTarget);
   ~IqTxPipeline() override;
 
   void initialise(IqIo* pIo, AudioSink* pAudioSink) override;
@@ -34,6 +34,8 @@ public:
   void ptt(bool on) override;
 
   void apply(const TransmitterSettings& settings) override;
+
+  void apply(const TxPipelineSettings* settings);
 
   [[nodiscard]] uint32_t getMaxFramesPerInputPacket() const override;
   [[nodiscard]] uint32_t getMaxFramesPerOutputPacket() const override;

@@ -17,12 +17,29 @@ public:
     NONE = 0,
     ENABLED  = 0x01,
     GAIN   = 0x02,
+    ALL = static_cast<uint32_t>(~0U)
   };
   TwoToneSettings() : enabled(false), gain(DEFAULT_GAIN), gainStep(DEFAULT_GAIN_STEP) {}
   TwoToneSettings(const TwoToneSettings& rhs) = default;
   ~TwoToneSettings() override  = default;
 
   TwoToneSettings& operator=(const TwoToneSettings& rhs) = default;
+
+  bool applySettings(const TwoToneSettings& settings)
+  {
+    bool somethingChanged = false;
+    if (settings.changed & GAIN) {
+      gain = settings.gain;
+      changed |= GAIN;
+      somethingChanged = true;
+    }
+    if (settings.changed & ENABLED) {
+      enabled = settings.enabled;
+      changed |= ENABLED;
+      somethingChanged = true;
+    }
+    return somethingChanged;
+  }
 
   bool applySetting(const SingleSetting& setting, int startIndex) override
   {
@@ -48,7 +65,7 @@ public:
     return settingChange;
   }
 
-  static void getFeaturePath(
+  static bool getFeaturePath(
     const std::vector<std::string>& featureStrings,
     std::vector<uint32_t>& features,
     size_t startIndex
@@ -62,8 +79,9 @@ public:
     } else if (featureStrings[startIndex] == "gain") {
       features.push_back(GAIN);
     } else {
-      throw SettingsException("Unknown TwoTone setting: " + featureStrings[startIndex]);
+      return false;
     }
+    return true;
   }
 
   bool enabled;

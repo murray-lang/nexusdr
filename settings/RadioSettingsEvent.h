@@ -14,12 +14,17 @@ class RadioSettingsEvent : public QEvent
 public:
   static const QEvent::Type RadioSettingsEventType;
 
-  explicit RadioSettingsEvent(const RadioSettings& settings) : QEvent(RadioSettingsEventType), m_settings(settings)
+  explicit RadioSettingsEvent(const RadioSettings& radioSettings, const BandSettings& bandSettings) :
+    QEvent(RadioSettingsEventType),
+    m_radioSettings(radioSettings),
+    m_bandSettings(bandSettings)
   {}
 
-  [[nodiscard]] const RadioSettings& getSettings() const { return m_settings; }
+  [[nodiscard]] const RadioSettings& getRadioSettings() const { return m_radioSettings; }
+  [[nodiscard]] const BandSettings& getBandSettings() const { return m_bandSettings; }
 
 protected:
   // std::shared_ptr<RadioSettings> m_pSettings;
-  RadioSettings m_settings;
+  RadioSettings m_radioSettings;
+  BandSettings m_bandSettings;
 };

@@ -26,8 +26,6 @@ public:
   void close() override;
   void exit() override;
 
-
-
   // GpioLines::Callback override
   void callback(DigitalInputLinesRequest::LineStates& lineStates) override;
 
@@ -43,14 +41,14 @@ protected:
   void createLineToInputMap();
   void readInitialInputStates();
 
-  class InternalSink : public RadioSettingsSink
+  class InternalSink : public SingleSettingSink
   {
   public:
     explicit InternalSink(DigitalInputs* pGroup) : m_pGroup(pGroup) {}
-    void applySettings(const RadioSettings& settings) override
-    {
-      throw ControlException("A DigitalInput should not provide RadioSettings, only a single setting.");
-    }
+    // void applySettings(const RadioSettings& settings) override
+    // {
+    //   throw ControlException("A DigitalInput should not provide RadioSettings, only a single setting.");
+    // }
     void applySingleSetting(const SingleSetting& settingDelta) override
     {
       if (m_pGroup) {

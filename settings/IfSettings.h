@@ -14,7 +14,8 @@ public:
   {
     NONE = 0,
     BANDWIDTH = 0x01,
-    GAIN = 0x02
+    GAIN = 0x02,
+    ALL = static_cast<uint32_t>(~0U)
   };
   IfSettings() : bandwidth(0), gain(0.0) {}
   IfSettings(const IfSettings& rhs) = default;
@@ -26,11 +27,24 @@ public:
       SettingsBase::operator=(rhs);
       bandwidth = rhs.bandwidth;
       gain = rhs.gain;
-      changed = rhs.changed;
-    }
+     }
     return *this;
   }
 
+  bool applySettings(const IfSettings& settings)
+  {
+    bool somethingChanged = false;
+    if (settings.changed & BANDWIDTH) {
+      bandwidth = settings.bandwidth;
+      changed |= BANDWIDTH;
+      somethingChanged = true;
+    } else if (settings.changed & GAIN) {
+      gain = settings.gain;
+      changed |= GAIN;
+      somethingChanged = true;
+    }
+    return somethingChanged;
+  }
 
   bool applySetting(const SingleSetting& setting, int startIndex) override
   {
@@ -62,12 +76,7 @@ public:
     return settingChange;
   }
 
-  void clearChanged() override
-  {
-    SettingsBase::clearChanged();
-  }
-
-  static void getFeaturePath(
+    static bool getFeaturePath(
     const std::vector<std::string>& featureStrings,
     std::vector<uint32_t>& features,
     size_t startIndex
@@ -81,8 +90,9 @@ public:
     } else if (featureStrings[startIndex] == "gain") {
       features.push_back(GAIN);
     } else {
-      throw SettingsException("Unknown IF setting: " + featureStrings[startIndex]);
+      return false;
     }
+    return true;
   }
 
   uint32_t bandwidth;

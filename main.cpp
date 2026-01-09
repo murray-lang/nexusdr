@@ -26,7 +26,8 @@ int main(int argc, char *argv[])
     if (arg == "--dump-config-schema" || arg == "--dump-schema") dumpSchema = true;
   }
   // Resolve config path under the current user's home directory: ~/.config/cutesdr-vk6hl/cutesdr-vk6hl.json
-  const QString configPath = QDir::homePath() + "/.config/cutesdr-vk6hl/cutesdr-vk6hl.json";
+  const QString configHome = QDir::homePath() + "/.config/cutesdr-vk6hl";
+  const QString configPath = configHome + "/cutesdr-vk6hl.json";
   if (QFile::exists(configPath)) {
     try {
       std::ifstream f(configPath.toStdString());
@@ -59,10 +60,20 @@ int main(int argc, char *argv[])
   //qRegisterMetaType<QSharedPointer<vcomplex>>("SharedFftData");
   qRegisterMetaType<QSharedPointer< std::vector<float> >>("SharedFftData");
 
-  QApplication a(argc, argv);
+  QApplication app(argc, argv);
+
+  const QString styleSheetPath = configHome + "/cutesdr-vk6hl.qss";
+  QFile file(styleSheetPath);
+  if (file.open(QFile::ReadOnly | QFile::Text)) {
+    QTextStream ts(&file);
+    app.setStyleSheet(ts.readAll());
+    file.close();
+    qDebug() << "Loaded custom stylesheet from:" << styleSheetPath;
+  }
+
   MainWindow w(radioConfig);
   w.show();
-  int rc = a.exec();
+  int rc = app.exec();
 
   Gpio::getInstance().close();
   return rc;
