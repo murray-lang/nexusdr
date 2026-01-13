@@ -50,7 +50,8 @@ MainWindow::MainWindow(RadioConfig& radioConfig, QWidget *parent)
   , m_timeSeriesXmax(FFT_SIZE),
   m_verticalCursorLine(new QGraphicsLineItem()),
   m_filterPassbandRect(nullptr),
-  m_modeButton(nullptr)
+  m_modeButton(nullptr),
+  m_bandButton(nullptr)
 {
 
   initialiseRadio();
@@ -296,10 +297,10 @@ MainWindow::handleTransmitterAudioEvent(const vsdrreal* data, uint32_t length)
 }
 
 void
-MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings, const BandSettings& bandSettings)
+MainWindow::handleRadioSettingsEvent(const RadioSettings* radioSettings, const BandSettings* bandSettings)
 {
-  m_radioSettingsCopy = radioSettings;
-  m_bandSettingsCopy = bandSettings;
+  m_radioSettingsCopy = *radioSettings;
+  m_bandSettingsCopy = *bandSettings;
   RxPipelineSettings* rxPipelineSettings = m_bandSettingsCopy.getFocusRxPipelineSettings();
   if (rxPipelineSettings == nullptr) {
     return;
