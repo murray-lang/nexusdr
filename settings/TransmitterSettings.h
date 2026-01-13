@@ -113,28 +113,15 @@ public:
     // } else
     if (featureStrings[startIndex] == "correction") {
       featuresOut.push_back(CORRECTION);
-      if (startIndex + 1 < featureStrings.size()) {
-        if (!IqCorrectionSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1)) {
-          featuresOut.pop_back();
-          return false;
-        }
-      }
-    } else if (featureStrings[startIndex] == "mic") {
+      return IqCorrectionSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
+    }
+    if (featureStrings[startIndex] == "mic") {
       featuresOut.push_back(MIC);
-      if (startIndex + 1 < featureStrings.size()) {
-        if (!MicSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1)) {
-          featuresOut.pop_back();
-          return false;
-        }
-      }
-    }  else if (featureStrings[startIndex] == "test") {
+      return MicSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
+    }
+    if (featureStrings[startIndex] == "test") {
       featuresOut.push_back(TEST);
-      if (startIndex + 1 < featureStrings.size()) {
-        if (!TestSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1)) {
-          featuresOut.pop_back();
-          return false;
-        }
-      }
+      return TestSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
     }
     return false;
   }

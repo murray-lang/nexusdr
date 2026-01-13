@@ -37,7 +37,7 @@ public:
   {
     RadioSettings::setAllChanged();
   };
-  RadioSettings(const RadioSettings& rhs) = default;
+  // RadioSettings(const RadioSettings& rhs) = default;
   ~RadioSettings() override = default;
 
   RadioSettings& operator=(const RadioSettings& rhs)
@@ -131,7 +131,7 @@ public:
       throw SettingsException("Invalid feature path");
     }
 
-    if (resolvePathForRegisteredSetting<BandSettings>(featureStrings, featuresOut, startIndex)) {
+    if (resolvePathForRegisteredSetting<RadioSettings>(featureStrings, featuresOut, startIndex)) {
       return true;
     }
 

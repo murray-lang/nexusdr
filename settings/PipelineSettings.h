@@ -158,6 +158,10 @@ public:
       featuresOut.push_back(RF);
       return RfSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
     }
+     if (key == "mode") {
+      featuresOut.push_back(MODE);
+      return true;
+    }
     return false;
   }
 
