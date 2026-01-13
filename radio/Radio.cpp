@@ -145,6 +145,7 @@ Radio::applySettings(const RadioSettings& settings) {
 void
 Radio::applySettings(const RadioSettings& settings, BandSettings* pBandSettings)
 {
+  std::lock_guard<std::mutex> lock(m_settingsMutex);
   if (&settings != &m_settings) {
     m_settings = settings;
   }
@@ -194,7 +195,7 @@ Radio::applySettingUpdate(const SettingUpdate& setting)
   if (m_pEventTarget != nullptr) {
     // QCoreApplication::postEvent(m_pEventTarget, new SingleSettingEvent(setting));
   }
-
+  std::lock_guard<std::mutex> lock(m_settingsMutex);
   // Intercept BAND changes so that any change can be detected and the new band settings marked as all changed to force updates
   if (setting.getPath().getFeatures()[0] == RadioSettings::Features::BAND) {
     std::string newBandName = std::get<std::string>(setting.getValue());

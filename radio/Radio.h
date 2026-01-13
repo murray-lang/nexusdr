@@ -52,6 +52,7 @@ protected:
 protected:
   RadioSettings m_settings;
   std::unordered_map<std::string, BandSettings> m_bandSettings;
+  mutable std::mutex m_settingsMutex;
   Bands m_bands;
   IqReceiver* m_pReceiver;
   IqTransmitter* m_pTransmitter;
