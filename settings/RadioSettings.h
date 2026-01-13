@@ -38,6 +38,15 @@ public:
     RadioSettings::setAllChanged();
   };
   // RadioSettings(const RadioSettings& rhs) = default;
+
+  RadioSettings(const RadioSettings& rhs) : 
+  SettingsBase(rhs),
+  m_ptt(rhs.m_ptt),
+  m_bandName(rhs.m_bandName),
+  m_rxSettings(rhs.m_rxSettings),
+  m_txSettings(rhs.m_txSettings)
+  {
+  }
   ~RadioSettings() override = default;
 
   RadioSettings& operator=(const RadioSettings& rhs)

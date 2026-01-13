@@ -181,7 +181,8 @@ Radio::applySettings(const RadioSettings& settings, BandSettings* pBandSettings)
   if (m_pEventTarget != nullptr) {
     // qDebug() << "Radio::applySettings posting RadioSettingsEvent";
     // qDebug() << m_settings.mode.getName().c_str();
-    QCoreApplication::postEvent(m_pEventTarget, new RadioSettingsEvent(settings, *pBandSettings));
+    RadioSettingsEvent* rse = new RadioSettingsEvent(settings, *pBandSettings);
+    QCoreApplication::postEvent(m_pEventTarget, rse);
   }
   m_settings.clearChanged();
   pBandSettings->clearChanged();

@@ -15,10 +15,13 @@ public:
   static const QEvent::Type RadioSettingsEventType;
 
   explicit RadioSettingsEvent(const RadioSettings& radioSettings, const BandSettings& bandSettings) :
-    QEvent(RadioSettingsEventType),
-    m_radioSettings(radioSettings),
-    m_bandSettings(bandSettings)
-  {}
+    QEvent(RadioSettingsEventType)//,
+    // m_radioSettings(radioSettings),
+    // m_bandSettings(bandSettings)
+  {
+    m_radioSettings = radioSettings;
+    m_bandSettings = bandSettings;
+  }
 
   [[nodiscard]] const RadioSettings& getRadioSettings() const { return m_radioSettings; }
   [[nodiscard]] const BandSettings& getBandSettings() const { return m_bandSettings; }

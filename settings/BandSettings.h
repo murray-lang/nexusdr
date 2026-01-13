@@ -32,6 +32,8 @@ public:
     BandSettings::setAllChanged();
   }
 
+  BandSettings(const BandSettings& rhs) = default;
+  
   BandSettings(const Band& band) :
     // modeSettings(),
     m_band(band),
@@ -44,7 +46,8 @@ public:
     applyBandDefaults(band);
     BandSettings::setAllChanged();
   }
-  ~BandSettings() override = default;
+  ~BandSettings() override 
+  {}
   // BandSettings(const BandSettings& rhs) = default;
 
   BandSettings& operator=(const BandSettings& rhs)

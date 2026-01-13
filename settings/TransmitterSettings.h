@@ -27,7 +27,12 @@ public:
   // :
   //   modeSettings(modeSettings), bands(bands), rfSettings()
   {}
-  // TransmitterSettings(const TransmitterSettings& rhs) = default;
+  TransmitterSettings(const TransmitterSettings& rhs) :
+    SettingsBase(rhs),
+    m_correctionSettings(rhs.m_correctionSettings),
+    m_micSettings(rhs.m_micSettings),
+    m_testSettings(rhs.m_testSettings)
+  {}
   ~TransmitterSettings() override = default;
 
   TransmitterSettings& operator=(const TransmitterSettings& rhs)
