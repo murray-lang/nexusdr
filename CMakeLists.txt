@@ -254,8 +254,8 @@ set(PROJECT_SOURCES
         io/control/device/gpio/digital/GpioRotaryEncoder.h
         io/control/device/gpio/digital/DigitalInputs.cpp
         io/control/device/gpio/digital/DigitalInputs.h
-        settings/SettingPath.h
-        settings/SingleSetting.h
+        settings/SettingUpdatePath.h
+        settings/SettingUpdate.h
         settings/SettingsException.h
         settings/SettingsBase.h
         util/StringUtils.cpp
@@ -278,8 +278,8 @@ set(PROJECT_SOURCES
         config/FunCubeConfig.h
         settings/RadioSettingsEvent.cpp
         settings/RadioSettingsEvent.h
-        settings/SingleSettingEvent.cpp
-        settings/SingleSettingEvent.h
+        settings/SettingUpdateEvent.cpp
+        settings/SettingUpdateEvent.h
         io/control/device/gpio/GpioLines.cpp
         io/control/device/gpio/GpioLines.h
         config/GpioLinesConfig.h
@@ -346,8 +346,11 @@ set(PROJECT_SOURCES
         settings/BandSettings.h
         settings/TxPipelineSettings.h
         settings/RadioAndBandSettingsSink.h
-        settings/SingleSettingSink.h
-        settings/SingleSettingSource.h
+        settings/SettingUpdateSink.h
+        settings/SettingUpdateSource.h
+        settings/SettingValue.h
+        settings/Setting.h
+        settings/SettingRegistry.h
 
 )
 

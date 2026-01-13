@@ -9,7 +9,7 @@
 #define DEFAULT_GAIN 1.0
 #define DEFAULT_GAIN_STEP 1.0
 
-class TwoToneSettings : SettingsBase
+class TwoToneSettings : public SettingsBase
 {
 public:
   enum Features
@@ -17,75 +17,53 @@ public:
     NONE = 0,
     ENABLED  = 0x01,
     GAIN   = 0x02,
+    GAIN_STEP = 0x04,
     ALL = static_cast<uint32_t>(~0U)
   };
-  TwoToneSettings() : enabled(false), gain(DEFAULT_GAIN), gainStep(DEFAULT_GAIN_STEP) {}
+  TwoToneSettings() :
+    m_enabled(this, "enabled",false),
+    m_gain(this, "gain", DEFAULT_GAIN),
+    m_gainStep(this, "gain_step", DEFAULT_GAIN_STEP) {}
   TwoToneSettings(const TwoToneSettings& rhs) = default;
   ~TwoToneSettings() override  = default;
 
   TwoToneSettings& operator=(const TwoToneSettings& rhs) = default;
 
-  bool applySettings(const TwoToneSettings& settings)
+  bool merge(const TwoToneSettings& settings)
   {
-    bool somethingChanged = false;
-    if (settings.changed & GAIN) {
-      gain = settings.gain;
-      changed |= GAIN;
-      somethingChanged = true;
-    }
-    if (settings.changed & ENABLED) {
-      enabled = settings.enabled;
-      changed |= ENABLED;
-      somethingChanged = true;
-    }
-    return somethingChanged;
+    return m_enabled.merge(settings.m_enabled)
+      | m_gain.merge(settings.m_gain)
+      | m_gainStep.merge(settings.m_gainStep);
   }
 
-  bool applySetting(const SingleSetting& setting, int startIndex) override
+  bool applyUpdate(const SettingUpdate& update, int startIndex) override
   {
-    if (startIndex >= setting.getPath().getFeatures().size()) {
+    const auto& features = update.getPath().getFeatures();
+    if (startIndex >= features.size()) {
       throw SettingsException("Invalid setting path");
     }
-    bool settingChange = false;
-    uint32_t feature = setting.getPath().getFeatures()[startIndex];
-    if (feature == ENABLED) {
-      enabled = !enabled;
-    } else if (feature == GAIN) {
-      if (setting.getMeaning() == SingleSetting::VALUE) {
-        gain = std::get<float>(setting.getValue());
-        settingChange = true;
-      } else if (setting.getMeaning() == SingleSetting::DELTA) {
-        gain += static_cast<sdrreal>(std::get<int32_t>(setting.getValue())) * gainStep;
-        settingChange = true;
-      }
+    uint32_t feature = features[startIndex];
+    const auto& val = update.getValue();
+
+    switch (feature) {
+    case ENABLED: return m_enabled.apply(update);
+    case GAIN: return m_gain.apply(update);
+    case GAIN_STEP: return m_gainStep.apply(val);
+    default: return false;
     }
-    if (settingChange) {
-      changed |= feature;
-    }
-    return settingChange;
   }
 
   static bool getFeaturePath(
     const std::vector<std::string>& featureStrings,
-    std::vector<uint32_t>& features,
+    std::vector<uint32_t>& out,
     size_t startIndex
     )
   {
-    if (startIndex >= featureStrings.size()) {
-      throw SettingsException("Invalid setting path");
-    }
-    if (featureStrings[startIndex] == "enabled") {
-      features.push_back(ENABLED);
-    } else if (featureStrings[startIndex] == "gain") {
-      features.push_back(GAIN);
-    } else {
-      return false;
-    }
-    return true;
+    return resolvePathForRegisteredSetting<TwoToneSettings>(featureStrings, out, startIndex);
   }
-
-  bool enabled;
-  sdrreal gain;
-  sdrreal gainStep;
+protected:
+  Setting<bool, ENABLED, TwoToneSettings> m_enabled;
+  Setting<sdrreal, GAIN, TwoToneSettings> m_gain;
+  Setting<sdrreal, GAIN_STEP, TwoToneSettings>   m_gainStep;
 
 };

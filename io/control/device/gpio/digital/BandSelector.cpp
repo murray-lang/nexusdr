@@ -30,11 +30,11 @@ BandSelector::configure(const ConfigBase* pConfig)
 void
 BandSelector::applySettings(const RadioSettings& settings, BandSettings* pBandSettings)
 {
-  if (settings.changed & RadioSettings::PIPELINE) {
+  if (settings.hasSettingChanged(RadioSettings::PIPELINE)) {
     const RfSettings& rfSettings = pBandSettings->getTxRfSettings();
-    if (rfSettings.changed & (RfSettings::FREQUENCY | RfSettings::OFFSET)) {
-      uint32_t frequency = rfSettings.frequency;
-      frequency += rfSettings.offset;
+    if (rfSettings.hasSettingChanged(RfSettings::FREQUENCY | RfSettings::OFFSET)) {
+      uint32_t frequency = rfSettings.getFrequency();
+      frequency += rfSettings.getOffset();
       uint32_t output = getBandOutput(frequency);
       applyOutput(output);
     }
@@ -42,7 +42,7 @@ BandSelector::applySettings(const RadioSettings& settings, BandSettings* pBandSe
 }
 
 void
-BandSelector::applySingleSetting(const SingleSetting& setting)
+BandSelector::applySettingUpdate(const SettingUpdate& setting)
 {
   if (setting.getPath() == m_settingPath) {
     uint32_t frequency = std::get<uint32_t>(setting.getValue());

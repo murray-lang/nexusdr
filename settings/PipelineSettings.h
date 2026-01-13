@@ -27,8 +27,8 @@ public:
   {
     if (this != &rhs) {
       SettingsBase::operator=(rhs);
-      mode = rhs.mode;
-      rfSettings = rhs.rfSettings;
+      m_mode = rhs.m_mode;
+      m_rfSettings = rhs.m_rfSettings;
     }
     return *this;
   }
@@ -36,38 +36,40 @@ public:
   void clearChanged() override
   {
     SettingsBase::clearChanged();
-    rfSettings.clearChanged();
+    m_rfSettings.clearChanged();
   }
 
   void setAllChanged() override
   {
     SettingsBase::setAllChanged();
-    rfSettings.setAllChanged();
+    m_rfSettings.setAllChanged();
   }
 
 
   void copyBasicsForTracking(const PipelineSettings& rhs)
   {
-    mode = rhs.mode;
-    rfSettings.copyFrequencies(rhs.rfSettings);
-    changed |= MODE | RF;
+    m_rfSettings.copyFrequencies(rhs.m_rfSettings);
+    m_mode = rhs.m_mode;
+    m_changed |= MODE;
   }
 
   void applyBandDefaults(const Band* band)
   {
     if (band != nullptr) {
       Mode::Type defaultMode = band->getDefaultMode();
-      const Mode& newMode = modeSettings.getModeByType(defaultMode);
+      const Mode& newMode = ModeSettings::getModeByType(defaultMode);
       setBand(*band);
       setMode(newMode);
     }
   }
 
+  [[nodiscard]] const Mode& getMode() const { return m_mode; }
+
   bool setMode( const Mode& newMode )
   {
-    if (newMode.getType() != mode.getType()) {
-      mode = newMode;
-      changed |= MODE;
+    if (newMode.getType() != m_mode.getType()) {
+      m_mode = newMode;
+      m_changed |= MODE;
       return true;
     }
     return false;
@@ -75,65 +77,68 @@ public:
 
   bool setBand(const Band& band)
   {
-    if (rfSettings.setBand(band)) {
-      changed |= RF;
+    return m_rfSettings.setBand(band);
+  }
+
+  RfSettings& getRfSettings()
+  {
+    return m_rfSettings;
+  }
+
+  [[nodiscard]] const RfSettings& getRfSettings() const
+  {
+    return m_rfSettings;
+  }
+
+  bool mergeRfSettings(const RfSettings& settings)
+  {
+    if (m_rfSettings.merge(settings)) {
+      m_changed |= RF;
       return true;
     }
     return false;
   }
 
-  RfSettings& getRfSettings()
-  {
-    return rfSettings;
-  }
-
-  void applyRfSettings(const RfSettings& settings)
-  {
-    rfSettings.applySettings(settings);
-  }
-
-  bool applySettings(const PipelineSettings& settings)
+  bool merge(const PipelineSettings& settings)
   {
     bool somethingChanged = false;
-    if (settings.changed & RF) {
-      if (rfSettings.applySettings(settings.rfSettings)) {
-        changed |= RF;
-        somethingChanged = true;
-      }
+
+    if (m_rfSettings.merge(settings.m_rfSettings)) {
+      m_changed |= RF;
+      somethingChanged = true;
     }
-    if (settings.changed & MODE) {
-      if (setMode(settings.mode)) {
+
+    if (settings.m_changed & MODE) {
+      if (setMode(settings.m_mode)) {
+        m_changed |= MODE;
         somethingChanged = true;
       }
     }
     return somethingChanged;
   }
 
-  bool applySetting(const SingleSetting& setting, int startIndex) override
+  bool applyUpdate(const SettingUpdate& update, int startIndex) override
   {
-    if (startIndex >= setting.getPath().getFeatures().size()) {
+    const auto& features = update.getPath().getFeatures();
+    if (startIndex >= features.size()) {
       throw SettingsException("Invalid setting path");
     }
-    bool settingChange = false;
-    uint32_t feature = setting.getPath().getFeatures()[startIndex];
 
-    using Handler = bool (PipelineSettings::*)(const SingleSetting&, int);
-    struct HandlerEntry { Features feature; Handler method; };
-
-    static constexpr HandlerEntry dispatchTable[] = {
-    {RF, &PipelineSettings::applyRfSetting },
-    {MODE, &PipelineSettings::applyModeSetting }
-    };
-
-    for (const auto& h : dispatchTable) {
-      if (feature & h.feature) {
-        if ((this->*h.method)(setting, startIndex + 1)) {
-          settingChange = true;
-          changed |= h.feature;
-        }
+    switch (features[startIndex]) {
+    case RF:
+      if (m_rfSettings.applyUpdate(update, startIndex + 1)) {
+        m_changed |= RF;
+        return true;
       }
+      return false;
+    case MODE:
+      if (applyModeSetting(update, startIndex + 1)) {
+        m_changed |= MODE;
+        return true;
+      }
+      return false;
+    default: return false;
     }
-    return settingChange;
   }
 
   static bool getFeaturePath(
@@ -145,47 +150,33 @@ public:
     if (startIndex >= featureStrings.size()) {
       throw SettingsException("Invalid feature path");
     }
-    const std::string& key = featureStrings[startIndex];
-
-    using PathFunc = bool(*)(const std::vector<std::string>&, std::vector<uint32_t>&, size_t);
-    static const std::map<std::string, std::pair<Features, PathFunc>> dispatch = {
-      {"rf",         {RF,         &RfSettings::getFeaturePath}},
-      {"mode",       {MODE,       &SettingsBase::addFeature<MODE>}},
-    };
-
-    if (auto it = dispatch.find(key); it != dispatch.end()) {
-      featuresOut.push_back(it->second.first);
-      if (startIndex + 1 < featureStrings.size() && it->second.second) {
-        if (!it->second.second(featureStrings, featuresOut, startIndex + 1)) {
-          featuresOut.pop_back();
-          return false;
-        }
-      }
+    if (resolvePathForRegisteredSetting<PipelineSettings>(featureStrings, featuresOut, startIndex)) {
       return true;
+    }
+    const std::string& key = featureStrings[startIndex];
+    if (key == "rf") {
+      featuresOut.push_back(RF);
+      return RfSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
     }
     return false;
   }
-
-  Mode mode;
-  ModeSettings modeSettings;
-  RfSettings rfSettings;
 
 protected:
-  bool applyRfSetting(const SingleSetting& setting, int index)
-  {
-    return rfSettings.applySetting(setting, index);
-  }
 
-  bool applyModeSetting(const SingleSetting& setting, int index)
+  bool applyModeSetting(const SettingUpdate& setting, int index)
   {
-    if (modeSettings.applySetting(setting, index)) {
-    }
-    const auto& modeType = std::get<Mode::Type>(setting.getValue());
-    Mode newMode = modeSettings.getModeByType(modeType);
-    if (newMode.getType() != mode.getType()) {
-      setMode(newMode);
-      return true;
+    if (m_modeSettings.applyUpdate(setting, index)) {
+      const auto& modeType = std::get<Mode::Type>(setting.getValue());
+      Mode newMode = ModeSettings::getModeByType(modeType);
+      if (newMode.getType() != m_mode.getType()) {
+        setMode(newMode);
+        return true;
+      }
     }
     return false;
   }
+
+  Mode m_mode;
+  ModeSettings m_modeSettings;
+  RfSettings m_rfSettings;
 };

@@ -6,7 +6,7 @@
 #include <qdebug.h>
 
 #include "io/control/device/gpio/GpioException.h"
-#include "settings/SingleSetting.h"
+#include "settings/SettingUpdate.h"
 
 GpioRotaryEncoder::GpioRotaryEncoder() : DigitalInput()
 {
@@ -23,8 +23,8 @@ GpioRotaryEncoder::configure(const DigitalInputConfig* pConfig)
 void
 GpioRotaryEncoder::notifyMovement(const int movement)
 {
-  SingleSetting setting(m_settingPath, movement, SingleSetting::DELTA);
-  notifySingleSetting(setting);
+  SettingUpdate setting(m_settingPath, movement, SettingUpdate::DELTA);
+  notifySettingUpdate(setting);
 }
 
 bool

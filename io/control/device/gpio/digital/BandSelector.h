@@ -18,7 +18,7 @@ public:
   void configure(const ConfigBase* pConfig) override;
 
   void applySettings(const RadioSettings& settings, BandSettings* pBandSettings) override;
-  void applySingleSetting(const SingleSetting& setting) override;
+  void applySettingUpdate(const SettingUpdate& setting) override;
   void ptt(bool on) override {};
 
 protected:

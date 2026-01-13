@@ -19,7 +19,10 @@ public:
     AGC = 0x10,
     ALL = static_cast<uint32_t>(~0U)
   };
-  RxPipelineSettings() : PipelineSettings(), mute(false)
+  RxPipelineSettings() :
+    PipelineSettings(),
+    m_mute(this, "mute", false),
+    m_agc(this, "agc", 0.0)
   {
   }
   // RxPipelineSettings(const RxPipelineSettings& rhs) = default;
@@ -29,8 +32,8 @@ public:
   {
     if (this != &rhs) {
       PipelineSettings::operator=(rhs);
-      mute = rhs.mute;
-      ifSettings = rhs.ifSettings;
+      m_mute = rhs.m_mute;
+      m_ifSettings = rhs.m_ifSettings;
     }
     return *this;
   }
@@ -38,72 +41,69 @@ public:
   void clearChanged() override
   {
     PipelineSettings::clearChanged();
-    ifSettings.clearChanged();
+    m_ifSettings.clearChanged();
   }
 
   void setAllChanged() override
   {
     PipelineSettings::setAllChanged();
-    ifSettings.setAllChanged();
+    m_ifSettings.setAllChanged();
   }
 
   IfSettings& getIfSettings()
   {
-    return ifSettings;
+    return m_ifSettings;
   }
 
-  void applyIfSettings(const IfSettings& settings)
+  const IfSettings& getIfSettings() const
   {
-    ifSettings.applySettings(settings);
+    return m_ifSettings;
   }
 
-  bool applySettings(const RxPipelineSettings& settings)
+  void mergeIfSettings(const IfSettings& settings)
   {
-    qDebug() << "RxPipelineSettings::applySettings called";
-    bool somethingChanged = PipelineSettings::applySettings(settings);
-    if (settings.changed & IF) {
-      if (ifSettings.applySettings(settings.ifSettings)) {
-        changed |= IF;
-        somethingChanged = true;
-      }
+    m_ifSettings.merge(settings);
+  }
+
+  bool merge(const RxPipelineSettings& settings)
+  {
+    bool changed = PipelineSettings::merge(settings)
+    | m_mute.merge(settings.m_mute)
+    | m_agc.merge(settings.m_agc);
+
+    if (m_ifSettings.merge(settings.m_ifSettings)) {
+      m_changed |= IF;
+      return true;
     }
-    return somethingChanged;
+    return changed;
   }
 
-  bool applySetting(const SingleSetting& setting, int startIndex) override
+  bool applyUpdate(const SettingUpdate& update, int startIndex) override
   {
-    if (startIndex >= setting.getPath().getFeatures().size()) {
-      throw SettingsException("Invalid setting path");
-    }
-
-    if (PipelineSettings::applySetting(setting, startIndex)) {
+    if (PipelineSettings::applyUpdate(update, startIndex)) {
       return true;
     }
 
-    uint32_t targetFeature = setting.getPath().getFeatures()[startIndex];
-    bool settingChange = false;
-
-    using HandlerFunc = bool (RxPipelineSettings::*)(const SingleSetting&, int);
-    struct Handler {
-      Features feature;
-      HandlerFunc method;
-    };
-
-    static constexpr Handler dispatchTable[] = {
-      { MUTE,   &RxPipelineSettings::applyMuteSetting },
-      { IF,     &RxPipelineSettings::applyIfSettings },
-      { AGC,     &RxPipelineSettings::applyAgcSetting },
-    };
-
-    for (const auto& h : dispatchTable) {
-      if (targetFeature & h.feature) {
-        if ((this->*h.method)(setting, startIndex)) {
-          settingChange = true;
-          changed |= h.feature;
-        }
-      }
+    const auto& features = update.getPath().getFeatures();
+    if (startIndex >= features.size()) {
+      throw SettingsException("Invalid setting path");
     }
-    return settingChange;
+
+    uint32_t feature = features[startIndex];
+    const auto& val = update.getValue();
+
+    switch (feature) {
+    case MUTE:  return m_mute.apply(val);
+    case AGC: return m_agc.apply(val);
+    case IF:
+      if (m_ifSettings.applyUpdate(update, startIndex + 1)) {
+        m_changed |= IF;
+        return true;
+      }
+      return false;
+    default:
+      return false;
+    }
   }
 
   static bool getFeaturePath(
@@ -115,53 +115,24 @@ public:
     if (PipelineSettings::getFeaturePath(featureStrings, featuresOut, startIndex)) {
       return true;
     }
-
     if (startIndex >= featureStrings.size()) {
       throw SettingsException("Invalid feature path");
     }
-    const std::string& key = featureStrings[startIndex];
 
-    using PathFunc = bool(*)(const std::vector<std::string>&, std::vector<uint32_t>&, size_t);
-    static const std::map<std::string, std::pair<Features, PathFunc>> dispatch = {
-  {"if",   {IF,  &IfSettings::getFeaturePath}},
-  {"mute", {MUTE, &SettingsBase::addFeature<MUTE>}},
-  {"agc",  {AGC,  &SettingsBase::addFeature<AGC>}}
-    };
-
-    if (auto it = dispatch.find(key); it != dispatch.end()) {
-      featuresOut.push_back(it->second.first);
-      if (startIndex + 1 < featureStrings.size() && it->second.second) {
-        if (!it->second.second(featureStrings, featuresOut, startIndex + 1)) {
-          featuresOut.pop_back();
-          return false;
-        }
-      }
+    if (resolvePathForRegisteredSetting<RxPipelineSettings>(featureStrings, featuresOut, startIndex)) {
       return true;
+    }
+
+    const std::string& key = featureStrings[startIndex];
+    if (key == "if") {
+      featuresOut.push_back(IF);
+      return RfSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
     }
     return false;
   }
-
-  bool mute;
-  IfSettings ifSettings;
 
 protected:
-  bool applyMuteSetting(const SingleSetting& setting, int index)
-  {
-    bool newMute = std::get<bool>(setting.getValue());
-    if (mute != newMute) {
-      mute = newMute;
-      return true;
-    }
-    return false;
-  }
-
-  bool applyIfSettings(const SingleSetting& setting, int index)
-  {
-    return ifSettings.applySetting(setting, index);
-  }
-
-  bool applyAgcSetting(const SingleSetting& setting, int index)
-  {
-    return false;
-  }
+  Setting<bool, MUTE, RxPipelineSettings> m_mute;
+  Setting<float, AGC, RxPipelineSettings> m_agc;
+  IfSettings m_ifSettings;
 };

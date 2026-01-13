@@ -15,63 +15,53 @@ class MicSettings : public SettingsBase
   {
     NONE = 0,
     GAIN = 0x01,
+    GAIN_STEP,
     ALL = static_cast<uint32_t>(~0U)
   };
-  MicSettings(): gain(1.0), gainStep(DEFAULT_GAIN_STEP) {}
+  MicSettings():
+    m_gain(this, "gain",1.0),
+    m_gainStep(this, "gain-step", DEFAULT_GAIN_STEP)
+  {
+    m_gain.setStepValueAddress(m_gainStep.getValueAddress());
+  }
   MicSettings(const MicSettings& rhs) = default;
   ~MicSettings() override = default;
   MicSettings& operator=(const MicSettings& rhs) = default;
 
-  bool applySettings(const MicSettings& settings)
+  [[nodiscard]] sdrreal getGain() const { return m_gain(); }
+  [[nodiscard]] sdrreal getGainStep() const { return m_gainStep(); }
+
+  bool merge(const MicSettings& settings)
   {
-    bool somethingChanged = false;
-    if (settings.changed & GAIN) {
-      gain = settings.gain;
-      changed |= GAIN;
-      somethingChanged = true;
-    }
-    return somethingChanged;
+    return m_gain.merge(settings.m_gain) | m_gainStep.merge(settings.m_gainStep);
   }
 
-  bool applySetting(const SingleSetting& setting, int startIndex) override
+  bool applyUpdate(const SettingUpdate& update, int startIndex) override
   {
-    if (startIndex >= setting.getPath().getFeatures().size()) {
+    const auto& features = update.getPath().getFeatures();
+    if (startIndex >= features.size()) {
       throw SettingsException("Invalid setting path");
     }
-    bool settingChange = false;
-    uint32_t feature = setting.getPath().getFeatures()[startIndex];
-    if (feature == GAIN) {
-      if (setting.getMeaning() == SingleSetting::VALUE) {
-        gain = std::get<sdrreal>(setting.getValue());
-        settingChange = true;
-      } else if (setting.getMeaning() == SingleSetting::DELTA) {
-        gain += static_cast<sdrreal>(std::get<int32_t>(setting.getValue())) * gainStep;
-        settingChange = true;
-      }
+    uint32_t feature = features[startIndex];
+    const auto& val = update.getValue();
 
+    switch (feature) {
+    case GAIN: return m_gain.apply(update);
+    case GAIN_STEP: return m_gainStep.apply(val);
+    default: return false;
     }
-    if (settingChange) {
-      changed |= feature;
-    }
-    return settingChange;
   }
 
   static bool getFeaturePath(
     const std::vector<std::string>& featureStrings,
-    std::vector<uint32_t>& features,
+    std::vector<uint32_t>& out,
     size_t startIndex
     )
   {
-    if (startIndex >= featureStrings.size()) {
-      throw SettingsException("Invalid setting path");
-    }
-    if (featureStrings[startIndex] == "gain") {
-      features.push_back(GAIN);
-      return true;
-    }
-    return false;
+    return resolvePathForRegisteredSetting<MicSettings>(featureStrings, out, startIndex);
   }
 
-  sdrreal gain;
-  sdrreal gainStep;
+protected:
+  Setting<sdrreal, GAIN, MicSettings> m_gain;
+  Setting<sdrreal, GAIN_STEP, MicSettings> m_gainStep;
 };

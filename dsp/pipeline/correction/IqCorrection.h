@@ -21,12 +21,12 @@ class IqCorrection : public IqPipelineStage
 
   void apply(const IqCorrectionSettings& correctionSettings)
   {
-    if (correctionSettings.changed & IqCorrectionSettings::AMPLITUDE) {
-      m_amplitudeCorrection = correctionSettings.amplitude;
+    if (correctionSettings.hasSettingChanged(IqCorrectionSettings::AMPLITUDE)) {
+      m_amplitudeCorrection = correctionSettings.getAmplitude();
       qDebug() << "Applied IQ Amplitude Correction: " << m_amplitudeCorrection;
     }
-    if (correctionSettings.changed & IqCorrectionSettings::PHASE) {
-      m_phaseCorrection = correctionSettings.phase;
+    if (correctionSettings.hasSettingChanged(IqCorrectionSettings::PHASE)) {
+      m_phaseCorrection = correctionSettings.getPhase();
       qDebug() << "Applied IQ Phase Correction: " << m_phaseCorrection;
     }
   }

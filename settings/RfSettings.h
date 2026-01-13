@@ -23,11 +23,19 @@ public:
     OFFSET = 0x04,
     OFFSET_STEP = 0x08,
     GAIN = 0x10,
+    GAIN_STEP = 0x20,
     ALL = static_cast<uint32_t>(~0U)
   };
-  RfSettings() : frequency(0), frequencyStep(10000), offset(0), offsetStep(50), gain(0.0)
+  RfSettings() :
+    m_frequency(this, "frequency", 0),
+    m_frequencyStep(this, "frequency-step", 10000),
+    m_offset(this, "offset", 0),
+    m_offsetStep(this, "offset-step", 50),
+    m_gain(this, "gain", 0.0),
+    m_gainStep(this, "gain-step", 0.0)
   {
-    changed = ALL;
+    m_frequency.setStepValueAddress(m_frequencyStep.getValueAddress());
+    m_offset.setStepValueAddress(m_offsetStep.getValueAddress());
   }
   // RfSettings(const RfSettings& rhs) = default;
   ~RfSettings() override = default;
@@ -36,15 +44,29 @@ public:
   {
     if (this != &rhs) {
       SettingsBase::operator=(rhs);
-      frequency = rhs.frequency;
-      frequencyStep = rhs.frequencyStep;
-      offset = rhs.offset;
-      offsetStep = rhs.offsetStep;
-      gain = rhs.gain;
-
+      m_frequency = rhs.m_frequency;
+      m_frequencyStep = rhs.m_frequencyStep;
+      m_offset = rhs.m_offset;
+      m_offsetStep = rhs.m_offsetStep;
+      m_gain = rhs.m_gain;
+      m_gainStep = rhs.m_gainStep;
     }
     return *this;
   }
+
+  [[nodiscard]] uint32_t getFrequency() const { return m_frequency(); }
+  [[nodiscard]] int32_t getFrequencyStep() const { return m_frequencyStep(); }
+  [[nodiscard]] int32_t getOffset() const { return m_offset(); }
+  [[nodiscard]] int32_t getOffsetStep() const { return m_offsetStep(); }
+  [[nodiscard]] float getGain() const { return m_gain(); }
+  [[nodiscard]] float getGainStep() const { return m_gainStep(); }
+
+  void setFrequency(uint32_t frequency) { m_frequency(frequency); }
+  void setFrequencyStep(int32_t frequencyStep) { m_frequencyStep(frequencyStep); }
+  void setOffset(int32_t offset) { m_offset(offset); }
+  void setOffsetStep(int32_t offsetStep) { m_offsetStep(offsetStep); }
+  void setGain(float gain) { m_gain(gain); }
+  void setGainStep(float gainStep) { m_gainStep(gainStep); }
 
   // void clearChanged() override
   // {
@@ -60,125 +82,69 @@ public:
 
   void copyFrequencies(const RfSettings& rhs)
   {
-    frequency = rhs.frequency;
-    offset = rhs.offset;
-    frequencyStep = rhs.frequencyStep;
-    offsetStep = rhs.offsetStep;
-    changed |= FREQUENCY | OFFSET | FREQUENCY_STEP | OFFSET_STEP;
+    m_frequency.merge(rhs.m_frequency);
+    m_offset.merge(rhs.m_offset);
+    m_frequencyStep.merge(rhs.m_frequencyStep);
+    m_offsetStep.merge(rhs.m_offsetStep);
   }
 
   bool setBand(const Band& band)
   {
     if (band.isValid()) {
-      uint64_t freqPlusOffset = frequency + offset;
+      uint64_t freqPlusOffset = m_frequency() + m_offset();
       if (!band.containsFrequency(freqPlusOffset)) {
-        frequency = band.getLandingFrequency();
-        offset = 0;
-        changed |= FREQUENCY | OFFSET;
+        m_frequency(band.getLandingFrequency());
+        m_offset(0);
         return true;
       }
     }
     return false;
   }
 
-  bool applySettings(const RfSettings& settings)
+  bool merge(const RfSettings& settings)
   {
-    bool somethingChanged = false;
-    if (settings.changed & FREQUENCY) {
-      frequency = settings.frequency;
-      changed |= FREQUENCY;
-      somethingChanged = true;
-    }
-    if (settings.changed & OFFSET) {
-      offset = settings.offset;
-      changed |= OFFSET;
-      somethingChanged = true;
-    }
-    return somethingChanged;
+    return m_frequency.merge(settings.m_frequency)
+      | m_frequencyStep.merge(settings.m_frequencyStep)
+      | m_offset.merge(settings.m_offset)
+      | m_offsetStep.merge(settings.m_offsetStep)
+      | m_gain.merge(settings.m_gain)
+      | m_gainStep.merge(settings.m_gainStep);
   }
 
-  bool applySetting(const SingleSetting& setting, int startIndex) override
+  bool applyUpdate(const SettingUpdate& update, int startIndex) override
   {
-    if (startIndex >= setting.getPath().getFeatures().size()) {
+    const auto& features = update.getPath().getFeatures();
+    if (startIndex >= features.size()) {
       throw SettingsException("Invalid setting path");
     }
-    bool settingChange = false;
-    uint32_t feature = setting.getPath().getFeatures()[startIndex];
-    if (feature == FREQUENCY) {
-      if (setting.getMeaning() == SingleSetting::VALUE) {
-        frequency = std::get<uint32_t>(setting.getValue());
-        settingChange = true;
-      } else if (setting.getMeaning() == SingleSetting::DELTA) {
-        frequency += std::get<int32_t>(setting.getValue()) * frequencyStep;
-        settingChange = true;
-      }
-    } if (feature == FREQUENCY_STEP) {
-      if (setting.getMeaning() == SingleSetting::VALUE) {
-        frequencyStep = std::get<int32_t>(setting.getValue());
-        settingChange = true;
-      } else if (setting.getMeaning() == SingleSetting::DELTA) {
-        frequencyStep += std::get<int32_t>(setting.getValue()) * 10;
-        settingChange = true;
-      }
-    } else if (feature == OFFSET) {
-      if (setting.getMeaning() == SingleSetting::VALUE) {
-        offset = std::get<int32_t>(setting.getValue());
-        settingChange = true;
-      } else if (setting.getMeaning() == SingleSetting::DELTA) {
-        offset += std::get<int32_t>(setting.getValue()) * offsetStep;
-        settingChange = true;
-      }
-    } else if (feature == OFFSET_STEP) {
-      if (setting.getMeaning() == SingleSetting::VALUE) {
-        offsetStep = std::get<int32_t>(setting.getValue());
-        settingChange = true;
-      } else if (setting.getMeaning() == SingleSetting::DELTA) {
-        offsetStep += std::get<int32_t>(setting.getValue()) * 10;
-        settingChange = true;
-      }
-    } else if (feature == GAIN) {
-      if (setting.getMeaning() == SingleSetting::VALUE) {
-        gain = std::get<float>(setting.getValue());
-        settingChange = true;
-      } else if (setting.getMeaning() == SingleSetting::DELTA) {
-        gain += std::get<float>(setting.getValue());
-        settingChange = true;
-      }
+    uint32_t feature = features[startIndex];
+    const auto& val = update.getValue();
+
+    switch (feature) {
+    case FREQUENCY: return m_frequency.apply(update);
+    case FREQUENCY_STEP: return m_frequencyStep.apply(val);
+    case OFFSET: return m_offset.apply(update);
+    case OFFSET_STEP: return m_offsetStep.apply(val);
+    case GAIN: return m_gain.apply(update);
+    case GAIN_STEP: return m_gainStep.apply(val);
+    default: return false;
     }
-    if (settingChange) {
-      changed |= feature;
-    }
-    return settingChange;
   }
 
   static bool getFeaturePath(
     const std::vector<std::string>& featureStrings,
-    std::vector<uint32_t>& features,
+    std::vector<uint32_t>& out,
     size_t startIndex
     )
   {
-    if (startIndex >= featureStrings.size()) {
-      throw SettingsException("Invalid setting path");
-    }
-    if (featureStrings[startIndex] == "frequency") {
-      features.push_back(FREQUENCY);
-    } else if (featureStrings[startIndex] == "frequency-step") {
-      features.push_back(FREQUENCY_STEP);
-    } else if (featureStrings[startIndex] == "gain") {
-      features.push_back(GAIN);
-    } else if (featureStrings[startIndex] == "offset") {
-      features.push_back(OFFSET);
-    } else if (featureStrings[startIndex] == "offset-step") {
-      features.push_back(OFFSET_STEP);
-    } else {
-      return false;
-    }
-    return true;
+    return resolvePathForRegisteredSetting<RfSettings>(featureStrings, out, startIndex);
   }
 
-  uint32_t frequency;
-  int32_t frequencyStep;
-  int32_t  offset;
-  int32_t offsetStep;
-  float gain;
+protected:
+  Setting<uint32_t, FREQUENCY, RfSettings, int32_t> m_frequency;
+  Setting<int32_t, FREQUENCY_STEP, RfSettings> m_frequencyStep;
+  Setting<int32_t, OFFSET, RfSettings, int32_t> m_offset;
+  Setting<int32_t, OFFSET_STEP, RfSettings> m_offsetStep;
+  Setting<float, GAIN, RfSettings> m_gain;
+  Setting<float, GAIN_STEP, RfSettings> m_gainStep;
 };

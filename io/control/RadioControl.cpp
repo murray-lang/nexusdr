@@ -9,7 +9,7 @@
 #include "ControlSourceFactory.h"
 #include "config/ConfigException.h"
 #include "settings/RadioSettings.h"
-#include "settings/SettingPath.h"
+#include "settings/SettingUpdatePath.h"
 
 RadioControl::RadioControl() :
   m_internalSink(this),
@@ -61,10 +61,10 @@ RadioControl::notifySettings(const RadioSettings& radioSettings)
 }
 
 void
-RadioControl::notifySingleSetting(const SingleSetting& settingDelta)
+RadioControl::notifySettingUpdate(const SettingUpdate& settingDelta)
 {
   if (m_pExternalSettingsSink) {
-    m_pExternalSettingsSink->applySingleSetting(settingDelta);
+    m_pExternalSettingsSink->applySettingUpdate(settingDelta);
   }
 }
 
@@ -85,10 +85,10 @@ RadioControl::applySettings(const RadioSettings& settings, BandSettings* pBandSe
 }
 
 void
-RadioControl::applySingleSetting(const SingleSetting& setting)
+RadioControl::applySettingUpdate(const SettingUpdate& setting)
 {
   for (RadioSettingsSink* pSink : m_controlSinks) {
-    pSink->applySingleSetting(setting);
+    pSink->applySettingUpdate(setting);
   }
 }
 
@@ -122,7 +122,7 @@ RadioControl::stop()
 void
 RadioControl::ptt(bool on)
 {
-  SettingPath path({RadioSettings::PTT});
-  SingleSetting setting(path, on, SingleSetting::VALUE);
-  applySingleSetting(setting);
+  SettingUpdatePath path({RadioSettings::PTT});
+  SettingUpdate setting(path, on, SettingUpdate::VALUE);
+  applySettingUpdate(setting);
 }

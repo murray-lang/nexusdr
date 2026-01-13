@@ -161,8 +161,11 @@ MainWindow::configureTimeseriesChart()
     m_timeseriesLineSeries.setPen(pen);
 
   pChart->addSeries(&m_timeseriesLineSeries);
-  pChart->setTitle("Timeseries");
+  // pChart->setTitle("Timeseries");
   pChart->createDefaultAxes();
+  for (auto* axis : pChart->axes()) {
+    axis->setLabelsVisible(false);
+  }
   pChart->axes(Qt::Horizontal).first()->setRange(m_timeSeriesXmin / 100.0, m_timeSeriesXmax/100.0);
 
 //  pChart->axes(Qt::Vertical).first()->setRange(2038, 2058);
@@ -213,16 +216,16 @@ MainWindow::handleReceiverIqEvent(const vsdrcomplex* data, uint32_t length, uint
   // if (spectrum.size() != m_panadapterXmax) {
   //   setPanadapterX(0, spectrum.size());
   // }
-  RxPipelineSettings* rxPipelineSettings = m_bandSettings.getFocusRxPipelineSettings();
+  RxPipelineSettings* rxPipelineSettings = m_bandSettingsCopy.getFocusRxPipelineSettings();
   if (rxPipelineSettings != nullptr) {
     const RfSettings& rfSettings = rxPipelineSettings->getRfSettings();
-    uint32_t centreFrequency = rfSettings.frequency;
+    uint32_t centreFrequency = rfSettings.getFrequency();
     uint32_t xMin = centreFrequency - (sampleRate / 2);
     uint32_t xMax = centreFrequency + (sampleRate / 2);
     if (m_panadapterXmin != xMin || m_panadapterXmax != xMax) {
       setPanadapterX(xMin, xMax);
     }
-    replaceSpectrumSeries(&spectrum, m_spectrumLineSeries, sampleRate, rfSettings.frequency, true);
+    replaceSpectrumSeries(&spectrum, m_spectrumLineSeries, sampleRate, centreFrequency, true);
   }
 }
 
@@ -235,16 +238,16 @@ MainWindow::handleTransmitterIqEvent(const vsdrcomplex* data, uint32_t length, u
   // if (spectrum.size() != m_panadapterXmax) {
   //   setPanadapterX(0, spectrum.size());
   // }
-  TxPipelineSettings* txPipelineSettings = m_bandSettings.getTxPipelineSettings();
+  TxPipelineSettings* txPipelineSettings = m_bandSettingsCopy.getTxPipelineSettings();
   if (txPipelineSettings != nullptr) {
     const RfSettings& rfSettings = txPipelineSettings->getRfSettings();
-    uint32_t centreFrequency = rfSettings.frequency;
+    uint32_t centreFrequency = rfSettings.getFrequency();
     uint32_t xMin = centreFrequency - (sampleRate / 2);
     uint32_t xMax = centreFrequency + (sampleRate / 2);
     if (m_panadapterXmin != xMin || m_panadapterXmax != xMax) {
       setPanadapterX(xMin, xMax);
     }
-    replaceSpectrumSeries(&spectrum, m_spectrumLineSeries, sampleRate, rfSettings.frequency, true);
+    replaceSpectrumSeries(&spectrum, m_spectrumLineSeries, sampleRate, centreFrequency, true);
   }
 
   setTimeSeriesX(0, length);
@@ -295,20 +298,20 @@ MainWindow::handleTransmitterAudioEvent(const vsdrreal* data, uint32_t length)
 void
 MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings, const BandSettings& bandSettings)
 {
-  m_radioSettings = radioSettings;
-  m_bandSettings = bandSettings;
-  RxPipelineSettings* rxPipelineSettings = m_bandSettings.getFocusRxPipelineSettings();
+  m_radioSettingsCopy = radioSettings;
+  m_bandSettingsCopy = bandSettings;
+  RxPipelineSettings* rxPipelineSettings = m_bandSettingsCopy.getFocusRxPipelineSettings();
   if (rxPipelineSettings == nullptr) {
     return;
   }
   RfSettings& rfSettings = rxPipelineSettings->getRfSettings();
-  bool frequencyChanged = (rfSettings.changed & RfSettings::Features::FREQUENCY) != 0;
-  bool offsetChanged = (rfSettings.changed & RfSettings::Features::OFFSET) != 0;
-  bool modeChanged = (rxPipelineSettings->changed & PipelineSettings::Features::MODE) != 0;
+  bool frequencyChanged = (rfSettings.hasSettingChanged(RfSettings::Features::FREQUENCY)) != 0;
+  bool offsetChanged = (rfSettings.hasSettingChanged(RfSettings::Features::OFFSET)) != 0;
+  bool modeChanged = (rxPipelineSettings->hasSettingChanged(PipelineSettings::Features::MODE)) != 0;
 
   if (frequencyChanged || offsetChanged || modeChanged) {
-    auto centreFrequency = static_cast<int32_t>(rfSettings.frequency);
-    int32_t offset = rfSettings.offset;
+    auto centreFrequency = static_cast<int32_t>(rfSettings.getFrequency());
+    int32_t offset = rfSettings.getOffset();
     int32_t frequencyAtOffset = centreFrequency + offset;
 
     ui->centreFrequencyLcd->display(centreFrequency);
@@ -334,13 +337,13 @@ MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings, const B
     m_verticalCursorLine->setLine(QLineF(p1, p2));
     m_verticalCursorLine->show();
   
-    const Mode& mode = rxPipelineSettings->mode;
+    const Mode& mode = rxPipelineSettings->getMode();
     int32_t loCutWrtFreq = frequencyAtOffset + mode.getLoCut();
     int32_t hioCutWrtFreq = frequencyAtOffset + mode.getHiCut();
     updatePassbandOverlay(chart, loCutWrtFreq, hioCutWrtFreq);
     updateModeButton(mode);
   }
-  m_radioSettings.clearChanged();
+  m_radioSettingsCopy.clearChanged();
 }
 
 void
@@ -485,16 +488,30 @@ void
 MainWindow::on_actionBand_triggered()
 {
   if (m_bandButton != nullptr) {
-    auto* dialog = new BandDialog(m_pRadio, this);
-    dialog->setAttribute(Qt::WA_DeleteOnClose);
-    dialog->exec();
-    // Position it
-    // dialog->adjustSize();
-    // QPoint pos = m_bandButton->mapToGlobal(QPoint(0, 0));
-    // pos.setY(pos.y() - dialog->frameGeometry().height());
-    //
-    // dialog->move(pos);
-    // dialog->show();
+    // QWidget* centralWidget = this->centralWidget();
+    QWidget* existing = findChild<QWidget*>("bandPanel");
+    if (existing) {
+      existing->close();
+      return;
+    }
+    auto* panel = new BandDialog(m_pRadio, this);
+    panel->setAttribute(Qt::WA_DeleteOnClose);
+    panel->setObjectName("bandPanel");
+
+    // IMPORTANT: Ensure it has no window flags that would make it a separate window
+    panel->setWindowFlags(Qt::Widget);
+
+    // We must manually call adjustSize because it's not in a layout
+    panel->adjustSize();
+
+    QPoint buttonPos = m_bandButton->mapTo(this, QPoint(0, 0));
+
+    int x = buttonPos.x();
+    int y = buttonPos.y() - panel->height();
+
+    panel->move(x, y);
+    panel->show();
+    panel->raise();
   }
 }
 
@@ -567,8 +584,9 @@ MainWindow::addModeButton()
   m_modeButton = new QToolButton();
   // modeBtn->setDefaultAction(ui->actionMode);
   // tabsBtn->setFixedWidth(100);
-  QMenu* modeMenu = createModeMenu(rxPipelineSettings->mode);
-  updateModeButton(rxPipelineSettings->mode);
+  const Mode& mode = rxPipelineSettings->getMode();
+  QMenu* modeMenu = createModeMenu(mode);
+  updateModeButton(mode);
   modeMenu->setProperty("class", "toolbarMenu mode");
   // modeBtn->setMenu(modeMenu);
   // Set popup mode (InstantPopup makes the button act like a dropdown)
@@ -587,6 +605,10 @@ MainWindow::addModeButton()
     // hint: sizeHint() is usually accurate for menus before they are shown
     pos.setY(pos.y() - modeMenu->sizeHint().height());
 
+    const Mode& currMode = m_bandSettingsCopy.getFocusRxPipelineMode();
+    for (QAction *action : modeMenu->actions()) {
+      action->setChecked(currMode.getName() == action->text().toStdString());
+    }
     modeMenu->exec(pos);
   });
 
@@ -603,7 +625,7 @@ MainWindow::createModeMenu(const Mode& currentMode)
 
   const std::vector<Mode>& allModes = ModeSettings::getAll();
 
-  SettingPath settingPath({
+  SettingUpdatePath settingPath({
     RadioSettings::Features::PIPELINE,
     BandSettings::Features::RX_PIPELINE,
     PipelineSettings::Features::MODE
@@ -611,8 +633,8 @@ MainWindow::createModeMenu(const Mode& currentMode)
   for (const auto& mode : allModes) {
     QAction* action = modeMenu->addAction(mode.getName().c_str(), this, [this, mode, settingPath]()
     {
-      SingleSetting setting(settingPath, mode.getType(), SingleSetting::Meaning::VALUE);
-      m_pRadio->applySingleSetting(setting);
+      SettingUpdate setting(settingPath, mode.getType(), SettingUpdate::Meaning::VALUE);
+      m_pRadio->applySettingUpdate(setting);
     });
     action->setCheckable(true);
     action->setActionGroup(actionGroup);
@@ -632,6 +654,14 @@ MainWindow::updateModeButton(const Mode& mode)
     m_modeButton->setText(mode.getName().c_str());
   }
 }
+
+// void
+// MainWindow::updateModeMenu(const Mode& mode)
+// {
+//   if (m_modeButton != nullptr) {
+//     m_modeButton->setText(mode.getName().c_str());
+//   }
+// }
 
 void
 MainWindow::addLevelsButton()
@@ -724,7 +754,7 @@ MainWindow::initialiseRadio()
     m_pRadio->configure(&m_radioConfig);
     m_pRadio->start();
 
-    m_pRadio->applyBand("20m");
+    m_pRadio->applyBand("40m");
 
     // m_radioSettings.bandName = "20m";
     // m_radioSettings.changed = RadioSettings::BAND;
@@ -732,14 +762,13 @@ MainWindow::initialiseRadio()
     // m_pRadio->applySettings(m_radioSettings);
 
     RfSettings rfSettings;
-    rfSettings.gain = 30.0;
-    rfSettings.changed = RfSettings::GAIN;
+    rfSettings.setGain(30.0);
+    rfSettings.setGainStep(1.0);
     m_pRadio->applyRfSettings(rfSettings);
 
     IfSettings ifSettings;
-    ifSettings.gain = 0.0;
-    ifSettings.bandwidth = 200000;
-    ifSettings.changed = IfSettings::GAIN | IfSettings::BANDWIDTH;
+    ifSettings.setGain(0.0);
+    ifSettings.setBandwidth(200000);
     m_pRadio->applyIfSettings(ifSettings);
   }
   catch (std::runtime_error& error)

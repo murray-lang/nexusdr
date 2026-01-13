@@ -28,7 +28,7 @@ public:
 
   void applySettings(const RadioSettings& settings) override;
   void applySettings(const RadioSettings& settings, BandSettings* pBandSettings) override;
-  void applySingleSetting(const SingleSetting& settingDelta) override;
+  void applySettingUpdate(const SettingUpdate& settingDelta) override;
 
   void applyBand(const std::string& bandName);
 
@@ -36,7 +36,9 @@ public:
   void applyIfSettings(const IfSettings& settings);
 
   RadioSettings& getRadioSettings() { return m_settings; }
+  const RadioSettings& getRadioSettings() const { return m_settings; }
   BandSettings* getBandSettings(const std::string& bandName);
+  const BandSettings* getBandSettings(const std::string& bandName) const;
 
   const Bands& getBands() const { return m_bands; }
 

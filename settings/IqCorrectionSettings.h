@@ -20,7 +20,15 @@ public:
     AMPLITUDE_STEP = 0x08,
     ALL = static_cast<uint32_t>(~0U)
   };
-  IqCorrectionSettings() : phase(0.0), phaseStep(DEFAULT_STEP_SIZE), amplitude(0.0), amplitudeStep(DEFAULT_STEP_SIZE) {}
+  IqCorrectionSettings() :
+    m_phase(this, "phase",0.0),
+    m_phaseStep(this, "phase-step", DEFAULT_STEP_SIZE),
+    m_amplitude(this, "amplitude", 0.0),
+    m_amplitudeStep(this, "amplitude-step", DEFAULT_STEP_SIZE)
+  {
+    m_phase.setStepValueAddress(m_phaseStep.getValueAddress());
+    m_amplitude.setStepValueAddress(m_amplitudeStep.getValueAddress());
+  }
   IqCorrectionSettings(const IqCorrectionSettings& rhs) = default;
   ~IqCorrectionSettings() override = default;
 
@@ -28,109 +36,58 @@ public:
   {
     if (this != &rhs) {
       SettingsBase::operator=(rhs);
-      phase = rhs.phase;
-      amplitude = rhs.amplitude;
+      m_phase = rhs.m_phase;
+      m_phaseStep = rhs.m_phaseStep;
+      m_amplitude = rhs.m_amplitude;
+      m_amplitudeStep = rhs.m_amplitudeStep;
     }
     return *this;
   }
 
-  bool applySettings(const IqCorrectionSettings& settings)
+  [[nodiscard]] sdrreal getPhase() const { return m_phase(); }
+  [[nodiscard]] sdrreal getPhaseStep() const { return m_phaseStep(); }
+  [[nodiscard]] sdrreal getAmplitude() const { return m_amplitude(); }
+  [[nodiscard]] sdrreal getAmplitudeStep() const { return m_amplitudeStep(); }
+
+  bool merge(const IqCorrectionSettings& rhs)
   {
-    bool somethingChanged = false;
-    if (settings.changed & PHASE) {
-      phase = settings.phase;
-      changed |= PHASE;
-      somethingChanged = true;
-    }
-    if (settings.changed & PHASE_STEP) {
-      phaseStep = settings.phaseStep;
-      changed |= PHASE_STEP;
-      somethingChanged = true;
-    }
-    if (settings.changed & AMPLITUDE) {
-      amplitude = settings.amplitude;
-      changed |= AMPLITUDE;
-      somethingChanged = true;
-    }
-    if (settings.changed & AMPLITUDE_STEP) {
-      amplitudeStep = settings.amplitudeStep;
-      changed |= AMPLITUDE_STEP;
-      somethingChanged = true;
-    }
-    return somethingChanged;
+    return m_phase.merge(rhs.m_phase)
+    | m_phaseStep.merge(rhs.m_phaseStep)
+    | m_amplitude.merge(rhs.m_amplitude)
+    | m_amplitudeStep.merge(rhs.m_amplitudeStep);
   }
 
-  bool applySetting(const SingleSetting& setting, int startIndex) override
+  bool applyUpdate(const SettingUpdate& update, int startIndex) override
   {
-    if (startIndex >= setting.getPath().getFeatures().size()) {
+    const auto& features = update.getPath().getFeatures();
+    if (startIndex >= features.size()) {
       throw SettingsException("Invalid setting path");
     }
-    bool settingChange = false;
-    uint32_t feature = setting.getPath().getFeatures()[startIndex];
-    if (feature == PHASE) {
-      if (setting.getMeaning() == SingleSetting::VALUE) {
-        phase = std::get<sdrreal>(setting.getValue());
-        settingChange = true;
-      } else if (setting.getMeaning() == SingleSetting::DELTA) {
-        phase += static_cast<sdrreal>(std::get<int32_t>(setting.getValue())) * phaseStep;
-        settingChange = true;
-      }
-    } if (feature == PHASE_STEP) {
-      if (setting.getMeaning() == SingleSetting::VALUE) {
-        phaseStep = std::get<sdrreal>(setting.getValue());
-        settingChange = true;
-      } else if (setting.getMeaning() == SingleSetting::DELTA) {
-        phaseStep += static_cast<sdrreal>(std::get<int32_t>(setting.getValue())) * 10;
-        settingChange = true;
-      }
-    } else if (feature == AMPLITUDE) {
-      if (setting.getMeaning() == SingleSetting::VALUE) {
-        amplitude = std::get<sdrreal>(setting.getValue());
-        settingChange = true;
-      } else if (setting.getMeaning() == SingleSetting::DELTA) {
-        amplitude += static_cast<sdrreal>(std::get<int32_t>(setting.getValue())) * amplitudeStep;
-        settingChange = true;
-      }
-    } else if (feature == AMPLITUDE_STEP) {
-      if (setting.getMeaning() == SingleSetting::VALUE) {
-        amplitudeStep = std::get<sdrreal>(setting.getValue());
-        settingChange = true;
-      } else if (setting.getMeaning() == SingleSetting::DELTA) {
-        amplitudeStep += static_cast<sdrreal>(std::get<int32_t>(setting.getValue())) * 10;
-        settingChange = true;
-      }
+    uint32_t feature = features[startIndex];
+    const auto& val = update.getValue();
+
+    switch (feature) {
+    case PHASE: return m_phase.apply(update);
+    case PHASE_STEP: return m_phaseStep.apply(val);
+    case AMPLITUDE: return m_amplitude.apply(update);
+    case AMPLITUDE_STEP: return m_amplitudeStep.apply(val);
+    default: return false;
     }
-    if (settingChange) {
-      changed |= feature;
-    }
-    return settingChange;
   }
   
   static bool getFeaturePath(
     const std::vector<std::string>& featureStrings,
-    std::vector<uint32_t>& features,
+    std::vector<uint32_t>& out,
     size_t startIndex
     )
   {
-    if (startIndex >= featureStrings.size()) {
-      throw SettingsException("Invalid setting path");
-    }
-    if (featureStrings[startIndex] == "phase") {
-      features.push_back(PHASE);
-    } else if (featureStrings[startIndex] == "phase-step") {
-      features.push_back(PHASE_STEP);
-    } else if (featureStrings[startIndex] == "amplitude") {
-      features.push_back(AMPLITUDE);
-    } else if (featureStrings[startIndex] == "amplitude-step") {
-      features.push_back(AMPLITUDE_STEP);
-    } else {
-      return false;
-    }
-    return true;
+    return resolvePathForRegisteredSetting<IqCorrectionSettings>(featureStrings, out, startIndex);
   }
 
-  sdrreal phase;
-  sdrreal phaseStep;
-  sdrreal amplitude;
-  sdrreal amplitudeStep;
+protected:
+
+  Setting<sdrreal, PHASE, IqCorrectionSettings> m_phase;
+  Setting<sdrreal, PHASE_STEP, IqCorrectionSettings> m_phaseStep;
+  Setting<sdrreal, AMPLITUDE, IqCorrectionSettings> m_amplitude;
+  Setting<sdrreal, AMPLITUDE_STEP, IqCorrectionSettings> m_amplitudeStep;
 };

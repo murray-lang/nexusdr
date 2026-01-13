@@ -89,6 +89,17 @@ public:
       auto* in = static_cast<float*>(inputBuffer);
       // std::lock_guard<std::mutex> lock(m_mutex);
       QMutexLocker locker(&m_mutex);
+      if (m_queue.size() / m_format.channelCount + nframes > DEFAULT_BUFFER_SIZE) {
+        // Option 1: Drop new data (simplest)
+        // qDebug() << "RtAudioInputDriver: Queue overflow, dropping samples";
+        return 0;
+
+        /*
+        // Option 2: Clear old data to make room (better for maintaining "fresh" audio)
+        size_t framesToRemove = (m_queue.size() / m_format.channelCount + nframes) - MAX_QUEUE_FRAMES;
+        m_queue.erase(m_queue.begin(), m_queue.begin() + (framesToRemove * m_format.channelCount));
+        */
+      }
       // Append nframes * m_channels samples
       m_queue.insert(m_queue.end(), in, in + nframes * m_format.channelCount);
       m_dataAvailable.wakeOne();

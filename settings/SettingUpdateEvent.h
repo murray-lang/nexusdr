@@ -7,14 +7,14 @@
 #include "RadioSettingsEvent.h"
 
 
-class SingleSettingEvent : public QEvent
+class SettingUpdateEvent : public QEvent
 {
 public:
   static const QEvent::Type SingleSettingEventType;
-  explicit SingleSettingEvent(const SingleSetting& setting) : QEvent(SingleSettingEventType), m_setting(setting)
+  explicit SettingUpdateEvent(const SettingUpdate& setting) : QEvent(SingleSettingEventType), m_setting(setting)
   {}
 
-  const SingleSetting m_setting;
+  const SettingUpdate m_setting;
 };
 
 

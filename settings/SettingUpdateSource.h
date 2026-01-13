@@ -6,19 +6,19 @@
 
 #include "SettingsException.h"
 
-class SingleSettingSink;
-class SingleSetting;
+class SettingUpdateSink;
+class SettingUpdate;
 
-class SingleSettingSource
+class SettingUpdateSource
 {
 public:
-  virtual ~SingleSettingSource() = default;
-  virtual void connect(SingleSettingSink* pSink)
+  virtual ~SettingUpdateSource() = default;
+  virtual void connect(SettingUpdateSink* pSink)
   {
     // This implementation is to avoid the need for a descendant class to implement an empty
     // connect() for this base class.
     throw SettingsException("SingleSettingSource::connect() not implemented.");
   }
 protected:
-  virtual void notifySingleSetting(const SingleSetting& settingDelta) = 0;
+  virtual void notifySettingUpdate(const SettingUpdate& settingDelta) = 0;
 };

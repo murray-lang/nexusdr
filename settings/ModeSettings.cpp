@@ -46,10 +46,10 @@ ModeSettings::getNumModes()
 }
 
 bool
-ModeSettings::applySetting(const SingleSetting& setting, int startIndex)
+ModeSettings::applyUpdate(const SettingUpdate& setting, int startIndex)
 {
   bool settingChange = false;
-  if (setting.getMeaning() == SingleSetting::DELTA) {
+  if (setting.getMeaning() == SettingUpdate::DELTA) {
     if (setting.isInt()) {
       auto delta = std::get<int32_t>(setting.getValue());
       if (delta > 0) {
@@ -60,7 +60,7 @@ ModeSettings::applySetting(const SingleSetting& setting, int startIndex)
     } else if (setting.isUInt()) {
       settingChange = increment();
     }
-  } else if (setting.getMeaning() == SingleSetting::VALUE) {
+  } else if (setting.getMeaning() == SettingUpdate::VALUE) {
     if (setting.isUInt()) {
       auto type = static_cast<Mode::Type>(std::get<uint32_t>(setting.getValue()));
       settingChange = setCurrentMode(type);

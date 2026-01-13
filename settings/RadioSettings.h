@@ -8,7 +8,7 @@
 #include "ModeSettings.h"
 #include "ReceiverSettings.h"
 #include "TransmitterSettings.h"
-#include "SettingPath.h"
+#include "SettingUpdatePath.h"
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -33,164 +33,130 @@ public:
     ALL = static_cast<uint32_t>(~0U)
   };
 
-  RadioSettings() : ptt(false)
+  RadioSettings() : m_ptt(this, "ptt", false), m_bandName(this, "band", "")
   {
     RadioSettings::setAllChanged();
   };
   RadioSettings(const RadioSettings& rhs) = default;
-  
   ~RadioSettings() override = default;
 
   RadioSettings& operator=(const RadioSettings& rhs)
   {
     if (this != &rhs) {
       SettingsBase::operator=(rhs);
-      bandName = rhs.bandName;
-      rxSettings = rhs.rxSettings;
-      txSettings = rhs.txSettings;
+      m_bandName = rhs.m_bandName;
+      m_rxSettings = rhs.m_rxSettings;
+      m_txSettings = rhs.m_txSettings;
     }
     return *this;
   }
 
-  const std::string& getBandName() const { return bandName; }
+  [[nodiscard]] bool getPtt() const { return m_ptt(); }
+  [[nodiscard]] const std::string& getBandName() const { return m_bandName(); }
+  [[nodiscard]] const ReceiverSettings& getRxSettings() const { return m_rxSettings; }
+  [[nodiscard]] const TransmitterSettings& getTxSettings() const { return m_txSettings; }
 
-
-  bool applySetting(const SingleSetting& setting, int startIndex) override
+  bool applyUpdate(const SettingUpdate& update, int startIndex) override
   {
-    if (startIndex >= setting.getPath().getFeatures().size()) {
+    const auto& features = update.getPath().getFeatures();
+    if (startIndex >= features.size()) {
       throw SettingsException("Invalid setting path");
     }
-    bool settingChange = false;
-    uint32_t feature = setting.getPath().getFeatures()[startIndex];
 
-    if ((feature & PTT) != 0) {
-      ptt = std::get<bool>(setting.getValue()) != 0;
-      changed |= PTT;
-      return true; // PTT shouldn't be combined with anything else. Just return now.
-    }
+    uint32_t feature = features[startIndex];
+    const auto& val = update.getValue();
 
-    if ((feature & TX) != 0) {
-      if (txSettings.applySetting(setting, startIndex + 1)) {
-        changed |= TX;
-        settingChange = true;
+    switch (feature) {
+    case PTT:
+      return m_ptt.apply(val);
+    case BAND:
+      if (m_bandName.apply(val)) {
+        m_changed |= PIPELINE; // Side effect: Band change affects pipeline
+        return true;
       }
-    }
-    if ((feature & RX) != 0) {
-      if (rxSettings.applySetting(setting, startIndex + 1)) {
-        changed |= RX;
-        settingChange = true;
+      return false;
+    case TX:
+      if (m_txSettings.applyUpdate(update, startIndex + 1)) {
+        m_changed |= TX;
+        return true;
       }
+      return false;
+    case RX:
+      if (m_rxSettings.applyUpdate(update, startIndex + 1)) {
+        m_changed |= RX;
+        return true;
+      }
+      return false;
+    default:
+      return false;
     }
-    if ((feature & BAND) != 0) {
-      const std::string newBandName = std::get<std::string>(setting.getValue());
-      //if (bandName != newBandName) {
-        bandName = newBandName;
-        changed |= BAND | PIPELINE;
-        settingChange = true;
-      //}
-    }
-    return settingChange;
   }
 
   void clearChanged() override
   {
     SettingsBase::clearChanged();
-    rxSettings.clearChanged();
-    txSettings.clearChanged();
+    m_rxSettings.clearChanged();
+    m_txSettings.clearChanged();
   }
 
   void setAllChanged() override
   {
     SettingsBase::setAllChanged();
-    rxSettings.setAllChanged();
-    txSettings.setAllChanged();
+    m_rxSettings.setAllChanged();
+    m_txSettings.setAllChanged();
     // Not PTT! That being set will short-circuit all other changes
-    changed &= ~PTT;
+    m_changed &= ~PTT;
   }
 
-  static SettingPath getSettingPath(const std::string& strDottedFeatures)
+  void markPipelineChanged() { m_changed |= PIPELINE; }
+
+  static SettingUpdatePath getSettingUpdatePath(const std::string& strDottedFeatures)
   {
     std::string featuresLower = StringUtils::toLowerCase(strDottedFeatures);
     std::vector<std::string> featureStrings = StringUtils::split(featuresLower, '.');
     std::vector<uint32_t> features;
-    getSettingPath(featureStrings, features);
-    return SettingPath(features);
+    if (!getFeaturePath(featureStrings, features)) {
+      throw SettingsException("Unknown RadioSettings setting: " + strDottedFeatures);
+    }
+    return SettingUpdatePath(features);
   }
 
-  static void getSettingPath(
+  static bool getFeaturePath(
     const std::vector<std::string>& featureStrings,
     std::vector<uint32_t>& featuresOut,
     size_t startIndex = 0
     )
   {
     if (startIndex >= featureStrings.size()) {
-      throw SettingsException("Invalid setting path");
+      throw SettingsException("Invalid feature path");
     }
-     if (featureStrings[startIndex] == "ptt") {
-      featuresOut.push_back(PTT);
-     
-    } else if (featureStrings[startIndex] == "rx") {
-      featuresOut.push_back(RX);
-      if (startIndex + 1 < featureStrings.size()) {
-        ReceiverSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
-      }
-    } else if (featureStrings[startIndex] == "tx") {
-      featuresOut.push_back(TX);
-      if (startIndex + 1 < featureStrings.size()) {
-        TransmitterSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
-      }
-    } else if (featureStrings[startIndex] == "pipeline") {
+
+    if (resolvePathForRegisteredSetting<BandSettings>(featureStrings, featuresOut, startIndex)) {
+      return true;
+    }
+
+    const std::string& key = featureStrings[startIndex];
+    if (key == "pipeline") {
+      // Note that BandSettings contains separate pipeline settings for each band. This is why there is
+      // currently a confusing mismatch between pipeline settings and BandSettings.
+      // Also, BandSettings is not a member of RadioSettings for efficiency reasons. However,
+      // pipeline settings paths are managed here for convenience.
       featuresOut.push_back(PIPELINE);
-      if (startIndex + 1 < featureStrings.size()) {
-        BandSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
-        // bool validSettingForRxPipeline = true;
-        // try {
-        //   RxPipelineSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
-        // } catch (SettingsException& e) {
-        //   validSettingForRxPipeline = false;
-        // }
-        // if (!validSettingForRxPipeline) {
-        //   TxPipelineSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
-        // }
-      }
-    } else {
-      throw SettingsException("Unknown Radio setting: " + featureStrings[startIndex]);
+      return BandSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
     }
-
+    if (key == "rx") {
+      featuresOut.push_back(RX);
+      return ReceiverSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
+    }
+    if (key == "tx") {
+      featuresOut.push_back(TX);
+      return TransmitterSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
+    }
+    return false;
   }
-  bool ptt;
-  // Band band;
-  std::string bandName;
-  // Bands bands;
-  // ModeSettings modeSettings;
-  ReceiverSettings rxSettings;
-  TransmitterSettings txSettings;
-  // std::unordered_map<std::string, PerBandSettings> perBandSettings; //TODO: Load these from JSON at startup
-
-// protected:
-//   PerBandSettings* getCurrentBandSettings()
-//   {
-//     return findBandSettingsForBand(band.getName());
-//   }
-//
-//   const PerBandSettings* getCurrentBandSettings() const
-//   {
-//     return findBandSettingsForBand(band.getName());
-//   }
-//
-//   PerBandSettings* findBandSettingsForBand(const std::string& bandName)
-//   {
-//     if (perBandSettings.contains(bandName)) {
-//       return &perBandSettings.at(bandName);
-//     }
-//     return nullptr;
-//   }
-//
-//   const PerBandSettings* findBandSettingsForBand(const std::string& bandName) const
-//   {
-//     if (perBandSettings.contains(bandName)) {
-//       return &perBandSettings.at(bandName);
-//     }
-//     return nullptr;
-//   }
+protected:
+  Setting<bool, PTT, RadioSettings> m_ptt;
+  Setting<std::string, BAND, RadioSettings> m_bandName;
+  ReceiverSettings m_rxSettings;
+  TransmitterSettings m_txSettings;
 };

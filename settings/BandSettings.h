@@ -25,9 +25,9 @@ public:
   };
 
   BandSettings():
-   rxPipelineSettings({}),
-   focusRxPipeline(0),
-   rxPipelineTrackedByTx (0)
+   m_rxPipelineSettings({}),
+   m_focusRxPipeline(this, "focus-rx-pipeline", 0),
+   m_rxPipelineTrackedByTx (this, "rx-pipeline-tracked-by-tx", 0)
   {
     BandSettings::setAllChanged();
   }
@@ -35,10 +35,10 @@ public:
   BandSettings(const Band& band) :
     // modeSettings(),
     m_band(band),
-    txPipelineSettings(),
-    rxPipelineSettings({}),
-    focusRxPipeline(0),
-    rxPipelineTrackedByTx (0)
+    m_txPipelineSettings(),
+    m_rxPipelineSettings({}),
+    m_focusRxPipeline(this, "focus-rx-pipeline", 0),
+    m_rxPipelineTrackedByTx (this, "rx-pipeline-tracked-by-tx", 0)
   {
     addRxPipeline();
     applyBandDefaults(band);
@@ -52,19 +52,23 @@ public:
     if (this != &rhs) {
       SettingsBase::operator=(rhs);
       m_band = rhs.m_band;
-      txPipelineSettings = rhs.txPipelineSettings;
-      rxPipelineSettings = rhs.rxPipelineSettings;
-      focusRxPipeline = rhs.focusRxPipeline;
-      rxPipelineTrackedByTx = rhs.rxPipelineTrackedByTx;
+      m_txPipelineSettings = rhs.m_txPipelineSettings;
+      m_rxPipelineSettings = rhs.m_rxPipelineSettings;
+      m_focusRxPipeline = rhs.m_focusRxPipeline;
+      m_rxPipelineTrackedByTx = rhs.m_rxPipelineTrackedByTx;
     }
     return *this;
   }
 
+  [[nodiscard]] const Band& getBand() const { return m_band; }
+  [[nodiscard]] uint32_t getFocusRxPipeline() const { return m_focusRxPipeline(); }
+  [[nodiscard]] uint32_t getRxPipelineTrackedByTx() const { return m_rxPipelineTrackedByTx(); }
+
   void clearChanged() override
   {
     SettingsBase::clearChanged();
-    txPipelineSettings.clearChanged();
-    for (auto& rxSettings : rxPipelineSettings) {
+    m_txPipelineSettings.clearChanged();
+    for (auto& rxSettings : m_rxPipelineSettings) {
       rxSettings.clearChanged();
     }
   }
@@ -72,8 +76,8 @@ public:
   void setAllChanged() override
   {
     SettingsBase::setAllChanged();
-    txPipelineSettings.setAllChanged();
-    for (auto& rxSettings : rxPipelineSettings) {
+    m_txPipelineSettings.setAllChanged();
+    for (auto& rxSettings : m_rxPipelineSettings) {
       rxSettings.setAllChanged();
     }
   }
@@ -81,18 +85,18 @@ public:
   bool hasRxFrequencyChanged() const
   {
     const RfSettings& rfSettings = getFocusRxRfSettings();
-    return rfSettings.changed & RfSettings::FREQUENCY;
+    return rfSettings.hasSettingChanged(RfSettings::FREQUENCY);
   }
 
   void addRxPipeline()
   {
-    rxPipelineSettings.push_back({ });
-    RxPipelineSettings& newRxPipeline = rxPipelineSettings.back();
-    RxPipelineSettings& firstRxPipeline = rxPipelineSettings.front();
+    m_rxPipelineSettings.emplace_back( );
+    RxPipelineSettings& newRxPipeline = m_rxPipelineSettings.back();
+    RxPipelineSettings& firstRxPipeline = m_rxPipelineSettings.front();
     newRxPipeline = firstRxPipeline; // (Copy settings)
-    newRxPipeline.rfSettings.offset = 0; // Move the new pipeline to the centre frequency.
-    focusRxPipeline = rxPipelineSettings.size() - 1; // The new pipeline gets focus
-    changed = RX_PIPELINE | FOCUS_RX_PIPELINE;
+    newRxPipeline.getRfSettings().setOffset(10000); // Move the new pipeline to the centre frequency.
+    m_focusRxPipeline(m_rxPipelineSettings.size() - 1); // The new pipeline gets focus
+    m_changed |= RX_PIPELINE;
   }
 
   [[nodiscard]] std::string getBandName() const
@@ -102,64 +106,58 @@ public:
 
   void applyBandDefaults(const Band& band)
   {
-    txPipelineSettings.applyBandDefaults(&band);
-    for (auto& rxPipeline : rxPipelineSettings) {
+    m_txPipelineSettings.applyBandDefaults(&band);
+    for (auto& rxPipeline : m_rxPipelineSettings) {
       rxPipeline.applyBandDefaults(&band);
     }
   }
 
   bool setMode(const Mode& mode)
   {
-    RxPipelineSettings& focusPipelineSettings = rxPipelineSettings[focusRxPipeline];
+    RxPipelineSettings& focusPipelineSettings = m_rxPipelineSettings[m_focusRxPipeline()];
     bool focusModeChanged = focusPipelineSettings.setMode(mode);
-    if (focusModeChanged && focusRxPipeline == rxPipelineTrackedByTx) {
-      txPipelineSettings.setMode(mode);
+    if (focusModeChanged && m_focusRxPipeline() == m_rxPipelineTrackedByTx()) {
+      m_txPipelineSettings.setMode(mode);
     }
     return focusModeChanged;
   }
 
   void applyRfSettings(const RfSettings& settings)
   {
-    txPipelineSettings.applyRfSettings(settings);
-    for (RxPipelineSettings& nextSettings : rxPipelineSettings) {
-      nextSettings.applyRfSettings(settings);
+    m_txPipelineSettings.mergeRfSettings(settings);
+    for (RxPipelineSettings& nextSettings : m_rxPipelineSettings) {
+      nextSettings.mergeRfSettings(settings);
     }
   }
 
   void applyIfSettings(const IfSettings& settings)
   {
-    for (RxPipelineSettings& nextSettings : rxPipelineSettings) {
-      nextSettings.applyIfSettings(settings);
+    for (RxPipelineSettings& nextSettings : m_rxPipelineSettings) {
+      nextSettings.mergeIfSettings(settings);
     }
   }
 
-  bool applySetting(const SingleSetting& setting, int startIndex) override
+  bool applyUpdate(const SettingUpdate& update, int startIndex) override
   {
-    if (startIndex >= setting.getPath().getFeatures().size()) {
+    const auto& features = update.getPath().getFeatures();
+    if (startIndex >= features.size()) {
       throw SettingsException("Invalid setting path");
     }
-    bool settingChange = false;
-    uint32_t feature = setting.getPath().getFeatures()[startIndex];
+    uint32_t feature = features[startIndex];
+    const auto& val = update.getValue();
 
-    using Handler = bool (BandSettings::*)(const SingleSetting&, int);
-    struct HandlerEntry { Features feature; Handler method; };
-
-    static constexpr HandlerEntry dispatchTable[] = {
-      {TX_PIPELINE, &BandSettings::applyTxPipeline },
-      {RX_PIPELINE, &BandSettings::applyRxPipeline },
-      {FOCUS_RX_PIPELINE, &BandSettings::applyFocusRxPipeline },
-      {RX_PIPELINE_TRACKED_BY_TX, &BandSettings::applyRxPipelineTrackedByTx }
-    };
-
-    for (const auto& h : dispatchTable) {
-      if (feature & h.feature) {
-        if ((this->*h.method)(setting, startIndex + 1)) {
-          settingChange = true;
-          changed |= h.feature;
-        }
-      }
+    switch (feature) {
+    case FOCUS_RX_PIPELINE:
+      return m_focusRxPipeline.apply(val);
+    case RX_PIPELINE_TRACKED_BY_TX:
+      return applyRxPipelineTrackedByTx(update, startIndex);
+    case TX_PIPELINE:
+      return applyTxPipeline(update, startIndex + 1);
+    case RX_PIPELINE:
+      return applyRxPipeline(update, startIndex + 1);
+    default:
+      return false;
     }
-    return settingChange;
   }
 
   static bool getFeaturePath(
@@ -171,43 +169,16 @@ public:
     if (startIndex >= featureStrings.size()) {
       throw SettingsException("Invalid feature path");
     }
-    const std::string& key = featureStrings[startIndex];
-
-    using PathFunc = bool(*)(const std::vector<std::string>&, std::vector<uint32_t>&, size_t);
-    static const std::map<std::string, std::pair<Features, PathFunc>> dispatch = {
-      {"tx-pipeline",{TX_PIPELINE, &TxPipelineSettings::getFeaturePath}},
-      {"rx-pipeline",{RX_PIPELINE, &RxPipelineSettings::getFeaturePath}},
-      {"focus-rx-pipeline",{FOCUS_RX_PIPELINE, &SettingsBase::addFeature<FOCUS_RX_PIPELINE>}},
-      {"rx-pipeline-tracked-by-tx",{RX_PIPELINE_TRACKED_BY_TX, &SettingsBase::addFeature<RX_PIPELINE_TRACKED_BY_TX>}}
-    };
-
-    if (auto it = dispatch.find(key); it != dispatch.end()) {
-      featuresOut.push_back(it->second.first);
-      if (startIndex + 1 < featureStrings.size() && it->second.second) {
-        if ( !it->second.second(featureStrings, featuresOut, startIndex + 1)) {
-          featuresOut.pop_back();
-          return false;
-        }
-      }
+    if (resolvePathForRegisteredSetting<BandSettings>(featureStrings, featuresOut, startIndex)) {
       return true;
     }
-    return false;
-  }
-
-  bool applyRxPipeline(const SingleSetting& setting, int index)
-  {
-    RxPipelineSettings& focusPipelineSettings = rxPipelineSettings[focusRxPipeline];
-    bool change = focusPipelineSettings.applySetting(setting, index);
-    if (change) {
-      if (focusRxPipeline == rxPipelineTrackedByTx) {
-        if (focusPipelineSettings.changed & PipelineSettings::RF) {
-          txPipelineSettings.rfSettings.copyFrequencies(focusPipelineSettings.rfSettings);
-        }
-        if (focusPipelineSettings.changed & PipelineSettings::MODE) {
-          txPipelineSettings.setMode(focusPipelineSettings.mode);
-        }
-      }
-      return true;
+    const std::string& key = featureStrings[startIndex];
+    if (key == "tx-pipeline") {
+      featuresOut.push_back(TX_PIPELINE);
+      return RxPipelineSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
+    } else if (key == "rx-pipeline") {
+      featuresOut.push_back(RX_PIPELINE);
+      return RxPipelineSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
     }
     return false;
   }
@@ -216,52 +187,57 @@ public:
 
   RxPipelineSettings* getFocusRxPipelineSettings()
   {
-    return &rxPipelineSettings[focusRxPipeline];
+    return &m_rxPipelineSettings[m_focusRxPipeline()];
   }
 
-  const RxPipelineSettings* getFocusRxPipelineSettings() const
+  [[nodiscard]] const RxPipelineSettings* getFocusRxPipelineSettings() const
   {
-    return &rxPipelineSettings[focusRxPipeline];
+    return &m_rxPipelineSettings[m_focusRxPipeline()];
+  }
+
+  [[nodiscard]] const Mode& getFocusRxPipelineMode() const
+  {
+    return m_rxPipelineSettings[m_focusRxPipeline()].getMode();
   }
 
   TxPipelineSettings* getTxPipelineSettings()
   {
-    return &txPipelineSettings;
+    return &m_txPipelineSettings;
   }
 
-  const TxPipelineSettings* getTxPipelineSettings() const
+  [[nodiscard]] const TxPipelineSettings* getTxPipelineSettings() const
   {
-    return &txPipelineSettings;
+    return &m_txPipelineSettings;
   }
 
   RfSettings& getFocusRxRfSettings()
   {
-    return rxPipelineSettings[focusRxPipeline].rfSettings;
+    return m_rxPipelineSettings[m_focusRxPipeline()].getRfSettings();
   }
 
-  const RfSettings& getFocusRxRfSettings() const
+  [[nodiscard]] const RfSettings& getFocusRxRfSettings() const
   {
-    return rxPipelineSettings[focusRxPipeline].rfSettings;
+    return m_rxPipelineSettings[m_focusRxPipeline()].getRfSettings();
   }
 
   IfSettings& getFocusRxIfSettings()
   {
-    return rxPipelineSettings[focusRxPipeline].ifSettings;
+    return m_rxPipelineSettings[m_focusRxPipeline()].getIfSettings();
   }
 
-  const IfSettings& getFocusRxIfSettings() const
+  [[nodiscard]] const IfSettings& getFocusRxIfSettings() const
   {
-    return rxPipelineSettings[focusRxPipeline].ifSettings;
+    return m_rxPipelineSettings[m_focusRxPipeline()].getIfSettings();
   }
 
   RfSettings& getTxRfSettings()
   {
-    return txPipelineSettings.rfSettings;
+    return m_txPipelineSettings.getRfSettings();
   }
 
-  const RfSettings& getTxRfSettings() const
+  [[nodiscard]] const RfSettings& getTxRfSettings() const
   {
-    return txPipelineSettings.rfSettings;
+    return m_txPipelineSettings.getRfSettings();
   }
 
   // RxPipelineSettings* getFocusRxPipelineSettings()
@@ -272,41 +248,55 @@ public:
   //   return nullptr;
   // }
 
-  // const ModeSettings& modeSettings;
-  TxPipelineSettings txPipelineSettings;
-  std::vector<RxPipelineSettings> rxPipelineSettings;
-  uint32_t focusRxPipeline;
-  uint32_t rxPipelineTrackedByTx;
 protected:
 
-  bool applyTxPipeline(const SingleSetting& setting, int index)
+  bool applyRxPipeline(const SettingUpdate& setting, int index)
   {
-    return txPipelineSettings.applySetting(setting, index);
-  }
-
-
-
-  bool applyFocusRxPipeline(const SingleSetting& setting, int index)
-  {
-    uint32_t newFocusRxPipeline = std::get<uint32_t>(setting.getValue());
-    if (focusRxPipeline != newFocusRxPipeline) {
-      focusRxPipeline = newFocusRxPipeline;
+    RxPipelineSettings& focusPipelineSettings = m_rxPipelineSettings[m_focusRxPipeline()];
+    if (focusPipelineSettings.applyUpdate(setting, index)) {
+      if (m_focusRxPipeline() == m_rxPipelineTrackedByTx()) {
+        if (focusPipelineSettings.hasSettingChanged(PipelineSettings::RF)) {
+          m_txPipelineSettings.getRfSettings().copyFrequencies(focusPipelineSettings.getRfSettings());
+          m_changed |= TX_PIPELINE;
+        }
+        if (focusPipelineSettings.hasSettingChanged( PipelineSettings::MODE)) {
+          m_txPipelineSettings.setMode(focusPipelineSettings.getMode());
+          m_changed |= TX_PIPELINE;
+        }
+      }
+      m_changed |= RX_PIPELINE;
       return true;
     }
     return false;
   }
 
-  bool applyRxPipelineTrackedByTx(const SingleSetting& setting, int index)
+  bool applyTxPipeline(const SettingUpdate& setting, int index)
+  {
+    if (m_txPipelineSettings.applyUpdate(setting, index)) {
+      m_changed |= TX_PIPELINE;
+      return true;
+    }
+    return false;
+  }
+
+  bool applyRxPipelineTrackedByTx(const SettingUpdate& setting, int index)
   {
     uint32_t newRxPipelineIndex = std::get<uint32_t>(setting.getValue());
-    if (rxPipelineTrackedByTx != newRxPipelineIndex) {
-      rxPipelineTrackedByTx = newRxPipelineIndex;
-      RxPipelineSettings& trackedRxPipelineSettings = rxPipelineSettings[rxPipelineTrackedByTx];
-      txPipelineSettings.copyBasicsForTracking(trackedRxPipelineSettings);
+    if (m_rxPipelineTrackedByTx() != newRxPipelineIndex) {
+      m_rxPipelineTrackedByTx.apply(newRxPipelineIndex);
+      RxPipelineSettings& trackedRxPipelineSettings = m_rxPipelineSettings[m_rxPipelineTrackedByTx()];
+      m_txPipelineSettings.copyBasicsForTracking(trackedRxPipelineSettings);
+      m_changed |= RX_PIPELINE |TX_PIPELINE;
       return true;
     }
     return false;
   }
 
   Band m_band;
+  // const ModeSettings& modeSettings;
+  TxPipelineSettings m_txPipelineSettings;
+  std::vector<RxPipelineSettings> m_rxPipelineSettings;
+  Setting<uint32_t, FOCUS_RX_PIPELINE, BandSettings> m_focusRxPipeline;
+  Setting<uint32_t, RX_PIPELINE_TRACKED_BY_TX, BandSettings> m_rxPipelineTrackedByTx;
+
 };

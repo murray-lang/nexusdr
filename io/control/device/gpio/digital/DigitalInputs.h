@@ -41,7 +41,7 @@ protected:
   void createLineToInputMap();
   void readInitialInputStates();
 
-  class InternalSink : public SingleSettingSink
+  class InternalSink : public SettingUpdateSink
   {
   public:
     explicit InternalSink(DigitalInputs* pGroup) : m_pGroup(pGroup) {}
@@ -49,10 +49,10 @@ protected:
     // {
     //   throw ControlException("A DigitalInput should not provide RadioSettings, only a single setting.");
     // }
-    void applySingleSetting(const SingleSetting& settingDelta) override
+    void applySettingUpdate(const SettingUpdate& settingDelta) override
     {
       if (m_pGroup) {
-        m_pGroup->notifySingleSetting(settingDelta);
+        m_pGroup->notifySettingUpdate(settingDelta);
       }
     }
 

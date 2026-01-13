@@ -8,19 +8,19 @@
 #include <string>
 #include <vector>
 
-class SettingPath
+class SettingUpdatePath
 {
 public:
-  SettingPath() = default;
-  SettingPath(const SettingPath& rhs) = default;
-  explicit SettingPath(const std::vector<uint32_t>& features) : m_features(features) {}
-  virtual ~SettingPath() = default;
+  SettingUpdatePath() = default;
+  SettingUpdatePath(const SettingUpdatePath& rhs) = default;
+  explicit SettingUpdatePath(const std::vector<uint32_t>& features) : m_features(features) {}
+  virtual ~SettingUpdatePath() = default;
 
-  SettingPath& operator=(const SettingPath& rhs) = default;
+  SettingUpdatePath& operator=(const SettingUpdatePath& rhs) = default;
   // bool operator==(const SettingPath& rhs) const;
   [[nodiscard]] const std::vector<uint32_t>& getFeatures() const { return m_features; }
 
-  bool operator==(const SettingPath& rhs) const
+  bool operator==(const SettingUpdatePath& rhs) const
   {
     return m_features == rhs.m_features;
   }
