@@ -2,7 +2,7 @@
 // Created by murray on 30/12/25.
 //
 
-#include "BandDialog.h"
+#include "QtBandDialog.h"
 
 #include <QGridLayout>
 #include <QLabel>
@@ -10,18 +10,18 @@
 #include <QStyle>
 #include <QMouseEvent>
 
-#include "ui_BandDialog.h"
+#include "ui_QtBandDialog.h"
 #include "settings/Bands.h"
 #include "settings/RadioSettings.h"
 #include "radio/Radio.h"
 
-BandDialog::BandDialog(Radio* pRadio, QWidget *parent) :
+QtBandDialog::QtBandDialog(Radio* pRadio, QWidget *parent) :
   QWidget(parent), // Set flags here
-  ui(new Ui::BandDialog),
+  ui(new Ui::QtBandDialog),
   m_pRadio(pRadio)
 {
   if (pRadio == nullptr) {
-    throw std::runtime_error("BandDialog cannot be created with a null Radio pointer");
+    throw std::runtime_error("QtBandDialog cannot be created with a null Radio pointer");
   }
   ui->setupUi(this);
   // setFocusPolicy(Qt::StrongFocus);
@@ -29,11 +29,11 @@ BandDialog::BandDialog(Radio* pRadio, QWidget *parent) :
   ui->tabWidget->style()->polish(ui->tabWidget);
 }
 
-BandDialog::~BandDialog() {
+QtBandDialog::~QtBandDialog() {
   delete ui;
 }
 
-bool BandDialog::event(QEvent *event) {
+bool QtBandDialog::event(QEvent *event) {
   if (event->type() == QEvent::Leave) {
     close();
     // this->deleteLater(); // Use deleteLater for safety in event handlers
@@ -43,14 +43,14 @@ bool BandDialog::event(QEvent *event) {
 }
 
 // void
-// BandDialog::showEvent(QShowEvent *event)
+// QtBandDialog::showEvent(QShowEvent *event)
 // {
 //   QWidget::showEvent(event);
 //   grabMouse();
 // }
 //
 // void
-// BandDialog::mousePressEvent(QMouseEvent *event)
+// QtBandDialog::mousePressEvent(QMouseEvent *event)
 // {
 //   if (!rect().contains(event->pos())) {
 //     releaseMouse();
@@ -61,7 +61,7 @@ bool BandDialog::event(QEvent *event) {
 // }
 
 void
-BandDialog::addCategoryTabs(Radio* pRadio)
+QtBandDialog::addCategoryTabs(Radio* pRadio)
 {
   if (pRadio != nullptr) {
     const RadioSettings& settings = pRadio->getRadioSettings();
@@ -86,7 +86,7 @@ BandDialog::addCategoryTabs(Radio* pRadio)
   }
 }
 void
-BandDialog::addCategoryTab(const BandCategory& category, bool isSelected, const std::string& selectedBandName)
+QtBandDialog::addCategoryTab(const BandCategory& category, bool isSelected, const std::string& selectedBandName)
 {
   QWidget* tab = new QWidget();
   tab->setProperty("class", "toolbarDialogTab");

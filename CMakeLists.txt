@@ -334,9 +334,9 @@ set(PROJECT_SOURCES
         io/audio/drivers/AudioInputDriver.h
         io/audio/drivers/AudioOutputDriver.h
         dsp/pipeline/modulators/FmModulator.h
-        ui/qt/ChartTheme.h
-        ui/qt/BandDialog.cpp
-        ui/qt/BandDialog.h
+        ui/qt/QtChartTheme.h
+        ui/qt/QtBandDialog.cpp
+        ui/qt/QtBandDialog.h
         settings/Band.h
         settings/BandCategory.h
         settings/Bands.h
@@ -351,6 +351,12 @@ set(PROJECT_SOURCES
         settings/SettingValue.h
         settings/Setting.h
         settings/SettingRegistry.h
+        ui/qt/QtChartBase.cpp
+        ui/qt/QtChartBase.h
+        ui/qt/QtTimeSeriesChart.cpp
+        ui/qt/QtTimeSeriesChart.h
+        ui/qt/QtPanadapter.cpp
+        ui/qt/QtPanadapter.h
 
 )
 

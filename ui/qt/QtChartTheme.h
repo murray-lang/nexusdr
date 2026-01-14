@@ -6,7 +6,7 @@
 #include <qstring.h>
 #include <QWidget>
 
-class ChartTheme : public QWidget {
+class QtChartTheme : public QWidget {
   Q_OBJECT
   Q_PROPERTY(QString plotAreaColor READ plotAreaColor WRITE setPlotAreaColor)
   Q_PROPERTY(QString textColor READ textColor WRITE setTextColor)
@@ -18,7 +18,7 @@ class ChartTheme : public QWidget {
   Q_PROPERTY(QString cursorAreaColor READ cursorAreaColor WRITE setCursorAreaColor)
 
 public:
-  explicit ChartTheme(QWidget* parent = nullptr) : QWidget(parent) {}
+  explicit QtChartTheme(QWidget* parent = nullptr) : QWidget(parent) {}
 
   [[nodiscard]] QString plotAreaColor() const { return m_plotAreaColor; }
   void setPlotAreaColor(const QString& c) { m_plotAreaColor = c; }
