@@ -37,6 +37,18 @@ public:
     m_frequency.setStepValueAddress(m_frequencyStep.getValueAddress());
     m_offset.setStepValueAddress(m_offsetStep.getValueAddress());
   }
+  RfSettings(const RfSettings& rhs) :
+    SettingsBase(rhs),
+    m_frequency(this, rhs.m_frequency),
+    m_frequencyStep(this, rhs.m_frequencyStep),
+    m_offset(this, rhs.m_offset),
+    m_offsetStep(this, rhs.m_offsetStep),
+    m_gain(this, rhs.m_gain),
+    m_gainStep(this, rhs.m_gainStep)
+  {
+    m_frequency.setStepValueAddress(m_frequencyStep.getValueAddress());
+    m_offset.setStepValueAddress(m_offsetStep.getValueAddress());
+  }
   // RfSettings(const RfSettings& rhs) = default;
   ~RfSettings() override = default;
 

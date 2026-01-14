@@ -29,7 +29,16 @@ public:
     m_phase.setStepValueAddress(m_phaseStep.getValueAddress());
     m_amplitude.setStepValueAddress(m_amplitudeStep.getValueAddress());
   }
-  IqCorrectionSettings(const IqCorrectionSettings& rhs) = default;
+  IqCorrectionSettings(const IqCorrectionSettings& rhs) :
+    SettingsBase(rhs),
+    m_phase(this, rhs.m_phase),
+    m_phaseStep(this, rhs.m_phaseStep),
+    m_amplitude(this, rhs.m_amplitude),
+    m_amplitudeStep(this, rhs.m_amplitudeStep)
+  {
+    m_phase.setStepValueAddress(m_phaseStep.getValueAddress());
+    m_amplitude.setStepValueAddress(m_amplitudeStep.getValueAddress());
+  }
   ~IqCorrectionSettings() override = default;
 
   IqCorrectionSettings& operator=(const IqCorrectionSettings& rhs)

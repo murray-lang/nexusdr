@@ -23,8 +23,18 @@ public:
   TwoToneSettings() :
     m_enabled(this, "enabled",false),
     m_gain(this, "gain", DEFAULT_GAIN),
-    m_gainStep(this, "gain_step", DEFAULT_GAIN_STEP) {}
-  TwoToneSettings(const TwoToneSettings& rhs) = default;
+    m_gainStep(this, "gain_step", DEFAULT_GAIN_STEP)
+  {
+    m_gain.setStepValueAddress(m_gainStep.getValueAddress());
+  }
+  TwoToneSettings(const TwoToneSettings& rhs) :
+    SettingsBase(rhs),
+    m_enabled(this, rhs.m_enabled),
+    m_gain(this, rhs.m_gain),
+    m_gainStep(this, rhs.m_gainStep)
+  {
+    m_gain.setStepValueAddress(m_gainStep.getValueAddress());
+  }
   ~TwoToneSettings() override  = default;
 
   TwoToneSettings& operator=(const TwoToneSettings& rhs) = default;

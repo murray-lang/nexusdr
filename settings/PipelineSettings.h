@@ -20,7 +20,7 @@ public:
   };
 
   PipelineSettings() =default;
-  // PipelineSettings(const PipelineSettings& rhs);
+  PipelineSettings(const PipelineSettings& rhs) = default;
   ~PipelineSettings() override = default;
 
   PipelineSettings& operator=(const PipelineSettings& rhs)

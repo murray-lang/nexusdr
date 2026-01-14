@@ -32,7 +32,15 @@ public:
     BandSettings::setAllChanged();
   }
 
-  BandSettings(const BandSettings& rhs) = default;
+  BandSettings(const BandSettings& rhs) :
+        SettingsBase(rhs),
+        m_band(rhs.m_band),
+        m_txPipelineSettings(rhs.m_txPipelineSettings),
+        m_rxPipelineSettings(rhs.m_rxPipelineSettings),
+        m_focusRxPipeline(this, rhs.m_focusRxPipeline),
+        m_rxPipelineTrackedByTx(this, rhs.m_rxPipelineTrackedByTx)
+  {
+  }
   
   BandSettings(const Band& band) :
     // modeSettings(),
@@ -46,9 +54,7 @@ public:
     applyBandDefaults(band);
     BandSettings::setAllChanged();
   }
-  ~BandSettings() override 
-  {}
-  // BandSettings(const BandSettings& rhs) = default;
+  ~BandSettings() override = default;
 
   BandSettings& operator=(const BandSettings& rhs)
   {

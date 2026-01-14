@@ -26,6 +26,14 @@ public:
   {
     SettingRegistry<DerivedSettingsClass>::mapping[name] = FeatureBit;
   }
+  Setting(DerivedSettingsClass* parent, const Setting& rhs) :
+    m_value(rhs.m_value),
+    m_parent(parent),
+    m_name(rhs.m_name),
+    m_pStepValue(nullptr)
+  {
+  }
+  Setting(const Setting& rhs) = delete;
 
   [[nodiscard]] const char* getName() const { return m_name; }
   void setStepValueAddress(const TStep* pStep) { m_pStepValue = pStep; }

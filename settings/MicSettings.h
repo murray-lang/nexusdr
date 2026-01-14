@@ -24,7 +24,13 @@ class MicSettings : public SettingsBase
   {
     m_gain.setStepValueAddress(m_gainStep.getValueAddress());
   }
-  MicSettings(const MicSettings& rhs) = default;
+  MicSettings(const MicSettings& rhs) :
+    SettingsBase(rhs),
+    m_gain(this, rhs.m_gain),
+    m_gainStep(this, rhs.m_gainStep)
+  {
+    m_gain.setStepValueAddress(m_gainStep.getValueAddress());
+  }
   ~MicSettings() override = default;
   MicSettings& operator=(const MicSettings& rhs) = default;
 

@@ -22,7 +22,12 @@ public:
     m_gain(this, "gain", 0.0)
   {
   }
-  IfSettings(const IfSettings& rhs) = default;
+  IfSettings(const IfSettings& rhs) :
+    SettingsBase(rhs),
+    m_bandwidth(this, rhs.m_bandwidth),
+    m_gain(this, rhs.m_gain)
+  {
+  }
   ~IfSettings() override = default;
 
   IfSettings& operator=(const IfSettings& rhs)

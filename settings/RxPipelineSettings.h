@@ -25,7 +25,14 @@ public:
     m_agc(this, "agc", 0.0)
   {
   }
-  // RxPipelineSettings(const RxPipelineSettings& rhs) = default;
+
+  RxPipelineSettings(const RxPipelineSettings& rhs):
+    PipelineSettings(rhs),
+    m_mute(this, rhs.m_mute),
+    m_agc(this, rhs.m_agc),
+    m_ifSettings(rhs.m_ifSettings)
+  {
+  }
   ~RxPipelineSettings() override = default;
 
   RxPipelineSettings& operator=(const RxPipelineSettings& rhs)
