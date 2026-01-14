@@ -119,7 +119,7 @@ Radio::getBandSettings(const std::string& bandName) const
 void
 Radio::applyRfSettings(const RfSettings& settings)
 {
-  std::lock_guard<std::recursive_mutex> lock(m_settingsMutex);
+  // std::lock_guard<std::recursive_mutex> lock(m_settingsMutex);
   for (auto& item : m_bandSettings) {
     item.second.applyRfSettings(settings);
   }
@@ -128,7 +128,7 @@ Radio::applyRfSettings(const RfSettings& settings)
 void
 Radio::applyIfSettings(const IfSettings& settings)
 {
-  std::lock_guard<std::recursive_mutex> lock(m_settingsMutex);
+  // std::lock_guard<std::recursive_mutex> lock(m_settingsMutex);
   for (auto& item : m_bandSettings) {
     item.second.applyIfSettings(settings);
   }
@@ -137,7 +137,7 @@ Radio::applyIfSettings(const IfSettings& settings)
 void
 Radio::applySettings(const RadioSettings& settings)
 {
-  std::lock_guard<std::recursive_mutex> lock(m_settingsMutex);
+  // std::lock_guard<std::recursive_mutex> lock(m_settingsMutex);
   BandSettings* pBandSettings = getBandSettings(settings.getBandName());
   if (pBandSettings != nullptr) {
     applySettings(settings, pBandSettings);
@@ -147,7 +147,7 @@ Radio::applySettings(const RadioSettings& settings)
 void
 Radio::applySettings(const RadioSettings& settings, BandSettings* pBandSettings)
 {
-  std::lock_guard<std::recursive_mutex> lock(m_settingsMutex);
+  // std::lock_guard<std::recursive_mutex> lock(m_settingsMutex);
   if (&settings != &m_settings) {
     m_settings = settings;
   }
@@ -197,7 +197,7 @@ Radio::applySettingUpdate(const SettingUpdate& setting)
   if (m_pEventTarget != nullptr) {
     // QCoreApplication::postEvent(m_pEventTarget, new SingleSettingEvent(setting));
   }
-  std::lock_guard<std::recursive_mutex> lock(m_settingsMutex);
+  // std::lock_guard<std::recursive_mutex> lock(m_settingsMutex);
   // Intercept BAND changes so that any change can be detected and the new band settings marked as all changed to force updates
   if (setting.getPath().getFeatures()[0] == RadioSettings::Features::BAND) {
     std::string newBandName = std::get<std::string>(setting.getValue());

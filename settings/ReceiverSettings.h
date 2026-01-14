@@ -28,7 +28,7 @@ public:
   explicit ReceiverSettings(/*const Bands& bands, const ModeSettings& modeSettings*/) :
     SettingsBase() //, mode(), modeSettings(modeSettings), band(), bands(bands), rfSettings(), ifSettings()
   {};
-  ReceiverSettings(const ReceiverSettings& rhs) = default
+  ReceiverSettings(const ReceiverSettings& rhs) = default;
 
   ~ReceiverSettings() override = default;
 
