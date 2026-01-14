@@ -27,7 +27,7 @@ protected:
     }
   }
 
-  void notifySettingUpdate(const SettingUpdate& delta) override
+  void notifySettingUpdate(SettingUpdate& delta) override
   {
     if (m_pSettingsSink) {
       m_pSettingsSink->applySettingUpdate(delta);

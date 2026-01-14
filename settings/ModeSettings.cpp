@@ -46,7 +46,7 @@ ModeSettings::getNumModes()
 }
 
 bool
-ModeSettings::applyUpdate(const SettingUpdate& setting, int startIndex)
+ModeSettings::applyUpdate(SettingUpdate& setting)
 {
   bool settingChange = false;
   if (setting.getMeaning() == SettingUpdate::DELTA) {

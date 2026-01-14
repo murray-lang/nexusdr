@@ -51,13 +51,12 @@ public:
     return m_bandwidth.merge(rhs.m_bandwidth) | m_gain.merge(rhs.m_gain);
   }
 
-  bool applyUpdate(const SettingUpdate& update, int startIndex) override
+  bool applyUpdate(SettingUpdate& update) override
   {
-    const auto& features = update.getPath().getFeatures();
-    if (startIndex >= features.size()) {
+    if (update.isExhausted()) {
       throw SettingsException("Invalid setting path");
     }
-    uint32_t feature = features[startIndex];
+    uint32_t feature = update.getCurrentFeature();
     const auto& val = update.getValue();
 
     switch (feature) {

@@ -20,5 +20,5 @@ public:
     throw SettingsException("SingleSettingSource::connect() not implemented.");
   }
 protected:
-  virtual void notifySettingUpdate(const SettingUpdate& settingDelta) = 0;
+  virtual void notifySettingUpdate(SettingUpdate& settingDelta) = 0;
 };

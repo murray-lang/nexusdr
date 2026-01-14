@@ -85,25 +85,23 @@ public:
     return changed;
   }
 
-  bool applyUpdate(const SettingUpdate& update, int startIndex) override
+  bool applyUpdate(SettingUpdate& update) override
   {
-    if (PipelineSettings::applyUpdate(update, startIndex)) {
+    if (PipelineSettings::applyUpdate(update)) {
       return true;
     }
-
-    const auto& features = update.getPath().getFeatures();
-    if (startIndex >= features.size()) {
+    if (update.isExhausted()) {
       throw SettingsException("Invalid setting path");
     }
-
-    uint32_t feature = features[startIndex];
+    uint32_t feature = update.getCurrentFeature();
     const auto& val = update.getValue();
 
     switch (feature) {
     case MUTE:  return m_mute.apply(val);
     case AGC: return m_agc.apply(val);
     case IF:
-      if (m_ifSettings.applyUpdate(update, startIndex + 1)) {
+      update.stepNextFeature();
+      if (m_ifSettings.applyUpdate(update)) {
         m_changed |= IF;
         return true;
       }

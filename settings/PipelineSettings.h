@@ -117,22 +117,24 @@ public:
     return somethingChanged;
   }
 
-  bool applyUpdate(const SettingUpdate& update, int startIndex) override
+  bool applyUpdate(SettingUpdate& update) override
   {
-    const auto& features = update.getPath().getFeatures();
-    if (startIndex >= features.size()) {
+    if (update.isExhausted()) {
       throw SettingsException("Invalid setting path");
     }
+    uint32_t feature = update.getCurrentFeature();
 
-    switch (features[startIndex]) {
+    switch (feature) {
     case RF:
-      if (m_rfSettings.applyUpdate(update, startIndex + 1)) {
+      update.stepNextFeature();
+      if (m_rfSettings.applyUpdate(update)) {
         m_changed |= RF;
         return true;
       }
       return false;
     case MODE:
-      if (applyModeSetting(update, startIndex + 1)) {
+      update.stepNextFeature();
+      if (applyModeSetting(update)) {
         m_changed |= MODE;
         return true;
       }
@@ -167,9 +169,9 @@ public:
 
 protected:
 
-  bool applyModeSetting(const SettingUpdate& setting, int index)
+  bool applyModeSetting( SettingUpdate& setting)
   {
-    if (m_modeSettings.applyUpdate(setting, index)) {
+    if (m_modeSettings.applyUpdate(setting)) {
       const auto& modeType = std::get<Mode::Type>(setting.getValue());
       Mode newMode = ModeSettings::getModeByType(modeType);
       if (newMode.getType() != m_mode.getType()) {

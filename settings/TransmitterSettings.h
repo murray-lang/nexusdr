@@ -23,16 +23,8 @@ public:
     // BAND = 0x20
     ALL = static_cast<uint32_t>(~0U)
   };
-  TransmitterSettings(/*const Bands& bands, const ModeSettings& modeSettings*/)
-  // :
-  //   modeSettings(modeSettings), bands(bands), rfSettings()
-  {}
-  TransmitterSettings(const TransmitterSettings& rhs) :
-    SettingsBase(rhs),
-    m_correctionSettings(rhs.m_correctionSettings),
-    m_micSettings(rhs.m_micSettings),
-    m_testSettings(rhs.m_testSettings)
-  {}
+  TransmitterSettings() = default;
+  TransmitterSettings(const TransmitterSettings& rhs) = default;
   ~TransmitterSettings() override = default;
 
   TransmitterSettings& operator=(const TransmitterSettings& rhs)
@@ -65,19 +57,23 @@ public:
   [[nodiscard]] const MicSettings& getMicSettings() const { return m_micSettings; }
   [[nodiscard]] const TestSettings& getTestSettings() const { return m_testSettings; }
 
-  bool applyUpdate(const SettingUpdate& setting, int startIndex) override
+  bool applyUpdate(SettingUpdate& update) override
   {
-    if (startIndex >= setting.getPath().getFeatures().size()) {
+    if (update.isExhausted()) {
       throw SettingsException("Invalid setting path");
     }
+    uint32_t feature = update.getCurrentFeature();
+    const auto& val = update.getValue();
     bool settingChange = false;
-    uint32_t feature = setting.getPath().getFeatures()[startIndex];
     if (feature == CORRECTION) {
-      settingChange = m_correctionSettings.applyUpdate(setting, startIndex + 1);
+      update.stepNextFeature();
+      settingChange = m_correctionSettings.applyUpdate(update);
     } else if (feature == MIC) {
-      settingChange = m_micSettings.applyUpdate(setting, startIndex + 1);
+      update.stepNextFeature();
+      settingChange = m_micSettings.applyUpdate(update);
     } else if (feature == TEST) {
-      settingChange = m_testSettings.applyUpdate(setting, startIndex + 1);
+      update.stepNextFeature();
+      settingChange = m_testSettings.applyUpdate(update);
     }
     if (settingChange) {
       m_changed |= feature;

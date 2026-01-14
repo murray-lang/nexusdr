@@ -34,7 +34,7 @@ DigitalInput::connect(SettingUpdateSink* pSink)
   m_pSink = pSink;
 }
 void
-DigitalInput::notifySettingUpdate(const SettingUpdate& settingDelta)
+DigitalInput::notifySettingUpdate(SettingUpdate& settingDelta)
 {
   if (m_pSink) {
     m_pSink->applySettingUpdate(settingDelta);

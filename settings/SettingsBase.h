@@ -31,7 +31,7 @@ public:
   virtual void clearChanged() { m_changed = 0; }
   virtual void setAllChanged() { m_changed = ~0U; }
 
-  virtual bool applyUpdate(const SettingUpdate& setting, int startIndex) = 0;
+  virtual bool applyUpdate(SettingUpdate& setting) = 0;
 
   template<uint32_t FeatureValue>
   static bool addFeatureToPath(const std::vector<std::string>&, std::vector<uint32_t>& featuresOut, size_t) {

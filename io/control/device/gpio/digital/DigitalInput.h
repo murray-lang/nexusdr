@@ -33,7 +33,7 @@ public:
   void connect(SettingUpdateSink* pSink) override;
 protected:
   void notifyChange(const DigitalInputLinesRequest::LineState& lineState);
-  void notifySettingUpdate(const SettingUpdate& settingDelta) override;
+  void notifySettingUpdate(SettingUpdate& settingDelta) override;
 
   std::string m_id;
   bool m_activeHigh;

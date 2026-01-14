@@ -28,7 +28,7 @@ public:
 
   void applySettings(const RadioSettings& settings) override;
   void applySettings(const RadioSettings& settings, BandSettings* pBandSettings) override;
-  void applySettingUpdate(const SettingUpdate& settingDelta) override;
+  void applySettingUpdate(SettingUpdate& settingDelta) override;
 
   void applyBand(const std::string& bandName);
 
@@ -52,7 +52,6 @@ protected:
 protected:
   RadioSettings m_settings;
   std::unordered_map<std::string, BandSettings> m_bandSettings;
-  // mutable std::recursive_mutex m_settingsMutex;
   Bands m_bands;
   IqReceiver* m_pReceiver;
   IqTransmitter* m_pTransmitter;

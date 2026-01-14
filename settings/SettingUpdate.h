@@ -34,16 +34,16 @@ public:
     return *this;
   }
 
-  [[nodiscard]] uint32_t currentFeature() const {
+  [[nodiscard]] uint32_t getCurrentFeature() const {
     const auto& features = m_settingPath.getFeatures();
     return (m_cursor < features.size()) ? features[m_cursor] : 0; // 0 = NONE
   }
 
-  void stepNext() {
+  void stepNextFeature() {
     m_cursor++;
   }
 
-  [[nodiscard]] bool isDone() const
+  [[nodiscard]] bool isExhausted() const
   {
     return m_cursor >= m_settingPath.getFeatures().size();
   }

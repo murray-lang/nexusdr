@@ -25,7 +25,7 @@ DigitalOutput::configure(const ConfigBase* pConfig)
 }
 
 void
-DigitalOutput::applySettingUpdate(const SettingUpdate& setting)
+DigitalOutput::applySettingUpdate(SettingUpdate& setting)
 {
   if (setting.getPath() == m_settingPath) {
     bool value = std::get<bool>(setting.getValue());

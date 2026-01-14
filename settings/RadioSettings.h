@@ -64,14 +64,12 @@ public:
   [[nodiscard]] const ReceiverSettings& getRxSettings() const { return m_rxSettings; }
   [[nodiscard]] const TransmitterSettings& getTxSettings() const { return m_txSettings; }
 
-  bool applyUpdate(const SettingUpdate& update, int startIndex) override
+  bool applyUpdate(SettingUpdate& update) override
   {
-    const auto& features = update.getPath().getFeatures();
-    if (startIndex >= features.size()) {
+    if (update.isExhausted()) {
       throw SettingsException("Invalid setting path");
     }
-
-    uint32_t feature = features[startIndex];
+    uint32_t feature = update.getCurrentFeature();
     const auto& val = update.getValue();
 
     switch (feature) {
@@ -84,13 +82,15 @@ public:
       }
       return false;
     case TX:
-      if (m_txSettings.applyUpdate(update, startIndex + 1)) {
+      update.stepNextFeature();
+      if (m_txSettings.applyUpdate(update)) {
         m_changed |= TX;
         return true;
       }
       return false;
     case RX:
-      if (m_rxSettings.applyUpdate(update, startIndex + 1)) {
+      update.stepNextFeature();
+      if (m_rxSettings.applyUpdate(update)) {
         m_changed |= RX;
         return true;
       }

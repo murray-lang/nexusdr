@@ -29,7 +29,7 @@ public:
   //RadioSettingsSink methods. Intended for external use, not to be called by internal sources.
   void applySettings(const RadioSettings& settings) override;
   void applySettings(const RadioSettings& settings, BandSettings* pBandSettings) override;
-  void applySettingUpdate(const SettingUpdate& setting) override;
+  void applySettingUpdate(SettingUpdate& setting) override;
 
   // SettingDeltaSink method.
 
@@ -39,7 +39,7 @@ public:
   // RadioSettingsSource methods
   void connect(RadioSettingsSink* pSink) override;
   void notifySettings(const RadioSettings& radioSettings) override;
-  void notifySettingUpdate(const SettingUpdate& settingDelta) override;
+  void notifySettingUpdate(SettingUpdate& settingDelta) override;
 
 protected:
 
@@ -56,7 +56,7 @@ protected:
         m_pControl->notifySettings(settings); // Notify external sink
       }
     }
-    void applySettingUpdate(const SettingUpdate& settingDelta) override
+    void applySettingUpdate(SettingUpdate& settingDelta) override
     {
       if (m_pControl) {
         m_pControl->notifySettingUpdate(settingDelta); // Notify external sink

@@ -38,14 +38,16 @@ class TestSettings : public SettingsBase
   }
 
 
-  bool applyUpdate(const SettingUpdate& setting, int startIndex) override
+  bool applyUpdate(SettingUpdate& update) override
   {
-    if (startIndex >= setting.getPath().getFeatures().size()) {
+    if (update.isExhausted()) {
       throw SettingsException("Invalid setting path");
     }
-    uint32_t feature = setting.getPath().getFeatures()[startIndex];
+    uint32_t feature = update.getCurrentFeature();
+
     if (feature == TWO_TONE) {
-      if (m_twoToneSettings.applyUpdate(setting, startIndex + 1)) {
+      update.stepNextFeature();
+      if (m_twoToneSettings.applyUpdate(update)) {
         m_changed |= TWO_TONE;
         return true;
       }

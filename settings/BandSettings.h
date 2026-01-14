@@ -146,24 +146,25 @@ public:
     }
   }
 
-  bool applyUpdate(const SettingUpdate& update, int startIndex) override
+  bool applyUpdate(SettingUpdate& update) override
   {
-    const auto& features = update.getPath().getFeatures();
-    if (startIndex >= features.size()) {
+    if (update.isExhausted()) {
       throw SettingsException("Invalid setting path");
     }
-    uint32_t feature = features[startIndex];
+    uint32_t feature = update.getCurrentFeature();
     const auto& val = update.getValue();
 
     switch (feature) {
     case FOCUS_RX_PIPELINE:
       return m_focusRxPipeline.apply(val);
     case RX_PIPELINE_TRACKED_BY_TX:
-      return applyRxPipelineTrackedByTx(update, startIndex);
+      return applyRxPipelineTrackedByTx(val);
     case TX_PIPELINE:
-      return applyTxPipeline(update, startIndex + 1);
+      update.stepNextFeature();
+      return applyTxPipeline(update);
     case RX_PIPELINE:
-      return applyRxPipeline(update, startIndex + 1);
+      update.stepNextFeature();
+      return applyRxPipeline(update);
     default:
       return false;
     }
@@ -259,10 +260,10 @@ public:
 
 protected:
 
-  bool applyRxPipeline(const SettingUpdate& setting, int index)
+  bool applyRxPipeline(SettingUpdate& setting)
   {
     RxPipelineSettings& focusPipelineSettings = m_rxPipelineSettings[m_focusRxPipeline()];
-    if (focusPipelineSettings.applyUpdate(setting, index)) {
+    if (focusPipelineSettings.applyUpdate(setting)) {
       if (m_focusRxPipeline() == m_rxPipelineTrackedByTx()) {
         if (focusPipelineSettings.hasSettingChanged(PipelineSettings::RF)) {
           m_txPipelineSettings.getRfSettings().copyFrequencies(focusPipelineSettings.getRfSettings());
@@ -279,18 +280,18 @@ protected:
     return false;
   }
 
-  bool applyTxPipeline(const SettingUpdate& setting, int index)
+  bool applyTxPipeline(SettingUpdate& setting)
   {
-    if (m_txPipelineSettings.applyUpdate(setting, index)) {
+    if (m_txPipelineSettings.applyUpdate(setting)) {
       m_changed |= TX_PIPELINE;
       return true;
     }
     return false;
   }
 
-  bool applyRxPipelineTrackedByTx(const SettingUpdate& setting, int index)
+  bool applyRxPipelineTrackedByTx(const SettingValue& settingValue)
   {
-    uint32_t newRxPipelineIndex = std::get<uint32_t>(setting.getValue());
+    uint32_t newRxPipelineIndex = std::get<uint32_t>(settingValue);
     if (m_rxPipelineTrackedByTx() != newRxPipelineIndex) {
       m_rxPipelineTrackedByTx.apply(newRxPipelineIndex);
       RxPipelineSettings& trackedRxPipelineSettings = m_rxPipelineSettings[m_rxPipelineTrackedByTx()];

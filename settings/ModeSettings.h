@@ -20,7 +20,7 @@ public:
   ~ModeSettings() override = default;
   ModeSettings& operator=(const ModeSettings& rhs) = default;
 
-  bool applyUpdate(const SettingUpdate& setting, int startIndex) override;
+  bool applyUpdate(SettingUpdate& setting) override;
   void clearChanged() override
   {
     SettingsBase::clearChanged();

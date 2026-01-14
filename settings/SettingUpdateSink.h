@@ -9,5 +9,5 @@ class SettingUpdateSink
 {
 public:
   virtual ~SettingUpdateSink() = default;
-  virtual void applySettingUpdate(const SettingUpdate& settingDelta) = 0;
+  virtual void applySettingUpdate(SettingUpdate& settingDelta) = 0;
 };

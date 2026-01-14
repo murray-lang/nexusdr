@@ -61,7 +61,7 @@ RadioControl::notifySettings(const RadioSettings& radioSettings)
 }
 
 void
-RadioControl::notifySettingUpdate(const SettingUpdate& settingDelta)
+RadioControl::notifySettingUpdate(SettingUpdate& settingDelta)
 {
   if (m_pExternalSettingsSink) {
     m_pExternalSettingsSink->applySettingUpdate(settingDelta);
@@ -85,7 +85,7 @@ RadioControl::applySettings(const RadioSettings& settings, BandSettings* pBandSe
 }
 
 void
-RadioControl::applySettingUpdate(const SettingUpdate& setting)
+RadioControl::applySettingUpdate(SettingUpdate& setting)
 {
   for (RadioSettingsSink* pSink : m_controlSinks) {
     pSink->applySettingUpdate(setting);

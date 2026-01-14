@@ -42,7 +42,7 @@ BandSelector::applySettings(const RadioSettings& settings, BandSettings* pBandSe
 }
 
 void
-BandSelector::applySettingUpdate(const SettingUpdate& setting)
+BandSelector::applySettingUpdate(SettingUpdate& setting)
 {
   if (setting.getPath() == m_settingPath) {
     uint32_t frequency = std::get<uint32_t>(setting.getValue());
