@@ -33,6 +33,7 @@ public:
   ~MainWindow() override;
 
   void customEvent(QEvent* event) override;
+  bool eventFilter(QObject *watched, QEvent *event) override;
 
 public slots:
   // void on_actionConfigure_triggered();
@@ -46,6 +47,8 @@ protected:
   void handleTransmitterIqEvent(const vsdrcomplex* data, uint32_t length, uint32_t sampleRate);
   void handleTransmitterAudioEvent(const vsdrreal* data, uint32_t length);
   void handleRadioSettingsEvent(const RadioSettings& radioSettings, const BandSettings& bandSettings);
+
+  void closeActiveToolbarPopups();
 
 //private slots:
 //    void toggleMode();

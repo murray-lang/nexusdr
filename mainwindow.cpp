@@ -26,6 +26,8 @@
 #define FFT_SIZE 2048
 #define SAMPLE_RATE 192000
 
+constexpr const char * toolbarPopupPropertyName = "isToolbarPopup";
+
 MainWindow::MainWindow(RadioConfig& radioConfig, QWidget *parent)
   : QMainWindow(parent)
   , m_radioConfig(radioConfig)
@@ -48,6 +50,11 @@ MainWindow::MainWindow(RadioConfig& radioConfig, QWidget *parent)
 
   m_pTimeSeriesChart = new QtTimeSeriesChart(this, "timeseriesView", "chartTheme");
   m_pTimeSeriesChart->initialise();
+
+  if (this->centralWidget()) {
+    // This filter has been added to help manage popup behaviour associated with the toolbar buttons.
+    // this->centralWidget()->installEventFilter(this);
+  }
 }
 
 MainWindow::~MainWindow()
@@ -172,6 +179,7 @@ MainWindow::on_actionBand_triggered()
     auto* panel = new QtBandDialog(m_pRadio, this);
     panel->setAttribute(Qt::WA_DeleteOnClose);
     panel->setObjectName("bandPanel");
+    panel->setProperty(toolbarPopupPropertyName, true);
 
     // IMPORTANT: Ensure it has no window flags that would make it a separate window
     panel->setWindowFlags(Qt::Widget);
@@ -188,6 +196,37 @@ MainWindow::on_actionBand_triggered()
     panel->show();
     panel->raise();
   }
+}
+
+void
+MainWindow::closeActiveToolbarPopups()
+{
+  const auto panels = this->centralWidget()->findChildren<QWidget*>();
+  for (auto* panel : panels) {
+    if (panel->property(toolbarPopupPropertyName).toBool()) {
+      panel->close();
+    }
+  }
+}
+
+bool
+MainWindow::eventFilter(QObject *watched, QEvent *event)
+{
+  if (watched == this->centralWidget() && event->type() == QEvent::MouseButtonPress) {
+    auto* mouseEvent = static_cast<QMouseEvent*>(event);
+
+    const auto panels = this->centralWidget()->findChildren<QWidget*>();
+    for (auto* panel : panels) {
+      if (panel->property(toolbarPopupPropertyName).toBool() && panel->isVisible()) {
+        // If the click is outside this panel, close it
+        if (!panel->geometry().contains(mouseEvent->pos())) {
+          panel->close();
+          return true; // Consume the event so it doesn't click the UI behind
+        }
+      }
+    }
+  }
+  return QMainWindow::eventFilter(watched, event);
 }
 
 // void

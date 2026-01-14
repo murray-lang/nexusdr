@@ -34,11 +34,11 @@ QtBandDialog::~QtBandDialog() {
 }
 
 bool QtBandDialog::event(QEvent *event) {
-  if (event->type() == QEvent::Leave) {
-    close();
-    // this->deleteLater(); // Use deleteLater for safety in event handlers
-    return true;
-  }
+  // if (event->type() == QEvent::Leave) {
+  //   close();
+  //   // this->deleteLater(); // Use deleteLater for safety in event handlers
+  //   return true;
+  // }
   return QWidget::event(event);
 }
 
