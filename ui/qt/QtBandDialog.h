@@ -11,16 +11,16 @@ class Bands;
 
 namespace Ui
 {
-  class BandDialog;
+  class QtBandDialog;
 }
 
 class Radio;
 
-class BandDialog : public QWidget {
+class QtBandDialog : public QWidget {
   Q_OBJECT
 public:
-  explicit BandDialog(Radio* pRadio, QWidget *parent = nullptr);
-  ~BandDialog() override;
+  explicit QtBandDialog(Radio* pRadio, QWidget *parent = nullptr);
+  ~QtBandDialog() override;
 
   void addCategoryTabs(Radio* pRadio);
   void addCategoryTab(const BandCategory& category, bool isSelected, const std::string& selectedBandName);
@@ -31,7 +31,7 @@ protected:
   // void mousePressEvent(QMouseEvent *event) override;
 
 private:
-  Ui::BandDialog *ui;
+  Ui::QtBandDialog *ui;
   Radio* m_pRadio;
 
   QList<QPushButton*> m_bandButtons;

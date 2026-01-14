@@ -5,7 +5,7 @@ QChartView {
     background-color: #0c394c;
 }
 
-#panadapterTheme {
+#chartTheme {
     qproperty-textColor: "white";
     qproperty-backgroundColor: "#0c394c";
     qproperty-plotAreaColor: "#0c394c";

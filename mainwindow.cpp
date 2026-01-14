@@ -1,24 +1,14 @@
 #include "mainwindow.h"
 #include "ui_mainwindow-1024x600.h"
 #include <QSlider>
-#include <QPushButton>
-#include <QLineSeries>
-#include <QValueAxis>
-#include <QLogValueAxis>
 #include <QThreadPool>
 #include <QStyle>
-#include <QColor>
 #include <QVariant>
 #include <QMenu>
 #include <QActionGroup>
-#include <QDialog>
-#include <QVBoxLayout>
-#include "io/audio/drivers/RtAudio/RtAudioInputDriver.h"
 #include <cmath>
 #include "io/control/device/usb/UsbException.h"
 #include "io/control/device/FunCubeDongle/FunCubeDongle.h"
-#include <io/control/ControlException.h>
-#include <config/AudioConfig.h>
 #include <volk/volk.h>
 
 #include "radio/receiver/ReceiverAudioEvent.h"
@@ -27,10 +17,11 @@
 #include "radio/transmitter/TransmitterIqEvent.h"
 
 #include <QToolButton>
-#include "ui/qt/ChartTheme.h"
+#include "ui/qt/QtChartTheme.h"
 #include "settings/Bands.h"
 #include "settings/RadioSettingsEvent.h"
-#include "ui/qt/BandDialog.h"
+#include "ui/qt/QtBandDialog.h"
+#include "ui/qt/QtTimeSeriesChart.h"
 
 #define FFT_SIZE 2048
 #define SAMPLE_RATE 192000
@@ -39,19 +30,12 @@ MainWindow::MainWindow(RadioConfig& radioConfig, QWidget *parent)
   : QMainWindow(parent)
   , m_radioConfig(radioConfig)
   , m_pRadio(nullptr)
-  , m_spectrumLineSeries()
-  , m_spectrumAreaSeries()
-  , m_timeseriesLineSeries()
   , ui(new Ui::MainWindow)
   , m_reportedIqSampleRate(0)
-  , m_panadapterXmin(0)
-  , m_panadapterXmax(FFT_SIZE)
-  , m_timeSeriesXmin(0)
-  , m_timeSeriesXmax(FFT_SIZE),
-  m_verticalCursorLine(new QGraphicsLineItem()),
-  m_filterPassbandRect(nullptr),
-  m_modeButton(nullptr),
-  m_bandButton(nullptr)
+  ,m_modeButton(nullptr)
+  ,m_bandButton(nullptr)
+  ,m_pPanadapter(nullptr)
+  ,m_pTimeSeriesChart(nullptr)
 {
 
   initialiseRadio();
@@ -59,133 +43,20 @@ MainWindow::MainWindow(RadioConfig& radioConfig, QWidget *parent)
 
   initializeAudio();
 
-  ui->panadapterView->setRenderHint(QPainter::Antialiasing);
-  ui->timeseriesView->setRenderHint(QPainter::Antialiasing);
+  m_pPanadapter = new QtPanadapter(this, "panadapterView", "chartTheme");
+  m_pPanadapter->initialise();
 
-  configurePanadapter();
-  configureTimeseriesChart();
+  m_pTimeSeriesChart = new QtTimeSeriesChart(this, "timeseriesView", "chartTheme");
+  m_pTimeSeriesChart->initialise();
 }
 
 MainWindow::~MainWindow()
 {
   delete m_pRadio;
   delete ui;
+  delete m_pPanadapter;
+  delete m_pTimeSeriesChart;
 }
-
-void
-MainWindow::configurePanadapter()
-{
-
-  QChart* pChart = ui->panadapterView->chart();
-
-  m_spectrumAreaSeries.setUpperSeries(&m_spectrumLineSeries);
-
-  auto* theme = findChild<ChartTheme*>("panadapterTheme");
-  theme->ensurePolished();
-
-  QString backgroundColorStr = theme->property("backgroundColor").toString();
-  auto backgroundColor = QColor(backgroundColorStr);
-  pChart->setBackgroundBrush(backgroundColor);
-
-  QString plotAreaColorStr = theme->property("plotAreaColor").toString();
-  pChart->setPlotAreaBackgroundBrush(QBrush(QColor(plotAreaColorStr)));
-  pChart->setPlotAreaBackgroundVisible(true);
-
-  QString seriesLineColorStr = theme->property("seriesLineColor").toString();
-  auto seriesLineColor = QColor(seriesLineColorStr);
-  QPen pen(seriesLineColor); //0x0080ff
-  pen.setWidth(0);
-  // m_spectrumLineSeries.setPen(pen);
-  m_spectrumAreaSeries.setPen(pen);
-
-  QString seriesAreaColorStr = theme->property("seriesAreaColor").toString();
-  auto seriesAreaColor = QColor(seriesAreaColorStr);
-  QBrush seriesBrush(seriesAreaColor);
-  m_spectrumAreaSeries.setBrush(seriesBrush);
-
-  QString gridColorStr = theme->property("gridColor").toString();
-  QPen gridPen(gridColorStr);
-
-
-  pChart->addSeries(&m_spectrumAreaSeries);
-  // pChart->addSeries(&m_spectrumLineSeries);
-  // pChart->setTitle("Panadapter");
-
-  QString textColorStr = theme->property("textColor").toString();
-  QColor textColor(textColorStr);
-  pChart->setTitleBrush(QBrush(textColor));
-
-  pChart->createDefaultAxes();
-
-  for (auto* axis : pChart->axes()) {
-    axis->setGridLinePen(gridPen);
-    axis->setLinePen(gridPen);
-    axis->setLabelsColor(textColor);
-  }
-
-  // QLogValueAxis *yAxis = new QLogValueAxis();
-  // yAxis->setBase(10.0);
-  // yAxis->setRange(-140, 0);
-  // pChart->setAxisY(yAxis, &m_spectrumLineSeries);
-
-  QList<QAbstractAxis*> xAxes = pChart->axes(Qt::Horizontal);
-  if (!xAxes.isEmpty()) {
-    auto *xAxis = qobject_cast<QValueAxis*>(xAxes.first());
-    xAxis->setRange(m_panadapterXmin, m_panadapterXmax);
-    xAxis->setLabelFormat(QString("%i"));
-  }
-  pChart->axes(Qt::Vertical).first()->setRange(-110, -50);
-
-  pChart->legend()->hide();
-
-  QString cursorLineColorStr = theme->property("cursorLineColor").toString();
-  m_verticalCursorLine->setPen(QPen(QColor(cursorLineColorStr), 1.5, Qt::SolidLine));
-  pChart->scene()->addItem(m_verticalCursorLine);
-}
-
-void
-MainWindow::setPanadapterX(uint32_t xMin, uint32_t xMax)
-{
-    m_panadapterXmin = xMin;
-    m_panadapterXmax = xMax;
-    QChart* pChart = ui->panadapterView->chart();
-    pChart->axes(Qt::Horizontal).first()->setRange(xMin, xMax);
-}
-
-void
-MainWindow::configureTimeseriesChart()
-{
-    QChart* pChart = ui->timeseriesView->chart();
-
-    QPen pen(QRgb(0x0080ff));
-    pen.setWidth(0);
-    m_timeseriesLineSeries.setPen(pen);
-
-  pChart->addSeries(&m_timeseriesLineSeries);
-  // pChart->setTitle("Timeseries");
-  pChart->createDefaultAxes();
-  for (auto* axis : pChart->axes()) {
-    axis->setLabelsVisible(false);
-  }
-  pChart->axes(Qt::Horizontal).first()->setRange(m_timeSeriesXmin / 100.0, m_timeSeriesXmax/100.0);
-
-//  pChart->axes(Qt::Vertical).first()->setRange(2038, 2058);
-  pChart->axes(Qt::Vertical).first()->setRange(-0.05, 0.05);
-
-//  pChart->axes(Qt::Vertical).first()->setRange(-0.0000001, 0.0000003);
-
-  pChart->legend()->hide();
-}
-
-void
-MainWindow::setTimeSeriesX(uint32_t xMin, uint32_t xMax)
-{
-    m_timeSeriesXmin = xMin;
-    m_timeSeriesXmax = xMax;
-    QChart* pChart = ui->timeseriesView->chart();
-    pChart->axes(Qt::Horizontal).first()->setRange(m_timeSeriesXmin, m_timeSeriesXmax);
-}
-
 
 void
 MainWindow::customEvent(QEvent* event)
@@ -212,21 +83,15 @@ void
 MainWindow::handleReceiverIqEvent(const vsdrcomplex* data, uint32_t length, uint32_t sampleRate)
 {
   m_reportedIqSampleRate = sampleRate;
-  vsdrreal spectrum(length);
-  powerSpectrum(*data, length, spectrum);
-  // if (spectrum.size() != m_panadapterXmax) {
-  //   setPanadapterX(0, spectrum.size());
-  // }
   RxPipelineSettings* rxPipelineSettings = m_bandSettingsCopy.getFocusRxPipelineSettings();
   if (rxPipelineSettings != nullptr) {
     const RfSettings& rfSettings = rxPipelineSettings->getRfSettings();
     uint32_t centreFrequency = rfSettings.getFrequency();
     uint32_t xMin = centreFrequency - (sampleRate / 2);
     uint32_t xMax = centreFrequency + (sampleRate / 2);
-    if (m_panadapterXmin != xMin || m_panadapterXmax != xMax) {
-      setPanadapterX(xMin, xMax);
-    }
-    replaceSpectrumSeries(&spectrum, m_spectrumLineSeries, sampleRate, centreFrequency, true);
+
+    m_pPanadapter->setSeriesXMinMax(xMin, xMax);
+    m_pPanadapter->plot(data, length, sampleRate, centreFrequency, true);
   }
 }
 
@@ -234,66 +99,30 @@ void
 MainWindow::handleTransmitterIqEvent(const vsdrcomplex* data, uint32_t length, uint32_t sampleRate)
 {
   m_reportedIqSampleRate = sampleRate;
-  vsdrreal spectrum(length);
-  powerSpectrum(*data, length, spectrum);
-  // if (spectrum.size() != m_panadapterXmax) {
-  //   setPanadapterX(0, spectrum.size());
-  // }
   TxPipelineSettings* txPipelineSettings = m_bandSettingsCopy.getTxPipelineSettings();
   if (txPipelineSettings != nullptr) {
     const RfSettings& rfSettings = txPipelineSettings->getRfSettings();
     uint32_t centreFrequency = rfSettings.getFrequency();
     uint32_t xMin = centreFrequency - (sampleRate / 2);
     uint32_t xMax = centreFrequency + (sampleRate / 2);
-    if (m_panadapterXmin != xMin || m_panadapterXmax != xMax) {
-      setPanadapterX(xMin, xMax);
-    }
-    replaceSpectrumSeries(&spectrum, m_spectrumLineSeries, sampleRate, centreFrequency, true);
+
+    m_pPanadapter->setSeriesXMinMax(xMin, xMax);
+    m_pPanadapter->plot(data, length, sampleRate, centreFrequency, true);
   }
 
-  setTimeSeriesX(0, length);
-  //  setTimeSeriesX(0, 48);
-
-  //}
-  QList<QPointF> timeseriesPoints;
-  uint32_t plotX = 0;
-  for (uint32_t i = 0; i < length; i++) {
-    timeseriesPoints.append(QPointF(plotX++, data->at(i).imag()));
-  }
-
-  m_timeseriesLineSeries.replace(timeseriesPoints);
+  m_pTimeSeriesChart->plot(*data, length);
 }
 
 void
 MainWindow::handleReceiverAudioEvent(const vsdrreal* data, uint32_t length)
 {
-  setTimeSeriesX(0, length);
-  //  setTimeSeriesX(0, 48);
-
-  //}
-  QList<QPointF> timeseriesPoints;
-  uint32_t plotX = 0;
-  for (uint32_t i = 0; i < length; i++) {
-    timeseriesPoints.append(QPointF(plotX++, data->at(i)));
-  }
-
-  m_timeseriesLineSeries.replace(timeseriesPoints);
+  m_pTimeSeriesChart->plot(*data, length);
 }
 
 void
 MainWindow::handleTransmitterAudioEvent(const vsdrreal* data, uint32_t length)
 {
-  setTimeSeriesX(0, length);
-  //  setTimeSeriesX(0, 48);
-
-  //}
-  QList<QPointF> timeseriesPoints;
-  uint32_t plotX = 0;
-  for (uint32_t i = 0; i < length; i++) {
-    timeseriesPoints.append(QPointF(plotX++, data->at(i)));
-  }
-
-  m_timeseriesLineSeries.replace(timeseriesPoints);
+  m_pTimeSeriesChart->plot(*data, length);
 }
 
 void
@@ -318,172 +147,17 @@ MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings, const B
     ui->centreFrequencyLcd->display(centreFrequency);
     ui->cursorFrequencyLcd->display(frequencyAtOffset);
 
-    QChart *chart = ui->panadapterView->chart();
-    auto *axisY = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
-    double yMin = axisY->min();
-    double yMax = axisY->max();
-
-    // qDebug() << "Centre frequency changed to" << centreFrequency << "Offset" << offset << "Frequency at offset" << frequencyAtOffset;
     if (m_reportedIqSampleRate > 0) {
       uint32_t xMin = centreFrequency - (m_reportedIqSampleRate / 2);
       uint32_t xMax = centreFrequency + (m_reportedIqSampleRate / 2);
-      if (m_panadapterXmin != xMin || m_panadapterXmax != xMax) {
-        setPanadapterX(xMin, xMax);
-      }
-    } 
-
-    QPointF p1 = chart->mapToPosition(QPointF(frequencyAtOffset, yMin));
-    QPointF p2 = chart->mapToPosition(QPointF(frequencyAtOffset, yMax));
-    // qDebug() << "Centre frequency" << centreFrequency << "Offset" << offset << "Frequency at offset" << frequencyAtOffset << "Mapped to" << p1 << p2; 
-    m_verticalCursorLine->setLine(QLineF(p1, p2));
-    m_verticalCursorLine->show();
-  
+      m_pPanadapter->setSeriesXMinMax(xMin, xMax);
+    }
     const Mode& mode = rxPipelineSettings->getMode();
-    int32_t loCutWrtFreq = frequencyAtOffset + mode.getLoCut();
-    int32_t hioCutWrtFreq = frequencyAtOffset + mode.getHiCut();
-    updatePassbandOverlay(chart, loCutWrtFreq, hioCutWrtFreq);
+    m_pPanadapter->updateCursorPosition(frequencyAtOffset, mode.getLoCut(), mode.getHiCut());
     updateModeButton(mode);
   }
   m_radioSettingsCopy.clearChanged();
 }
-
-void
-MainWindow::addPassbandOverlay(QChart *chart, int32_t loCut, int32_t hiCut)
-{
-  auto* theme = findChild<ChartTheme*>("panadapterTheme");
-  QString cursorAreaColorStr = theme->property("cursorAreaColor").toString();
-
-  m_filterPassbandRect = new QGraphicsRectItem(loCut, 0, hiCut - loCut, 100);
-  m_filterPassbandRect->setBrush(QColor(cursorAreaColorStr));
-  // m_filterPassbandRect->setBrush(QColor(100, 50, 200, 80)); // Semi-transparent
-  m_filterPassbandRect->setPen(Qt::NoPen);
-  chart->scene()->addItem(m_filterPassbandRect);
-
-}
-
-void
-MainWindow::updatePassbandOverlay(QChart *chart, int32_t loCut, int32_t hiCut)
-{
-  if (m_filterPassbandRect == nullptr) {
-    addPassbandOverlay(chart, loCut, hiCut);
-  }
-  QRectF plotArea = chart->plotArea();
-  double plotLoX = chart->mapToPosition(QPointF(loCut, 0)).x();
-  double plotHiX = chart->mapToPosition(QPointF(hiCut, 0)).x();
-  double width = plotHiX - plotLoX;
-  QRectF r(plotLoX, plotArea.top(), width, plotArea.height());
-  m_filterPassbandRect->setRect(r);
-
-}
-
-void
-MainWindow::powerSpectrum(const vsdrcomplex& timeSeries, uint32_t timeSeriesLength, vsdrreal& spectrumOut)
-{
-  vsdrcomplex windowed(timeSeriesLength);
-  for (uint32_t i = 0; i < timeSeriesLength; i++)
-  {
-    windowed.at(i) = timeSeries.at(i) * static_cast<sdrreal>(hanning(i, timeSeriesLength));
-  }
-  pocketfft::shape_t pocketfft_shape{timeSeriesLength};
-  std::vector<sdrcomplex> fftOut(timeSeriesLength);
-
-  spectrumOut.resize(timeSeriesLength);
-
-  pocketfft::stride_t pocketfft_stride{sizeof(sdrcomplex)};
-  pocketfft::shape_t pocketfft_axes{0};
-
-  pocketfft::c2c(
-      pocketfft_shape,
-      pocketfft_stride,
-      pocketfft_stride,
-      pocketfft_axes,
-      pocketfft::FORWARD,
-      windowed.data(),
-      fftOut.data(),
-      static_cast<sdrreal>(1.0)
-  );
-
-  volk_32fc_s32f_x2_power_spectral_density_32f(
-    spectrumOut.data(),
-    fftOut.data(),
-    static_cast<float>(timeSeriesLength), 1.0,
-    timeSeriesLength
-  );
-}
-
-void
-MainWindow::replaceSpectrumSeries(
-  const vsdrreal * spectrumData,
-  QLineSeries& spectrumSeries,
-  uint32_t sampleRate,
-  uint32_t centreFrequency,
-  bool shuffle
-)
-{
-  qreal plotX = centreFrequency - (sampleRate / 2);
-  qreal binWidth = static_cast<qreal>(sampleRate) / static_cast<qreal>(spectrumData->size());
-
-  QList<QPointF> spectrumPoints;
-  size_t fftSize = spectrumData->size();
-  if (shuffle)
-  {
-    for (size_t bin = fftSize/2; bin < fftSize; bin++) {
-      spectrumPoints.append(QPointF(plotX, spectrumData->at(bin)));
-      plotX += binWidth;
-    }
-    for (size_t bin = 0; bin < fftSize/2 -1; bin++) {
-      spectrumPoints.append(QPointF(plotX, spectrumData->at(bin)));
-      plotX += binWidth;
-    }
-  } else
-  {
-    for (size_t bin = 0; bin < fftSize; bin++) {
-      spectrumPoints.append(QPointF(plotX, spectrumData->at(bin)));
-      plotX += binWidth;
-    }
-  }
-  spectrumSeries.replace(spectrumPoints);
-}
-
-void
-MainWindow::replaceSpectrumSeries(
-  const std::vector<sdrcomplex> * spectrumData,
-  QLineSeries& spectrumSeries,
-  uint32_t sampleRate,
-  uint32_t centreFrequency,
-  bool shuffle
-)
-{
-  qreal plotX = centreFrequency - (sampleRate / 2);
-  qreal binWidth = sampleRate / spectrumData->size();
-
-  QList<QPointF> spectrumPoints;
-  size_t fftSize = spectrumData->size();
-  if (shuffle)
-  {
-    for (size_t bin = fftSize/2; bin < fftSize; bin++) {
-      spectrumPoints.append(QPointF(plotX, std::abs(spectrumData->at(bin))));
-      plotX += binWidth;
-    }
-    for (size_t bin = 0; bin < fftSize/2 -1; bin++) {
-      spectrumPoints.append(QPointF(plotX, std::abs(spectrumData->at(bin))));
-      plotX += binWidth;
-    }
-  } else
-  {
-    for (size_t bin = 0; bin < fftSize; bin++) {
-      spectrumPoints.append(QPointF(plotX, std::abs(spectrumData->at(bin))));
-      plotX += binWidth;
-    }
-  }
-  spectrumSeries.replace(spectrumPoints);
-}
-
-// void
-// MainWindow::on_actionConfigure_triggered()
-// {
-//   qDebug() << "on_actionConfigure_triggered()";
-// }
 
 void
 MainWindow::on_actionBand_triggered()
@@ -495,7 +169,7 @@ MainWindow::on_actionBand_triggered()
       existing->close();
       return;
     }
-    auto* panel = new BandDialog(m_pRadio, this);
+    auto* panel = new QtBandDialog(m_pRadio, this);
     panel->setAttribute(Qt::WA_DeleteOnClose);
     panel->setObjectName("bandPanel");
 
@@ -532,9 +206,9 @@ void MainWindow::initializeWindow()
 {
   ui->setupUi(this);
 
-  auto* panadapterTheme = new ChartTheme(this);
-  panadapterTheme->setObjectName("panadapterTheme");
-  panadapterTheme->setFixedSize(0, 0); // User can't see it, but Style Engine will style it
+  auto* chartTheme = new QtChartTheme(this);
+  chartTheme->setObjectName("chartTheme");
+  chartTheme->setFixedSize(0, 0); // User can't see it, but Style Engine will style it
 
   // qDebug() << "Current Icon Theme:" << QIcon::themeName();
   // qDebug() << "Icon Search Paths:" << QIcon::themeSearchPaths();
@@ -756,11 +430,6 @@ MainWindow::initialiseRadio()
     m_pRadio->start();
 
     m_pRadio->applyBand("40m");
-
-    // m_radioSettings.bandName = "20m";
-    // m_radioSettings.changed = RadioSettings::BAND;
-    
-    // m_pRadio->applySettings(m_radioSettings);
 
     RfSettings rfSettings;
     rfSettings.setGain(30.0);
