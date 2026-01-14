@@ -33,14 +33,14 @@ QtBandDialog::~QtBandDialog() {
   delete ui;
 }
 
-bool QtBandDialog::event(QEvent *event) {
-  if (event->type() == QEvent::Leave) {
-    close();
-    // this->deleteLater(); // Use deleteLater for safety in event handlers
-    return true;
-  }
-  return QWidget::event(event);
-}
+// bool QtBandDialog::event(QEvent *event) {
+//   if (event->type() == QEvent::Leave) {
+//     // close();
+//     deleteLater(); // Use deleteLater for safety in event handlers
+//     return true;
+//   }
+//   return QWidget::event(event);
+// }
 
 // void
 // QtBandDialog::showEvent(QShowEvent *event)

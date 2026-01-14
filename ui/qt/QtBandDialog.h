@@ -26,7 +26,7 @@ public:
   void addCategoryTab(const BandCategory& category, bool isSelected, const std::string& selectedBandName);
 
 protected:
-  bool event(QEvent *event) override;
+  // bool event(QEvent *event) override;
   // void showEvent(QShowEvent *event) override;
   // void mousePressEvent(QMouseEvent *event) override;
 
