@@ -34,6 +34,8 @@ MainWindow::MainWindow(RadioConfig& radioConfig, QWidget *parent)
   , m_reportedIqSampleRate(0)
   ,m_modeButton(nullptr)
   ,m_bandButton(nullptr)
+  ,m_pPanadapter(nullptr)
+  ,m_pTimeSeriesChart(nullptr)
 {
 
   initialiseRadio();
@@ -52,6 +54,8 @@ MainWindow::~MainWindow()
 {
   delete m_pRadio;
   delete ui;
+  delete m_pPanadapter;
+  delete m_pTimeSeriesChart;
 }
 
 void
