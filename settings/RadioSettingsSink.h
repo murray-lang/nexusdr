@@ -3,16 +3,16 @@
 //
 
 #pragma once
-#include "SingleSettingSink.h"
+#include "SettingUpdateSink.h"
 #include "io/control/ControlException.h"
 
 // #include "RadioSettings.h"
 
 class RadioSettings;
-class SingleSetting;
+class SettingUpdate;
 class BandSettings;
 
-class RadioSettingsSink : public SingleSettingSink
+class RadioSettingsSink : public SettingUpdateSink
 {
 public:
   ~RadioSettingsSink() override = default;

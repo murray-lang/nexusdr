@@ -25,26 +25,28 @@ void
 FunCubeDongle::applySettings(const RadioSettings& radioSettings, BandSettings* pBandSettings)
 {
     // qDebug() << "FunCubeDongle::applySettings called";
-  if (radioSettings.changed & (RadioSettings::PIPELINE)) {
+  if (radioSettings.hasSettingChanged(RadioSettings::PIPELINE)) {
     // qDebug() << "  FunCubeDongle::applySettings: PIPELINE changed";
     const RfSettings& rfSettings = pBandSettings->getFocusRxRfSettings();
-    if (rfSettings.changed & RfSettings::FREQUENCY) {
+    if (rfSettings.hasSettingChanged(RfSettings::FREQUENCY)) {
         // qDebug() << "    FunCubeDongle::applySettings: FREQUENCY changed to " << rfSettings.frequency;
-      setFrequency(rfSettings.frequency);
-      setRfFilter(rfSettings.frequency);
+      setFrequency(rfSettings.getFrequency());
+      setRfFilter(rfSettings.getFrequency());
     }
-    if (rfSettings.changed & RfSettings::GAIN) {
-      setLnaGain(rfSettings.gain);
-      m_lastRfGain = rfSettings.gain;
+    if (rfSettings.hasSettingChanged(RfSettings::GAIN)) {
+      float gain = rfSettings.getGain();
+      setLnaGain(gain);
+      m_lastRfGain = gain;
     }
 
     const IfSettings& ifSettings = pBandSettings->getFocusRxIfSettings();
-    if (ifSettings.changed & IfSettings::BANDWIDTH) {
-      setIfFilter(ifSettings.bandwidth);
+    if (ifSettings.hasSettingChanged(IfSettings::BANDWIDTH)) {
+      setIfFilter(ifSettings.getBandwidth());
     }
-    if (ifSettings.changed & IfSettings::GAIN) {
-      setIfGain(ifSettings.gain);
-      m_lastIfGain = ifSettings.gain;
+    if (ifSettings.hasSettingChanged(IfSettings::GAIN)) {
+      float gain = ifSettings.getGain();
+      setIfGain(gain);
+      m_lastIfGain = gain;
     }
 
     //setRfFilter(TRFE_8_16);

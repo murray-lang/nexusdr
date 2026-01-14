@@ -17,85 +17,66 @@ public:
     GAIN = 0x02,
     ALL = static_cast<uint32_t>(~0U)
   };
-  IfSettings() : bandwidth(0), gain(0.0) {}
-  IfSettings(const IfSettings& rhs) = default;
+  IfSettings() :
+    m_bandwidth(this, "bandwidth", 0),
+    m_gain(this, "gain", 0.0)
+  {
+  }
+  IfSettings(const IfSettings& rhs) :
+    SettingsBase(rhs),
+    m_bandwidth(this, rhs.m_bandwidth),
+    m_gain(this, rhs.m_gain)
+  {
+  }
   ~IfSettings() override = default;
 
   IfSettings& operator=(const IfSettings& rhs)
   {
     if (this != &rhs) {
       SettingsBase::operator=(rhs);
-      bandwidth = rhs.bandwidth;
-      gain = rhs.gain;
+      m_bandwidth = rhs.m_bandwidth;
+      m_gain = rhs.m_gain;
      }
     return *this;
   }
 
-  bool applySettings(const IfSettings& settings)
+  [[nodiscard]] uint32_t getBandwidth() const { return m_bandwidth(); }
+  [[nodiscard]] float getGain() const { return m_gain(); }
+
+  void setBandwidth(uint32_t bandwidth) { m_bandwidth(bandwidth); }
+  void setGain(float gain) { m_gain(gain); }
+
+  bool merge(const IfSettings& rhs)
   {
-    bool somethingChanged = false;
-    if (settings.changed & BANDWIDTH) {
-      bandwidth = settings.bandwidth;
-      changed |= BANDWIDTH;
-      somethingChanged = true;
-    } else if (settings.changed & GAIN) {
-      gain = settings.gain;
-      changed |= GAIN;
-      somethingChanged = true;
-    }
-    return somethingChanged;
+    return m_bandwidth.merge(rhs.m_bandwidth) | m_gain.merge(rhs.m_gain);
   }
 
-  bool applySetting(const SingleSetting& setting, int startIndex) override
+  bool applyUpdate(SettingUpdate& update) override
   {
-    if (startIndex >= setting.getPath().getFeatures().size()) {
+    if (update.isExhausted()) {
       throw SettingsException("Invalid setting path");
     }
-    bool settingChange = false;
-    uint32_t feature = setting.getPath().getFeatures()[startIndex];
-    if (feature == BANDWIDTH) {
-      if (setting.getMeaning() == SingleSetting::VALUE) {
-        bandwidth = std::get<uint32_t>(setting.getValue());
-        settingChange = true;
-      } else if (setting.getMeaning() == SingleSetting::DELTA) {
-        bandwidth += std::get<uint32_t>(setting.getValue());
-        settingChange = true;
-      }
-    } else if (feature == GAIN) {
-      if (setting.getMeaning() == SingleSetting::VALUE) {
-        gain = std::get<float>(setting.getValue());
-        settingChange = true;
-      } else if (setting.getMeaning() == SingleSetting::DELTA) {
-        gain += std::get<float>(setting.getValue());
-        settingChange = true;
-      }
+    uint32_t feature = update.getCurrentFeature();
+    const auto& val = update.getValue();
+
+    switch (feature) {
+    case BANDWIDTH: return m_bandwidth.apply(val);
+    case GAIN:  return m_gain.apply(val);
+    default: return false;
     }
-    if (settingChange) {
-      changed |= feature;
-    }
-    return settingChange;
   }
 
-    static bool getFeaturePath(
+  static bool getFeaturePath(
     const std::vector<std::string>& featureStrings,
-    std::vector<uint32_t>& features,
+    std::vector<uint32_t>& out,
     size_t startIndex
     )
   {
-    if (startIndex >= featureStrings.size()) {
-      throw SettingsException("Invalid setting path");
-    }
-    if (featureStrings[startIndex] == "bandwidth") {
-      features.push_back(BANDWIDTH);
-    } else if (featureStrings[startIndex] == "gain") {
-      features.push_back(GAIN);
-    } else {
-      return false;
-    }
-    return true;
+    return resolvePathForRegisteredSetting<IfSettings>(featureStrings, out, startIndex);
   }
 
-  uint32_t bandwidth;
-  float gain;
+protected:
+  Setting<uint32_t,BANDWIDTH, IfSettings> m_bandwidth;
+  Setting<float, GAIN, IfSettings> m_gain;
 };
 

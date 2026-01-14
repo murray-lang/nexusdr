@@ -94,13 +94,13 @@ void
 IqTxPipeline::apply(const TransmitterSettings& settings)
 {
   std::lock_guard<std::mutex> lock(m_settingsMutex);
-  if (settings.changed & TransmitterSettings::CORRECTION) {
-    m_iqCorrection.apply(settings.correctionSettings);
+  if (settings.hasSettingChanged(TransmitterSettings::CORRECTION)) {
+    m_iqCorrection.apply(settings.getCorrectionSettings());
   }
-  if (settings.changed & TransmitterSettings::MIC) {
-    if (settings.micSettings.changed & MicSettings::GAIN) {
-      m_ssbModulator.setInputGain(settings.micSettings.gain);
-      qDebug() << "IqTxPipeline::apply(): set SSB modulator input gain to" << settings.micSettings.gain;
+  if (settings.hasSettingChanged(TransmitterSettings::MIC)) {
+    if (settings.getMicSettings().hasSettingChanged( MicSettings::GAIN)) {
+      m_ssbModulator.setInputGain(settings.getMicSettings().getGain());
+      // qDebug() << "IqTxPipeline::apply(): set SSB modulator input gain to" << settings.m_micSettings.m_gain;
     }
   }
 }
@@ -110,13 +110,13 @@ IqTxPipeline::apply(const TxPipelineSettings* settings)
 {
   if (settings != nullptr) {
     std::lock_guard<std::mutex> lock(m_settingsMutex);
-    if (settings->changed & PipelineSettings::RF) {
-      if (settings->rfSettings.changed & RfSettings::OFFSET) {
-        m_oscillatorMixer.setFrequency(settings->rfSettings.offset);
+    if (settings->hasSettingChanged(PipelineSettings::RF)) {
+      if (settings->getRfSettings().hasSettingChanged(RfSettings::OFFSET)) {
+        m_oscillatorMixer.setFrequency(settings->getRfSettings().getOffset());
       }
     }
-    if (settings->changed & PipelineSettings::MODE) {
-      setMode(settings->mode);
+    if (settings->hasSettingChanged(PipelineSettings::MODE)) {
+      setMode(settings->getMode());
     }
   }
 }

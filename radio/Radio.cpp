@@ -8,7 +8,7 @@
 
 #include "settings/RadioSettings.h"
 #include "settings/RadioSettingsEvent.h"
-#include "settings/SingleSettingEvent.h"
+#include "settings/SettingUpdateEvent.h"
 #include <QDebug>
 
 
@@ -107,6 +107,15 @@ Radio::getBandSettings(const std::string& bandName)
   return &m_bandSettings.at(bandName);
 }
 
+const BandSettings*
+Radio::getBandSettings(const std::string& bandName) const
+{
+  if (m_bandSettings.contains(bandName)) {
+    return &m_bandSettings.at(bandName);
+  }
+  return nullptr;
+}
+
 void
 Radio::applyRfSettings(const RfSettings& settings)
 {
@@ -124,10 +133,9 @@ Radio::applyIfSettings(const IfSettings& settings)
 }
 
 void
-Radio::applySettings(const RadioSettings& settings) {
-
-
-  BandSettings* pBandSettings = getBandSettings(settings.bandName);
+Radio::applySettings(const RadioSettings& settings)
+{
+  BandSettings* pBandSettings = getBandSettings(settings.getBandName());
   if (pBandSettings != nullptr) {
     applySettings(settings, pBandSettings);
   }
@@ -139,13 +147,13 @@ Radio::applySettings(const RadioSettings& settings, BandSettings* pBandSettings)
   if (&settings != &m_settings) {
     m_settings = settings;
   }
-  if (settings.changed & RadioSettings::PTT) {
-    ptt(m_settings.ptt);
+  if (settings.hasSettingChanged(RadioSettings::PTT)) {
+    ptt(m_settings.getPtt());
     m_settings.clearChanged();
     return; // Don't try to do anything else concurrently with PTT.
   }
 
-  if (settings.changed & (RadioSettings::PIPELINE | RadioSettings::BAND)) {
+  if (settings.hasSettingChanged(RadioSettings::PIPELINE | RadioSettings::BAND)) {
     RxPipelineSettings* rxPipelineSettings = pBandSettings->getFocusRxPipelineSettings();
     if (m_pReceiver != nullptr) {
       m_pReceiver->apply(rxPipelineSettings);
@@ -159,36 +167,37 @@ Radio::applySettings(const RadioSettings& settings, BandSettings* pBandSettings)
     m_pControl->applySettings(m_settings, pBandSettings);
   }
 
-  if (settings.changed & RadioSettings::RX) {
+  if (settings.hasSettingChanged(RadioSettings::RX)) {
     if (m_pReceiver != nullptr) {
-      m_pReceiver->apply(m_settings.rxSettings);
+      m_pReceiver->apply(m_settings.getRxSettings());
     }
   }
-  if (settings.changed & RadioSettings::TX) {
+  if (settings.hasSettingChanged(RadioSettings::TX)) {
     if (m_pTransmitter != nullptr) {
-      m_pTransmitter->apply(m_settings.txSettings);
+      m_pTransmitter->apply(m_settings.getTxSettings());
     }
   }
   if (m_pEventTarget != nullptr) {
     // qDebug() << "Radio::applySettings posting RadioSettingsEvent";
     // qDebug() << m_settings.mode.getName().c_str();
-    QCoreApplication::postEvent(m_pEventTarget, new RadioSettingsEvent(settings, *pBandSettings));
+    RadioSettingsEvent* rse = new RadioSettingsEvent(settings, *pBandSettings);
+    QCoreApplication::postEvent(m_pEventTarget, rse);
   }
   m_settings.clearChanged();
   pBandSettings->clearChanged();
 }
 
 void
-Radio::applySingleSetting(const SingleSetting& setting)
+Radio::applySettingUpdate(SettingUpdate& update)
 {
   if (m_pEventTarget != nullptr) {
     // QCoreApplication::postEvent(m_pEventTarget, new SingleSettingEvent(setting));
   }
-
   // Intercept BAND changes so that any change can be detected and the new band settings marked as all changed to force updates
-  if (setting.getPath().getFeatures()[0] == RadioSettings::Features::BAND) {
-    std::string newBandName = std::get<std::string>(setting.getValue());
-    if (m_settings.bandName != newBandName) {
+  if (update.getPath().getFeatures()[0] == RadioSettings::Features::BAND) {
+    std::string newBandName = std::get<std::string>(update.getValue());
+
+    if (m_settings.getBandName() != newBandName) {
       BandSettings* pBandSettings = getBandSettings(newBandName);
       if (pBandSettings != nullptr) {
         pBandSettings->setAllChanged();
@@ -196,13 +205,14 @@ Radio::applySingleSetting(const SingleSetting& setting)
     }
   }
 
-  if (m_settings.applySetting(setting, 0)) {
+  if (m_settings.applyUpdate(update)) {
     applySettings(m_settings);
-  } else if (setting.getPath().getFeatures()[0] == RadioSettings::Features::PIPELINE) {
-    BandSettings* pBandSettings = getBandSettings(m_settings.bandName);
+  } else if (update.getCurrentFeature() == RadioSettings::Features::PIPELINE) {
+    BandSettings* pBandSettings = getBandSettings(m_settings.getBandName());
     if (pBandSettings != nullptr) {
-      if (pBandSettings->applySetting(setting, 1)) {
-        m_settings.changed |= RadioSettings::PIPELINE;
+      update.stepNextFeature();
+      if (pBandSettings->applyUpdate(update)) {
+        m_settings.markPipelineChanged();
         applySettings(m_settings, pBandSettings);
         pBandSettings->clearChanged();
       }
@@ -214,9 +224,9 @@ void
 Radio::applyBand(const std::string& bandName)
 {
   // qDebug() << "Radio::applyBand(): applying band " << bandName.c_str() << ". Existing band: " << m_settings.bandName.c_str() ;
-  SettingPath bandPath({RadioSettings::Features::BAND});
-  SingleSetting bandSetting(bandPath, bandName, SingleSetting::Meaning::VALUE);
-  applySingleSetting(bandSetting);
+  SettingUpdatePath bandPath({RadioSettings::Features::BAND});
+  SettingUpdate bandSetting(bandPath, bandName, SettingUpdate::Meaning::VALUE);
+  applySettingUpdate(bandSetting);
 }
 
 void Radio::ptt(bool on)

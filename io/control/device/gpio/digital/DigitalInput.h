@@ -7,13 +7,13 @@
 #include <cstdint>
 #include <vector>
 #include <config/DigitalInputConfig.h>
-#include "settings/SettingPath.h"
+#include "settings/SettingUpdatePath.h"
 #include "DigitalInputLinesRequest.h"
-#include "settings/SingleSettingSource.h"
+#include "settings/SettingUpdateSource.h"
 #include "io/control/ControlException.h"
 
 
-class DigitalInput : public GpioLines, public SingleSettingSource
+class DigitalInput : public GpioLines, public SettingUpdateSource
 {
 public:
 
@@ -26,19 +26,19 @@ public:
   [[nodiscard]] bool getDebounce() const { return m_debounce; }
   [[nodiscard]] bool getDetectEdge() const { return m_detectEdge; }
   // [[nodiscard]] const GpioLines& getLines() const { return m_lines; }
-  [[nodiscard]] const SettingPath& getSettingPath() const { return m_settingPath; }
+  [[nodiscard]] const SettingUpdatePath& getSettingPath() const { return m_settingPath; }
 
   virtual bool handleLineChange(DigitalInputLinesRequest::LineStates& changedLines);
 
-  void connect(SingleSettingSink* pSink) override;
+  void connect(SettingUpdateSink* pSink) override;
 protected:
   void notifyChange(const DigitalInputLinesRequest::LineState& lineState);
-  void notifySingleSetting(const SingleSetting& settingDelta) override;
+  void notifySettingUpdate(SettingUpdate& settingDelta) override;
 
   std::string m_id;
   bool m_activeHigh;
   bool m_debounce;
   bool m_detectEdge;
-  SettingPath m_settingPath;
-  SingleSettingSink* m_pSink;
+  SettingUpdatePath m_settingPath;
+  SettingUpdateSink* m_pSink;
 };

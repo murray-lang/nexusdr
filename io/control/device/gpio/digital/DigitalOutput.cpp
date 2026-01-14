@@ -20,12 +20,12 @@ DigitalOutput::configure(const ConfigBase* pConfig)
   auto* config = dynamic_cast<const DigitalOutputConfig*>(pConfig);
   GpioLines::configure(config);
   const std::string& strSettingPath = config->getSettingPath();
-  m_settingPath = RadioSettings::getSettingPath(strSettingPath);
+  m_settingPath = RadioSettings::getSettingUpdatePath(strSettingPath);
   setId(strSettingPath);
 }
 
 void
-DigitalOutput::applySingleSetting(const SingleSetting& setting)
+DigitalOutput::applySettingUpdate(SettingUpdate& setting)
 {
   if (setting.getPath() == m_settingPath) {
     bool value = std::get<bool>(setting.getValue());

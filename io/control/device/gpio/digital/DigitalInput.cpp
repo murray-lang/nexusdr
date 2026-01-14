@@ -5,7 +5,7 @@
 #include "DigitalInput.h"
 #include <settings/RadioSettings.h>
 
-#include "settings/SingleSettingSink.h"
+#include "settings/SettingUpdateSink.h"
 
 DigitalInput::DigitalInput() :
   GpioLines(Direction::INPUT),
@@ -24,20 +24,20 @@ DigitalInput::configure(const DigitalInputConfig* pConfig)
   m_debounce = pConfig->getDebounce();
   const std::string& strSettingPath = pConfig->getSettingPath();
   m_id = strSettingPath;
-  m_settingPath = RadioSettings::getSettingPath(strSettingPath);
+  m_settingPath = RadioSettings::getSettingUpdatePath(strSettingPath);
   setEdge(GpioLines::Edge::BOTH);
 }
 
 void
-DigitalInput::connect(SingleSettingSink* pSink)
+DigitalInput::connect(SettingUpdateSink* pSink)
 {
   m_pSink = pSink;
 }
 void
-DigitalInput::notifySingleSetting(const SingleSetting& settingDelta)
+DigitalInput::notifySettingUpdate(SettingUpdate& settingDelta)
 {
   if (m_pSink) {
-    m_pSink->applySingleSetting(settingDelta);
+    m_pSink->applySettingUpdate(settingDelta);
   }
 }
 
@@ -64,6 +64,6 @@ void
 DigitalInput::notifyChange(const DigitalInputLinesRequest::LineState& lineState)
 {
   bool active = m_activeHigh ? !!lineState.value : !lineState.value;
-  SingleSetting setting(m_settingPath, static_cast<bool>(active), SingleSetting::VALUE);
-  notifySingleSetting(setting);
+  SettingUpdate setting(m_settingPath, static_cast<bool>(active), SettingUpdate::VALUE);
+  notifySettingUpdate(setting);
 }

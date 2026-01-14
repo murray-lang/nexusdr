@@ -21,11 +21,7 @@ public:
   enum Features
   {
     NONE = 0,
-    // MODE = 0x01,
-    // RF = 0x02,
-    // IF = 0x04,
-    CORRECTION = 0x08,
-    // BAND= 0x10
+    CORRECTION = 0x01,
     ALL = static_cast<uint32_t>(~0U)
   };
 
@@ -40,54 +36,47 @@ public:
   {
     if (this != &rhs) {
       SettingsBase::operator=(rhs);
-      correctionSettings = rhs.correctionSettings;
+      m_correctionSettings = rhs.m_correctionSettings;
     }
     return *this;
   }
 
-  bool applySettings(const ReceiverSettings& settings)
+  IqCorrectionSettings& getCorrectionSettings()
   {
-    bool somethingChanged = false;
-    if (settings.changed & CORRECTION) {
-      correctionSettings = settings.correctionSettings;
-      changed |= CORRECTION;
-      somethingChanged = true;
-    }
-    return somethingChanged;
+    return m_correctionSettings;
   }
 
-  bool applySetting(const SingleSetting& setting, int startIndex) override
+  const IqCorrectionSettings& getCorrectionSettings() const
   {
-    if (startIndex >= setting.getPath().getFeatures().size()) {
+    return m_correctionSettings;
+  }
+
+  bool merge(const ReceiverSettings& settings)
+  {
+    if (m_correctionSettings.merge(settings.m_correctionSettings)) {
+      m_changed |= CORRECTION;
+      return true;
+    }
+    return false;
+  }
+
+  bool applyUpdate(SettingUpdate& update) override
+  {
+    if (update.isExhausted()) {
       throw SettingsException("Invalid setting path");
     }
+    uint32_t feature = update.getCurrentFeature();
+
+
     bool settingChange = false;
-    uint32_t feature = setting.getPath().getFeatures()[startIndex];
-    // if (feature & RF) {
-    //   settingChange = rfSettings.applySetting(setting, startIndex + 1);
-    //   if (rfSettings.changed & RfSettings::FREQUENCY || rfSettings.changed & RfSettings::OFFSET) {
-    //     uint64_t frequency = rfSettings.frequency + rfSettings.offset;
-    //     if (!band.isValid() || !band.containsFrequency(frequency)) {
-    //       const Band* newBand = bands.findBand(frequency);
-    //       if (newBand != nullptr) {
-    //         band = *newBand;
-    //       } else {
-    //         band.invalidate();
-    //       }
-    //       changed |= BAND;
-    //     }
-    //   }
-    //
-    // } else if (feature & IF) {
-    //   settingChange = ifSettings.applySetting(setting, startIndex + 1);
-    // } else
     if (feature == CORRECTION) {
-      settingChange = correctionSettings.applySetting(setting, startIndex + 1);
+      update.stepNextFeature();
+      settingChange = m_correctionSettings.applyUpdate(update);
     }
     if (settingChange) {
-      changed |= feature;
+      m_changed |= feature;
     }
-    return settingChange;
+    return false;
   }
 
   static bool getFeaturePath(
@@ -100,24 +89,13 @@ public:
       throw SettingsException("Invalid feature path");
     }
     const std::string& key = featureStrings[startIndex];
-
-    using PathFunc = bool(*)(const std::vector<std::string>&, std::vector<uint32_t>&, size_t);
-    static const std::map<std::string, std::pair<Features, PathFunc>> dispatch = {
-      {"correction", {CORRECTION, &IqCorrectionSettings::getFeaturePath}}
-    };
-
-    if (auto it = dispatch.find(key); it != dispatch.end()) {
-      featuresOut.push_back(it->second.first);
-      if (startIndex + 1 < featureStrings.size() && it->second.second) {
-        if(!it->second.second(featureStrings, featuresOut, startIndex + 1)) {
-          featuresOut.pop_back();
-          return false;
-        }
-      }
-      return true;
+    if (key == "correction") {
+      featuresOut.push_back(CORRECTION);
+      return IqCorrectionSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
     }
     return false;
   }
-  IqCorrectionSettings correctionSettings;
+protected:
+  IqCorrectionSettings m_correctionSettings;
 };
 

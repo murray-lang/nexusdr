@@ -84,6 +84,7 @@ private:
   void addModeButton();
   QMenu* createModeMenu(const Mode& currentMode);
   void updateModeButton(const Mode& mode);
+  // void updateModeMenu(const Mode& mode);
   void addLevelsButton();
   void addConfigButton();
   void addBandButton();
@@ -104,13 +105,13 @@ private:
   uint32_t m_panadapterXmax;
   uint32_t m_timeSeriesXmin;
   uint32_t m_timeSeriesXmax;
-  RadioSettings m_radioSettings;
-  BandSettings m_bandSettings;
+  RadioSettings m_radioSettingsCopy;
+  BandSettings m_bandSettingsCopy;
 
   QGraphicsLineItem *m_verticalCursorLine;
   QGraphicsRectItem * m_filterPassbandRect;
 
   QToolButton* m_modeButton;
-  QToolButton* m_bandButton;
+  QToolButton* m_bandButton{};
 };
 

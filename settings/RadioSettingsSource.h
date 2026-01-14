@@ -6,9 +6,9 @@
 
 
 #include "RadioSettingsSink.h"
-#include "SingleSettingSource.h"
+#include "SettingUpdateSource.h"
 
-class RadioSettingsSource : public SingleSettingSource
+class RadioSettingsSource : public SettingUpdateSource
 {
 public:
   ~RadioSettingsSource() override = default;

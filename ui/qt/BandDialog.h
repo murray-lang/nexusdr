@@ -16,7 +16,7 @@ namespace Ui
 
 class Radio;
 
-class BandDialog : public QDialog {
+class BandDialog : public QWidget {
   Q_OBJECT
 public:
   explicit BandDialog(Radio* pRadio, QWidget *parent = nullptr);
@@ -27,6 +27,8 @@ public:
 
 protected:
   bool event(QEvent *event) override;
+  // void showEvent(QShowEvent *event) override;
+  // void mousePressEvent(QMouseEvent *event) override;
 
 private:
   Ui::BandDialog *ui;

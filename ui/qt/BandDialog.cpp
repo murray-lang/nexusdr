@@ -8,6 +8,7 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QStyle>
+#include <QMouseEvent>
 
 #include "ui_BandDialog.h"
 #include "settings/Bands.h"
@@ -15,7 +16,7 @@
 #include "radio/Radio.h"
 
 BandDialog::BandDialog(Radio* pRadio, QWidget *parent) :
-  QDialog(parent), // Set flags here
+  QWidget(parent), // Set flags here
   ui(new Ui::BandDialog),
   m_pRadio(pRadio)
 {
@@ -23,6 +24,7 @@ BandDialog::BandDialog(Radio* pRadio, QWidget *parent) :
     throw std::runtime_error("BandDialog cannot be created with a null Radio pointer");
   }
   ui->setupUi(this);
+  // setFocusPolicy(Qt::StrongFocus);
   addCategoryTabs(pRadio);
   ui->tabWidget->style()->polish(ui->tabWidget);
 }
@@ -32,17 +34,37 @@ BandDialog::~BandDialog() {
 }
 
 bool BandDialog::event(QEvent *event) {
-  if (event->type() == QEvent::WindowDeactivate) {
+  if (event->type() == QEvent::Leave) {
     close();
+    // this->deleteLater(); // Use deleteLater for safety in event handlers
+    return true;
   }
-  return QDialog::event(event);
+  return QWidget::event(event);
 }
+
+// void
+// BandDialog::showEvent(QShowEvent *event)
+// {
+//   QWidget::showEvent(event);
+//   grabMouse();
+// }
+//
+// void
+// BandDialog::mousePressEvent(QMouseEvent *event)
+// {
+//   if (!rect().contains(event->pos())) {
+//     releaseMouse();
+//     this->deleteLater();
+//   } else {
+//     QWidget::mousePressEvent(event);
+//   }
+// }
 
 void
 BandDialog::addCategoryTabs(Radio* pRadio)
 {
   if (pRadio != nullptr) {
-    RadioSettings& settings = pRadio->getRadioSettings();
+    const RadioSettings& settings = pRadio->getRadioSettings();
     const Bands& bands = pRadio->getBands();
     const std::string& selectedBandName = settings.getBandName();
     const BandCategory* selectedCategory = bands.findCategoryOfBand(selectedBandName);
@@ -100,7 +122,8 @@ BandDialog::addCategoryTab(const BandCategory& category, bool isSelected, const 
       bandBtn->setProperty("selected", true);
       bandBtn->style()->unpolish(bandBtn);
       bandBtn->style()->polish(bandBtn);
-      m_pRadio->applyBand(band.getName());
+
+      m_pRadio->applyBand(band.getName()); // <-- This is what it's all for
       // this->close();
     });
 

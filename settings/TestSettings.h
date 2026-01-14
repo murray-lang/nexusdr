@@ -17,7 +17,7 @@ class TestSettings : public SettingsBase
     ALL = static_cast<uint32_t>(~0U)
   };
 
-  TestSettings() : SettingsBase(), twoToneSettings() {}
+  TestSettings() : SettingsBase(), m_twoToneSettings() {}
   TestSettings(const TestSettings& rhs) = default;
   ~TestSettings() override = default;
 
@@ -25,37 +25,35 @@ class TestSettings : public SettingsBase
   {
     if (this != &rhs) {
       SettingsBase::operator=(rhs);
-      twoToneSettings = rhs.twoToneSettings;
+      m_twoToneSettings = rhs.m_twoToneSettings;
     }
     return *this;
   }
 
-  bool applySettings(const TestSettings& settings)
+  TwoToneSettings& getTwoToneSettings() { return m_twoToneSettings; }
+
+  bool merge(const TestSettings& settings)
   {
-    bool somethingChanged = false;
-    if (settings.changed & TWO_TONE) {
-      twoToneSettings = settings.twoToneSettings;
-      changed |= TWO_TONE;
-      somethingChanged = true;
-    }
-    return somethingChanged;
+    return m_twoToneSettings.merge(settings.m_twoToneSettings);
   }
 
 
-  bool applySetting(const SingleSetting& setting, int startIndex) override
+  bool applyUpdate(SettingUpdate& update) override
   {
-    if (startIndex >= setting.getPath().getFeatures().size()) {
+    if (update.isExhausted()) {
       throw SettingsException("Invalid setting path");
     }
-    bool settingChange = false;
-    uint32_t feature = setting.getPath().getFeatures()[startIndex];
+    uint32_t feature = update.getCurrentFeature();
+
     if (feature == TWO_TONE) {
-      settingChange = twoToneSettings.applySetting(setting, startIndex + 1);
+      update.stepNextFeature();
+      if (m_twoToneSettings.applyUpdate(update)) {
+        m_changed |= TWO_TONE;
+        return true;
+      }
     }
-    if (settingChange) {
-      changed |= feature;
-    }
-    return settingChange;
+
+    return false;
   }
 
   static bool getFeaturePath(
@@ -69,16 +67,10 @@ class TestSettings : public SettingsBase
     }
     if (featureStrings[startIndex] == "two-tone") {
       featuresOut.push_back(TWO_TONE);
-      if (startIndex + 1 < featureStrings.size()) {
-        if (!TwoToneSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1)) {
-          featuresOut.pop_back();
-          return false;
-        }
-      }
-      return true;
+      return TwoToneSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
     }
     return false;
   }
-
-  TwoToneSettings twoToneSettings;
+protected:
+  TwoToneSettings m_twoToneSettings;
 };

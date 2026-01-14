@@ -75,8 +75,8 @@ void
 IqRxPipeline::apply(const ReceiverSettings& settings)
 {
   std::lock_guard<std::mutex> lock(m_settingsMutex);
-  if (settings.changed & ReceiverSettings::CORRECTION) {
-    m_iqCorrection.apply(settings.correctionSettings);
+  if (settings.hasSettingChanged(ReceiverSettings::CORRECTION)) {
+    m_iqCorrection.apply(settings.getCorrectionSettings());
   }
 }
 
@@ -85,13 +85,13 @@ IqRxPipeline::apply(const RxPipelineSettings* settings)
 {
   if (settings != nullptr) {
     std::lock_guard<std::mutex> lock(m_settingsMutex);
-    if (settings->changed & PipelineSettings::RF) {
-      if (settings->rfSettings.changed & RfSettings::OFFSET) {
-        m_oscillatorMixer.setFrequency(-settings->rfSettings.offset);
+    if (settings->hasSettingChanged(PipelineSettings::RF)) {
+      if (settings->getRfSettings().hasSettingChanged(RfSettings::OFFSET)) {
+        m_oscillatorMixer.setFrequency(-settings->getRfSettings().getOffset());
       }
     }
-    if (settings->changed & PipelineSettings::MODE) {
-      setMode(settings->mode);
+    if (settings->hasSettingChanged(PipelineSettings::MODE)) {
+      setMode(settings->getMode());
     }
   }
 }

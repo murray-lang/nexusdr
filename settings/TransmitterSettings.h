@@ -23,11 +23,8 @@ public:
     // BAND = 0x20
     ALL = static_cast<uint32_t>(~0U)
   };
-  TransmitterSettings(/*const Bands& bands, const ModeSettings& modeSettings*/)
-  // :
-  //   modeSettings(modeSettings), bands(bands), rfSettings()
-  {}
-  // TransmitterSettings(const TransmitterSettings& rhs) = default;
+  TransmitterSettings() = default;
+  TransmitterSettings(const TransmitterSettings& rhs) = default;
   ~TransmitterSettings() override = default;
 
   TransmitterSettings& operator=(const TransmitterSettings& rhs)
@@ -35,55 +32,51 @@ public:
     if (this != &rhs) {
       SettingsBase::operator=(rhs);
       // rfSettings = rhs.rfSettings;
-      correctionSettings = rhs.correctionSettings;
-      micSettings = rhs.micSettings;
-      testSettings = rhs.testSettings;
+      m_correctionSettings = rhs.m_correctionSettings;
+      m_micSettings = rhs.m_micSettings;
+      m_testSettings = rhs.m_testSettings;
       // mode = rhs.mode;
       // band = rhs.band;
     }
     return *this;
   }
 
-  bool applySettings(const TransmitterSettings& settings)
+  bool merge
+  (const TransmitterSettings& settings)
   {
-    bool somethingChanged = correctionSettings.applySettings(settings.correctionSettings);
-    somethingChanged |= micSettings.applySettings(settings.micSettings);
-    somethingChanged |= testSettings.applySettings(settings.testSettings);
-    return somethingChanged;
-
+    return m_correctionSettings.merge(settings.m_correctionSettings)
+    | m_micSettings.merge(settings.m_micSettings)
+    | m_testSettings.merge(settings.m_testSettings);
   }
 
-  bool applySetting(const SingleSetting& setting, int startIndex) override
+  IqCorrectionSettings& getCorrectionSettings() { return m_correctionSettings; }
+  MicSettings& getMicSettings() { return m_micSettings; }
+  TestSettings& getTestSettings() { return m_testSettings; }
+
+  [[nodiscard]] const IqCorrectionSettings& getCorrectionSettings() const { return m_correctionSettings; }
+  [[nodiscard]] const MicSettings& getMicSettings() const { return m_micSettings; }
+  [[nodiscard]] const TestSettings& getTestSettings() const { return m_testSettings; }
+
+  bool applyUpdate(SettingUpdate& update) override
   {
-    if (startIndex >= setting.getPath().getFeatures().size()) {
+    if (update.isExhausted()) {
       throw SettingsException("Invalid setting path");
     }
+    uint32_t feature = update.getCurrentFeature();
+    const auto& val = update.getValue();
     bool settingChange = false;
-    uint32_t feature = setting.getPath().getFeatures()[startIndex];
-    // if (feature == RF) {
-    //   settingChange = rfSettings.applySetting(setting, startIndex + 1);
-    //   if (rfSettings.changed & RfSettings::FREQUENCY || rfSettings.changed & RfSettings::OFFSET) {
-    //     uint64_t frequency = rfSettings.frequency + rfSettings.offset;
-    //     if (!band.isValid() || !band.containsFrequency(frequency)) {
-    //       const Band* newBand = bands.findBand(frequency);
-    //       if (newBand != nullptr) {
-    //         band = *newBand;
-    //       } else {
-    //         band.invalidate();
-    //       }
-    //       changed |= BAND;
-    //     }
-    //   }
-    // } else
     if (feature == CORRECTION) {
-      settingChange = correctionSettings.applySetting(setting, startIndex + 1);
+      update.stepNextFeature();
+      settingChange = m_correctionSettings.applyUpdate(update);
     } else if (feature == MIC) {
-      settingChange = micSettings.applySetting(setting, startIndex + 1);
+      update.stepNextFeature();
+      settingChange = m_micSettings.applyUpdate(update);
     } else if (feature == TEST) {
-      settingChange = testSettings.applySetting(setting, startIndex + 1);
+      update.stepNextFeature();
+      settingChange = m_testSettings.applyUpdate(update);
     }
     if (settingChange) {
-      changed |= feature;
+      m_changed |= feature;
     }
     return settingChange;
   }
@@ -91,17 +84,17 @@ public:
   void clearChanged() override
   {
     SettingsBase::clearChanged();
-    correctionSettings.clearChanged();
-    micSettings.clearChanged();
-    testSettings.clearChanged();
+    m_correctionSettings.clearChanged();
+    m_micSettings.clearChanged();
+    m_testSettings.clearChanged();
   }
 
   void setAllChanged() override
   {
     SettingsBase::setAllChanged();
-    correctionSettings.setAllChanged();
-    micSettings.setAllChanged();
-    testSettings.setAllChanged();
+    m_correctionSettings.setAllChanged();
+    m_micSettings.setAllChanged();
+    m_testSettings.setAllChanged();
   }
 
   static bool getFeaturePath(
@@ -121,38 +114,20 @@ public:
     // } else
     if (featureStrings[startIndex] == "correction") {
       featuresOut.push_back(CORRECTION);
-      if (startIndex + 1 < featureStrings.size()) {
-        if (!IqCorrectionSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1)) {
-          featuresOut.pop_back();
-          return false;
-        }
-      }
-    } else if (featureStrings[startIndex] == "mic") {
+      return IqCorrectionSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
+    }
+    if (featureStrings[startIndex] == "mic") {
       featuresOut.push_back(MIC);
-      if (startIndex + 1 < featureStrings.size()) {
-        if (!MicSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1)) {
-          featuresOut.pop_back();
-          return false;
-        }
-      }
-    }  else if (featureStrings[startIndex] == "test") {
+      return MicSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
+    }
+    if (featureStrings[startIndex] == "test") {
       featuresOut.push_back(TEST);
-      if (startIndex + 1 < featureStrings.size()) {
-        if (!TestSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1)) {
-          featuresOut.pop_back();
-          return false;
-        }
-      }
+      return TestSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
     }
     return false;
   }
-
-  // Mode mode;
-  // const ModeSettings& modeSettings;
-  // Band band;
-  // const Bands& bands;
-  // RfSettings rfSettings;
-  IqCorrectionSettings correctionSettings;
-  MicSettings micSettings;
-  TestSettings testSettings;
+protected:
+  IqCorrectionSettings m_correctionSettings;
+  MicSettings m_micSettings;
+  TestSettings m_testSettings;
 };
