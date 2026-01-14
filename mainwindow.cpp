@@ -173,7 +173,7 @@ MainWindow::on_actionBand_triggered()
     // QWidget* centralWidget = this->centralWidget();
     QWidget* existing = findChild<QWidget*>("bandPanel");
     if (existing) {
-      existing->close();
+      existing->deleteLater();
       return;
     }
     auto* panel = new QtBandDialog(m_pRadio, this);
@@ -204,7 +204,7 @@ MainWindow::closeActiveToolbarPopups()
   const auto panels = this->centralWidget()->findChildren<QWidget*>();
   for (auto* panel : panels) {
     if (panel->property(toolbarPopupPropertyName).toBool()) {
-      panel->close();
+      panel->deleteLater();
     }
   }
 }
@@ -212,20 +212,20 @@ MainWindow::closeActiveToolbarPopups()
 bool
 MainWindow::eventFilter(QObject *watched, QEvent *event)
 {
-  if (watched == this->centralWidget() && event->type() == QEvent::MouseButtonPress) {
-    auto* mouseEvent = static_cast<QMouseEvent*>(event);
-
-    const auto panels = this->centralWidget()->findChildren<QWidget*>();
-    for (auto* panel : panels) {
-      if (panel->property(toolbarPopupPropertyName).toBool() && panel->isVisible()) {
-        // If the click is outside this panel, close it
-        if (!panel->geometry().contains(mouseEvent->pos())) {
-          panel->close();
-          return true; // Consume the event so it doesn't click the UI behind
-        }
-      }
-    }
-  }
+  // if (watched == this->centralWidget() && event->type() == QEvent::MouseButtonPress) {
+  //   auto* mouseEvent = static_cast<QMouseEvent*>(event);
+  //
+  //   const auto panels = this->centralWidget()->findChildren<QWidget*>();
+  //   for (auto* panel : panels) {
+  //     if (panel->property(toolbarPopupPropertyName).toBool() && panel->isVisible()) {
+  //       // If the click is outside this panel, close it
+  //       if (!panel->geometry().contains(mouseEvent->pos())) {
+  //         panel->deleteLater();
+  //         return true; // Consume the event so it doesn't click the UI behind
+  //       }
+  //     }
+  //   }
+  // }
   return QMainWindow::eventFilter(watched, event);
 }
 
