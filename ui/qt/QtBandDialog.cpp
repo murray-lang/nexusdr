@@ -94,6 +94,7 @@ QtBandDialog::addCategoryTab(const BandCategory& category, bool isSelected, cons
   QGridLayout* layout = new QGridLayout(tab);
   layout->setContentsMargins(9, 9, 9, 9);
   layout->setSpacing(1);
+  layout->setVerticalSpacing(10);
 
   const int columns = 5;
   int row = 0;
@@ -102,8 +103,8 @@ QtBandDialog::addCategoryTab(const BandCategory& category, bool isSelected, cons
   for (const auto& band : category.getBands()) {
     QPushButton* bandBtn = new QPushButton(QString::fromStdString(band.getLabel()));
     m_bandButtons.append(bandBtn);
-    bandBtn->setMaximumHeight(20);
-    bandBtn->setMaximumWidth(40);
+    bandBtn->setMaximumHeight(30);
+    bandBtn->setMaximumWidth(60);
     bandBtn->setProperty("class", "toolbarDialogButton");
 
     bool isSelectedBand = band.getName() == selectedBandName;
