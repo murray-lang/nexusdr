@@ -26,9 +26,16 @@ public:
   void start();
   void stop();
 
+  template<typename T>
+  void applySetting(const char * dottedString, T value, bool isDelta = false)
+  {
+    SettingUpdatePath path = RadioSettings::getSettingUpdatePath(dottedString);
+    SettingUpdate update(path, value, isDelta ? SettingUpdate::DELTA : SettingUpdate::VALUE);
+    applySettingUpdate(update);
+  }
   void applySettings(const RadioSettings& settings) override;
   void applySettings(const RadioSettings& settings, BandSettings* pBandSettings) override;
-  void applySettingUpdate(SettingUpdate& settingDelta) override;
+  void applySettingUpdate(SettingUpdate& setting) override;
 
   void applyBand(const std::string& bandName);
 
