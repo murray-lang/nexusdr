@@ -98,6 +98,7 @@ public:
           throw SettingsException("Invalid setting path");
         }
       }
+      break;
     }
     default:
       return false;
