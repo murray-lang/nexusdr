@@ -39,13 +39,19 @@ public:
     return (m_cursor < features.size()) ? features[m_cursor] : 0; // 0 = NONE
   }
 
-  void stepNextFeature() {
+  SettingUpdate& stepNextFeature() {
     m_cursor++;
+    return *this;
   }
 
   [[nodiscard]] bool isExhausted() const
   {
     return m_cursor >= m_settingPath.getFeatures().size();
+  }
+
+  [[nodiscard]] bool isFinal() const
+  {
+    return m_cursor == m_settingPath.getFeatures().size() - 1;
   }
 
 

@@ -32,7 +32,7 @@ public:
 
   void applyBand(const std::string& bandName);
 
-  void applyRfSettings(const RfSettings& settings);
+  void applyRfSettings(const RfSettings& settings, bool onlyChanged = false);
   void applyIfSettings(const IfSettings& settings);
 
   RadioSettings& getRadioSettings() { return m_settings; }

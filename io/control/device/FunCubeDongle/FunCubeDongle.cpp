@@ -28,7 +28,7 @@ FunCubeDongle::applySettings(const RadioSettings& radioSettings, BandSettings* p
   if (radioSettings.hasSettingChanged(RadioSettings::PIPELINE)) {
     // qDebug() << "  FunCubeDongle::applySettings: PIPELINE changed";
     const RfSettings& rfSettings = pBandSettings->getFocusRxRfSettings();
-    if (rfSettings.hasSettingChanged(RfSettings::FREQUENCY)) {
+    if (rfSettings.hasSettingChanged(RfSettings::CENTRE_FREQUENCY)) {
         // qDebug() << "    FunCubeDongle::applySettings: FREQUENCY changed to " << rfSettings.frequency;
       setFrequency(rfSettings.getFrequency());
       setRfFilter(rfSettings.getFrequency());

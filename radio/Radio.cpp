@@ -117,11 +117,12 @@ Radio::getBandSettings(const std::string& bandName) const
 }
 
 void
-Radio::applyRfSettings(const RfSettings& settings)
+Radio::applyRfSettings(const RfSettings& settings, bool onlyChanged)
 {
   for (auto& item : m_bandSettings) {
-    item.second.applyRfSettings(settings);
+    item.second.applyRfSettings(settings, onlyChanged);
   }
+  m_settings.markPipelineChanged();
 }
 
 void

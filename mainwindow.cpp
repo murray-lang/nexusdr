@@ -142,7 +142,7 @@ MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings, const B
     return;
   }
   RfSettings& rfSettings = rxPipelineSettings->getRfSettings();
-  bool frequencyChanged = (rfSettings.hasSettingChanged(RfSettings::Features::FREQUENCY)) != 0;
+  bool frequencyChanged = (rfSettings.hasSettingChanged(RfSettings::Features::CENTRE_FREQUENCY)) != 0;
   bool offsetChanged = (rfSettings.hasSettingChanged(RfSettings::Features::OFFSET)) != 0;
   bool modeChanged = (rxPipelineSettings->hasSettingChanged(PipelineSettings::Features::MODE)) != 0;
 
@@ -472,8 +472,9 @@ MainWindow::initialiseRadio()
 
     RfSettings rfSettings;
     rfSettings.setGain(30.0);
-    rfSettings.setGainStep(1.0);
-    m_pRadio->applyRfSettings(rfSettings);
+    rfSettings.setGainCoarseStep(1.0);
+    rfSettings.setGainFineStep(0.1);
+    m_pRadio->applyRfSettings(rfSettings, true);
 
     IfSettings ifSettings;
     ifSettings.setGain(0.0);

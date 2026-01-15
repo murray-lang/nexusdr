@@ -26,8 +26,8 @@ public:
     m_amplitude(this, "amplitude", 0.0),
     m_amplitudeStep(this, "amplitude-step", DEFAULT_STEP_SIZE)
   {
-    m_phase.setStepValueAddress(m_phaseStep.getValueAddress());
-    m_amplitude.setStepValueAddress(m_amplitudeStep.getValueAddress());
+    m_phase.setFineStepValueAddress(m_phaseStep.getValueAddress());
+    m_amplitude.setFineStepValueAddress(m_amplitudeStep.getValueAddress());
   }
   IqCorrectionSettings(const IqCorrectionSettings& rhs) :
     SettingsBase(rhs),
@@ -36,8 +36,8 @@ public:
     m_amplitude(this, rhs.m_amplitude),
     m_amplitudeStep(this, rhs.m_amplitudeStep)
   {
-    m_phase.setStepValueAddress(m_phaseStep.getValueAddress());
-    m_amplitude.setStepValueAddress(m_amplitudeStep.getValueAddress());
+    m_phase.setFineStepValueAddress(m_phaseStep.getValueAddress());
+    m_amplitude.setFineStepValueAddress(m_amplitudeStep.getValueAddress());
   }
   ~IqCorrectionSettings() override = default;
 

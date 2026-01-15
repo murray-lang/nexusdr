@@ -357,6 +357,7 @@ set(PROJECT_SOURCES
         ui/qt/QtTimeSeriesChart.h
         ui/qt/QtPanadapter.cpp
         ui/qt/QtPanadapter.h
+        settings/SteppableSetting.h
 
 )
 

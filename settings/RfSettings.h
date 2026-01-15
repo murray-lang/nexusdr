@@ -12,115 +12,147 @@
 #include "SettingsException.h"
 #include <QDebug>
 
+#include "SteppableSetting.h"
+
 class RfSettings : public SettingsBase
 {
 public:
   enum Features
   {
     NONE = 0,
-    FREQUENCY = 0x01,
-    FREQUENCY_STEP = 0x02,
-    OFFSET = 0x04,
-    OFFSET_STEP = 0x08,
-    GAIN = 0x10,
-    GAIN_STEP = 0x20,
+    CENTRE_FREQUENCY = 0x01,
+    OFFSET = 0x02,
+    GAIN = 0x04,
     ALL = static_cast<uint32_t>(~0U)
   };
   RfSettings() :
-    m_frequency(this, "frequency", 0),
-    m_frequencyStep(this, "frequency-step", 10000),
-    m_offset(this, "offset", 0),
-    m_offsetStep(this, "offset-step", 50),
-    m_gain(this, "gain", 0.0),
-    m_gainStep(this, "gain-step", 0.0)
+    SettingsBase()
+    ,m_centreFrequency(this, "centre-frequency")
+    ,m_offset(this, "offset")
+    ,m_gain(this, "gain")
   {
-    m_frequency.setStepValueAddress(m_frequencyStep.getValueAddress());
-    m_offset.setStepValueAddress(m_offsetStep.getValueAddress());
   }
   RfSettings(const RfSettings& rhs) :
-    SettingsBase(rhs),
-    m_frequency(this, rhs.m_frequency),
-    m_frequencyStep(this, rhs.m_frequencyStep),
-    m_offset(this, rhs.m_offset),
-    m_offsetStep(this, rhs.m_offsetStep),
-    m_gain(this, rhs.m_gain),
-    m_gainStep(this, rhs.m_gainStep)
+    SettingsBase(rhs)
+    ,m_centreFrequency(this, "centre-frequency")
+    ,m_offset(this, "offset")
+    ,m_gain(this, "gain")
   {
-    m_frequency.setStepValueAddress(m_frequencyStep.getValueAddress());
-    m_offset.setStepValueAddress(m_offsetStep.getValueAddress());
+    merge(rhs);
   }
-  // RfSettings(const RfSettings& rhs) = default;
   ~RfSettings() override = default;
 
   RfSettings& operator=(const RfSettings& rhs)
   {
     if (this != &rhs) {
       SettingsBase::operator=(rhs);
-      m_frequency = rhs.m_frequency;
-      m_frequencyStep = rhs.m_frequencyStep;
+      m_centreFrequency = rhs.m_centreFrequency;
       m_offset = rhs.m_offset;
-      m_offsetStep = rhs.m_offsetStep;
       m_gain = rhs.m_gain;
-      m_gainStep = rhs.m_gainStep;
     }
     return *this;
   }
 
-  [[nodiscard]] uint32_t getFrequency() const { return m_frequency(); }
-  [[nodiscard]] int32_t getFrequencyStep() const { return m_frequencyStep(); }
-  [[nodiscard]] int32_t getOffset() const { return m_offset(); }
-  [[nodiscard]] int32_t getOffsetStep() const { return m_offsetStep(); }
-  [[nodiscard]] float getGain() const { return m_gain(); }
-  [[nodiscard]] float getGainStep() const { return m_gainStep(); }
+  [[nodiscard]] uint32_t getFrequency() const { return m_centreFrequency.getValue(); }
+  [[nodiscard]] int32_t getOffset() const { return m_offset.getValue(); }
+  [[nodiscard]] float getGain() const { return m_gain.getValue(); }
 
-  void setFrequency(uint32_t frequency) { m_frequency(frequency); }
-  void setFrequencyStep(int32_t frequencyStep) { m_frequencyStep(frequencyStep); }
-  void setOffset(int32_t offset) { m_offset(offset); }
-  void setOffsetStep(int32_t offsetStep) { m_offsetStep(offsetStep); }
-  void setGain(float gain) { m_gain(gain); }
-  void setGainStep(float gainStep) { m_gainStep(gainStep); }
+  void setCentreFrequency(uint32_t frequency)
+  {
+    m_centreFrequency.setValue(frequency);
+    m_changed |= CENTRE_FREQUENCY;
+  }
+  void setCentreFrequencyCoarseStep(int32_t step)
+  {
+    m_centreFrequency.setCoarseStep(step);
+    m_changed |= CENTRE_FREQUENCY;
+  }
+  void setCentreFrequencyFineStep(int32_t step)
+  {
+    m_centreFrequency.setFineStep(step);
+    m_changed |= CENTRE_FREQUENCY;
+  }
 
-  // void clearChanged() override
-  // {
-  //   qDebug() << "RfSettings::clearChanged called";
-  //   SettingsBase::clearChanged();
-  // }
+  void setOffset(int32_t offset)
+  {
+    m_offset.setValue(offset);
+    m_changed |= OFFSET;
+  }
+  void setOffsetCoarseStep(int32_t step)
+  {
+    m_offset.setCoarseStep(step);
+    m_changed |= OFFSET;
+  }
+  void setOffsetFineStep(int32_t step)
+  {
+    m_offset.setFineStep(step);
+    m_changed |= OFFSET;
+  }
 
-  // void setAllChanged() override
-  // {
-  //   qDebug() << "RfSettings::setAllChanged called";
-  //   SettingsBase::setAllChanged();
-  // }
+  void setGain(float gain)
+  {
+    m_gain.setValue(gain);
+    m_changed |= GAIN;
+  }
+  void setGainCoarseStep(float step)
+  {
+    m_gain.setCoarseStep(step);
+    m_changed |= GAIN;
+  }
+  void setGainFineStep(float step)
+  {
+    m_gain.setCoarseStep(step);
+    m_changed |= GAIN;
+  }
 
   void copyFrequencies(const RfSettings& rhs)
   {
-    m_frequency.merge(rhs.m_frequency);
+    m_centreFrequency.merge(rhs.m_centreFrequency);
     m_offset.merge(rhs.m_offset);
-    m_frequencyStep.merge(rhs.m_frequencyStep);
-    m_offsetStep.merge(rhs.m_offsetStep);
   }
 
-  bool setBand(const Band& band)
+  bool applyBandDefaults(const Band& band)
   {
     if (band.isValid()) {
-      uint64_t freqPlusOffset = m_frequency() + m_offset();
+      uint64_t freqPlusOffset = m_centreFrequency.getValue() + m_offset.getValue();
       if (!band.containsFrequency(freqPlusOffset)) {
-        m_frequency(band.getLandingFrequency());
-        m_offset(0);
+        // Adjusting 10kHz gets the landing frequency off any centre spike (in case of poor IQ correction)
+        m_centreFrequency.setValue(band.getLandingFrequency() - 10000);
+        // Note: The centre frequency steps need to ba a function of the sample rate (we don't want gaps
+        // in what we see of the band when we step the centre frequency.
+        m_offset.setValue(10000);
+        m_offset.setCoarseStep(band.getDefaultCoarseStep());
+        m_offset.setFineStep(band.getDefaultFineStep());
         return true;
       }
     }
     return false;
   }
 
-  bool merge(const RfSettings& settings)
+  void setAllChanged() override
   {
-    return m_frequency.merge(settings.m_frequency)
-      | m_frequencyStep.merge(settings.m_frequencyStep)
-      | m_offset.merge(settings.m_offset)
-      | m_offsetStep.merge(settings.m_offsetStep)
-      | m_gain.merge(settings.m_gain)
-      | m_gainStep.merge(settings.m_gainStep);
+    SettingsBase::setAllChanged();
+    m_centreFrequency.setAllChanged();
+    m_offset.setAllChanged();
+    m_gain.setAllChanged();
+  }
+
+  bool merge(const RfSettings& settings, bool onlyChanged = false)
+  {
+    bool changed = false;
+    if (m_centreFrequency.merge(settings.m_centreFrequency, onlyChanged) ) {
+      m_changed |= CENTRE_FREQUENCY;
+      changed = true;
+    }
+    if (m_offset.merge(settings.m_offset, onlyChanged)) {
+      m_changed |= OFFSET;
+      changed = true;
+    }
+    if (m_gain.merge(settings.m_gain, onlyChanged)) {
+      m_changed |= GAIN;
+      changed = true;
+    }
+    return changed;
   }
 
   bool applyUpdate(SettingUpdate& update) override
@@ -132,13 +164,11 @@ public:
     const auto& val = update.getValue();
 
     switch (feature) {
-    case FREQUENCY: return m_frequency.apply(update);
-    case FREQUENCY_STEP: return m_frequencyStep.apply(val);
-    case OFFSET: return m_offset.apply(update);
-    case OFFSET_STEP: return m_offsetStep.apply(val);
-    case GAIN: return m_gain.apply(update);
-    case GAIN_STEP: return m_gainStep.apply(val);
-    default: return false;
+    case CENTRE_FREQUENCY: return m_centreFrequency.applyUpdate(update.stepNextFeature());
+    case OFFSET: return m_offset.applyUpdate(update.stepNextFeature());
+    case GAIN: return m_gain.applyUpdate(update.stepNextFeature());
+    default:
+      return false;
     }
   }
 
@@ -148,14 +178,29 @@ public:
     size_t startIndex
     )
   {
-    return resolvePathForRegisteredSetting<RfSettings>(featureStrings, out, startIndex);
+    if (startIndex >= featureStrings.size()) {
+      throw SettingsException("Invalid feature path");
+    }
+    if (resolvePathForRegisteredSetting<RfSettings>(featureStrings, out, startIndex)) {
+      if (CentreFrequencyType::getFeaturePath(featureStrings, out, startIndex + 1)) {
+        return true;
+      }
+      if (OffsetType::getFeaturePath(featureStrings, out, startIndex + 1)) {
+        return true;
+      }
+      if (GainType::getFeaturePath(featureStrings, out, startIndex + 1)) {
+        return true;
+      }
+    }
+    return false;
   }
 
 protected:
-  Setting<uint32_t, FREQUENCY, RfSettings, int32_t> m_frequency;
-  Setting<int32_t, FREQUENCY_STEP, RfSettings> m_frequencyStep;
-  Setting<int32_t, OFFSET, RfSettings, int32_t> m_offset;
-  Setting<int32_t, OFFSET_STEP, RfSettings> m_offsetStep;
-  Setting<float, GAIN, RfSettings> m_gain;
-  Setting<float, GAIN_STEP, RfSettings> m_gainStep;
+  using CentreFrequencyType = SteppableSetting<uint32_t, CENTRE_FREQUENCY, RfSettings, int32_t>;
+  using OffsetType = SteppableSetting<int32_t, OFFSET, RfSettings>;
+  using GainType = SteppableSetting<float, GAIN, RfSettings>;
+
+  CentreFrequencyType m_centreFrequency;
+  OffsetType m_offset;
+  GainType m_gain;
 };
