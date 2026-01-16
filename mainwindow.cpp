@@ -476,8 +476,8 @@ MainWindow::initialiseRadio()
     rfSettings.setGainFineStep(0.1);
     m_pRadio->applyRfSettings(rfSettings, true);
 
-    uint32_t centreFreqStepCoarse = 50000;
-    m_pRadio->applySetting("pipeline.rx-pipeline.rf.centre.step.coarse", centreFreqStepCoarse);
+    // int32_t centreFreqStepCoarse = 50000;
+    // m_pRadio->applySetting("pipeline.rx-pipeline.rf.centre-frequency.coarse-step", centreFreqStepCoarse);
 
     IfSettings ifSettings;
     ifSettings.setGain(0.0);
