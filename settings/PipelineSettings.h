@@ -89,6 +89,11 @@ public:
     return m_rfSettings.applyBandDefaults(band);
   }
 
+  void setCentreFrequencyDeltas(int32_t fine, int32_t coarse)
+  {
+    m_rfSettings.setCentreFrequencyDeltas(fine, coarse);
+  }
+
   RfSettings& getRfSettings()
   {
     return m_rfSettings;

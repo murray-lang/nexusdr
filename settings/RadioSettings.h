@@ -26,7 +26,7 @@ public:
   {
     NONE = 0,
     PTT = 0x01,
-    PIPELINE = 0x02,
+    BAND_SETTINGS = 0x02,
     TX = 0x04,
     RX = 0x08,
     BAND = 0x10,
@@ -77,7 +77,7 @@ public:
       return m_ptt.apply(val);
     case BAND:
       if (m_bandName.apply(val)) {
-        m_changed |= PIPELINE; // Side effect: Band change affects pipeline
+        m_changed |= BAND_SETTINGS; // Side effect: Band change affects pipeline
         return true;
       }
       return false;
@@ -116,7 +116,7 @@ public:
     m_changed &= ~PTT;
   }
 
-  void markPipelineChanged() { m_changed |= PIPELINE; }
+  void markPipelineChanged() { m_changed |= BAND_SETTINGS; }
 
   static SettingUpdatePath getSettingUpdatePath(const std::string& strDottedFeatures)
   {
@@ -144,12 +144,12 @@ public:
     }
 
     const std::string& key = featureStrings[startIndex];
-    if (key == "pipeline") {
+    if (key == "band-settings") {
       // Note that BandSettings contains separate pipeline settings for each band. This is why there is
       // currently a confusing mismatch between pipeline settings and BandSettings.
       // Also, BandSettings is not a member of RadioSettings for efficiency reasons. However,
       // pipeline settings paths are managed here for convenience.
-      featuresOut.push_back(PIPELINE);
+      featuresOut.push_back(BAND_SETTINGS);
       return BandSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
     }
     if (key == "rx") {

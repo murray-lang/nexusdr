@@ -94,6 +94,14 @@ Radio::initialiseBandSettings()
   }
 }
 
+void
+Radio::setCentreFrequencyDeltas(int32_t fine, int32_t coarse)
+{
+  for (auto& item : m_bandSettings) {
+    item.second.setCentreFrequencyDeltas(fine, coarse);
+  }
+}
+
 BandSettings*
 Radio::getBandSettings(const std::string& bandName)
 {
@@ -154,7 +162,7 @@ Radio::applySettings(const RadioSettings& settings, BandSettings* pBandSettings)
     return; // Don't try to do anything else concurrently with PTT.
   }
 
-  if (settings.hasSettingChanged(RadioSettings::PIPELINE | RadioSettings::BAND)) {
+  if (settings.hasSettingChanged(RadioSettings::BAND_SETTINGS | RadioSettings::BAND)) {
     RxPipelineSettings* rxPipelineSettings = pBandSettings->getFocusRxPipelineSettings();
     if (m_pReceiver != nullptr) {
       m_pReceiver->apply(rxPipelineSettings);
@@ -208,7 +216,7 @@ Radio::applySettingUpdate(SettingUpdate& update)
 
   if (m_settings.applyUpdate(update)) {
     applySettings(m_settings);
-  } else if (update.getCurrentFeature() == RadioSettings::Features::PIPELINE) {
+  } else if (update.getCurrentFeature() == RadioSettings::Features::BAND_SETTINGS) {
     BandSettings* pBandSettings = getBandSettings(m_settings.getBandName());
     if (pBandSettings != nullptr) {
       update.stepNextFeature();

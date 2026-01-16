@@ -340,7 +340,7 @@ MainWindow::createModeMenu(const Mode& currentMode)
   const std::vector<Mode>& allModes = ModeSettings::getAll();
 
   SettingUpdatePath settingPath({
-    RadioSettings::Features::PIPELINE,
+    RadioSettings::Features::BAND_SETTINGS,
     BandSettings::Features::RX_PIPELINE,
     PipelineSettings::Features::MODE
   });

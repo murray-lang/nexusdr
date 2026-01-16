@@ -4,7 +4,7 @@
 
 #pragma once
 #include "SettingsBase.h"
-template<typename ValueType, uint32_t ParentFeatureBit, typename ParentSettingsClass, typename StepType = ValueType>
+template<typename ValueType, uint32_t ParentFeatureBit, typename ParentSettingsClass, typename DeltaType = ValueType>
 class SteppableSetting: public SettingsBase
 {
 public:
@@ -12,32 +12,46 @@ public:
   {
     NONE = 0,
     VALUE = 0x01,
-    FINE_STEP = 0x02,
-    COARSE_STEP = 0x04,
+    FINE_DELTA = 0x02,
+    COARSE_DELTA = 0x04,
     COARSE = 0x08,
     FINE = 0x10,
     ALL = static_cast<uint32_t>(~0U)
   };
-  SteppableSetting(ParentSettingsClass* parent, const char* name) :
-    SettingsBase(),
-    m_parent(parent),
-    m_value(this, "value", 0),
-    m_fineStep(this, "fine-step", 0),
-    m_coarseStep(this, "coarse-step", 0)
-    // m_isCoarse(this, "coarse", false),
-    // m_isFine(this, "fine", true)
+  // SteppableSetting(ParentSettingsClass* parent, const char* name) :
+  //   SettingsBase(),
+  //   m_parent(parent),
+  //   m_value(this, "value", 0),
+  //   m_fineDelta(this, "fine-delta", 0),
+  //   m_coarseDelta(this, "coarse-delta", 0)
+  // {
+  //   SettingRegistry<ParentSettingsClass>::mapping[name] = ParentFeatureBit;
+  //   m_value.setStepAddresses(m_fineDelta.getValueAddress(), m_coarseDelta.getValueAddress());
+  // }
+  SteppableSetting(
+    ParentSettingsClass* parent,
+    const char* name,
+    ValueType defaultValue,
+    DeltaType defaultFineDelta,
+    DeltaType defaultCoarseDelta
+  ) :
+    SettingsBase()
+    , m_parent(parent)
+    , m_value(this, "value", defaultValue)
+    , m_fineDelta(this, "fine-delta", defaultFineDelta)
+    , m_coarseDelta(this, "coarse-delta", defaultCoarseDelta)
   {
     SettingRegistry<ParentSettingsClass>::mapping[name] = ParentFeatureBit;
-    m_value.setStepAddresses(m_fineStep.getValueAddress(), m_coarseStep.getValueAddress());
+    m_value.setStepAddresses(m_fineDelta.getValueAddress(), m_coarseDelta.getValueAddress());
   }
   SteppableSetting(ParentSettingsClass* parent, const SteppableSetting& rhs) :
     SettingsBase(rhs),
     m_parent(parent),
     m_value(this, rhs.m_value),
-    m_fineStep(this, rhs.m_fineStep),
-    m_coarseStep(this, rhs.m_coarseStep)
+    m_fineDelta(this, rhs.m_fineDelta),
+    m_coarseDelta(this, rhs.m_coarseDelta)
   {
-    m_value.setStepAddresses(m_fineStep.getValueAddress(), m_coarseStep.getValueAddress());
+    m_value.setStepAddresses(m_fineDelta.getValueAddress(), m_coarseDelta.getValueAddress());
   }
   ~SteppableSetting() override = default;
 
@@ -52,8 +66,8 @@ public:
   bool merge(const SteppableSetting& rhs, bool onlyChanged = false)
   {
     bool changed = m_value.merge(rhs.m_value, onlyChanged)
-    | m_fineStep.merge(rhs.m_fineStep, onlyChanged)
-    | m_coarseStep.merge(rhs.m_coarseStep, onlyChanged);
+    | m_fineDelta.merge(rhs.m_fineDelta, onlyChanged)
+    | m_coarseDelta.merge(rhs.m_coarseDelta, onlyChanged);
 
     if (changed) {
       m_parent->setChanged(ParentFeatureBit);
@@ -62,12 +76,12 @@ public:
   }
 
   ValueType getValue() const { return m_value(); }
-  StepType getFineStep() const { return m_fineStep(); }
-  StepType getCoarseStep() const { return m_coarseStep(); }
+  DeltaType getFineDelta() const { return m_fineDelta(); }
+  DeltaType getCoarseDelta() const { return m_coarseDelta(); }
 
   void setValue(ValueType newValue) { m_value(newValue); }
-  void setFineStep(StepType newValue) { m_fineStep(newValue); }
-  void setCoarseStep(StepType newValue) { m_coarseStep(newValue); }
+  void setFineDelta(DeltaType newValue) { m_fineDelta(newValue); }
+  void setCoarseDelta(DeltaType newValue) { m_coarseDelta(newValue); }
 
   bool applyUpdate(SettingUpdate& update) override
   {
@@ -78,14 +92,14 @@ public:
     const auto& val = update.getValue();
     bool settingChange = false;
     switch (feature) {
-    case FINE_STEP:
-      settingChange = m_fineStep.apply(val);
+    case FINE_DELTA:
+      settingChange = m_fineDelta.apply(val);
       break;
-    case COARSE_STEP:
-      settingChange = m_coarseStep.apply(val);
+    case COARSE_DELTA:
+      settingChange = m_coarseDelta.apply(val);
       break;
     case VALUE: {
-      if (update.isFinal()) {
+      if (update.isFinal() || update.isValue()) {
         settingChange = m_value.apply(update);
       } else {
         update.stepNextFeature();
@@ -136,9 +150,9 @@ public:
 
 protected:
   SettingsBase* m_parent;
-  Setting<ValueType, VALUE, SteppableSetting, StepType> m_value;
-  Setting<StepType, FINE_STEP, SteppableSetting> m_fineStep;
-  Setting<StepType, COARSE_STEP, SteppableSetting> m_coarseStep;
+  Setting<ValueType, VALUE, SteppableSetting, DeltaType> m_value;
+  Setting<DeltaType, FINE_DELTA, SteppableSetting> m_fineDelta;
+  Setting<DeltaType, COARSE_DELTA, SteppableSetting> m_coarseDelta;
   // COARSE and FINE aren't intended to be settings per se.
   // They have been made settings just to simplify feature name management
   // Conveniently ignore the fact that they could be contradictory.

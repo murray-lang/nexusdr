@@ -91,7 +91,7 @@ public:
     }
   }
 
-  bool hasRxFrequencyChanged() const
+  [[nodiscard]] bool hasRxFrequencyChanged() const
   {
     const RfSettings& rfSettings = getFocusRxRfSettings();
     return rfSettings.hasSettingChanged(RfSettings::CENTRE_FREQUENCY);
@@ -129,6 +129,14 @@ public:
       m_txPipelineSettings.setMode(mode);
     }
     return focusModeChanged;
+  }
+
+  void setCentreFrequencyDeltas(int32_t fine, int32_t coarse)
+  {
+    m_txPipelineSettings.setCentreFrequencyDeltas(fine, coarse);
+    for (RxPipelineSettings& nextSettings : m_rxPipelineSettings) {
+      nextSettings.setCentreFrequencyDeltas(fine, coarse);
+    }
   }
 
   void applyRfSettings(const RfSettings& settings, bool onlyChanged = false)

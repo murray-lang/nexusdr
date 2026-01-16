@@ -27,16 +27,16 @@ public:
   };
   RfSettings() :
     SettingsBase()
-    ,m_centreFrequency(this, "centre-frequency")
-    ,m_offset(this, "offset")
-    ,m_gain(this, "gain")
+    ,m_centreFrequency(this, "centre-frequency", 0, 10000, 50000)
+    ,m_offset(this, "offset", 0, 100, 1000)
+    ,m_gain(this, "gain", 0.0, 0.1, 1.0)
   {
   }
   RfSettings(const RfSettings& rhs) :
     SettingsBase(rhs)
-    ,m_centreFrequency(this, "centre-frequency")
-    ,m_offset(this, "offset")
-    ,m_gain(this, "gain")
+    ,m_centreFrequency(this, "centre-frequency", 0, 10000, 50000)
+    ,m_offset(this, "offset", 0, 100, 1000)
+    ,m_gain(this, "gain", 0.0, 0.1, 1.0)
   {
     merge(rhs);
   }
@@ -62,14 +62,21 @@ public:
     m_centreFrequency.setValue(frequency);
     m_changed |= CENTRE_FREQUENCY;
   }
-  void setCentreFrequencyCoarseStep(int32_t step)
+
+  void setCentreFrequencyDeltas(int32_t fine, int32_t coarse)
   {
-    m_centreFrequency.setCoarseStep(step);
+    m_centreFrequency.setCoarseDelta(fine);
+    m_centreFrequency.setCoarseDelta(coarse);
     m_changed |= CENTRE_FREQUENCY;
   }
-  void setCentreFrequencyFineStep(int32_t step)
+  void setCentreFrequencyCoarseDelta(int32_t delta)
   {
-    m_centreFrequency.setFineStep(step);
+    m_centreFrequency.setCoarseDelta(delta);
+    m_changed |= CENTRE_FREQUENCY;
+  }
+  void setCentreFrequencyFineDelta(int32_t delta)
+  {
+    m_centreFrequency.setFineDelta(delta);
     m_changed |= CENTRE_FREQUENCY;
   }
 
@@ -78,14 +85,14 @@ public:
     m_offset.setValue(offset);
     m_changed |= OFFSET;
   }
-  void setOffsetCoarseStep(int32_t step)
+  void setOffsetCoarseDelta(int32_t step)
   {
-    m_offset.setCoarseStep(step);
+    m_offset.setCoarseDelta(step);
     m_changed |= OFFSET;
   }
-  void setOffsetFineStep(int32_t step)
+  void setOffsetFineDelta(int32_t step)
   {
-    m_offset.setFineStep(step);
+    m_offset.setFineDelta(step);
     m_changed |= OFFSET;
   }
 
@@ -96,12 +103,12 @@ public:
   }
   void setGainCoarseStep(float step)
   {
-    m_gain.setCoarseStep(step);
+    m_gain.setCoarseDelta(step);
     m_changed |= GAIN;
   }
   void setGainFineStep(float step)
   {
-    m_gain.setCoarseStep(step);
+    m_gain.setCoarseDelta(step);
     m_changed |= GAIN;
   }
 
@@ -121,8 +128,8 @@ public:
         // Note: The centre frequency steps need to ba a function of the sample rate (we don't want gaps
         // in what we see of the band when we step the centre frequency.
         m_offset.setValue(10000);
-        m_offset.setCoarseStep(band.getDefaultCoarseStep());
-        m_offset.setFineStep(band.getDefaultFineStep());
+        m_offset.setCoarseDelta(band.getDefaultCoarseStep());
+        m_offset.setFineDelta(band.getDefaultFineStep());
         return true;
       }
     }

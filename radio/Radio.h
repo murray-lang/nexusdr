@@ -42,6 +42,8 @@ public:
   void applyRfSettings(const RfSettings& settings, bool onlyChanged = false);
   void applyIfSettings(const IfSettings& settings);
 
+  void setCentreFrequencyDeltas(int32_t fine, int32_t coarse);
+
   RadioSettings& getRadioSettings() { return m_settings; }
   const RadioSettings& getRadioSettings() const { return m_settings; }
   BandSettings* getBandSettings(const std::string& bandName);

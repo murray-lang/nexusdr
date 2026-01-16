@@ -54,6 +54,9 @@ public:
     return m_cursor == m_settingPath.getFeatures().size() - 1;
   }
 
+  [[nodiscard]] bool isDelta() const { return m_meaning == DELTA; }
+  [[nodiscard]] bool isValue() const { return m_meaning == VALUE; }
+
 
   SettingUpdate& setValue(SettingValue value) { m_value = std::move(value); return *this; }
   [[nodiscard]] const SettingUpdatePath& getPath() const { return m_settingPath; }
