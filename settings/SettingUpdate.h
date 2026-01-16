@@ -49,7 +49,7 @@ public:
     return m_cursor >= m_settingPath.getFeatures().size();
   }
 
-  [[nodiscard]] bool isFinal() const
+  [[nodiscard]] bool isAtLeaf() const
   {
     return m_cursor == m_settingPath.getFeatures().size() - 1;
   }

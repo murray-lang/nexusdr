@@ -1,0 +1,38 @@
+{
+  "radio": {
+    "control": {
+      "sinks": [
+        {
+          "type": "funcube",
+          "config": {
+          }
+        }
+      ]
+    },
+    "receiver": {
+      "iqIo": {
+        "iqSource": {
+          "type": "audioSignalIqSource",
+          "config": {
+            "audioInput": {
+			  "soundApi": "alsa",
+			  "searchExpression": "FunCube",
+			  "sampleRate": 192000,
+			  "channelCount": 2
+           },
+            "reverse": false
+          }
+        },
+        "audioOutput": {
+          "type": "audio",
+          "config": {
+            "soundApi": "alsa",
+            "searchExpression": "HDMI 0",
+            "sampleRate": 48000,
+            "channelCount": 2
+          }
+        }
+      }
+    }
+  }
+}

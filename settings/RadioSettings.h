@@ -76,9 +76,18 @@ public:
     case PTT:
       return m_ptt.apply(val);
     case BAND:
-      if (m_bandName.apply(val)) {
-        m_changed |= BAND_SETTINGS; // Side effect: Band change affects pipeline
-        return true;
+      if (update.isAtLeaf()) {
+        // BAND on its own means select a band.
+        if (update.isValue()) {
+          if (m_bandName.apply(val)) {
+            m_changed |= BAND_SETTINGS; // Side effect
+            return true;
+          }
+        } else {
+          // A delta means that we're stepping to the next or previous band
+        }
+      } else {
+        // If there are more features then we're dealing with a setting for the currently selected band
       }
       return false;
     case TX:

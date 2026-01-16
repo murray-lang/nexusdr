@@ -99,7 +99,7 @@ public:
       settingChange = m_coarseDelta.apply(val);
       break;
     case VALUE: {
-      if (update.isFinal() || update.isValue()) {
+      if (update.isAtLeaf() || update.isValue()) {
         settingChange = m_value.apply(update);
       } else {
         update.stepNextFeature();
