@@ -14,12 +14,13 @@ class SettingUpdate
 public:
   enum Meaning { NONE = 0, VALUE, DELTA };
 
-  SettingUpdate() : m_value(0), m_meaning(NONE), m_cursor(0) {}
-  SettingUpdate(const SettingUpdatePath& settingPath, SettingValue value, const Meaning meaning) :
+  SettingUpdate() : m_value(0), m_meaning(NONE), m_cursor(0), m_alt(false) {}
+  SettingUpdate(const SettingUpdatePath& settingPath, SettingValue value, const Meaning meaning, bool alt = false) :
     m_settingPath(settingPath),
     m_value(std::move(value)),
     m_meaning(meaning),
-    m_cursor(0)
+    m_cursor(0),
+    m_alt(alt)
   {}
   SettingUpdate(const SettingUpdate& rhs) = default;
   ~SettingUpdate() = default;
@@ -30,6 +31,7 @@ public:
       m_settingPath = rhs.m_settingPath;
       m_value = rhs.m_value;
       m_meaning = rhs.m_meaning;
+      m_alt = rhs.m_alt;
     }
     return *this;
   }
@@ -56,6 +58,7 @@ public:
 
   [[nodiscard]] bool isDelta() const { return m_meaning == DELTA; }
   [[nodiscard]] bool isValue() const { return m_meaning == VALUE; }
+  [[nodiscard]] bool isAlt() const { return m_alt; }
 
 
   SettingUpdate& setValue(SettingValue value) { m_value = std::move(value); return *this; }
@@ -78,4 +81,5 @@ protected:
   SettingValue  m_value;
   Meaning m_meaning;
   size_t m_cursor;
+  bool m_alt;
 };

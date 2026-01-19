@@ -358,6 +358,7 @@ set(PROJECT_SOURCES
         ui/qt/QtPanadapter.cpp
         ui/qt/QtPanadapter.h
         settings/SteppableSetting.h
+        settings/BandSettingsSelector.h
 
 )
 

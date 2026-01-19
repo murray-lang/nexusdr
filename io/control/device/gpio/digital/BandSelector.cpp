@@ -30,7 +30,7 @@ BandSelector::configure(const ConfigBase* pConfig)
 void
 BandSelector::applySettings(const RadioSettings& settings, BandSettings* pBandSettings)
 {
-  if (settings.hasSettingChanged(RadioSettings::BAND_SETTINGS)) {
+  if (settings.hasSettingChanged(RadioSettings::BAND)) {
     const RfSettings& rfSettings = pBandSettings->getTxRfSettings();
     if (rfSettings.hasSettingChanged(RfSettings::CENTRE_FREQUENCY | RfSettings::OFFSET)) {
       uint32_t frequency = rfSettings.getFrequency();

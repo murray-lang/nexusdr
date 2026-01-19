@@ -284,12 +284,11 @@ MainWindow::addModeButton()
     throw std::runtime_error("No radio instance");
   }
   RadioSettings& radioSettings = m_pRadio->getRadioSettings();
-  const std::string selectedBandName = radioSettings.getBandName();
-  BandSettings* bandSettings = m_pRadio->getBandSettings(selectedBandName);
+  const BandSettings* bandSettings = m_pRadio->getFocusBandSettings();
   if (bandSettings == nullptr) {
     throw SettingsException("Band settings not found for selected band");
   }
-  RxPipelineSettings* rxPipelineSettings = bandSettings->getFocusRxPipelineSettings();
+  const RxPipelineSettings* rxPipelineSettings = bandSettings->getFocusRxPipelineSettings();
   if (rxPipelineSettings == nullptr) {
     throw SettingsException("Radio pipeline settings not found for selected band");
   }
@@ -340,7 +339,8 @@ MainWindow::createModeMenu(const Mode& currentMode)
   const std::vector<Mode>& allModes = ModeSettings::getAll();
 
   SettingUpdatePath settingPath({
-    RadioSettings::Features::BAND_SETTINGS,
+    RadioSettings::Features::BAND,
+    BandSettingsSelector::SELECTED,
     BandSettings::Features::RX_PIPELINE,
     PipelineSettings::Features::MODE
   });

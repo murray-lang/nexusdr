@@ -16,6 +16,7 @@
 #include "Band.h"
 #include "Bands.h"
 #include "BandSettings.h"
+#include "BandSettingsSelector.h"
 #include "SettingsException.h"
 #include "../util/StringUtils.h"
 
@@ -26,14 +27,13 @@ public:
   {
     NONE = 0,
     PTT = 0x01,
-    BAND_SETTINGS = 0x02,
+    BAND = 0x02,
     TX = 0x04,
     RX = 0x08,
-    BAND = 0x10,
     ALL = static_cast<uint32_t>(~0U)
   };
 
-  RadioSettings() : m_ptt(this, "ptt", false), m_bandName(this, "band", "")
+  RadioSettings() : m_ptt(this, "ptt", false)//, m_bandName(this, "band", "")
   {
     RadioSettings::setAllChanged();
   };
@@ -41,7 +41,7 @@ public:
   RadioSettings(const RadioSettings& rhs) : 
   SettingsBase(rhs),
   m_ptt(this, rhs.m_ptt),
-  m_bandName(this, rhs.m_bandName),
+  // m_bandName(this, rhs.m_bandName),
   m_rxSettings(rhs.m_rxSettings),
   m_txSettings(rhs.m_txSettings)
   {
@@ -52,7 +52,7 @@ public:
   {
     if (this != &rhs) {
       SettingsBase::operator=(rhs);
-      m_bandName = rhs.m_bandName;
+      // m_bandName = rhs.m_bandName;
       m_rxSettings = rhs.m_rxSettings;
       m_txSettings = rhs.m_txSettings;
     }
@@ -60,9 +60,11 @@ public:
   }
 
   [[nodiscard]] bool getPtt() const { return m_ptt(); }
-  [[nodiscard]] const std::string& getBandName() const { return m_bandName(); }
+  // [[nodiscard]] const std::string& getBandName() const { return m_bandName(); }
   [[nodiscard]] const ReceiverSettings& getRxSettings() const { return m_rxSettings; }
   [[nodiscard]] const TransmitterSettings& getTxSettings() const { return m_txSettings; }
+
+  void markBandSettingsChanged() { m_changed |= BAND; }
 
   bool applyUpdate(SettingUpdate& update) override
   {
@@ -76,20 +78,8 @@ public:
     case PTT:
       return m_ptt.apply(val);
     case BAND:
-      if (update.isAtLeaf()) {
-        // BAND on its own means select a band.
-        if (update.isValue()) {
-          if (m_bandName.apply(val)) {
-            m_changed |= BAND_SETTINGS; // Side effect
-            return true;
-          }
-        } else {
-          // A delta means that we're stepping to the next or previous band
-        }
-      } else {
-        // If there are more features then we're dealing with a setting for the currently selected band
-      }
-      return false;
+      markBandSettingsChanged(); // This is detected and handled externally
+      return true;
     case TX:
       update.stepNextFeature();
       if (m_txSettings.applyUpdate(update)) {
@@ -125,7 +115,7 @@ public:
     m_changed &= ~PTT;
   }
 
-  void markPipelineChanged() { m_changed |= BAND_SETTINGS; }
+  // void markPipelineChanged() { m_changed |= BAND_SETTINGS; }
 
   static SettingUpdatePath getSettingUpdatePath(const std::string& strDottedFeatures)
   {
@@ -153,13 +143,9 @@ public:
     }
 
     const std::string& key = featureStrings[startIndex];
-    if (key == "band-settings") {
-      // Note that BandSettings contains separate pipeline settings for each band. This is why there is
-      // currently a confusing mismatch between pipeline settings and BandSettings.
-      // Also, BandSettings is not a member of RadioSettings for efficiency reasons. However,
-      // pipeline settings paths are managed here for convenience.
-      featuresOut.push_back(BAND_SETTINGS);
-      return BandSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
+    if (key == "band") {
+      featuresOut.push_back(BAND);
+      return BandSettingsSelector::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
     }
     if (key == "rx") {
       featuresOut.push_back(RX);
@@ -173,7 +159,7 @@ public:
   }
 protected:
   Setting<bool, PTT, RadioSettings> m_ptt;
-  Setting<std::string, BAND, RadioSettings> m_bandName;
+  // Setting<std::string, BAND, RadioSettings> m_bandName;
   ReceiverSettings m_rxSettings;
   TransmitterSettings m_txSettings;
 };

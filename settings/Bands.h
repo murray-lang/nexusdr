@@ -65,6 +65,24 @@ public:
     return nullptr;
   }
 
+  const Band* nextBandInOwnCategory(const std::string& bandName) const
+  {
+    const auto& category = findCategoryOfBand(bandName);
+    if (category == nullptr) {
+      return nullptr;
+    }
+    return category->nextBand(bandName);
+  }
+
+  const Band* prevBandInOwnCategory(const std::string& bandName) const
+  {
+    const auto& category = findCategoryOfBand(bandName);
+    if (category == nullptr) {
+      return nullptr;
+    }
+    return category->prevBand(bandName);
+  }
+
 protected:
   std::vector<BandCategory> m_categories;
 };

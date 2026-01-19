@@ -66,7 +66,7 @@ QtBandDialog::addCategoryTabs(Radio* pRadio)
   if (pRadio != nullptr) {
     const RadioSettings& settings = pRadio->getRadioSettings();
     const Bands& bands = pRadio->getBands();
-    const std::string& selectedBandName = settings.getBandName();
+    const std::string& selectedBandName = pRadio->getFocusBandName();
     const BandCategory* selectedCategory = bands.findCategoryOfBand(selectedBandName);
 
     int selectedTabIndex = 0;

@@ -13,6 +13,7 @@
 #include <settings/RadioSettingsSink.h>
 
 #include "../settings/ModeSettings.h"
+#include "settings/BandSettingsSelector.h"
 #include "settings/RadioSettings.h"
 #include "transmitter/IqTransmitter.h"
 
@@ -46,10 +47,12 @@ public:
 
   RadioSettings& getRadioSettings() { return m_settings; }
   const RadioSettings& getRadioSettings() const { return m_settings; }
-  BandSettings* getBandSettings(const std::string& bandName);
+  // BandSettings* getBandSettings(const std::string& bandName);
   const BandSettings* getBandSettings(const std::string& bandName) const;
+  const BandSettings* getFocusBandSettings() const;
+  const std::string& getFocusBandName() const { return m_bandSettingsSelector.getFocusBandName(); }
 
-  const Bands& getBands() const { return m_bands; }
+  const Bands& getBands() const { return m_bandSettingsSelector.getBands(); }
 
   void ptt(bool on) override;
 
@@ -60,8 +63,9 @@ protected:
 
 protected:
   RadioSettings m_settings;
-  std::unordered_map<std::string, BandSettings> m_bandSettings;
-  Bands m_bands;
+  BandSettingsSelector m_bandSettingsSelector;
+  // std::unordered_map<std::string, BandSettings> m_bandSettings;
+  // Bands m_bands;
   IqReceiver* m_pReceiver;
   IqTransmitter* m_pTransmitter;
   RadioControl* m_pControl;
