@@ -471,7 +471,7 @@ MainWindow::initialiseRadio()
     m_pRadio->applyBand("40m");
 
     RfSettings rfSettings;
-    rfSettings.setGain(0.0);
+    rfSettings.setGain(30.0);
     rfSettings.setGainCoarseStep(1.0);
     rfSettings.setGainFineStep(0.1);
     m_pRadio->applyRfSettings(rfSettings, true);

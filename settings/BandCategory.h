@@ -6,6 +6,7 @@
 #include "Band.h"
 #include <vector>
 #include <string>
+#include <algorithm>
 
 class BandCategory
 {
@@ -45,7 +46,7 @@ public:
 
   const Band* nextBand(const std::string& name) const
   {
-    auto it = std::ranges::find_if(m_bands, [&](const Band& b) {
+    auto it = std::find_if(m_bands.begin(), m_bands.end(), [&](const Band& b) {
       return b.getName() == name;
     });
 
@@ -62,7 +63,7 @@ public:
 
   const Band* prevBand(const std::string& name) const
   {
-    auto it = std::ranges::find_if(m_bands, [&](const Band& b) {
+    auto it = std::find_if(m_bands.begin(), m_bands.end(), [&](const Band& b) {
       return b.getName() == name;
     });
 

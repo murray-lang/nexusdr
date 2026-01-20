@@ -181,7 +181,7 @@ Radio::applySettingUpdate(SettingUpdate& update)
   }
   if (m_settings.applyUpdate(update)) {
     if (m_settings.hasSettingChanged(RadioSettings::BAND)) {
-      m_bandSettingsSelector.applyUpdate(update);
+      m_bandSettingsSelector.applyUpdate(update.stepNextFeature());
     }
     applySettings(m_settings);
   }
@@ -191,7 +191,7 @@ void
 Radio::applyBand(const std::string& bandName)
 {
   // qDebug() << "Radio::applyBand(): applying band " << bandName.c_str() << ". Existing band: " << m_settings.bandName.c_str() ;
-  SettingUpdatePath bandPath({RadioSettings::Features::BAND});
+  SettingUpdatePath bandPath({RadioSettings::BAND, BandSettingsSelector::SELECT});
   SettingUpdate bandSetting(bandPath, bandName, SettingUpdate::Meaning::VALUE);
   applySettingUpdate(bandSetting);
 }
