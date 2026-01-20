@@ -143,6 +143,7 @@ MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings, const B
   if (bandDialog != nullptr) {
     bandDialog->applySettings(m_radioSettingsCopy, const_cast<BandSettings*>(&m_bandSettingsCopy));
   }
+  updateBandButton(m_bandSettingsCopy.getBand());
 
   RxPipelineSettings* rxPipelineSettings = m_bandSettingsCopy.getFocusRxPipelineSettings();
   if (rxPipelineSettings == nullptr) {
@@ -373,6 +374,14 @@ MainWindow::updateModeButton(const Mode& mode)
 {
   if (m_modeButton != nullptr) {
     m_modeButton->setText(mode.getName().c_str());
+  }
+}
+
+void
+MainWindow::updateBandButton(const Band& band)
+{
+  if (m_bandButton != nullptr) {
+    m_bandButton->setText(QString::fromStdString(band.getLabel()));
   }
 }
 

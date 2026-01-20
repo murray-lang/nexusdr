@@ -65,6 +65,7 @@ private:
   void addModeButton();
   QMenu* createModeMenu(const Mode& currentMode);
   void updateModeButton(const Mode& mode);
+  void updateBandButton(const Band& band);
   // void updateModeMenu(const Mode& mode);
   void addLevelsButton();
   void addConfigButton();
