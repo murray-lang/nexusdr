@@ -28,10 +28,10 @@ FunCubeDongle::applySettings(const RadioSettings& radioSettings, BandSettings* p
   if (radioSettings.hasSettingChanged(RadioSettings::BAND)) {
     // qDebug() << "  FunCubeDongle::applySettings: BAND_SETTINGS changed";
     const RfSettings& rfSettings = pBandSettings->getFocusRxRfSettings();
-    if (rfSettings.hasSettingChanged(RfSettings::CENTRE_FREQUENCY)) {
+    if (rfSettings.hasSettingChanged(RfSettings::CENTER_FREQUENCY)) {
         // qDebug() << "    FunCubeDongle::applySettings: FREQUENCY changed to " << rfSettings.frequency;
-      setFrequency(rfSettings.getFrequency());
-      setRfFilter(rfSettings.getFrequency());
+      setFrequency(rfSettings.getCentreFrequency());
+      setRfFilter(rfSettings.getCentreFrequency());
     }
     if (rfSettings.hasSettingChanged(RfSettings::GAIN)) {
       float gain = rfSettings.getGain();

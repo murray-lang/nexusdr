@@ -32,9 +32,8 @@ GpioBandSelector::applySettings(const RadioSettings& settings, BandSettings* pBa
 {
   if (settings.hasSettingChanged(RadioSettings::BAND)) {
     const RfSettings& rfSettings = pBandSettings->getTxRfSettings();
-    if (rfSettings.hasSettingChanged(RfSettings::CENTRE_FREQUENCY | RfSettings::OFFSET)) {
-      uint32_t frequency = rfSettings.getFrequency();
-      frequency += rfSettings.getOffset();
+    if (rfSettings.hasSettingChanged( RfSettings::VFO)) {
+      uint32_t frequency = rfSettings.getVfo();
       uint32_t output = getBandOutput(frequency);
       applyOutput(output);
     }

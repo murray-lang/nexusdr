@@ -86,8 +86,11 @@ IqRxPipeline::apply(const RxPipelineSettings* settings)
   if (settings != nullptr) {
     std::lock_guard<std::mutex> lock(m_settingsMutex);
     if (settings->hasSettingChanged(PipelineSettings::RF)) {
-      if (settings->getRfSettings().hasSettingChanged(RfSettings::OFFSET)) {
-        m_oscillatorMixer.setFrequency(-settings->getRfSettings().getOffset());
+      const RfSettings& rfSettings = settings->getRfSettings();
+      if (rfSettings.hasSettingChanged(RfSettings::CENTER_FREQUENCY)
+          || rfSettings.hasSettingChanged(RfSettings::VFO)) {
+        int32_t offset = rfSettings.getCentreFrequency() - rfSettings.getVfo();
+        m_oscillatorMixer.setFrequency(offset);
       }
     }
     if (settings->hasSettingChanged(PipelineSettings::MODE)) {

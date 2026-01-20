@@ -20,22 +20,22 @@ public:
   enum Features
   {
     NONE = 0,
-    CENTRE_FREQUENCY = 0x01,
-    OFFSET = 0x02,
+    CENTER_FREQUENCY = 0x01,
+    VFO = 0x02,
     GAIN = 0x04,
     ALL = static_cast<uint32_t>(~0U)
   };
   RfSettings() :
     SettingsBase()
-    ,m_centreFrequency(this, "centre-frequency", 0, 10000, 50000)
-    ,m_offset(this, "offset", 0, 100, 1000)
+    ,m_centreFrequency(this, "center-frequency", 0, 10000, 50000)
+    ,m_vfo(this, "vfo", 0, 100, 1000)
     ,m_gain(this, "gain", 0.0, 0.1, 1.0)
   {
   }
   RfSettings(const RfSettings& rhs) :
     SettingsBase(rhs)
-    ,m_centreFrequency(this, "centre-frequency", 0, 10000, 50000)
-    ,m_offset(this, "offset", 0, 100, 1000)
+    ,m_centreFrequency(this, "center-frequency", 0, 10000, 50000)
+    ,m_vfo(this, "vfo", 0, 100, 1000)
     ,m_gain(this, "gain", 0.0, 0.1, 1.0)
   {
     merge(rhs);
@@ -47,53 +47,53 @@ public:
     if (this != &rhs) {
       SettingsBase::operator=(rhs);
       m_centreFrequency = rhs.m_centreFrequency;
-      m_offset = rhs.m_offset;
+      m_vfo = rhs.m_vfo;
       m_gain = rhs.m_gain;
     }
     return *this;
   }
 
-  [[nodiscard]] uint32_t getFrequency() const { return m_centreFrequency.getValue(); }
-  [[nodiscard]] int32_t getOffset() const { return m_offset.getValue(); }
+  [[nodiscard]] uint32_t getCentreFrequency() const { return m_centreFrequency.getValue(); }
+  [[nodiscard]] int32_t getVfo() const { return m_vfo.getValue(); }
   [[nodiscard]] float getGain() const { return m_gain.getValue(); }
 
   void setCentreFrequency(uint32_t frequency)
   {
     m_centreFrequency.setValue(frequency);
-    m_changed |= CENTRE_FREQUENCY;
+    m_changed |= CENTER_FREQUENCY;
   }
 
   void setCentreFrequencyDeltas(int32_t fine, int32_t coarse)
   {
     m_centreFrequency.setCoarseDelta(fine);
     m_centreFrequency.setCoarseDelta(coarse);
-    m_changed |= CENTRE_FREQUENCY;
+    m_changed |= CENTER_FREQUENCY;
   }
   void setCentreFrequencyCoarseDelta(int32_t delta)
   {
     m_centreFrequency.setCoarseDelta(delta);
-    m_changed |= CENTRE_FREQUENCY;
+    m_changed |= CENTER_FREQUENCY;
   }
   void setCentreFrequencyFineDelta(int32_t delta)
   {
     m_centreFrequency.setFineDelta(delta);
-    m_changed |= CENTRE_FREQUENCY;
+    m_changed |= CENTER_FREQUENCY;
   }
 
-  void setOffset(int32_t offset)
+  void setVfo(int32_t offset)
   {
-    m_offset.setValue(offset);
-    m_changed |= OFFSET;
+    m_vfo.setValue(offset);
+    m_changed |= VFO;
   }
-  void setOffsetCoarseDelta(int32_t step)
+  void setVfoCoarseDelta(int32_t step)
   {
-    m_offset.setCoarseDelta(step);
-    m_changed |= OFFSET;
+    m_vfo.setCoarseDelta(step);
+    m_changed |= VFO;
   }
-  void setOffsetFineDelta(int32_t step)
+  void setVfoFineDelta(int32_t step)
   {
-    m_offset.setFineDelta(step);
-    m_changed |= OFFSET;
+    m_vfo.setFineDelta(step);
+    m_changed |= VFO;
   }
 
   void setGain(float gain)
@@ -115,21 +115,21 @@ public:
   void copyFrequencies(const RfSettings& rhs)
   {
     m_centreFrequency.merge(rhs.m_centreFrequency);
-    m_offset.merge(rhs.m_offset);
+    m_vfo.merge(rhs.m_vfo);
   }
 
   bool applyBandDefaults(const Band& band)
   {
     if (band.isValid()) {
-      uint64_t freqPlusOffset = m_centreFrequency.getValue() + m_offset.getValue();
+      uint64_t freqPlusOffset = m_centreFrequency.getValue() + m_vfo.getValue();
       if (!band.containsFrequency(freqPlusOffset)) {
         // Adjusting 10kHz gets the landing frequency off any centre spike (in case of poor IQ correction)
         m_centreFrequency.setValue(band.getLandingFrequency() - 10000);
         // Note: The centre frequency steps need to ba a function of the sample rate (we don't want gaps
         // in what we see of the band when we step the centre frequency.
-        m_offset.setValue(10000);
-        m_offset.setCoarseDelta(band.getDefaultCoarseStep());
-        m_offset.setFineDelta(band.getDefaultFineStep());
+        m_vfo.setValue(band.getLandingFrequency());
+        m_vfo.setCoarseDelta(band.getDefaultCoarseStep());
+        m_vfo.setFineDelta(band.getDefaultFineStep());
         return true;
       }
     }
@@ -140,7 +140,7 @@ public:
   {
     SettingsBase::setAllChanged();
     m_centreFrequency.setAllChanged();
-    m_offset.setAllChanged();
+    m_vfo.setAllChanged();
     m_gain.setAllChanged();
   }
 
@@ -148,11 +148,11 @@ public:
   {
     bool changed = false;
     if (m_centreFrequency.merge(settings.m_centreFrequency, onlyChanged) ) {
-      m_changed |= CENTRE_FREQUENCY;
+      m_changed |= CENTER_FREQUENCY;
       changed = true;
     }
-    if (m_offset.merge(settings.m_offset, onlyChanged)) {
-      m_changed |= OFFSET;
+    if (m_vfo.merge(settings.m_vfo, onlyChanged)) {
+      m_changed |= VFO;
       changed = true;
     }
     if (m_gain.merge(settings.m_gain, onlyChanged)) {
@@ -171,8 +171,8 @@ public:
     const auto& val = update.getValue();
 
     switch (feature) {
-    case CENTRE_FREQUENCY: return m_centreFrequency.applyUpdate(update.stepNextFeature());
-    case OFFSET: return m_offset.applyUpdate(update.stepNextFeature());
+    case CENTER_FREQUENCY: return m_centreFrequency.applyUpdate(update.stepNextFeature());
+    case VFO: return m_vfo.applyUpdate(update.stepNextFeature());
     case GAIN: return m_gain.applyUpdate(update.stepNextFeature());
     default:
       return false;
@@ -192,7 +192,7 @@ public:
       if (CentreFrequencyType::getFeaturePath(featureStrings, out, startIndex + 1)) {
         return true;
       }
-      if (OffsetType::getFeaturePath(featureStrings, out, startIndex + 1)) {
+      if (VfoType::getFeaturePath(featureStrings, out, startIndex + 1)) {
         return true;
       }
       if (GainType::getFeaturePath(featureStrings, out, startIndex + 1)) {
@@ -203,11 +203,11 @@ public:
   }
 
 protected:
-  using CentreFrequencyType = SteppableSetting<uint32_t, CENTRE_FREQUENCY, RfSettings, int32_t>;
-  using OffsetType = SteppableSetting<int32_t, OFFSET, RfSettings>;
+  using CentreFrequencyType = SteppableSetting<uint32_t, CENTER_FREQUENCY, RfSettings, int32_t>;
+  using VfoType = SteppableSetting<int32_t, VFO, RfSettings>;
   using GainType = SteppableSetting<float, GAIN, RfSettings>;
 
   CentreFrequencyType m_centreFrequency;
-  OffsetType m_offset;
+  VfoType m_vfo;
   GainType m_gain;
 };
