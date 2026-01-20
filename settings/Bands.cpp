@@ -5,8 +5,8 @@
 
 static std::vector<BandCategory> bandCategories = {
   {
-    "bc", "BC", {
-      {"BC", "BC", 526500, 1875000, 810000, 1000, 9000, Mode::Type::AMW}
+    "mw", "MW", {
+      {"MW", "MW", 526500, 1875000, 810000, 1000, 9000, Mode::Type::AMW}
     }
   },
   {
