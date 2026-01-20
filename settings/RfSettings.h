@@ -53,8 +53,8 @@ public:
     return *this;
   }
 
-  [[nodiscard]] uint32_t getCentreFrequency() const { return m_centreFrequency.getValue(); }
-  [[nodiscard]] int32_t getVfo() const { return m_vfo.getValue(); }
+  [[nodiscard]] int64_t getCentreFrequency() const { return m_centreFrequency.getValue(); }
+  [[nodiscard]] int64_t getVfo() const { return m_vfo.getValue(); }
   [[nodiscard]] float getGain() const { return m_gain.getValue(); }
 
   void setCentreFrequency(uint32_t frequency)
@@ -203,8 +203,8 @@ public:
   }
 
 protected:
-  using CentreFrequencyType = SteppableSetting<uint32_t, CENTER_FREQUENCY, RfSettings, int32_t>;
-  using VfoType = SteppableSetting<int32_t, VFO, RfSettings>;
+  using CentreFrequencyType = SteppableSetting<int64_t, CENTER_FREQUENCY, RfSettings, int32_t>;
+  using VfoType = SteppableSetting<int64_t, VFO, RfSettings>;
   using GainType = SteppableSetting<float, GAIN, RfSettings>;
 
   CentreFrequencyType m_centreFrequency;

@@ -41,6 +41,7 @@ public:
 
   [[nodiscard]] uint32_t getMaxFramesPerInputPacket() const override;
   [[nodiscard]] uint32_t getMaxFramesPerOutputPacket() const override;
+  [[nodiscard]] bool isFrequencyWithinNyquist(int64_t centreFrequency, int64_t frequency, const Mode& mode) const override;
 
   void setMode(const Mode& mode) override;
 protected:
@@ -49,7 +50,7 @@ protected:
 protected:
   DcShift m_dcShift;
   IqCorrection m_iqCorrection;
-  OscillatorMixer m_oscillatorMixer;
+  // OscillatorMixer m_oscillatorMixer;
   Decimator m_decimator;
   BandPassFilter m_ifFilter;
   AmDemodulator m_amDemodulator;

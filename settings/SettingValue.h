@@ -10,6 +10,7 @@
  */
 using SettingValue = std::variant<
   uint64_t,
+  int64_t,
   uint32_t,
   int32_t,
   Mode::Type,

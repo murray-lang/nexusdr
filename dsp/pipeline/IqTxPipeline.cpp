@@ -108,20 +108,29 @@ IqTxPipeline::apply(const TransmitterSettings& settings)
 void
 IqTxPipeline::apply(const TxPipelineSettings* settings)
 {
-  if (settings != nullptr) {
-    std::lock_guard<std::mutex> lock(m_settingsMutex);
-    if (settings->hasSettingChanged(PipelineSettings::RF)) {
-      const RfSettings& rfSettings = settings->getRfSettings();
-      if (rfSettings.hasSettingChanged(RfSettings::CENTER_FREQUENCY)
-          || rfSettings.hasSettingChanged(RfSettings::VFO)) {
-        int32_t offset = rfSettings.getCentreFrequency() - rfSettings.getVfo();
-        m_oscillatorMixer.setFrequency(offset);
-      }
-    }
-    if (settings->hasSettingChanged(PipelineSettings::MODE)) {
-      setMode(settings->getMode());
-    }
-  }
+  IqPipeline::apply(settings);
+  // if (settings != nullptr) {
+  //   std::lock_guard<std::mutex> lock(m_settingsMutex);
+  //   if (settings->hasSettingChanged(PipelineSettings::RF)) {
+  //     const RfSettings& rfSettings = settings->getRfSettings();
+  //     if (rfSettings.hasSettingChanged(RfSettings::CENTER_FREQUENCY)
+  //         || rfSettings.hasSettingChanged(RfSettings::VFO)) {
+  //       int32_t offset = rfSettings.getCentreFrequency() - rfSettings.getVfo();
+  //       m_oscillatorMixer.setFrequency(offset);
+  //     }
+  //   }
+  //   if (settings->hasSettingChanged(PipelineSettings::MODE)) {
+  //     setMode(settings->getMode());
+  //   }
+  // }
+}
+
+bool
+IqTxPipeline::isFrequencyWithinNyquist(int64_t centreFrequency, int64_t frequency, const Mode& mode) const
+{
+  int32_t nyquist = m_outputSampleRate / 2;
+  return std::abs(centreFrequency - (frequency + mode.getHiCut())) <= nyquist
+    && std::abs(centreFrequency - (frequency + mode.getLoCut())) <= nyquist;
 }
 
 void

@@ -2,9 +2,11 @@
 // Created by murray on 18/11/25.
 //
 #include "IqPipeline.h"
+#include "settings/PipelineSettings.h"
 
 #define DEFAULT_PING_PONG_LENGTH 8192
 
+class RfSettings;
 class ModeSettings;
 
 IqPipeline::IqPipeline(QObject* eventTarget) :
@@ -16,4 +18,27 @@ IqPipeline::IqPipeline(QObject* eventTarget) :
   m_outputSampleRate(0),
   m_pAudioOutSink(nullptr)
 {
+}
+
+void
+IqPipeline::apply(const PipelineSettings* settings)
+{
+  if (settings != nullptr) {
+    std::lock_guard<std::mutex> lock(m_settingsMutex);
+    if (settings->hasSettingChanged(PipelineSettings::RF)) {
+      const RfSettings& rfSettings = settings->getRfSettings();
+      if (rfSettings.hasSettingChanged(RfSettings::CENTER_FREQUENCY)
+          || rfSettings.hasSettingChanged(RfSettings::VFO)) {
+        int64_t centreFreq = rfSettings.getCentreFrequency();
+        int64_t vfo = rfSettings.getVfo();
+        if (isFrequencyWithinNyquist(centreFreq, vfo, m_mode)) {
+          int32_t offset = centreFreq - vfo;
+          m_oscillatorMixer.setFrequency(offset);
+        }
+      }
+    }
+    if (settings->hasSettingChanged(PipelineSettings::MODE)) {
+      setMode(settings->getMode());
+    }
+  }
 }

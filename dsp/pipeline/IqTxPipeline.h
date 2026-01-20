@@ -39,6 +39,7 @@ public:
 
   [[nodiscard]] uint32_t getMaxFramesPerInputPacket() const override;
   [[nodiscard]] uint32_t getMaxFramesPerOutputPacket() const override;
+  [[nodiscard]] bool isFrequencyWithinNyquist(int64_t centreFrequency, int64_t frequency, const Mode& mode) const override;
   void setMode(const Mode& mode) override;
 protected:
   void setModulatorSampleRate(uint32_t sampleRate);
@@ -52,7 +53,7 @@ protected:
   FmModulator m_fmModulator;
   Modulator* m_pModulator;
   Resampler m_resampler;
-  OscillatorMixer m_oscillatorMixer;
+  // OscillatorMixer m_oscillatorMixer;
   BandPassFilter m_ifFilter;
   vsdrreal m_audioBuffer;
   uint32_t m_inputSampleRate;
