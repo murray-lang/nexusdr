@@ -137,6 +137,13 @@ MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings, const B
 {
   m_radioSettingsCopy = radioSettings;
   m_bandSettingsCopy = bandSettings;
+
+  // Find the existing band dialog if it's open
+  auto* bandDialog = findChild<QtBandDialog*>("bandPanel");
+  if (bandDialog != nullptr) {
+    bandDialog->applySettings(m_radioSettingsCopy, const_cast<BandSettings*>(&m_bandSettingsCopy));
+  }
+
   RxPipelineSettings* rxPipelineSettings = m_bandSettingsCopy.getFocusRxPipelineSettings();
   if (rxPipelineSettings == nullptr) {
     return;
@@ -340,7 +347,7 @@ MainWindow::createModeMenu(const Mode& currentMode)
 
   SettingUpdatePath settingPath({
     RadioSettings::Features::BAND,
-    BandSettingsSelector::SELECTED,
+    BandSelector::SELECTED,
     BandSettings::Features::RX_PIPELINE,
     PipelineSettings::Features::MODE
   });

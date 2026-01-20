@@ -11,7 +11,7 @@
 
 #define MAX_SPLIT_BANDS 2
 
-class BandSettingsSelector : public SettingsBase
+class BandSelector : public SettingsBase
 {
 public:
   enum Features
@@ -26,14 +26,14 @@ public:
     FOCUS_AB   = 0x20,
     ALL = static_cast<uint32_t>(~0U)
   };
-  BandSettingsSelector() :
+  BandSelector() :
     SettingsBase()
     ,m_split(false)
   {
     initialiseCache();
   }
-  BandSettingsSelector(const BandSettingsSelector& rhs) = default;
-  ~BandSettingsSelector() override = default;
+  BandSelector(const BandSelector& rhs) = default;
+  ~BandSelector() override = default;
 
   void initialiseCache()
   {

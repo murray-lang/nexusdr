@@ -16,7 +16,7 @@
 #include "Band.h"
 #include "Bands.h"
 #include "BandSettings.h"
-#include "BandSettingsSelector.h"
+#include "BandSelector.h"
 #include "SettingsException.h"
 #include "../util/StringUtils.h"
 
@@ -145,7 +145,7 @@ public:
     const std::string& key = featureStrings[startIndex];
     if (key == "band") {
       featuresOut.push_back(BAND);
-      return BandSettingsSelector::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
+      return BandSelector::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
     }
     if (key == "rx") {
       featuresOut.push_back(RX);

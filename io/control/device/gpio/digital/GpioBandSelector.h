@@ -10,11 +10,11 @@
 
 class DigitalOutputLinesRequest;
 
-class BandSelector : public DigitalOutput
+class GpioBandSelector : public DigitalOutput
 {
 public:
-  BandSelector();
-  ~BandSelector() override = default;
+  GpioBandSelector();
+  ~GpioBandSelector() override = default;
   void configure(const ConfigBase* pConfig) override;
 
   void applySettings(const RadioSettings& settings, BandSettings* pBandSettings) override;

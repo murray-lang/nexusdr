@@ -5,12 +5,12 @@
 #include "io/control/device/gpio/Gpio.h"
 #include "io/control/device/gpio/GpioException.h"
 #include "settings/RadioSettings.h"
-#include "BandSelector.h"
+#include "GpioBandSelector.h"
 
 #include "config/BandSelectorConfig.h"
 #include "config/DigitalInputConfig.h"
 
-BandSelector::BandSelector() :
+GpioBandSelector::GpioBandSelector() :
   m_defaultOut(0),
   m_currentOut(0)
 {
@@ -19,7 +19,7 @@ BandSelector::BandSelector() :
 }
 
 void
-BandSelector::configure(const ConfigBase* pConfig)
+GpioBandSelector::configure(const ConfigBase* pConfig)
 {
   DigitalOutput::configure(pConfig);
   auto* config = dynamic_cast<const BandSelectorConfig*>(pConfig);
@@ -28,7 +28,7 @@ BandSelector::configure(const ConfigBase* pConfig)
 }
 
 void
-BandSelector::applySettings(const RadioSettings& settings, BandSettings* pBandSettings)
+GpioBandSelector::applySettings(const RadioSettings& settings, BandSettings* pBandSettings)
 {
   if (settings.hasSettingChanged(RadioSettings::BAND)) {
     const RfSettings& rfSettings = pBandSettings->getTxRfSettings();
@@ -42,7 +42,7 @@ BandSelector::applySettings(const RadioSettings& settings, BandSettings* pBandSe
 }
 
 void
-BandSelector::applySettingUpdate(SettingUpdate& setting)
+GpioBandSelector::applySettingUpdate(SettingUpdate& setting)
 {
   if (setting.getPath() == m_settingPath) {
     uint32_t frequency = std::get<uint32_t>(setting.getValue());
@@ -54,7 +54,7 @@ BandSelector::applySettingUpdate(SettingUpdate& setting)
 }
 
 uint32_t
-BandSelector::getBandOutput(uint32_t frequency) const
+GpioBandSelector::getBandOutput(uint32_t frequency) const
 {
   // Lookup the output for the given frequency
   for ( auto& band : m_bands) {
@@ -66,7 +66,7 @@ BandSelector::getBandOutput(uint32_t frequency) const
 }
 
 void
-BandSelector::applyOutput(uint32_t output)
+GpioBandSelector::applyOutput(uint32_t output)
 {
   m_currentOut = output;
   std::vector<bool> values(m_lines.size(), false);

@@ -328,8 +328,8 @@ set(PROJECT_SOURCES
         settings/TwoToneSettings.h
         config/BandSelectorConfig.h
         config/BandSelectorLookupItemConfig.h
-        io/control/device/gpio/digital/BandSelector.cpp
-        io/control/device/gpio/digital/BandSelector.h
+        io/control/device/gpio/digital/GpioBandSelector.cpp
+        io/control/device/gpio/digital/GpioBandSelector.h
         io/audio/drivers/AudioDriver.h
         io/audio/drivers/AudioInputDriver.h
         io/audio/drivers/AudioOutputDriver.h
@@ -358,7 +358,7 @@ set(PROJECT_SOURCES
         ui/qt/QtPanadapter.cpp
         ui/qt/QtPanadapter.h
         settings/SteppableSetting.h
-        settings/BandSettingsSelector.h
+        settings/BandSelector.h
 
 )
 

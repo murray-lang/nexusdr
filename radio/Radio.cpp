@@ -84,39 +84,39 @@ Radio::stop()
 const BandSettings*
 Radio::getBandSettings(const std::string& bandName) const
 {
-  return m_bandSettingsSelector.getBandSettings(bandName);
+  return m_bandSelector.getBandSettings(bandName);
 }
 
 const BandSettings*
 Radio::getFocusBandSettings() const
 {
-  return m_bandSettingsSelector.getFocusBandSettings();
+  return m_bandSelector.getFocusBandSettings();
 }
 
 void
 Radio::setCentreFrequencyDeltas(int32_t fine, int32_t coarse)
 {
-  m_bandSettingsSelector.setCentreFrequencyDeltas(fine, coarse);
+  m_bandSelector.setCentreFrequencyDeltas(fine, coarse);
 }
 
 void
 Radio::applyRfSettings(const RfSettings& settings, bool onlyChanged)
 {
-  m_bandSettingsSelector.applyRfSettings(settings, onlyChanged);
+  m_bandSelector.applyRfSettings(settings, onlyChanged);
   m_settings.markBandSettingsChanged();
 }
 
 void
 Radio::applyIfSettings(const IfSettings& settings)
 {
-  m_bandSettingsSelector.applyIfSettings(settings);
+  m_bandSelector.applyIfSettings(settings);
   m_settings.markBandSettingsChanged();
 }
 
 void
 Radio::applySettings(const RadioSettings& settings)
 {
-  BandSettings* pBandSettings = m_bandSettingsSelector.getFocusBandSettings();
+  BandSettings* pBandSettings = m_bandSelector.getFocusBandSettings();
   if (pBandSettings != nullptr) {
     applySettings(settings, pBandSettings);
   }
@@ -181,7 +181,7 @@ Radio::applySettingUpdate(SettingUpdate& update)
   }
   if (m_settings.applyUpdate(update)) {
     if (m_settings.hasSettingChanged(RadioSettings::BAND)) {
-      m_bandSettingsSelector.applyUpdate(update.stepNextFeature());
+      m_bandSelector.applyUpdate(update.stepNextFeature());
     }
     applySettings(m_settings);
   }
@@ -191,7 +191,7 @@ void
 Radio::applyBand(const std::string& bandName)
 {
   // qDebug() << "Radio::applyBand(): applying band " << bandName.c_str() << ". Existing band: " << m_settings.bandName.c_str() ;
-  SettingUpdatePath bandPath({RadioSettings::BAND, BandSettingsSelector::SELECT});
+  SettingUpdatePath bandPath({RadioSettings::BAND, BandSelector::SELECT});
   SettingUpdate bandSetting(bandPath, bandName, SettingUpdate::Meaning::VALUE);
   applySettingUpdate(bandSetting);
 }
