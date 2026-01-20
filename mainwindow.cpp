@@ -137,12 +137,20 @@ MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings, const B
 {
   m_radioSettingsCopy = radioSettings;
   m_bandSettingsCopy = bandSettings;
+
+  // Find the existing band dialog if it's open
+  auto* bandDialog = findChild<QtBandDialog*>("bandPanel");
+  if (bandDialog != nullptr) {
+    bandDialog->applySettings(m_radioSettingsCopy, const_cast<BandSettings*>(&m_bandSettingsCopy));
+  }
+  updateBandButton(m_bandSettingsCopy.getBand());
+
   RxPipelineSettings* rxPipelineSettings = m_bandSettingsCopy.getFocusRxPipelineSettings();
   if (rxPipelineSettings == nullptr) {
     return;
   }
   RfSettings& rfSettings = rxPipelineSettings->getRfSettings();
-  bool frequencyChanged = (rfSettings.hasSettingChanged(RfSettings::Features::FREQUENCY)) != 0;
+  bool frequencyChanged = (rfSettings.hasSettingChanged(RfSettings::Features::CENTRE_FREQUENCY)) != 0;
   bool offsetChanged = (rfSettings.hasSettingChanged(RfSettings::Features::OFFSET)) != 0;
   bool modeChanged = (rxPipelineSettings->hasSettingChanged(PipelineSettings::Features::MODE)) != 0;
 
@@ -284,12 +292,11 @@ MainWindow::addModeButton()
     throw std::runtime_error("No radio instance");
   }
   RadioSettings& radioSettings = m_pRadio->getRadioSettings();
-  const std::string selectedBandName = radioSettings.getBandName();
-  BandSettings* bandSettings = m_pRadio->getBandSettings(selectedBandName);
+  const BandSettings* bandSettings = m_pRadio->getFocusBandSettings();
   if (bandSettings == nullptr) {
     throw SettingsException("Band settings not found for selected band");
   }
-  RxPipelineSettings* rxPipelineSettings = bandSettings->getFocusRxPipelineSettings();
+  const RxPipelineSettings* rxPipelineSettings = bandSettings->getFocusRxPipelineSettings();
   if (rxPipelineSettings == nullptr) {
     throw SettingsException("Radio pipeline settings not found for selected band");
   }
@@ -340,7 +347,8 @@ MainWindow::createModeMenu(const Mode& currentMode)
   const std::vector<Mode>& allModes = ModeSettings::getAll();
 
   SettingUpdatePath settingPath({
-    RadioSettings::Features::PIPELINE,
+    RadioSettings::Features::BAND,
+    BandSelector::SELECTED,
     BandSettings::Features::RX_PIPELINE,
     PipelineSettings::Features::MODE
   });
@@ -366,6 +374,14 @@ MainWindow::updateModeButton(const Mode& mode)
 {
   if (m_modeButton != nullptr) {
     m_modeButton->setText(mode.getName().c_str());
+  }
+}
+
+void
+MainWindow::updateBandButton(const Band& band)
+{
+  if (m_bandButton != nullptr) {
+    m_bandButton->setText(QString::fromStdString(band.getLabel()));
   }
 }
 
@@ -472,8 +488,12 @@ MainWindow::initialiseRadio()
 
     RfSettings rfSettings;
     rfSettings.setGain(30.0);
-    rfSettings.setGainStep(1.0);
-    m_pRadio->applyRfSettings(rfSettings);
+    rfSettings.setGainCoarseStep(1.0);
+    rfSettings.setGainFineStep(0.1);
+    m_pRadio->applyRfSettings(rfSettings, true);
+
+    // int32_t centreFreqStepCoarse = 50000;
+    // m_pRadio->applySetting("pipeline.rx-pipeline.rf.centre-frequency.coarse-step", centreFreqStepCoarse);
 
     IfSettings ifSettings;
     ifSettings.setGain(0.0);

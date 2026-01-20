@@ -7,7 +7,7 @@
 #include "config/BandSelectorConfig.h"
 #include "config/FunCubeConfig.h"
 #include "device/FunCubeDongle/FunCubeDongle.h"
-#include "device/gpio/digital/BandSelector.h"
+#include "device/gpio/digital/GpioBandSelector.h"
 #include "device/gpio/digital/DigitalOutput.h"
 
 ControlSink*
@@ -33,7 +33,7 @@ ControlSinkFactory::create(const std::string& type)
     return new DigitalOutput();
   }
   if (typeAsLower == BandSelectorConfig::type) {
-    return new BandSelector();
+    return new GpioBandSelector();
   }
   return nullptr;
 }

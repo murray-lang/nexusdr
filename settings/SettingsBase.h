@@ -27,6 +27,7 @@ public:
   }
 
   [[nodiscard]] bool isChanged() const { return !!m_changed; }
+  void setChanged(uint32_t feature) { m_changed |= feature; }
   [[nodiscard]] bool hasSettingChanged(uint32_t feature) const { return (m_changed & feature) != 0; }
   virtual void clearChanged() { m_changed = 0; }
   virtual void setAllChanged() { m_changed = ~0U; }
@@ -99,8 +100,8 @@ Setting<T, FeatureBit, DerivedSettingsClass, TStep>::apply(const SettingValue& v
 
 template<typename T, uint32_t FeatureBit, typename DerivedSettingsClass, typename TStep>
 bool
-Setting<T, FeatureBit, DerivedSettingsClass, TStep>::merge(const Setting& rhs) {
-  if (rhs.m_parent->hasSettingChanged(FeatureBit)) {
+Setting<T, FeatureBit, DerivedSettingsClass, TStep>::merge(const Setting& rhs, bool onlyChanged) {
+  if (!onlyChanged || rhs.m_parent->hasSettingChanged(FeatureBit)) {
     if (m_value != rhs.m_value) {
       m_value = rhs.m_value;
       m_parent->m_changed |= FeatureBit;
@@ -112,14 +113,23 @@ Setting<T, FeatureBit, DerivedSettingsClass, TStep>::merge(const Setting& rhs) {
 
 template<typename T, uint32_t FeatureBit, typename DerivedSettingsClass, typename TStep>
 bool
-Setting<T, FeatureBit, DerivedSettingsClass, TStep>::applyDelta(const SettingValue& deltaVariant) {
+Setting<T, FeatureBit, DerivedSettingsClass, TStep>::applyDelta(const SettingValue& deltaVariant, bool isDeltaCoarse) {
   // Using visitor pattern to handle different types of delta values
   auto visitor = [&]<typename T0>(T0&& deltaFactor) -> bool {
     using V = std::decay_t<decltype(deltaFactor)>;
     if constexpr (std::is_arithmetic_v<V>) {
       if (deltaFactor != 0) {
         // Use the linked step (of type TStep) or default to 1
-        TStep step = m_pStepValue ? *m_pStepValue : static_cast<TStep>(1);
+        TStep step = 1;
+        if (isDeltaCoarse) {
+          if (m_pCoarseStepValue != nullptr) {
+            step = *m_pCoarseStepValue;
+          }
+        } else {
+          if (m_pFineStepValue != nullptr) {
+            step = *m_pFineStepValue;
+          }
+        }
 
         m_value += static_cast<T>(static_cast<TStep>(deltaFactor) * step);
 

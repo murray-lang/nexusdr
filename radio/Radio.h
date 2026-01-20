@@ -13,6 +13,7 @@
 #include <settings/RadioSettingsSink.h>
 
 #include "../settings/ModeSettings.h"
+#include "settings/BandSelector.h"
 #include "settings/RadioSettings.h"
 #include "transmitter/IqTransmitter.h"
 
@@ -26,33 +27,41 @@ public:
   void start();
   void stop();
 
+  template<typename T>
+  void applySetting(const char * dottedString, T value, bool isDelta = false)
+  {
+    SettingUpdatePath path = RadioSettings::getSettingUpdatePath(dottedString);
+    SettingUpdate update(path, value, isDelta ? SettingUpdate::DELTA : SettingUpdate::VALUE);
+    applySettingUpdate(update);
+  }
   void applySettings(const RadioSettings& settings) override;
   void applySettings(const RadioSettings& settings, BandSettings* pBandSettings) override;
-  void applySettingUpdate(SettingUpdate& settingDelta) override;
+  void applySettingUpdate(SettingUpdate& setting) override;
 
   void applyBand(const std::string& bandName);
 
-  void applyRfSettings(const RfSettings& settings);
+  void applyRfSettings(const RfSettings& settings, bool onlyChanged = false);
   void applyIfSettings(const IfSettings& settings);
+
+  void setCentreFrequencyDeltas(int32_t fine, int32_t coarse);
 
   RadioSettings& getRadioSettings() { return m_settings; }
   const RadioSettings& getRadioSettings() const { return m_settings; }
-  BandSettings* getBandSettings(const std::string& bandName);
   const BandSettings* getBandSettings(const std::string& bandName) const;
+  const BandSettings* getFocusBandSettings() const;
+  const std::string& getFocusBandName() const { return m_bandSelector.getFocusBandName(); }
 
-  const Bands& getBands() const { return m_bands; }
+  const Bands& getBands() const { return m_bandSelector.getBands(); }
 
   void ptt(bool on) override;
 
 protected:
-  void initialiseBandSettings();
   void pttOn();
   void pttOff();
 
 protected:
   RadioSettings m_settings;
-  std::unordered_map<std::string, BandSettings> m_bandSettings;
-  Bands m_bands;
+  BandSelector m_bandSelector;
   IqReceiver* m_pReceiver;
   IqTransmitter* m_pTransmitter;
   RadioControl* m_pControl;

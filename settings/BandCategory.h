@@ -6,6 +6,7 @@
 #include "Band.h"
 #include <vector>
 #include <string>
+#include <algorithm>
 
 class BandCategory
 {
@@ -38,6 +39,40 @@ public:
     for (const auto& band : m_bands) {
       if (band.containsFrequency(frequency)) {
         return &band;
+      }
+    }
+    return nullptr;
+  }
+
+  const Band* nextBand(const std::string& name) const
+  {
+    auto it = std::find_if(m_bands.begin(), m_bands.end(), [&](const Band& b) {
+      return b.getName() == name;
+    });
+
+    if (it != m_bands.end()) {
+      auto index = std::distance(m_bands.begin(), it);
+      if (index + 1 < m_bands.size()) {
+        return &m_bands[index + 1];
+      } else {
+        return &m_bands[0];
+      }
+    }
+    return nullptr;
+  }
+
+  const Band* prevBand(const std::string& name) const
+  {
+    auto it = std::find_if(m_bands.begin(), m_bands.end(), [&](const Band& b) {
+      return b.getName() == name;
+    });
+
+    if (it != m_bands.end()) {
+      auto index = std::distance(m_bands.begin(), it);
+      if (index > 0) {
+        return &m_bands[index - 1];
+      } else {
+        return &m_bands[m_bands.size()-1];
       }
     }
     return nullptr;

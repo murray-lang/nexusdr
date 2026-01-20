@@ -22,14 +22,14 @@ class MicSettings : public SettingsBase
     m_gain(this, "gain",1.0),
     m_gainStep(this, "gain-step", DEFAULT_GAIN_STEP)
   {
-    m_gain.setStepValueAddress(m_gainStep.getValueAddress());
+    m_gain.setFineStepValueAddress(m_gainStep.getValueAddress());
   }
   MicSettings(const MicSettings& rhs) :
     SettingsBase(rhs),
     m_gain(this, rhs.m_gain),
     m_gainStep(this, rhs.m_gainStep)
   {
-    m_gain.setStepValueAddress(m_gainStep.getValueAddress());
+    m_gain.setFineStepValueAddress(m_gainStep.getValueAddress());
   }
   ~MicSettings() override = default;
   MicSettings& operator=(const MicSettings& rhs) = default;

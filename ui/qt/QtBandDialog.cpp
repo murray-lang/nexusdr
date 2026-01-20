@@ -33,32 +33,40 @@ QtBandDialog::~QtBandDialog() {
   delete ui;
 }
 
-// bool QtBandDialog::event(QEvent *event) {
-//   if (event->type() == QEvent::Leave) {
-//     // close();
-//     deleteLater(); // Use deleteLater for safety in event handlers
-//     return true;
-//   }
-//   return QWidget::event(event);
-// }
 
-// void
-// QtBandDialog::showEvent(QShowEvent *event)
-// {
-//   QWidget::showEvent(event);
-//   grabMouse();
-// }
-//
-// void
-// QtBandDialog::mousePressEvent(QMouseEvent *event)
-// {
-//   if (!rect().contains(event->pos())) {
-//     releaseMouse();
-//     this->deleteLater();
-//   } else {
-//     QWidget::mousePressEvent(event);
-//   }
-// }
+void
+QtBandDialog::applySettings(const RadioSettings& settings, BandSettings* pBandSettings)
+{
+  if (settings.hasSettingChanged(RadioSettings::BAND)) {
+    if (pBandSettings != nullptr) {
+      const Band& band = pBandSettings->getBand();
+      updateTabs(band);
+      updateBandButtons(band);
+    }
+  }
+}
+
+void
+QtBandDialog::updateTabs(const Band& band)
+{
+  const Bands& bands = m_pRadio->getBands();
+  const BandCategory* bandCategory = bands.findCategoryOfBand(band.getName());
+  if (bandCategory != nullptr) {
+    int32_t categoryIndex = bands.findCategoryIndex(bandCategory->getName());
+    ui->tabWidget->setCurrentIndex(categoryIndex);
+  }
+}
+
+void
+QtBandDialog::updateBandButtons(const Band& band)
+{
+  for (QPushButton* btn : m_bandButtons) {
+    bool isSelected = (btn->text().toStdString() == band.getLabel());
+    btn->setProperty("selected", isSelected);
+    btn->style()->unpolish(btn);
+    btn->style()->polish(btn);
+  }
+}
 
 void
 QtBandDialog::addCategoryTabs(Radio* pRadio)
@@ -66,7 +74,7 @@ QtBandDialog::addCategoryTabs(Radio* pRadio)
   if (pRadio != nullptr) {
     const RadioSettings& settings = pRadio->getRadioSettings();
     const Bands& bands = pRadio->getBands();
-    const std::string& selectedBandName = settings.getBandName();
+    const std::string& selectedBandName = pRadio->getFocusBandName();
     const BandCategory* selectedCategory = bands.findCategoryOfBand(selectedBandName);
 
     int selectedTabIndex = 0;
@@ -94,6 +102,7 @@ QtBandDialog::addCategoryTab(const BandCategory& category, bool isSelected, cons
   QGridLayout* layout = new QGridLayout(tab);
   layout->setContentsMargins(9, 9, 9, 9);
   layout->setSpacing(1);
+  layout->setVerticalSpacing(10);
 
   const int columns = 5;
   int row = 0;
@@ -102,8 +111,8 @@ QtBandDialog::addCategoryTab(const BandCategory& category, bool isSelected, cons
   for (const auto& band : category.getBands()) {
     QPushButton* bandBtn = new QPushButton(QString::fromStdString(band.getLabel()));
     m_bandButtons.append(bandBtn);
-    bandBtn->setMaximumHeight(20);
-    bandBtn->setMaximumWidth(40);
+    bandBtn->setMaximumHeight(40);
+    bandBtn->setMaximumWidth(70);
     bandBtn->setProperty("class", "toolbarDialogButton");
 
     bool isSelectedBand = band.getName() == selectedBandName;

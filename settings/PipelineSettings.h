@@ -16,11 +16,19 @@ public:
     NONE = 0,
     MODE = 0x01,
     RF = 0x02,
+    FINE_STEP = 0x04,
     ALL = static_cast<uint32_t>(~0U)
   };
 
-  PipelineSettings() =default;
-  PipelineSettings(const PipelineSettings& rhs) = default;
+  PipelineSettings() : m_fineStep(this, "fine-step", false) {}
+  PipelineSettings(const PipelineSettings& rhs) :
+    SettingsBase(rhs),
+    m_mode(rhs.m_mode),
+    m_modeSettings(rhs.m_modeSettings),
+    m_rfSettings(rhs.m_rfSettings),
+    m_fineStep(this, rhs.m_fineStep)
+  {
+  }
   ~PipelineSettings() override = default;
 
   PipelineSettings& operator=(const PipelineSettings& rhs)
@@ -60,6 +68,7 @@ public:
       const Mode& newMode = ModeSettings::getModeByType(defaultMode);
       setBand(*band);
       setMode(newMode);
+      m_rfSettings.applyBandDefaults(*band);
     }
   }
 
@@ -77,7 +86,12 @@ public:
 
   bool setBand(const Band& band)
   {
-    return m_rfSettings.setBand(band);
+    return m_rfSettings.applyBandDefaults(band);
+  }
+
+  void setCentreFrequencyDeltas(int32_t fine, int32_t coarse)
+  {
+    m_rfSettings.setCentreFrequencyDeltas(fine, coarse);
   }
 
   RfSettings& getRfSettings()
@@ -90,9 +104,9 @@ public:
     return m_rfSettings;
   }
 
-  bool mergeRfSettings(const RfSettings& settings)
+  bool mergeRfSettings(const RfSettings& settings, bool onlyChanged = false)
   {
-    if (m_rfSettings.merge(settings)) {
+    if (m_rfSettings.merge(settings, onlyChanged)) {
       m_changed |= RF;
       return true;
     }
@@ -139,6 +153,10 @@ public:
         return true;
       }
       return false;
+    case FINE_STEP: {
+      const auto& val = update.getValue();
+      return m_fineStep.apply(val);
+    }
     default: return false;
     }
   }
@@ -185,4 +203,5 @@ protected:
   Mode m_mode;
   ModeSettings m_modeSettings;
   RfSettings m_rfSettings;
+  Setting<bool, FINE_STEP, PipelineSettings> m_fineStep;
 };
