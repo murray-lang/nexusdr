@@ -4,7 +4,7 @@
 
 #pragma once
 #include "SettingsBase.h"
-template<typename ValueType, uint32_t ParentFeatureBit, typename ParentSettingsClass, typename DeltaType = ValueType>
+template<typename ValueType, uint32_t ParentFeatureBit, typename ParentClass, typename DeltaType = ValueType>
 class SteppableSetting: public SettingsBase
 {
 public:
@@ -29,7 +29,7 @@ public:
   //   m_value.setStepAddresses(m_fineDelta.getValueAddress(), m_coarseDelta.getValueAddress());
   // }
   SteppableSetting(
-    ParentSettingsClass* parent,
+    ParentClass* parent,
     const char* name,
     ValueType defaultValue,
     DeltaType defaultFineDelta,
@@ -41,10 +41,10 @@ public:
     , m_fineDelta(this, "fine-delta", defaultFineDelta)
     , m_coarseDelta(this, "coarse-delta", defaultCoarseDelta)
   {
-    SettingRegistry<ParentSettingsClass>::mapping[name] = ParentFeatureBit;
+    SettingRegistry<ParentClass>::mapping[name] = ParentFeatureBit;
     m_value.setStepAddresses(m_fineDelta.getValueAddress(), m_coarseDelta.getValueAddress());
   }
-  SteppableSetting(ParentSettingsClass* parent, const SteppableSetting& rhs) :
+  SteppableSetting(ParentClass* parent, const SteppableSetting& rhs) :
     SettingsBase(rhs),
     m_parent(parent),
     m_value(this, rhs.m_value),

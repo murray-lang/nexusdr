@@ -35,6 +35,8 @@ public:
   uint32_t sinkIq(const vsdrcomplex& samples, uint32_t length) override; // IqSink
   uint32_t sinkAudio(const vsdrreal& samples, uint32_t length, uint32_t numChannels) override; // AudioSink
 
+  bool adjustRfSettingsToLimits(RfSettings& rfSettings, bool onlyIfChanged = true) const;
+
 protected:
   // const ModeSettings& m_modeSettings;
   IqIo m_iqIo;

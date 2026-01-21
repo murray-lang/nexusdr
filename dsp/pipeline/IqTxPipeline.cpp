@@ -91,6 +91,14 @@ IqTxPipeline::getMaxFramesPerOutputPacket() const
 }
 
 void
+IqTxPipeline::calcNyquistOffsetsLimits(int32_t* maxNegative, int32_t* maxPositive) const
+{
+  int32_t nyquist = static_cast<int32_t>(m_outputSampleRate) / 2;
+  *maxNegative = -nyquist - m_mode.getLoCut();
+  *maxPositive = nyquist - m_mode.getHiCut();
+}
+
+void
 IqTxPipeline::apply(const TransmitterSettings& settings)
 {
   std::lock_guard<std::mutex> lock(m_settingsMutex);
@@ -123,14 +131,6 @@ IqTxPipeline::apply(const TxPipelineSettings* settings)
   //     setMode(settings->getMode());
   //   }
   // }
-}
-
-bool
-IqTxPipeline::isFrequencyWithinNyquist(int64_t centreFrequency, int64_t frequency, const Mode& mode) const
-{
-  int32_t nyquist = m_outputSampleRate / 2;
-  return std::abs(centreFrequency - (frequency + mode.getHiCut())) <= nyquist
-    && std::abs(centreFrequency - (frequency + mode.getLoCut())) <= nyquist;
 }
 
 void

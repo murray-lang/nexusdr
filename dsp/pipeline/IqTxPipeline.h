@@ -39,7 +39,7 @@ public:
 
   [[nodiscard]] uint32_t getMaxFramesPerInputPacket() const override;
   [[nodiscard]] uint32_t getMaxFramesPerOutputPacket() const override;
-  [[nodiscard]] bool isFrequencyWithinNyquist(int64_t centreFrequency, int64_t frequency, const Mode& mode) const override;
+  void calcNyquistOffsetsLimits(int32_t* maxNegative, int32_t* maxPositive) const override;
   void setMode(const Mode& mode) override;
 protected:
   void setModulatorSampleRate(uint32_t sampleRate);

@@ -13,6 +13,8 @@
 #include "oscillators/OscillatorMixer.h"
 #include <qcoreevent.h>
 
+#include "settings/RfSettings.h"
+
 
 class PipelineSettings;
 class ModeSettings;
@@ -34,11 +36,18 @@ public:
 
   [[nodiscard]] virtual uint32_t getMaxFramesPerInputPacket() const = 0;
   [[nodiscard]] virtual uint32_t getMaxFramesPerOutputPacket() const = 0;
-  virtual bool isFrequencyWithinNyquist(int64_t centreFrequency, int64_t frequency, const Mode& mode) const = 0;
+  virtual void calcNyquistOffsetsLimits(int32_t* maxNegative, int32_t* maxPositive) const = 0;
 
   virtual void setMode(const Mode& mode)
   {
     m_mode = mode;
+  }
+
+  bool adjustRfSettingsToLimits(RfSettings& rfSettings) const
+  {
+    int32_t maxNegative, maxPositive;
+    calcNyquistOffsetsLimits(&maxNegative, &maxPositive);
+    return rfSettings.applyMaximumVfoOffsets(maxNegative, maxPositive);
   }
 
   virtual void apply(const PipelineSettings* settings);

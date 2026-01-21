@@ -11,7 +11,6 @@
 #include "SettingsBase.h"
 #include "SettingsException.h"
 #include <QDebug>
-
 #include "SteppableSetting.h"
 
 class RfSettings : public SettingsBase
@@ -30,6 +29,8 @@ public:
     ,m_centreFrequency(this, "center-frequency", 0, 10000, 50000)
     ,m_vfo(this, "vfo", 0, 100, 1000)
     ,m_gain(this, "gain", 0.0, 0.1, 1.0)
+    ,m_maxNegativeVfoOffset(0)
+    ,m_maxPositiveVfoOffset(0)
   {
   }
   RfSettings(const RfSettings& rhs) :
@@ -37,6 +38,8 @@ public:
     ,m_centreFrequency(this, "center-frequency", 0, 10000, 50000)
     ,m_vfo(this, "vfo", 0, 100, 1000)
     ,m_gain(this, "gain", 0.0, 0.1, 1.0)
+    ,m_maxNegativeVfoOffset(rhs.m_maxNegativeVfoOffset)
+    ,m_maxPositiveVfoOffset(rhs.m_maxPositiveVfoOffset)
   {
     merge(rhs);
   }
@@ -49,6 +52,8 @@ public:
       m_centreFrequency = rhs.m_centreFrequency;
       m_vfo = rhs.m_vfo;
       m_gain = rhs.m_gain;
+      m_maxPositiveVfoOffset = rhs.m_maxPositiveVfoOffset;
+      m_maxNegativeVfoOffset = rhs.m_maxNegativeVfoOffset;
     }
     return *this;
   }
@@ -56,6 +61,30 @@ public:
   [[nodiscard]] int64_t getCentreFrequency() const { return m_centreFrequency.getValue(); }
   [[nodiscard]] int64_t getVfo() const { return m_vfo.getValue(); }
   [[nodiscard]] float getGain() const { return m_gain.getValue(); }
+
+  void setMaximumVfoOffsets(int32_t negativeOffset, int32_t positiveOffset)
+  {
+    m_maxNegativeVfoOffset = negativeOffset;
+    m_maxPositiveVfoOffset = positiveOffset;
+  }
+
+  bool applyMaximumVfoOffsets(int32_t negativeOffset, int32_t positiveOffset)
+  {
+    setMaximumVfoOffsets(negativeOffset, positiveOffset);
+    bool changed = false;
+    int64_t centreFrequency = m_centreFrequency.getValue();
+    int64_t offset = m_vfo.getValue() - centreFrequency;
+    if (offset > m_maxPositiveVfoOffset) {
+      m_vfo.setValue(centreFrequency + m_maxPositiveVfoOffset);
+      m_changed |= VFO;
+      changed = true;
+    } else if (offset < m_maxNegativeVfoOffset) {
+      m_vfo.setValue(centreFrequency + m_maxNegativeVfoOffset);
+      m_changed |= VFO;
+      changed = true;
+    }
+    return changed;
+  }
 
   void setCentreFrequency(uint32_t frequency)
   {
@@ -170,13 +199,32 @@ public:
     uint32_t feature = update.getCurrentFeature();
     const auto& val = update.getValue();
 
+    bool frequencyChange = false;
     switch (feature) {
-    case CENTER_FREQUENCY: return m_centreFrequency.applyUpdate(update.stepNextFeature());
-    case VFO: return m_vfo.applyUpdate(update.stepNextFeature());
-    case GAIN: return m_gain.applyUpdate(update.stepNextFeature());
-    default:
-      return false;
+    case CENTER_FREQUENCY:
+      if (m_centreFrequency.applyUpdate(update)) {
+        frequencyChange = true;
+      }
+      break;
+    case VFO:
+      if (m_vfo.applyUpdate(update)) {
+        frequencyChange = true;
+      }
+      break;
+    case GAIN: return m_gain.applyUpdate(update);
+    default: ;
     }
+    // Clamp frequencies that are out of Nyquist
+    if (frequencyChange) {
+      int64_t centreFrequency = m_centreFrequency.getValue();
+      int64_t offset = m_vfo.getValue() - centreFrequency;
+      if (offset > m_maxPositiveVfoOffset) {
+        m_vfo.setValue(centreFrequency + m_maxPositiveVfoOffset);
+      } else if (offset < m_maxNegativeVfoOffset) {
+        m_vfo.setValue(centreFrequency + m_maxNegativeVfoOffset);
+      }
+    }
+    return frequencyChange;
   }
 
   static bool getFeaturePath(
@@ -203,11 +251,15 @@ public:
   }
 
 protected:
-  using CentreFrequencyType = SteppableSetting<int64_t, CENTER_FREQUENCY, RfSettings, int32_t>;
+  using CentreFrequencyType = SteppableSetting<int64_t, CENTER_FREQUENCY, RfSettings, int64_t>;
   using VfoType = SteppableSetting<int64_t, VFO, RfSettings>;
   using GainType = SteppableSetting<float, GAIN, RfSettings>;
 
   CentreFrequencyType m_centreFrequency;
   VfoType m_vfo;
   GainType m_gain;
+
+  // These could differ due to the modulation mode
+  int32_t m_maxNegativeVfoOffset;
+  int32_t m_maxPositiveVfoOffset;
 };

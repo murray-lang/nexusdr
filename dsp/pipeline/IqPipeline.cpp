@@ -31,10 +31,8 @@ IqPipeline::apply(const PipelineSettings* settings)
           || rfSettings.hasSettingChanged(RfSettings::VFO)) {
         int64_t centreFreq = rfSettings.getCentreFrequency();
         int64_t vfo = rfSettings.getVfo();
-        if (isFrequencyWithinNyquist(centreFreq, vfo, m_mode)) {
-          int32_t offset = centreFreq - vfo;
-          m_oscillatorMixer.setFrequency(offset);
-        }
+        auto offset = static_cast<int32_t>(centreFreq - vfo);
+        m_oscillatorMixer.setFrequency(offset);
       }
     }
     if (settings->hasSettingChanged(PipelineSettings::MODE)) {

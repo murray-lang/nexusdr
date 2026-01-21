@@ -100,12 +100,12 @@ IqRxPipeline::apply(const RxPipelineSettings* settings)
   // }
 }
 
-bool
-IqRxPipeline::isFrequencyWithinNyquist(int64_t centreFrequency, int64_t frequency, const Mode& mode) const
+void
+IqRxPipeline::calcNyquistOffsetsLimits(int32_t* maxNegative, int32_t* maxPositive) const
 {
-  int32_t nyquist = m_inputSampleRate / 2;
-  return std::abs(centreFrequency - (frequency + mode.getHiCut())) <= nyquist
-    && std::abs(centreFrequency - (frequency + mode.getLoCut())) <= nyquist;
+  int32_t nyquist = static_cast<int32_t>(m_inputSampleRate) / 2;
+  *maxNegative = -nyquist - m_mode.getLoCut();
+  *maxPositive = nyquist - m_mode.getHiCut();
 }
 
 void

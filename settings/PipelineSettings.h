@@ -7,7 +7,6 @@
 #include "SettingsBase.h"
 #include "ModeSettings.h"
 #include <map>
-
 class PipelineSettings: public SettingsBase
 {
 public:
@@ -20,7 +19,11 @@ public:
     ALL = static_cast<uint32_t>(~0U)
   };
 
-  PipelineSettings() : m_fineStep(this, "fine-step", false) {}
+  PipelineSettings() :
+    m_fineStep(this, "fine-step", false)
+  {
+  }
+
   PipelineSettings(const PipelineSettings& rhs) :
     SettingsBase(rhs),
     m_mode(rhs.m_mode),
@@ -138,27 +141,29 @@ public:
     }
     uint32_t feature = update.getCurrentFeature();
 
+    bool settingChange = false;
     switch (feature) {
     case RF:
-      update.stepNextFeature();
-      if (m_rfSettings.applyUpdate(update)) {
+      settingChange = m_rfSettings.applyUpdate(update.stepNextFeature());
+      if (settingChange) {
         m_changed |= RF;
-        return true;
       }
-      return false;
+      break;
     case MODE:
-      update.stepNextFeature();
-      if (applyModeSetting(update)) {
+      settingChange = applyModeSetting(update.stepNextFeature());
+      if (settingChange) {
         m_changed |= MODE;
-        return true;
       }
-      return false;
+      break;
     case FINE_STEP: {
       const auto& val = update.getValue();
-      return m_fineStep.apply(val);
+      settingChange =  m_fineStep.apply(val);
+        break;
     }
-    default: return false;
+    default: ;
     }
+
+    return settingChange;
   }
 
   static bool getFeaturePath(
@@ -173,12 +178,11 @@ public:
     if (resolvePathForRegisteredSetting<PipelineSettings>(featureStrings, featuresOut, startIndex)) {
       return true;
     }
-    const std::string& key = featureStrings[startIndex];
-    if (key == "rf") {
-      featuresOut.push_back(RF);
-      return RfSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
+    if (RfSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1)) {
+      return true;
     }
-     if (key == "mode") {
+    const std::string& key = featureStrings[startIndex];
+    if (key == "mode") {
       featuresOut.push_back(MODE);
       return true;
     }
@@ -204,4 +208,5 @@ protected:
   ModeSettings m_modeSettings;
   RfSettings m_rfSettings;
   Setting<bool, FINE_STEP, PipelineSettings> m_fineStep;
+
 };
