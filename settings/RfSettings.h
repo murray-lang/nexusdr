@@ -202,12 +202,12 @@ public:
     bool frequencyChange = false;
     switch (feature) {
     case CENTER_FREQUENCY:
-      if (m_centreFrequency.applyUpdate(update)) {
+      if (m_centreFrequency.applyUpdate(update.stepNextFeature())) {
         frequencyChange = true;
       }
       break;
     case VFO:
-      if (m_vfo.applyUpdate(update)) {
+      if (m_vfo.applyUpdate(update.stepNextFeature())) {
         frequencyChange = true;
       }
       break;

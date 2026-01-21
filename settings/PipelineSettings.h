@@ -178,10 +178,11 @@ public:
     if (resolvePathForRegisteredSetting<PipelineSettings>(featureStrings, featuresOut, startIndex)) {
       return true;
     }
-    if (RfSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1)) {
-      return true;
-    }
     const std::string& key = featureStrings[startIndex];
+    if (key == "rf") {
+      featuresOut.push_back(RF);
+      return RfSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
+    }
     if (key == "mode") {
       featuresOut.push_back(MODE);
       return true;

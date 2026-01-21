@@ -19,7 +19,7 @@
             "config": {
               "lines": [9, 10, 11, 17],
               "defaultOut": 8,
-              "settingPath": "tx.rf.frequency",
+              "settingPath": "band.selected.tx-pipeline.rf.center-frequency.value",
               "bands": [
                 {
                   "fromFrequency": 1800000,
@@ -90,7 +90,7 @@
                           "lines": [8, 7],
                           "bias": "pull-up",
                           "debounce": true,
-                          "settingPath": "mode"
+                          "settingPath": "band.selected.rx-pipeline.mode"
                       }
                   },
                   {
@@ -100,7 +100,7 @@
                           "lines": [13, 12],
                           "bias": "pull-up",
                           "debounce": true,
-                          "settingPath": "tx.mic.gain"
+                          "settingPath": "band.select"
                       }
                   },
                   {
@@ -110,7 +110,7 @@
                           "lines": [26, 16],
                           "bias": "pull-up",
                           "debounce": true,
-                          "settingPath": "frequency"
+                          "settingPath": "band.selected.rx-pipeline.rf.center-frequency.value.coarse"
                       }
                   },
                   {
@@ -120,7 +120,7 @@
                           "lines": [15, 14],
                           "bias": "none",
                           "debounce": false,
-                          "settingPath": "offset"
+                          "settingPath": "band.selected.rx-pipeline.rf.vfo.value"
                       }
                   }
               ]
@@ -135,11 +135,11 @@
           "config": {
             "audioInput": {
 			  "soundApi": "alsa",
-			  "searchExpression": "HiFiBerry",
+			  "searchExpression": "FunCube",
 			  "sampleRate": 192000,
 			  "channelCount": 2
            },
-            "reverse": true
+            "reverse": false
           }
         },
         "audioOutput": {
