@@ -13,11 +13,11 @@
 #include <settings/RadioSettingsSink.h>
 
 #include "../settings/ModeSettings.h"
-#include "settings/BandSelector.h"
+#include "../settings/bands/BandSelector.h"
 #include "settings/RadioSettings.h"
 #include "transmitter/IqTransmitter.h"
 
-class Radio : public RadioAndBandSettingsSink, PttSink {
+class Radio : public RadioSettingsSink, PttSink {
 
 public:
   explicit Radio(QObject *pEventTarget = nullptr);
@@ -35,23 +35,41 @@ public:
     applySettingUpdate(update);
   }
   void applySettings(const RadioSettings& settings) override;
-  void applySettings(const RadioSettings& settings, BandSettings* pBandSettings) override;
+  // void applySettings(const RadioSettings& settings, BandSettings* pBandSettings) override;
   void applySettingUpdate(SettingUpdate& setting) override;
 
   void applyBand(const std::string& bandName);
 
-  void applyRfSettings(const RfSettings& settings, bool onlyChanged = false);
-  void applyIfSettings(const IfSettings& settings);
+  void applyRfSettings(const RfSettings& settings, bool onlyChanged = false)
+  {
+    m_settings.applyRfSettings(settings, onlyChanged);
+  }
+  void applyIfSettings(const IfSettings& settings)
+  {
+    m_settings.applyIfSettings(settings);
+  }
 
-  void setCentreFrequencyDeltas(int32_t fine, int32_t coarse);
+  // void setCentreFrequencyDeltas(int32_t fine, int32_t coarse);
 
   RadioSettings& getRadioSettings() { return m_settings; }
-  const RadioSettings& getRadioSettings() const { return m_settings; }
-  const BandSettings* getBandSettings(const std::string& bandName) const;
-  const BandSettings* getFocusBandSettings() const;
-  const std::string& getFocusBandName() const { return m_bandSelector.getFocusBandName(); }
+  [[nodiscard]] const RadioSettings& getRadioSettings() const { return m_settings; }
+  static const BandSettings* getBandSettings(const std::string& bandName)
+  {
+    return RadioSettings::getBandSettings(bandName);
+  }
+  static  const BandSettings* getFocusBandSettings()
+  {
+    return RadioSettings::getFocusBandSettings();
+  }
+  static const std::string& getFocusBandName()
+  {
+    return RadioSettings::getFocusBandName();
+  }
 
-  const Bands& getBands() const { return m_bandSelector.getBands(); }
+  static const Bands& getBands()
+  {
+    return RadioSettings::getBands();
+  }
 
   void ptt(bool on) override;
 
@@ -61,7 +79,7 @@ protected:
 
 protected:
   RadioSettings m_settings;
-  BandSelector m_bandSelector;
+  // BandSelector m_bandSelector;
   IqReceiver* m_pReceiver;
   IqTransmitter* m_pTransmitter;
   RadioControl* m_pControl;

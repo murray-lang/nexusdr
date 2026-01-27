@@ -8,16 +8,16 @@
 #include "ModeSettings.h"
 #include "ReceiverSettings.h"
 #include "TransmitterSettings.h"
-#include "SettingUpdatePath.h"
+#include "core/SettingUpdatePath.h"
 #include <cstdint>
 #include <string>
 #include <vector>
 
-#include "Band.h"
-#include "Bands.h"
-#include "BandSettings.h"
-#include "BandSelector.h"
-#include "SettingsException.h"
+// #include "bands/Band.h"
+// #include "./bands/Bands.h"
+#include "bands/BandSettings.h"
+#include "bands/BandSelector.h"
+#include "core/SettingsException.h"
 #include "../util/StringUtils.h"
 
 
@@ -64,40 +64,17 @@ public:
   [[nodiscard]] const ReceiverSettings& getRxSettings() const { return m_rxSettings; }
   [[nodiscard]] const TransmitterSettings& getTxSettings() const { return m_txSettings; }
 
-  void markBandSettingsChanged() { m_changed |= BAND; }
+  static void setCentreFrequencyDeltas(int32_t fine, int32_t coarse);
+  static BandSettings* getBandSettings(const std::string& bandName);
+  static BandSettings* getFocusBandSettings();
+  static const std::string& getFocusBandName() { return m_bandSelector.getFocusBandName(); }
 
-  bool applyUpdate(SettingUpdate& update) override
-  {
-    if (update.isExhausted()) {
-      throw SettingsException("Invalid setting path");
-    }
-    uint32_t feature = update.getCurrentFeature();
-    const auto& val = update.getValue();
+  static const Bands& getBands() { return m_bandSelector.getBands(); }
 
-    switch (feature) {
-    case PTT:
-      return m_ptt.apply(val);
-    case BAND:
-      markBandSettingsChanged(); // This is detected and handled externally
-      return true;
-    case TX:
-      update.stepNextFeature();
-      if (m_txSettings.applyUpdate(update)) {
-        m_changed |= TX;
-        return true;
-      }
-      return false;
-    case RX:
-      update.stepNextFeature();
-      if (m_rxSettings.applyUpdate(update)) {
-        m_changed |= RX;
-        return true;
-      }
-      return false;
-    default:
-      return false;
-    }
-  }
+  void applyRfSettings(const RfSettings& settings, bool onlyChanged = false);
+  void applyIfSettings(const IfSettings& settings);
+
+  bool applyUpdate(SettingUpdate& update) override;
 
   void clearChanged() override
   {
@@ -115,51 +92,23 @@ public:
     m_changed &= ~PTT;
   }
 
-  // void markPipelineChanged() { m_changed |= BAND_SETTINGS; }
+  RxPipelineSettings* getFocusRxPipelineSettings();
+  [[nodiscard]] const RxPipelineSettings* getFocusRxPipelineSettings() const;
+  TxPipelineSettings* getTxPipelineSettings();
+  [[nodiscard]] const TxPipelineSettings* getTxPipelineSettings() const;
+  [[nodiscard]] const Mode& getFocusRxPipelineMode() const;
 
-  static SettingUpdatePath getSettingUpdatePath(const std::string& strDottedFeatures)
-  {
-    std::string featuresLower = StringUtils::toLowerCase(strDottedFeatures);
-    std::vector<std::string> featureStrings = StringUtils::split(featuresLower, '.');
-    std::vector<uint32_t> features;
-    if (!getFeaturePath(featureStrings, features)) {
-      throw SettingsException("Unknown RadioSettings setting: " + strDottedFeatures);
-    }
-    return SettingUpdatePath(features);
-  }
+  static SettingUpdatePath getSettingUpdatePath(const std::string& strDottedFeatures);
 
   static bool getFeaturePath(
     const std::vector<std::string>& featureStrings,
     std::vector<uint32_t>& featuresOut,
     size_t startIndex = 0
-    )
-  {
-    if (startIndex >= featureStrings.size()) {
-      throw SettingsException("Invalid feature path");
-    }
-
-    if (resolvePathForRegisteredSetting<RadioSettings>(featureStrings, featuresOut, startIndex)) {
-      return true;
-    }
-
-    const std::string& key = featureStrings[startIndex];
-    if (key == "band") {
-      featuresOut.push_back(BAND);
-      return BandSelector::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
-    }
-    if (key == "rx") {
-      featuresOut.push_back(RX);
-      return ReceiverSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
-    }
-    if (key == "tx") {
-      featuresOut.push_back(TX);
-      return TransmitterSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
-    }
-    return false;
-  }
+    );
 protected:
   Setting<bool, PTT, RadioSettings> m_ptt;
   // Setting<std::string, BAND, RadioSettings> m_bandName;
   ReceiverSettings m_rxSettings;
   TransmitterSettings m_txSettings;
+  static BandSelector m_bandSelector;
 };

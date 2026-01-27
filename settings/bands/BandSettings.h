@@ -5,9 +5,9 @@
 #pragma once
 
 #include "Band.h"
-#include "TxPipelineSettings.h"
-#include "RxPipelineSettings.h"
-#include "SettingsBase.h"
+#include "../TxPipelineSettings.h"
+#include "../RxPipelineSettings.h"
+#include "../core/SettingsBase.h"
 #include <QDebug>
 
 

@@ -254,10 +254,10 @@ set(PROJECT_SOURCES
         io/control/device/gpio/digital/GpioRotaryEncoder.h
         io/control/device/gpio/digital/DigitalInputs.cpp
         io/control/device/gpio/digital/DigitalInputs.h
-        settings/SettingUpdatePath.h
-        settings/SettingUpdate.h
-        settings/SettingsException.h
-        settings/SettingsBase.h
+        settings/core/SettingUpdatePath.h
+        settings/core/SettingUpdate.h
+        settings/core/SettingsException.h
+        settings/core/SettingsBase.h
         util/StringUtils.cpp
         util/StringUtils.h
         io/control/RadioControl.cpp
@@ -278,8 +278,8 @@ set(PROJECT_SOURCES
         config/FunCubeConfig.h
         settings/RadioSettingsEvent.cpp
         settings/RadioSettingsEvent.h
-        settings/SettingUpdateEvent.cpp
-        settings/SettingUpdateEvent.h
+        settings/core/SettingUpdateEvent.cpp
+        settings/core/SettingUpdateEvent.h
         io/control/device/gpio/GpioLines.cpp
         io/control/device/gpio/GpioLines.h
         config/GpioLinesConfig.h
@@ -337,28 +337,28 @@ set(PROJECT_SOURCES
         ui/qt/QtChartTheme.h
         ui/qt/QtBandDialog.cpp
         ui/qt/QtBandDialog.h
-        settings/Band.h
-        settings/BandCategory.h
-        settings/Bands.h
-        settings/Bands.cpp
+        settings/bands/Band.h
+        settings/bands/BandCategory.h
+        settings/bands/Bands.h
+        settings/bands/Bands.cpp
         settings/PipelineSettings.h
         settings/RxPipelineSettings.h
-        settings/BandSettings.h
+        settings/bands/BandSettings.h
         settings/TxPipelineSettings.h
-        settings/RadioAndBandSettingsSink.h
-        settings/SettingUpdateSink.h
-        settings/SettingUpdateSource.h
-        settings/SettingValue.h
-        settings/Setting.h
-        settings/SettingRegistry.h
+        settings/core/SettingUpdateSink.h
+        settings/core/SettingUpdateSource.h
+        settings/core/SettingValue.h
+        settings/core/Setting.h
+        settings/core/SettingRegistry.h
         ui/qt/QtChartBase.cpp
         ui/qt/QtChartBase.h
         ui/qt/QtTimeSeriesChart.cpp
         ui/qt/QtTimeSeriesChart.h
         ui/qt/QtPanadapter.cpp
         ui/qt/QtPanadapter.h
-        settings/SteppableSetting.h
-        settings/BandSelector.h
+        settings/core/SteppableSetting.h
+        settings/bands/BandSelector.h
+        settings/RadioSettings.cpp
 
 )
 

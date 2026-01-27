@@ -5,8 +5,8 @@
 #pragma once
 #include <QDialog>
 
-#include "settings/BandCategory.h"
-#include "settings/RadioAndBandSettingsSink.h"
+#include "../../settings/bands/BandCategory.h"
+#include "settings/RadioSettingsSink.h"
 
 class Bands;
 
@@ -17,7 +17,7 @@ namespace Ui
 
 class Radio;
 
-class QtBandDialog : public QWidget, public RadioAndBandSettingsSink {
+class QtBandDialog : public QWidget, public RadioSettingsSink {
   Q_OBJECT
 public:
   explicit QtBandDialog(Radio* pRadio, QWidget *parent = nullptr);
@@ -27,10 +27,10 @@ public:
   void addCategoryTab(const BandCategory& category, bool isSelected, const std::string& selectedBandName);
 
 
-  void applySettings(const RadioSettings& settings, BandSettings* pBandSettings) override;
+  // void applySettings(const RadioSettings& settings, BandSettings* pBandSettings) override;
 
   // These two satisfy the inheritance, but are of no use here. Empty implementations
-  void applySettings(const RadioSettings& settings) override {}
+  void applySettings(const RadioSettings& settings) override;
   void applySettingUpdate(SettingUpdate& settingDelta) override {}
 
 protected:

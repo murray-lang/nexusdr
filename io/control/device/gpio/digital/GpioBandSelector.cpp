@@ -28,9 +28,10 @@ GpioBandSelector::configure(const ConfigBase* pConfig)
 }
 
 void
-GpioBandSelector::applySettings(const RadioSettings& settings, BandSettings* pBandSettings)
+GpioBandSelector::applySettings(const RadioSettings& settings)
 {
   if (settings.hasSettingChanged(RadioSettings::BAND)) {
+    BandSettings* pBandSettings = settings.getFocusBandSettings();
     const RfSettings& rfSettings = pBandSettings->getTxRfSettings();
     if (rfSettings.hasSettingChanged( RfSettings::VFO)) {
       uint32_t frequency = rfSettings.getVfo();

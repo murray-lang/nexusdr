@@ -46,7 +46,7 @@ protected:
   void handleReceiverAudioEvent(const vsdrreal* data, uint32_t length);
   void handleTransmitterIqEvent(const vsdrcomplex* data, uint32_t length, uint32_t sampleRate);
   void handleTransmitterAudioEvent(const vsdrreal* data, uint32_t length);
-  void handleRadioSettingsEvent(const RadioSettings& radioSettings, const BandSettings& bandSettings);
+  void handleRadioSettingsEvent(const RadioSettings& radioSettings);
 
   void closeActiveToolbarPopups();
 
@@ -79,8 +79,6 @@ private:
 
   uint32_t m_reportedIqSampleRate;
   RadioSettings m_radioSettingsCopy;
-  BandSettings m_bandSettingsCopy;
-
 
   QToolButton* m_modeButton;
   QToolButton* m_bandButton{};

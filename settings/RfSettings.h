@@ -7,11 +7,11 @@
 
 #include <cstdint>
 
-#include "Bands.h"
-#include "SettingsBase.h"
-#include "SettingsException.h"
+#include "bands/Bands.h"
+#include "core/SettingsBase.h"
+#include "core/SettingsException.h"
 #include <QDebug>
-#include "SteppableSetting.h"
+#include "core/SteppableSetting.h"
 
 class RfSettings : public SettingsBase
 {

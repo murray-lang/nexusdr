@@ -7,7 +7,7 @@
 #include "SettingUpdatePath.h"
 #include "SettingValue.h"
 #include <variant>
-#include "Mode.h"
+#include "../Mode.h"
 
 class SettingUpdate
 {

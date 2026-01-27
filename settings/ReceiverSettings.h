@@ -5,14 +5,14 @@
 #pragma once
 
 
-#include "Band.h"
+#include "bands/Band.h"
 #include "RfSettings.h"
 #include "IfSettings.h"
 #include "IqCorrectionSettings.h"
-#include "SettingsException.h"
+#include "core/SettingsException.h"
 #include "Mode.h"
-#include "Band.h"
-#include "Bands.h"
+#include "bands/Band.h"
+#include "bands/Bands.h"
 #include "ModeSettings.h"
 #include <map>
 
