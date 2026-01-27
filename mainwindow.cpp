@@ -93,7 +93,7 @@ MainWindow::handleReceiverIqEvent(const vsdrcomplex* data, uint32_t length, uint
   RxPipelineSettings* rxPipelineSettings = m_bandSettingsCopy.getFocusRxPipelineSettings();
   if (rxPipelineSettings != nullptr) {
     const RfSettings& rfSettings = rxPipelineSettings->getRfSettings();
-    uint32_t centreFrequency = rfSettings.getFrequency();
+    uint32_t centreFrequency = rfSettings.getCentreFrequency();
     uint32_t xMin = centreFrequency - (sampleRate / 2);
     uint32_t xMax = centreFrequency + (sampleRate / 2);
 
@@ -109,7 +109,7 @@ MainWindow::handleTransmitterIqEvent(const vsdrcomplex* data, uint32_t length, u
   TxPipelineSettings* txPipelineSettings = m_bandSettingsCopy.getTxPipelineSettings();
   if (txPipelineSettings != nullptr) {
     const RfSettings& rfSettings = txPipelineSettings->getRfSettings();
-    uint32_t centreFrequency = rfSettings.getFrequency();
+    uint32_t centreFrequency = rfSettings.getCentreFrequency();
     uint32_t xMin = centreFrequency - (sampleRate / 2);
     uint32_t xMax = centreFrequency + (sampleRate / 2);
 
@@ -150,17 +150,17 @@ MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings, const B
     return;
   }
   RfSettings& rfSettings = rxPipelineSettings->getRfSettings();
-  bool frequencyChanged = (rfSettings.hasSettingChanged(RfSettings::Features::CENTRE_FREQUENCY)) != 0;
-  bool offsetChanged = (rfSettings.hasSettingChanged(RfSettings::Features::OFFSET)) != 0;
+  bool frequencyChanged = (rfSettings.hasSettingChanged(RfSettings::Features::CENTER_FREQUENCY)) != 0;
+  bool vfoChanged = (rfSettings.hasSettingChanged(RfSettings::Features::VFO)) != 0;
   bool modeChanged = (rxPipelineSettings->hasSettingChanged(PipelineSettings::Features::MODE)) != 0;
 
-  if (frequencyChanged || offsetChanged || modeChanged) {
-    auto centreFrequency = static_cast<int32_t>(rfSettings.getFrequency());
-    int32_t offset = rfSettings.getOffset();
-    int32_t frequencyAtOffset = centreFrequency + offset;
+  if (frequencyChanged || vfoChanged || modeChanged) {
+    auto centreFrequency = static_cast<int32_t>(rfSettings.getCentreFrequency());
+    int32_t vfo = rfSettings.getVfo();
+    // int32_t frequencyAtOffset = centreFrequency + offset;
 
     ui->centreFrequencyLcd->display(centreFrequency);
-    ui->cursorFrequencyLcd->display(frequencyAtOffset);
+    ui->cursorFrequencyLcd->display(vfo);
 
     if (m_reportedIqSampleRate > 0) {
       uint32_t xMin = centreFrequency - (m_reportedIqSampleRate / 2);
@@ -168,7 +168,7 @@ MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings, const B
       m_pPanadapter->setSeriesXMinMax(xMin, xMax);
     }
     const Mode& mode = rxPipelineSettings->getMode();
-    m_pPanadapter->updateCursorPosition(frequencyAtOffset, mode.getLoCut(), mode.getHiCut());
+    m_pPanadapter->updateCursorPosition(vfo, mode.getLoCut(), mode.getHiCut());
     updateModeButton(mode);
   }
   m_radioSettingsCopy.clearChanged();

@@ -142,10 +142,12 @@ Radio::applySettings(const RadioSettings& settings, BandSettings* pBandSettings)
 
     RxPipelineSettings* rxPipelineSettings = pBandSettings->getFocusRxPipelineSettings();
     if (m_pReceiver != nullptr) {
+      m_pReceiver->adjustRfSettingsToLimits(rxPipelineSettings->getRfSettings());
       m_pReceiver->apply(rxPipelineSettings);
     }
     TxPipelineSettings* txPipelineSettings = pBandSettings->getTxPipelineSettings();
     if (m_pTransmitter != nullptr) {
+      m_pTransmitter->adjustRfSettingsToLimits(txPipelineSettings->getRfSettings());
       m_pTransmitter->apply(txPipelineSettings);
     }
   }

@@ -12,8 +12,6 @@ class Band
 {
 public:
   Band() :
-    m_name(""),
-    m_label(""),
     m_lowestFrequency(0),
     m_highestFrequency(0),
     m_landingFrequency(0),
@@ -25,9 +23,9 @@ public:
   Band(
     const char* name,
     const char* label,
-    uint64_t lowestFrequency,
-    uint64_t highestFrequency,
-    uint64_t landingFrequency,
+    int64_t lowestFrequency,
+    int64_t highestFrequency,
+    int64_t landingFrequency,
     int32_t defaultMinorStep,
     int32_t defaultMajorStep,
     Mode::Type defaultMode
@@ -70,13 +68,13 @@ public:
     return *this;
   }
 
-  bool isValid() const { return m_name.size() > 0; }
+  [[nodiscard]] bool isValid() const { return !m_name.empty(); }
 
-  const std::string& getName() const { return m_name; }
-  const std::string& getLabel() const { return m_label; }
-  [[nodiscard]] uint64_t getLowestFrequency() const { return m_lowestFrequency; }
-  [[nodiscard]] uint64_t getHighestFrequency() const { return m_highestFrequency; }
-  [[nodiscard]] uint64_t getLandingFrequency() const { return m_landingFrequency; }
+  [[nodiscard]] const std::string& getName() const { return m_name; }
+  [[nodiscard]] const std::string& getLabel() const { return m_label; }
+  [[nodiscard]] int64_t getLowestFrequency() const { return m_lowestFrequency; }
+  [[nodiscard]] int64_t getHighestFrequency() const { return m_highestFrequency; }
+  [[nodiscard]] int64_t getLandingFrequency() const { return m_landingFrequency; }
   [[nodiscard]] int32_t getDefaultFineStep() const { return m_defaultFineStep; }
   [[nodiscard]] int32_t getDefaultCoarseStep() const { return m_defaultCoarseStep; }
   [[nodiscard]] Mode::Type getDefaultMode() const { return m_defaultMode; }
@@ -89,9 +87,9 @@ public:
 protected:
   std::string m_name;
   std::string m_label;
-  uint64_t m_lowestFrequency;
-  uint64_t m_highestFrequency;
-  uint64_t m_landingFrequency;
+  int64_t m_lowestFrequency;
+  int64_t m_highestFrequency;
+  int64_t m_landingFrequency;
   int32_t m_defaultFineStep;
   int32_t m_defaultCoarseStep;
   Mode::Type m_defaultMode;

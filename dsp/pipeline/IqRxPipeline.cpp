@@ -83,17 +83,29 @@ IqRxPipeline::apply(const ReceiverSettings& settings)
 void
 IqRxPipeline::apply(const RxPipelineSettings* settings)
 {
-  if (settings != nullptr) {
-    std::lock_guard<std::mutex> lock(m_settingsMutex);
-    if (settings->hasSettingChanged(PipelineSettings::RF)) {
-      if (settings->getRfSettings().hasSettingChanged(RfSettings::OFFSET)) {
-        m_oscillatorMixer.setFrequency(-settings->getRfSettings().getOffset());
-      }
-    }
-    if (settings->hasSettingChanged(PipelineSettings::MODE)) {
-      setMode(settings->getMode());
-    }
-  }
+  IqPipeline::apply(settings);
+  // if (settings != nullptr) {
+  //   std::lock_guard<std::mutex> lock(m_settingsMutex);
+  //   if (settings->hasSettingChanged(PipelineSettings::RF)) {
+  //     const RfSettings& rfSettings = settings->getRfSettings();
+  //     if (rfSettings.hasSettingChanged(RfSettings::CENTER_FREQUENCY)
+  //         || rfSettings.hasSettingChanged(RfSettings::VFO)) {
+  //       int32_t offset = rfSettings.getCentreFrequency() - rfSettings.getVfo();
+  //       m_oscillatorMixer.setFrequency(offset);
+  //     }
+  //   }
+  //   if (settings->hasSettingChanged(PipelineSettings::MODE)) {
+  //     setMode(settings->getMode());
+  //   }
+  // }
+}
+
+void
+IqRxPipeline::calcNyquistOffsetsLimits(int32_t* maxNegative, int32_t* maxPositive) const
+{
+  int32_t nyquist = static_cast<int32_t>(m_inputSampleRate) / 2;
+  *maxNegative = -nyquist - m_mode.getLoCut();
+  *maxPositive = nyquist - m_mode.getHiCut();
 }
 
 void

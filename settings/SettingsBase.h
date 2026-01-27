@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <functional>
 #include <map>
 
 #include "SettingUpdate.h"

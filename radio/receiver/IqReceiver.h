@@ -35,6 +35,8 @@ public:
 
   void setMode(const Mode& mode);
 
+  bool adjustRfSettingsToLimits(RfSettings& rfSettings, bool onlyIfChanged = true) const;
+
 protected:
   // const ModeSettings& m_modeSettings;
   IqIo m_iqIo;

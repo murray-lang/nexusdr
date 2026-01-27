@@ -94,7 +94,7 @@ public:
   [[nodiscard]] bool hasRxFrequencyChanged() const
   {
     const RfSettings& rfSettings = getFocusRxRfSettings();
-    return rfSettings.hasSettingChanged(RfSettings::CENTRE_FREQUENCY);
+    return rfSettings.hasSettingChanged(RfSettings::CENTER_FREQUENCY);
   }
 
   void addRxPipeline()
@@ -103,7 +103,7 @@ public:
     RxPipelineSettings& newRxPipeline = m_rxPipelineSettings.back();
     RxPipelineSettings& firstRxPipeline = m_rxPipelineSettings.front();
     newRxPipeline = firstRxPipeline; // (Copy settings)
-    newRxPipeline.getRfSettings().setOffset(10000); // Move the new pipeline to the centre frequency.
+    newRxPipeline.getRfSettings().setVfo(10000); // Move the new pipeline to the centre frequency.
     m_focusRxPipeline(m_rxPipelineSettings.size() - 1); // The new pipeline gets focus
     m_changed |= RX_PIPELINE;
   }

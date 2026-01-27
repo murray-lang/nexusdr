@@ -9,6 +9,8 @@
 #include "ReceiverIqEvent.h"
 #include <config/ReceiverConfig.h>
 
+#include "settings/RxPipelineSettings.h"
+
 // #define FFT_SIZE 2048
 
 
@@ -43,8 +45,22 @@ void
 IqReceiver::apply(const RxPipelineSettings* settings)
 {
   if (settings != nullptr) {
+
     m_iqPipeline.apply(settings);
   }
+}
+
+bool
+IqReceiver::adjustRfSettingsToLimits(RfSettings& rfSettings, bool onlyIfChanged) const
+{
+  if (onlyIfChanged) {
+    if (rfSettings.hasSettingChanged(RfSettings::CENTER_FREQUENCY)
+      || rfSettings.hasSettingChanged(RfSettings::VFO)) {
+      return m_iqPipeline.adjustRfSettingsToLimits(rfSettings);
+      }
+    return false;
+  }
+  return m_iqPipeline.adjustRfSettingsToLimits(rfSettings);
 }
 
 void

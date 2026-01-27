@@ -50,6 +50,19 @@ IqTransmitter::apply(const TxPipelineSettings* settings)
   }
 }
 
+bool
+IqTransmitter::adjustRfSettingsToLimits(RfSettings& rfSettings, bool onlyIfChanged) const
+{
+  if (onlyIfChanged) {
+    if (rfSettings.hasSettingChanged(RfSettings::CENTER_FREQUENCY)
+      || rfSettings.hasSettingChanged(RfSettings::VFO)) {
+      return m_iqPipeline.adjustRfSettingsToLimits(rfSettings);
+      }
+    return false;
+  }
+  return m_iqPipeline.adjustRfSettingsToLimits(rfSettings);
+}
+
 void
 IqTransmitter::start() const
 {
@@ -64,7 +77,8 @@ IqTransmitter::stop() const
   m_iqIo.stop();
 }
 
-void IqTransmitter::ptt(bool on)
+void
+IqTransmitter::ptt(bool on)
 {
 
   if (on) {

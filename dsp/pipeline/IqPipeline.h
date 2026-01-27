@@ -10,9 +10,13 @@
 #include "io/iq/IqIo.h"
 #include "settings/Mode.h"
 #include "../../io/control/PttSink.h"
+#include "oscillators/OscillatorMixer.h"
 #include <qcoreevent.h>
 
+#include "settings/RfSettings.h"
 
+
+class PipelineSettings;
 class ModeSettings;
 
 class IqPipeline : public IqSink, public PttSink
@@ -32,11 +36,21 @@ public:
 
   [[nodiscard]] virtual uint32_t getMaxFramesPerInputPacket() const = 0;
   [[nodiscard]] virtual uint32_t getMaxFramesPerOutputPacket() const = 0;
+  virtual void calcNyquistOffsetsLimits(int32_t* maxNegative, int32_t* maxPositive) const = 0;
 
   virtual void setMode(const Mode& mode)
   {
     m_mode = mode;
   }
+
+  bool adjustRfSettingsToLimits(RfSettings& rfSettings) const
+  {
+    int32_t maxNegative, maxPositive;
+    calcNyquistOffsetsLimits(&maxNegative, &maxPositive);
+    return rfSettings.applyMaximumVfoOffsets(maxNegative, maxPositive);
+  }
+
+  virtual void apply(const PipelineSettings* settings);
 
 protected:
   void addStage(IqPipelineStage* pStage)
@@ -56,4 +70,5 @@ protected:
   uint32_t m_inputSampleRate;
   uint32_t m_outputSampleRate;
   AudioSink* m_pAudioOutSink;
+  OscillatorMixer m_oscillatorMixer;
 };
