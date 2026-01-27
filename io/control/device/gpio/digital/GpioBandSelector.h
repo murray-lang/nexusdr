@@ -17,7 +17,7 @@ public:
   ~GpioBandSelector() override = default;
   void configure(const ConfigBase* pConfig) override;
 
-  void applySettings(const RadioSettings& settings, BandSettings* pBandSettings) override;
+  void applySettings(const RadioSettings& settings) override;
   void applySettingUpdate(SettingUpdate& setting) override;
   void ptt(bool on) override {};
 

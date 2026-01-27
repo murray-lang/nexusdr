@@ -11,7 +11,7 @@
 #include <QMouseEvent>
 
 #include "ui_QtBandDialog.h"
-#include "settings/Bands.h"
+#include "../../settings/bands/Bands.h"
 #include "settings/RadioSettings.h"
 #include "radio/Radio.h"
 
@@ -35,14 +35,13 @@ QtBandDialog::~QtBandDialog() {
 
 
 void
-QtBandDialog::applySettings(const RadioSettings& settings, BandSettings* pBandSettings)
+QtBandDialog::applySettings(const RadioSettings& settings)
 {
   if (settings.hasSettingChanged(RadioSettings::BAND)) {
-    if (pBandSettings != nullptr) {
-      const Band& band = pBandSettings->getBand();
-      updateTabs(band);
-      updateBandButtons(band);
-    }
+    const BandSettings* pBandSettings = settings.getFocusBandSettings();
+    const Band& band = pBandSettings->getBand();
+    updateTabs(band);
+    updateBandButtons(band);
   }
 }
 

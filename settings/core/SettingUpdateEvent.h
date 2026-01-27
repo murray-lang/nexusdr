@@ -4,7 +4,7 @@
 
 #ifndef CUTESDR_VK6HL_SINGLESETTINGEVENT_H
 #define CUTESDR_VK6HL_SINGLESETTINGEVENT_H
-#include "RadioSettingsEvent.h"
+#include "../RadioSettingsEvent.h"
 
 
 class SettingUpdateEvent : public QEvent

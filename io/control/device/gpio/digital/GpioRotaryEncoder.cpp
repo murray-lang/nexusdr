@@ -6,7 +6,7 @@
 #include <qdebug.h>
 
 #include "io/control/device/gpio/GpioException.h"
-#include "settings/SettingUpdate.h"
+#include "../../../../../settings/core/SettingUpdate.h"
 
 GpioRotaryEncoder::GpioRotaryEncoder() : DigitalInput()
 {

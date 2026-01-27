@@ -4,7 +4,7 @@
 
 #pragma once
 #include "SampleTypes.h"
-#include "SettingsBase.h"
+#include "core/SettingsBase.h"
 
 #define DEFAULT_STEP_SIZE 0.001
 

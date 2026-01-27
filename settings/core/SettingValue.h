@@ -3,7 +3,7 @@
 #include <variant>
 #include <string>
 #include <cstdint>
-#include "Mode.h"
+#include "../Mode.h"
 
 /**
  * The unified variant type for all setting data in the system.

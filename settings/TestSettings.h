@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "SettingsBase.h"
+#include "core/SettingsBase.h"
 #include "TwoToneSettings.h"
 
 class TestSettings : public SettingsBase

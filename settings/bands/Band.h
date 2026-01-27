@@ -6,7 +6,7 @@
 #include <cstdint>
 #include <string>
 
-#include "Mode.h"
+#include "../Mode.h"
 
 class Band
 {

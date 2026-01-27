@@ -5,7 +5,7 @@
 #pragma once
 #include <unordered_set>
 
-#include "SettingsBase.h"
+#include "../core/SettingsBase.h"
 #include "Bands.h"
 #include "BandSettings.h"
 

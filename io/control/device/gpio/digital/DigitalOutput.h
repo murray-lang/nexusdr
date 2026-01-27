@@ -7,7 +7,7 @@
 #include "io/control/ControlSink.h"
 #include "io/control/device/gpio/GpioLines.h"
 #include "settings/RadioSettingsSink.h"
-#include "settings/SettingUpdatePath.h"
+#include "../../../../../settings/core/SettingUpdatePath.h"
 
 
 class DigitalOutputLinesRequest;
@@ -32,7 +32,6 @@ public:
   void ptt(bool on) override {};
 
   void applySettingUpdate( SettingUpdate& setting) override;
-  void applySettings(const RadioSettings& radioSettings, BandSettings* pBandSettings) override {}
   void applySettings(const RadioSettings& radioSettings) override {}
 
   void setValue(bool value);

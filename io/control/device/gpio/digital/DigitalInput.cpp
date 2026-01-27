@@ -5,7 +5,7 @@
 #include "DigitalInput.h"
 #include <settings/RadioSettings.h>
 
-#include "settings/SettingUpdateSink.h"
+#include "../../../../../settings/core/SettingUpdateSink.h"
 
 DigitalInput::DigitalInput() :
   GpioLines(Direction::INPUT),

@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "Mode.h"
-#include "SettingsBase.h"
+#include "core/SettingsBase.h"
 
 // using Modes = std::unordered_map<Mode::Type, Mode>;
 

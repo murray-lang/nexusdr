@@ -8,7 +8,7 @@
 
 #include "settings/RadioSettings.h"
 #include "settings/RadioSettingsEvent.h"
-#include "settings/SettingUpdateEvent.h"
+#include "../settings/core/SettingUpdateEvent.h"
 #include <QDebug>
 
 
@@ -81,49 +81,8 @@ Radio::stop()
   }
 }
 
-const BandSettings*
-Radio::getBandSettings(const std::string& bandName) const
-{
-  return m_bandSelector.getBandSettings(bandName);
-}
-
-const BandSettings*
-Radio::getFocusBandSettings() const
-{
-  return m_bandSelector.getFocusBandSettings();
-}
-
-void
-Radio::setCentreFrequencyDeltas(int32_t fine, int32_t coarse)
-{
-  m_bandSelector.setCentreFrequencyDeltas(fine, coarse);
-}
-
-void
-Radio::applyRfSettings(const RfSettings& settings, bool onlyChanged)
-{
-  m_bandSelector.applyRfSettings(settings, onlyChanged);
-  m_settings.markBandSettingsChanged();
-}
-
-void
-Radio::applyIfSettings(const IfSettings& settings)
-{
-  m_bandSelector.applyIfSettings(settings);
-  m_settings.markBandSettingsChanged();
-}
-
 void
 Radio::applySettings(const RadioSettings& settings)
-{
-  BandSettings* pBandSettings = m_bandSelector.getFocusBandSettings();
-  if (pBandSettings != nullptr) {
-    applySettings(settings, pBandSettings);
-  }
-}
-
-void
-Radio::applySettings(const RadioSettings& settings, BandSettings* pBandSettings)
 {
   if (&settings != &m_settings) {
     m_settings = settings;
@@ -134,10 +93,7 @@ Radio::applySettings(const RadioSettings& settings, BandSettings* pBandSettings)
     return; // Don't try to do anything else concurrently with PTT.
   }
 
-  if (pBandSettings == nullptr) {
-    throw SettingsException("No band settings selected");
-  }
-
+  BandSettings* pBandSettings = settings.getFocusBandSettings();
   if (settings.hasSettingChanged(RadioSettings::BAND)) {
 
     RxPipelineSettings* rxPipelineSettings = pBandSettings->getFocusRxPipelineSettings();
@@ -152,7 +108,7 @@ Radio::applySettings(const RadioSettings& settings, BandSettings* pBandSettings)
     }
   }
   if (m_pControl != nullptr) {
-    m_pControl->applySettings(m_settings, pBandSettings);
+    m_pControl->applySettings(m_settings);
   }
 
   if (settings.hasSettingChanged(RadioSettings::RX)) {
@@ -168,7 +124,7 @@ Radio::applySettings(const RadioSettings& settings, BandSettings* pBandSettings)
   if (m_pEventTarget != nullptr) {
     // qDebug() << "Radio::applySettings posting RadioSettingsEvent";
     // qDebug() << m_settings.mode.getName().c_str();
-    RadioSettingsEvent* rse = new RadioSettingsEvent(settings, *pBandSettings);
+    RadioSettingsEvent* rse = new RadioSettingsEvent(settings);
     QCoreApplication::postEvent(m_pEventTarget, rse);
   }
   m_settings.clearChanged();
@@ -182,9 +138,6 @@ Radio::applySettingUpdate(SettingUpdate& update)
     // QCoreApplication::postEvent(m_pEventTarget, new SingleSettingEvent(setting));
   }
   if (m_settings.applyUpdate(update)) {
-    if (m_settings.hasSettingChanged(RadioSettings::BAND)) {
-      m_bandSelector.applyUpdate(update.stepNextFeature());
-    }
     applySettings(m_settings);
   }
 }

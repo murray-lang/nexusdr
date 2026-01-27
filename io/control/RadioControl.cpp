@@ -9,7 +9,7 @@
 #include "ControlSourceFactory.h"
 #include "config/ConfigException.h"
 #include "settings/RadioSettings.h"
-#include "settings/SettingUpdatePath.h"
+#include "../../settings/core/SettingUpdatePath.h"
 
 RadioControl::RadioControl() :
   m_internalSink(this),
@@ -73,14 +73,6 @@ RadioControl::applySettings(const RadioSettings& settings)
 {
   for (RadioSettingsSink* pSink : m_controlSinks) {
     pSink->applySettings(settings);
-  }
-}
-
-void
-RadioControl::applySettings(const RadioSettings& settings, BandSettings* pBandSettings)
-{
-  for (RadioAndBandSettingsSink* pSink : m_controlSinks) {
-    pSink->applySettings(settings, pBandSettings);
   }
 }
 

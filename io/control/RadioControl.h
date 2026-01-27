@@ -15,7 +15,7 @@
 
 class RadioControl :
   public RadioSettingsSource,
-  public RadioAndBandSettingsSink,
+  public RadioSettingsSink,
   public PttSink
 {
 public:
@@ -28,7 +28,7 @@ public:
 
   //RadioSettingsSink methods. Intended for external use, not to be called by internal sources.
   void applySettings(const RadioSettings& settings) override;
-  void applySettings(const RadioSettings& settings, BandSettings* pBandSettings) override;
+  // void applySettings(const RadioSettings& settings, BandSettings* pBandSettings) override;
   void applySettingUpdate(SettingUpdate& setting) override;
 
   // SettingDeltaSink method.

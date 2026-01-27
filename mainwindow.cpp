@@ -18,7 +18,7 @@
 
 #include <QToolButton>
 #include "ui/qt/QtChartTheme.h"
-#include "settings/Bands.h"
+#include "settings/bands/Bands.h"
 #include "settings/RadioSettingsEvent.h"
 #include "ui/qt/QtBandDialog.h"
 #include "ui/qt/QtTimeSeriesChart.h"
@@ -76,7 +76,7 @@ MainWindow::customEvent(QEvent* event)
     handleReceiverAudioEvent(audioEvent->buffer.get(), audioEvent->dataLength);
   } else if (event->type() == RadioSettingsEvent::RadioSettingsEventType) {
     auto* radioSettingsEvent = dynamic_cast<RadioSettingsEvent*>(event);
-    handleRadioSettingsEvent(radioSettingsEvent->getRadioSettings(), radioSettingsEvent->getBandSettings());
+    handleRadioSettingsEvent(radioSettingsEvent->getRadioSettings());
   } else if (event->type() == TransmitterIqEvent::TxIqEvent) {
     auto* iqEvent = dynamic_cast<TransmitterIqEvent*>(event);
     handleTransmitterIqEvent(iqEvent->buffer.get(), iqEvent->dataLength, iqEvent->sampleRate);
@@ -90,7 +90,7 @@ void
 MainWindow::handleReceiverIqEvent(const vsdrcomplex* data, uint32_t length, uint32_t sampleRate)
 {
   m_reportedIqSampleRate = sampleRate;
-  RxPipelineSettings* rxPipelineSettings = m_bandSettingsCopy.getFocusRxPipelineSettings();
+  RxPipelineSettings* rxPipelineSettings = m_radioSettingsCopy.getFocusRxPipelineSettings();
   if (rxPipelineSettings != nullptr) {
     const RfSettings& rfSettings = rxPipelineSettings->getRfSettings();
     uint32_t centreFrequency = rfSettings.getCentreFrequency();
@@ -106,7 +106,7 @@ void
 MainWindow::handleTransmitterIqEvent(const vsdrcomplex* data, uint32_t length, uint32_t sampleRate)
 {
   m_reportedIqSampleRate = sampleRate;
-  TxPipelineSettings* txPipelineSettings = m_bandSettingsCopy.getTxPipelineSettings();
+  TxPipelineSettings* txPipelineSettings = m_radioSettingsCopy.getTxPipelineSettings();
   if (txPipelineSettings != nullptr) {
     const RfSettings& rfSettings = txPipelineSettings->getRfSettings();
     uint32_t centreFrequency = rfSettings.getCentreFrequency();
@@ -133,44 +133,38 @@ MainWindow::handleTransmitterAudioEvent(const vsdrreal* data, uint32_t length)
 }
 
 void
-MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings, const BandSettings& bandSettings)
+MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings)
 {
   m_radioSettingsCopy = radioSettings;
-  m_bandSettingsCopy = bandSettings;
 
   // Find the existing band dialog if it's open
   auto* bandDialog = findChild<QtBandDialog*>("bandPanel");
   if (bandDialog != nullptr) {
-    bandDialog->applySettings(m_radioSettingsCopy, const_cast<BandSettings*>(&m_bandSettingsCopy));
+    bandDialog->applySettings(m_radioSettingsCopy);
   }
-  updateBandButton(m_bandSettingsCopy.getBand());
-
-  RxPipelineSettings* rxPipelineSettings = m_bandSettingsCopy.getFocusRxPipelineSettings();
+  BandSettings* bandSettings = m_radioSettingsCopy.getFocusBandSettings();
+  updateBandButton(bandSettings->getBand());
+  RxPipelineSettings* rxPipelineSettings = bandSettings->getFocusRxPipelineSettings();
   if (rxPipelineSettings == nullptr) {
     return;
   }
   RfSettings& rfSettings = rxPipelineSettings->getRfSettings();
-  bool frequencyChanged = (rfSettings.hasSettingChanged(RfSettings::Features::CENTER_FREQUENCY)) != 0;
-  bool vfoChanged = (rfSettings.hasSettingChanged(RfSettings::Features::VFO)) != 0;
-  bool modeChanged = (rxPipelineSettings->hasSettingChanged(PipelineSettings::Features::MODE)) != 0;
+  auto centreFrequency = static_cast<int32_t>(rfSettings.getCentreFrequency());
+  int32_t vfo = rfSettings.getVfo();
+  // int32_t frequencyAtOffset = centreFrequency + offset;
 
-  if (frequencyChanged || vfoChanged || modeChanged) {
-    auto centreFrequency = static_cast<int32_t>(rfSettings.getCentreFrequency());
-    int32_t vfo = rfSettings.getVfo();
-    // int32_t frequencyAtOffset = centreFrequency + offset;
+  ui->centreFrequencyLcd->display(centreFrequency);
+  ui->cursorFrequencyLcd->display(vfo);
 
-    ui->centreFrequencyLcd->display(centreFrequency);
-    ui->cursorFrequencyLcd->display(vfo);
-
-    if (m_reportedIqSampleRate > 0) {
-      uint32_t xMin = centreFrequency - (m_reportedIqSampleRate / 2);
-      uint32_t xMax = centreFrequency + (m_reportedIqSampleRate / 2);
-      m_pPanadapter->setSeriesXMinMax(xMin, xMax);
-    }
-    const Mode& mode = rxPipelineSettings->getMode();
-    m_pPanadapter->updateCursorPosition(vfo, mode.getLoCut(), mode.getHiCut());
-    updateModeButton(mode);
+  if (m_reportedIqSampleRate > 0) {
+    uint32_t xMin = centreFrequency - (m_reportedIqSampleRate / 2);
+    uint32_t xMax = centreFrequency + (m_reportedIqSampleRate / 2);
+    m_pPanadapter->setSeriesXMinMax(xMin, xMax);
   }
+  const Mode& mode = rxPipelineSettings->getMode();
+  m_pPanadapter->updateCursorPosition(vfo, mode.getLoCut(), mode.getHiCut());
+  updateModeButton(mode);
+
   m_radioSettingsCopy.clearChanged();
 }
 
@@ -293,9 +287,6 @@ MainWindow::addModeButton()
   }
   RadioSettings& radioSettings = m_pRadio->getRadioSettings();
   const BandSettings* bandSettings = m_pRadio->getFocusBandSettings();
-  if (bandSettings == nullptr) {
-    throw SettingsException("Band settings not found for selected band");
-  }
   const RxPipelineSettings* rxPipelineSettings = bandSettings->getFocusRxPipelineSettings();
   if (rxPipelineSettings == nullptr) {
     throw SettingsException("Radio pipeline settings not found for selected band");
@@ -326,7 +317,7 @@ MainWindow::addModeButton()
     // hint: sizeHint() is usually accurate for menus before they are shown
     pos.setY(pos.y() - modeMenu->sizeHint().height());
 
-    const Mode& currMode = m_bandSettingsCopy.getFocusRxPipelineMode();
+    const Mode& currMode = m_radioSettingsCopy.getFocusRxPipelineMode();
     for (QAction *action : modeMenu->actions()) {
       action->setChecked(currMode.getName() == action->text().toStdString());
     }
