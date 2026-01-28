@@ -17,6 +17,7 @@
 #include "DigitalOutputConfig.h"
 #include "FunCubeConfig.h"
 #include "BandSelectorConfig.h"
+#include "RadioUiConfig.h"
 #include "RotaryEncoderConfig.h"
 #include "dsp/iq/AudioSignalIqSource.h"
 #include "util/StringUtils.h"
@@ -100,6 +101,10 @@ ConfigFactory::create(const std::string& type)
   }
   if (typeAsLower == BandSelectorConfig::type) {
     auto * result = new BandSelectorConfig();
+    return result;
+  }
+  if (typeAsLower == RadioUiConfig::type) {
+    auto * result = new RadioUiConfig();
     return result;
   }
   return nullptr;

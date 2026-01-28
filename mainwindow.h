@@ -14,9 +14,11 @@
 #include "io/audio/drivers/RtAudio/RtAudioOutputDriver.h"
 #include "radio/Radio.h"
 #include "config/RadioConfig.h"
-#include "ui/qt/QtPanadapter.h"
+#include "ui/qt/common/QtPanadapter.h"
+#include "ui/qt/faces/FaceBase.h"
 // #include "settings/RadioSettingsEventPublisher.h"
 
+class QVBoxLayout;
 class QtTimeSeriesChart;
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -42,13 +44,15 @@ public slots:
   // void on_actionLevels_triggered();
 
 protected:
-  void handleReceiverIqEvent(const vsdrcomplex* data, uint32_t length, uint32_t sampleRate);
-  void handleReceiverAudioEvent(const vsdrreal* data, uint32_t length);
-  void handleTransmitterIqEvent(const vsdrcomplex* data, uint32_t length, uint32_t sampleRate);
-  void handleTransmitterAudioEvent(const vsdrreal* data, uint32_t length);
+  // void handleReceiverIqEvent(const vsdrcomplex* data, uint32_t length, uint32_t sampleRate);
+  // void handleReceiverAudioEvent(const vsdrreal* data, uint32_t length);
+  // void handleTransmitterIqEvent(const vsdrcomplex* data, uint32_t length, uint32_t sampleRate);
+  // void handleTransmitterAudioEvent(const vsdrreal* data, uint32_t length);
   void handleRadioSettingsEvent(const RadioSettings& radioSettings);
 
   void closeActiveToolbarPopups();
+
+
 
 //private slots:
 //    void toggleMode();
@@ -61,6 +65,8 @@ private:
   void initializeAudio();
 
   void initialiseRadio();
+
+  void setFaceByName(const std::string& faceName);
 
   void addModeButton();
   QMenu* createModeMenu(const Mode& currentMode);
@@ -75,6 +81,9 @@ private:
   RadioConfig& m_radioConfig;
   Ui::MainWindow *ui;
 
+  std::unique_ptr<FaceBase> m_pFace;
+  QVBoxLayout* m_pFaceLayout;
+
   Radio* m_pRadio;
 
   uint32_t m_reportedIqSampleRate;
@@ -82,7 +91,7 @@ private:
 
   QToolButton* m_modeButton;
   QToolButton* m_bandButton{};
-  QtTimeSeriesChart* m_pTimeSeriesChart;
-  QtPanadapter* m_pPanadapter;
+  // QtTimeSeriesChart* m_pTimeSeriesChart;
+  // QtPanadapter* m_pPanadapter;
 };
 

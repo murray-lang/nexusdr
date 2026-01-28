@@ -6,6 +6,7 @@
 #include <QVariant>
 #include <QMenu>
 #include <QActionGroup>
+#include <QVBoxLayout>
 #include <cmath>
 #include "io/control/device/usb/UsbException.h"
 #include "io/control/device/FunCubeDongle/FunCubeDongle.h"
@@ -17,11 +18,12 @@
 #include "radio/transmitter/TransmitterIqEvent.h"
 
 #include <QToolButton>
-#include "ui/qt/QtChartTheme.h"
+#include "ui/qt/common/QtChartTheme.h"
 #include "settings/bands/Bands.h"
 #include "settings/RadioSettingsEvent.h"
-#include "ui/qt/QtBandDialog.h"
-#include "ui/qt/QtTimeSeriesChart.h"
+#include "ui/qt/common/QtBandDialog.h"
+#include "ui/qt/common/QtTimeSeriesChart.h"
+#include "ui/qt/faces/FaceFactory.h"
 
 #define FFT_SIZE 2048
 #define SAMPLE_RATE 192000
@@ -33,23 +35,16 @@ MainWindow::MainWindow(RadioConfig& radioConfig, QWidget *parent)
   , m_radioConfig(radioConfig)
   , m_pRadio(nullptr)
   , ui(new Ui::MainWindow)
+  , m_pFaceLayout(new QVBoxLayout)
   , m_reportedIqSampleRate(0)
   ,m_modeButton(nullptr)
   ,m_bandButton(nullptr)
-  ,m_pPanadapter(nullptr)
-  ,m_pTimeSeriesChart(nullptr)
 {
 
   initialiseRadio();
   initializeWindow();
 
   initializeAudio();
-
-  m_pPanadapter = new QtPanadapter(this, "panadapterView", "chartTheme");
-  m_pPanadapter->initialise();
-
-  m_pTimeSeriesChart = new QtTimeSeriesChart(this, "timeseriesView", "chartTheme");
-  m_pTimeSeriesChart->initialise();
 
   if (this->centralWidget()) {
     // This filter has been added to help manage popup behaviour associated with the toolbar buttons.
@@ -61,75 +56,29 @@ MainWindow::~MainWindow()
 {
   delete m_pRadio;
   delete ui;
-  delete m_pPanadapter;
-  delete m_pTimeSeriesChart;
 }
 
 void
 MainWindow::customEvent(QEvent* event)
 {
-  if (event->type() == ReceiverIqEvent::RxIqEvent) {
-    auto* iqEvent = dynamic_cast<ReceiverIqEvent*>(event);
-    handleReceiverIqEvent(iqEvent->buffer.get(), iqEvent->dataLength, iqEvent->sampleRate);
-  } else if (event->type() == ReceiverAudioEvent::RxAudioEvent) {
-    auto* audioEvent = dynamic_cast<ReceiverAudioEvent*>(event);
-    handleReceiverAudioEvent(audioEvent->buffer.get(), audioEvent->dataLength);
-  } else if (event->type() == RadioSettingsEvent::RadioSettingsEventType) {
-    auto* radioSettingsEvent = dynamic_cast<RadioSettingsEvent*>(event);
-    handleRadioSettingsEvent(radioSettingsEvent->getRadioSettings());
-  } else if (event->type() == TransmitterIqEvent::TxIqEvent) {
-    auto* iqEvent = dynamic_cast<TransmitterIqEvent*>(event);
-    handleTransmitterIqEvent(iqEvent->buffer.get(), iqEvent->dataLength, iqEvent->sampleRate);
-  } else if (event->type() == TransmitterAudioEvent::TxAudioEvent) {
-    auto* audioEvent = dynamic_cast<TransmitterAudioEvent*>(event);
-    handleTransmitterAudioEvent(audioEvent->buffer.get(), audioEvent->dataLength);
+  if (m_pFace) {
+    if (event->type() == ReceiverIqEvent::RxIqEvent) {
+      auto* iqEvent = dynamic_cast<ReceiverIqEvent*>(event);
+      m_pFace->handleReceiverIq(iqEvent->buffer.get(), iqEvent->dataLength, iqEvent->sampleRate);
+    } else if (event->type() == ReceiverAudioEvent::RxAudioEvent) {
+      auto* audioEvent = dynamic_cast<ReceiverAudioEvent*>(event);
+      m_pFace->handleReceiverAudio(audioEvent->buffer.get(), audioEvent->dataLength);
+    } else if (event->type() == RadioSettingsEvent::RadioSettingsEventType) {
+      auto* radioSettingsEvent = dynamic_cast<RadioSettingsEvent*>(event);
+      handleRadioSettingsEvent(radioSettingsEvent->getRadioSettings());
+    } else if (event->type() == TransmitterIqEvent::TxIqEvent) {
+      auto* iqEvent = dynamic_cast<TransmitterIqEvent*>(event);
+      m_pFace->handleTransmitterIq(iqEvent->buffer.get(), iqEvent->dataLength, iqEvent->sampleRate);
+    } else if (event->type() == TransmitterAudioEvent::TxAudioEvent) {
+      auto* audioEvent = dynamic_cast<TransmitterAudioEvent*>(event);
+      m_pFace->handleTransmitterAudio(audioEvent->buffer.get(), audioEvent->dataLength);
+    }
   }
-}
-
-void
-MainWindow::handleReceiverIqEvent(const vsdrcomplex* data, uint32_t length, uint32_t sampleRate)
-{
-  m_reportedIqSampleRate = sampleRate;
-  RxPipelineSettings* rxPipelineSettings = m_radioSettingsCopy.getFocusRxPipelineSettings();
-  if (rxPipelineSettings != nullptr) {
-    const RfSettings& rfSettings = rxPipelineSettings->getRfSettings();
-    uint32_t centreFrequency = rfSettings.getCentreFrequency();
-    uint32_t xMin = centreFrequency - (sampleRate / 2);
-    uint32_t xMax = centreFrequency + (sampleRate / 2);
-
-    m_pPanadapter->setSeriesXMinMax(xMin, xMax);
-    m_pPanadapter->plot(data, length, sampleRate, centreFrequency, true);
-  }
-}
-
-void
-MainWindow::handleTransmitterIqEvent(const vsdrcomplex* data, uint32_t length, uint32_t sampleRate)
-{
-  m_reportedIqSampleRate = sampleRate;
-  TxPipelineSettings* txPipelineSettings = m_radioSettingsCopy.getTxPipelineSettings();
-  if (txPipelineSettings != nullptr) {
-    const RfSettings& rfSettings = txPipelineSettings->getRfSettings();
-    uint32_t centreFrequency = rfSettings.getCentreFrequency();
-    uint32_t xMin = centreFrequency - (sampleRate / 2);
-    uint32_t xMax = centreFrequency + (sampleRate / 2);
-
-    m_pPanadapter->setSeriesXMinMax(xMin, xMax);
-    m_pPanadapter->plot(data, length, sampleRate, centreFrequency, true);
-  }
-
-  m_pTimeSeriesChart->plot(*data, length);
-}
-
-void
-MainWindow::handleReceiverAudioEvent(const vsdrreal* data, uint32_t length)
-{
-  m_pTimeSeriesChart->plot(*data, length);
-}
-
-void
-MainWindow::handleTransmitterAudioEvent(const vsdrreal* data, uint32_t length)
-{
-  m_pTimeSeriesChart->plot(*data, length);
 }
 
 void
@@ -144,27 +93,15 @@ MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings)
   }
   BandSettings* bandSettings = m_radioSettingsCopy.getFocusBandSettings();
   updateBandButton(bandSettings->getBand());
+
   RxPipelineSettings* rxPipelineSettings = bandSettings->getFocusRxPipelineSettings();
-  if (rxPipelineSettings == nullptr) {
-    return;
+  if (rxPipelineSettings != nullptr) {
+    const Mode& mode = rxPipelineSettings->getMode();
+    updateModeButton(mode);
   }
-  RfSettings& rfSettings = rxPipelineSettings->getRfSettings();
-  auto centreFrequency = static_cast<int32_t>(rfSettings.getCentreFrequency());
-  int32_t vfo = rfSettings.getVfo();
-  // int32_t frequencyAtOffset = centreFrequency + offset;
-
-  ui->centreFrequencyLcd->display(centreFrequency);
-  ui->cursorFrequencyLcd->display(vfo);
-
-  if (m_reportedIqSampleRate > 0) {
-    uint32_t xMin = centreFrequency - (m_reportedIqSampleRate / 2);
-    uint32_t xMax = centreFrequency + (m_reportedIqSampleRate / 2);
-    m_pPanadapter->setSeriesXMinMax(xMin, xMax);
+  if (m_pFace) {
+    m_pFace->notifyRadioSettingsChanged();
   }
-  const Mode& mode = rxPipelineSettings->getMode();
-  m_pPanadapter->updateCursorPosition(vfo, mode.getLoCut(), mode.getHiCut());
-  updateModeButton(mode);
-
   m_radioSettingsCopy.clearChanged();
 }
 
@@ -247,9 +184,18 @@ void MainWindow::initializeWindow()
 {
   ui->setupUi(this);
 
-  auto* chartTheme = new QtChartTheme(this);
-  chartTheme->setObjectName("chartTheme");
-  chartTheme->setFixedSize(0, 0); // User can't see it, but Style Engine will style it
+  // auto* chartTheme = new QtChartTheme(this);
+  // chartTheme->setObjectName("chartTheme");
+  // chartTheme->setFixedSize(0, 0); // User can't see it, but Style Engine will style it
+
+  m_pFaceLayout = new QVBoxLayout(this->centralWidget());
+  m_pFaceLayout->setObjectName("faceLayout");
+  m_pFaceLayout->setContentsMargins(0, 0, 0, 0);
+  m_pFaceLayout->setSpacing(0);
+
+  setFaceByName(m_radioConfig.getUiFaceName());
+
+
 
   // qDebug() << "Current Icon Theme:" << QIcon::themeName();
   // qDebug() << "Icon Search Paths:" << QIcon::themeSearchPaths();
@@ -263,20 +209,28 @@ void MainWindow::initializeWindow()
 
   addModeButton();
   addLevelsButton();
+}
 
-    //m_volumeSlider = new QSlider(Qt::Horizontal, this);
-    ui->volumeSlider->setRange(0, 100);
-    ui->volumeSlider->setValue(100);
-    //connect(ui->volumeSlider, &QSlider::valueChanged, this, &MainWindow::sliderChanged);
-//    layout->addWidget(m_volumeSlider);
+void
+MainWindow::setFaceByName(const std::string& faceName)
+{
+  const std::string name = faceName.empty() ? FaceFactory::defaultName : faceName;
 
-//    m_modeButton = new QPushButton(this);
-//    connect(ui->modeButton, &QPushButton::clicked, this, &MainWindow::toggleMode);
-//    layout->addWidget(m_modeButton);
+  auto newFace = FaceFactory::instance().create(name, this->centralWidget());
+  if (!newFace) {
+    // last-resort: keep current face, or show an error widget
+    return;
+  }
 
-//    m_suspendResumeButton = new QPushButton(this);
-//    connect(ui->suspendButton, &QPushButton::clicked, this, &MainWindow::toggleSuspend);
-//    layout->addWidget(m_suspendResumeButton);
+  if (m_pFace) {
+    m_pFaceLayout->removeWidget(m_pFace.get());
+    m_pFace.reset();
+  }
+
+  m_pFace = std::move(newFace);
+  m_pFaceLayout->addWidget(m_pFace.get());
+  m_pFace->setRadio(m_pRadio);
+  m_pFace->initialise(&m_radioSettingsCopy);
 }
 
 void
