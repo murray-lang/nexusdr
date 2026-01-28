@@ -11,7 +11,7 @@
 #include <QMouseEvent>
 
 #include "ui_QtBandDialog.h"
-#include "../../settings/bands/Bands.h"
+#include "../../../settings/bands/Bands.h"
 #include "settings/RadioSettings.h"
 #include "radio/Radio.h"
 

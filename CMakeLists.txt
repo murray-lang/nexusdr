@@ -334,9 +334,9 @@ set(PROJECT_SOURCES
         io/audio/drivers/AudioInputDriver.h
         io/audio/drivers/AudioOutputDriver.h
         dsp/pipeline/modulators/FmModulator.h
-        ui/qt/QtChartTheme.h
-        ui/qt/QtBandDialog.cpp
-        ui/qt/QtBandDialog.h
+        ui/qt/common/QtChartTheme.h
+        ui/qt/common/QtBandDialog.cpp
+        ui/qt/common/QtBandDialog.h
         settings/bands/Band.h
         settings/bands/BandCategory.h
         settings/bands/Bands.h
@@ -350,15 +350,22 @@ set(PROJECT_SOURCES
         settings/core/SettingValue.h
         settings/core/Setting.h
         settings/core/SettingRegistry.h
-        ui/qt/QtChartBase.cpp
-        ui/qt/QtChartBase.h
-        ui/qt/QtTimeSeriesChart.cpp
-        ui/qt/QtTimeSeriesChart.h
-        ui/qt/QtPanadapter.cpp
-        ui/qt/QtPanadapter.h
+        ui/qt/common/QtChartBase.cpp
+        ui/qt/common/QtChartBase.h
+        ui/qt/common/QtTimeSeriesChart.cpp
+        ui/qt/common/QtTimeSeriesChart.h
+        ui/qt/common/QtPanadapter.cpp
+        ui/qt/common/QtPanadapter.h
         settings/core/SteppableSetting.h
         settings/bands/BandSelector.h
         settings/RadioSettings.cpp
+        ui/qt/faces/FaceBase.h
+        ui/qt/faces/FaceFactory.cpp
+        ui/qt/faces/FaceFactory.h
+        ui/qt/faces/standard/StandardFace.cpp
+        ui/qt/faces/standard/StandardFace.h
+        ui/qt/faces/RegisterFace.h
+        config/RadioUiConfig.h
 
 )
 
