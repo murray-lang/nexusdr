@@ -4,7 +4,7 @@
 
 #pragma once
 #include "RfSettings.h"
-#include "core/SettingsBase.h"
+#include "base/SettingsBase.h"
 #include "ModeSettings.h"
 #include <map>
 class PipelineSettings: public SettingsBase

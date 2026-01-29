@@ -9,7 +9,7 @@
 #include "RfSettings.h"
 #include "IfSettings.h"
 #include "IqCorrectionSettings.h"
-#include "core/SettingsException.h"
+#include "base/SettingsException.h"
 #include "Mode.h"
 #include "bands/Band.h"
 #include "bands/Bands.h"

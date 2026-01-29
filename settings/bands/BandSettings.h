@@ -7,7 +7,7 @@
 #include "Band.h"
 #include "../TxPipelineSettings.h"
 #include "../RxPipelineSettings.h"
-#include "../core/SettingsBase.h"
+#include "../base/SettingsBase.h"
 #include <QDebug>
 
 
@@ -72,6 +72,9 @@ public:
   [[nodiscard]] const Band& getBand() const { return m_band; }
   [[nodiscard]] uint32_t getFocusRxPipeline() const { return m_focusRxPipeline(); }
   [[nodiscard]] uint32_t getRxPipelineTrackedByTx() const { return m_rxPipelineTrackedByTx(); }
+  [[nodiscard]] uint32_t getNumRxPipelines() const { return m_rxPipelineSettings.size(); }
+
+  // RxPipelineSettings& getRxPipelineSettings(uint32_t index) { return m_rxPipelineSettings[index]; }
 
   void clearChanged() override
   {
@@ -95,6 +98,14 @@ public:
   {
     const RfSettings& rfSettings = getFocusRxRfSettings();
     return rfSettings.hasSettingChanged(RfSettings::CENTER_FREQUENCY);
+  }
+
+  [[nodiscard]] const RxPipelineSettings* getRxPipelineSettings(uint32_t i) const
+  {
+    if (i < m_rxPipelineSettings.size()) {
+      return &m_rxPipelineSettings.at(i);
+    }
+    return nullptr;
   }
 
   void addRxPipeline()

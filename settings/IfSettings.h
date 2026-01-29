@@ -6,7 +6,7 @@
 
 #include <cstdint>
 
-#include "core/SettingsBase.h"
+#include "base/SettingsBase.h"
 
 class IfSettings : public SettingsBase {
 public:

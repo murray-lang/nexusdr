@@ -8,7 +8,7 @@
 #include "ModeSettings.h"
 #include "ReceiverSettings.h"
 #include "TransmitterSettings.h"
-#include "core/SettingUpdatePath.h"
+#include "base/SettingUpdatePath.h"
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -17,7 +17,7 @@
 // #include "./bands/Bands.h"
 #include "bands/BandSettings.h"
 #include "bands/BandSelector.h"
-#include "core/SettingsException.h"
+#include "base/SettingsException.h"
 #include "../util/StringUtils.h"
 
 
@@ -58,6 +58,8 @@ public:
     }
     return *this;
   }
+
+  BandSelector& getBandSelector() { return m_bandSelector; }
 
   [[nodiscard]] bool getPtt() const { return m_ptt(); }
   // [[nodiscard]] const std::string& getBandName() const { return m_bandName(); }

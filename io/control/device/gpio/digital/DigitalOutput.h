@@ -7,7 +7,7 @@
 #include "io/control/ControlSink.h"
 #include "io/control/device/gpio/GpioLines.h"
 #include "settings/RadioSettingsSink.h"
-#include "../../../../../settings/core/SettingUpdatePath.h"
+#include "../../../../../settings/base/SettingUpdatePath.h"
 
 
 class DigitalOutputLinesRequest;

@@ -6,7 +6,7 @@
 
 #include <config/ControlConfig.h>
 #include "ConfigBase.h"
-#include "RadioUiConfig.h"
+#include "UiConfig.h"
 #include "ReceiverConfig.h"
 #include "TransmitterConfig.h"
 
@@ -46,19 +46,19 @@ public:
 
   void fromJson(const nlohmann::json& json) override
   {
-    if(json.contains("receiver")) {
+    if(json.contains(ReceiverConfig::type)) {
       m_pReceiver =
         dynamic_cast<ReceiverConfig *>(ConfigFactory::create(ReceiverConfig::type, json[ReceiverConfig::type]));
     }
-    if(json.contains("transmitter")) {
+    if(json.contains(TransmitterConfig::type)) {
      m_pTransmitter =
        dynamic_cast<TransmitterConfig *>(ConfigFactory::create(TransmitterConfig::type, json[TransmitterConfig::type]));
     }
-    if (json.contains("control")) {
+    if (json.contains(ControlConfig::type)) {
       m_pControl = dynamic_cast<ControlConfig *>(ConfigFactory::create(ControlConfig::type, json[ControlConfig::type]));
     }
-    if (json.contains("ui")) {
-      m_pUiConfig = dynamic_cast<RadioUiConfig *>(ConfigFactory::create(RadioUiConfig::type, json["ui"]));
+    if (json.contains(UiConfig::type)) {
+      m_pUiConfig = dynamic_cast<UiConfig *>(ConfigFactory::create(UiConfig::type, json[UiConfig::type]));
     }
   }
 
@@ -84,7 +84,7 @@ public:
   [[nodiscard]] const TransmitterConfig* getTransmitter() const { return m_pTransmitter; }
   // [[nodiscard]] const std::vector<ControllerConfig>& getControllers() const { return m_control; }
   [[nodiscard]] const ControlConfig* getControl() const { return m_pControl; }
-  [[nodiscard]] const RadioUiConfig* getUiConfig() const { return m_pUiConfig; }
+  [[nodiscard]] const UiConfig* getUiConfig() const { return m_pUiConfig; }
   const char* getUiFaceName() const
   {
     if (m_pUiConfig != nullptr) {
@@ -97,5 +97,5 @@ protected:
   ControlConfig* m_pControl;
   ReceiverConfig* m_pReceiver;
   TransmitterConfig* m_pTransmitter;
-  RadioUiConfig* m_pUiConfig;
+  UiConfig* m_pUiConfig;
 };

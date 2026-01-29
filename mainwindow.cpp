@@ -64,7 +64,7 @@ MainWindow::customEvent(QEvent* event)
   if (m_pFace) {
     if (event->type() == ReceiverIqEvent::RxIqEvent) {
       auto* iqEvent = dynamic_cast<ReceiverIqEvent*>(event);
-      m_pFace->handleReceiverIq(iqEvent->buffer.get(), iqEvent->dataLength, iqEvent->sampleRate);
+      m_pFace->handleReceiverIq(&m_radioSettingsCopy,iqEvent->buffer.get(), iqEvent->dataLength, iqEvent->sampleRate);
     } else if (event->type() == ReceiverAudioEvent::RxAudioEvent) {
       auto* audioEvent = dynamic_cast<ReceiverAudioEvent*>(event);
       m_pFace->handleReceiverAudio(audioEvent->buffer.get(), audioEvent->dataLength);
@@ -73,7 +73,7 @@ MainWindow::customEvent(QEvent* event)
       handleRadioSettingsEvent(radioSettingsEvent->getRadioSettings());
     } else if (event->type() == TransmitterIqEvent::TxIqEvent) {
       auto* iqEvent = dynamic_cast<TransmitterIqEvent*>(event);
-      m_pFace->handleTransmitterIq(iqEvent->buffer.get(), iqEvent->dataLength, iqEvent->sampleRate);
+      m_pFace->handleTransmitterIq(&m_radioSettingsCopy, iqEvent->buffer.get(), iqEvent->dataLength, iqEvent->sampleRate);
     } else if (event->type() == TransmitterAudioEvent::TxAudioEvent) {
       auto* audioEvent = dynamic_cast<TransmitterAudioEvent*>(event);
       m_pFace->handleTransmitterAudio(audioEvent->buffer.get(), audioEvent->dataLength);
@@ -91,7 +91,7 @@ MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings)
   if (bandDialog != nullptr) {
     bandDialog->applySettings(m_radioSettingsCopy);
   }
-  BandSettings* bandSettings = m_radioSettingsCopy.getFocusBandSettings();
+  BandSettings* bandSettings = RadioSettings::getFocusBandSettings();
   updateBandButton(bandSettings->getBand());
 
   RxPipelineSettings* rxPipelineSettings = bandSettings->getFocusRxPipelineSettings();
@@ -100,9 +100,10 @@ MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings)
     updateModeButton(mode);
   }
   if (m_pFace) {
-    m_pFace->notifyRadioSettingsChanged();
+    m_pFace->handleRadioSettingsChanged(&m_radioSettingsCopy);
   }
   m_radioSettingsCopy.clearChanged();
+  bandSettings->clearChanged();
 }
 
 void
@@ -293,7 +294,7 @@ MainWindow::createModeMenu(const Mode& currentMode)
 
   SettingUpdatePath settingPath({
     RadioSettings::Features::BAND,
-    BandSelector::SELECTED,
+    BandSelector::WITH_FOCUS,
     BandSettings::Features::RX_PIPELINE,
     PipelineSettings::Features::MODE
   });

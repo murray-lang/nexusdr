@@ -7,9 +7,9 @@
 #include <cstdint>
 #include <vector>
 #include <config/DigitalInputConfig.h>
-#include "../../../../../settings/core/SettingUpdatePath.h"
+#include "../../../../../settings/base/SettingUpdatePath.h"
 #include "DigitalInputLinesRequest.h"
-#include "../../../../../settings/core/SettingUpdateSource.h"
+#include "../../../../../settings/base/SettingUpdateSource.h"
 #include "io/control/ControlException.h"
 
 

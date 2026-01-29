@@ -8,10 +8,10 @@
 #include <cstdint>
 
 #include "bands/Bands.h"
-#include "core/SettingsBase.h"
-#include "core/SettingsException.h"
+#include "base/SettingsBase.h"
+#include "base/SettingsException.h"
 #include <QDebug>
-#include "core/SteppableSetting.h"
+#include "base/SteppableSetting.h"
 
 class RfSettings : public SettingsBase
 {

@@ -5,18 +5,18 @@
 #pragma once
 #include "ConfigBase.h"
 
-struct RadioUiConfigFields
+struct UiConfigFields
 {
   std::string face;
 };
 
-class RadioUiConfig : public ConfigBase, public RadioUiConfigFields
+class UiConfig : public ConfigBase, public UiConfigFields
 {
   public:
-  static constexpr auto type = "radioui";
+  static constexpr auto type = "ui";
 
-  RadioUiConfig() : ConfigBase(type) {}
-  ~RadioUiConfig() override = default;
+  UiConfig() : ConfigBase(type) {}
+  ~UiConfig() override = default;
   void fromJson(const nlohmann::json& json) override
   {
     if (json.contains("face")) {

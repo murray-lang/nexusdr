@@ -8,7 +8,7 @@
 
 #include "settings/RadioSettings.h"
 #include "settings/RadioSettingsEvent.h"
-#include "../settings/core/SettingUpdateEvent.h"
+#include "../settings/base/SettingUpdateEvent.h"
 #include <QDebug>
 
 
@@ -128,7 +128,7 @@ Radio::applySettings(const RadioSettings& settings)
     QCoreApplication::postEvent(m_pEventTarget, rse);
   }
   m_settings.clearChanged();
-  pBandSettings->clearChanged();
+  // pBandSettings->clearChanged();
 }
 
 void

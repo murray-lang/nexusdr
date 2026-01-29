@@ -9,6 +9,7 @@
 
 #include "settings/RadioSettings.h"
 
+class QtFrequencyReadout;
 class QtTimeSeriesChart;
 class QtPanadapter;
 class Radio;
@@ -24,11 +25,19 @@ public:
   void initialise(RadioSettings* pRadioSettings) override;
 
   void setRadio(Radio* radio) override;
-  void notifyRadioSettingsChanged() override;
+  void handleRadioSettingsChanged(RadioSettings* pRadioSettings) override;
 
-  void handleReceiverIq(const vsdrcomplex* data, uint32_t length, uint32_t sampleRate) override;
+  void handleReceiverIq(
+    RadioSettings* pRadioSettings,
+    const vsdrcomplex* data,
+    uint32_t length,
+    uint32_t sampleRate) override;
   void handleReceiverAudio(const vsdrreal* data, uint32_t length) override;
-  void handleTransmitterIq(const vsdrcomplex* data, uint32_t length, uint32_t sampleRate) override;
+  void handleTransmitterIq(
+    RadioSettings* pRadioSettings,
+    const vsdrcomplex* data,
+    uint32_t length,
+    uint32_t sampleRate) override;
   void handleTransmitterAudio(const vsdrreal* data, uint32_t length) override;
 
 private:
@@ -36,5 +45,6 @@ private:
   Radio* m_pRadio;
   QtTimeSeriesChart* m_pTimeSeriesChart;
   QtPanadapter* m_pPanadapter;
+  QtFrequencyReadout* m_pFrequencyReadout;
   uint32_t m_reportedIqSampleRate;
 };

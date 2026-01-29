@@ -4,7 +4,7 @@
 
 #pragma once
 #include "SampleTypes.h"
-#include "core/SettingsBase.h"
+#include "base/SettingsBase.h"
 
 #define DEFAULT_GAIN 1.0
 #define DEFAULT_GAIN_STEP 1.0

@@ -254,10 +254,10 @@ set(PROJECT_SOURCES
         io/control/device/gpio/digital/GpioRotaryEncoder.h
         io/control/device/gpio/digital/DigitalInputs.cpp
         io/control/device/gpio/digital/DigitalInputs.h
-        settings/core/SettingUpdatePath.h
-        settings/core/SettingUpdate.h
-        settings/core/SettingsException.h
-        settings/core/SettingsBase.h
+        settings/base/SettingUpdatePath.h
+        settings/base/SettingUpdate.h
+        settings/base/SettingsException.h
+        settings/base/SettingsBase.h
         util/StringUtils.cpp
         util/StringUtils.h
         io/control/RadioControl.cpp
@@ -278,8 +278,8 @@ set(PROJECT_SOURCES
         config/FunCubeConfig.h
         settings/RadioSettingsEvent.cpp
         settings/RadioSettingsEvent.h
-        settings/core/SettingUpdateEvent.cpp
-        settings/core/SettingUpdateEvent.h
+        settings/base/SettingUpdateEvent.cpp
+        settings/base/SettingUpdateEvent.h
         io/control/device/gpio/GpioLines.cpp
         io/control/device/gpio/GpioLines.h
         config/GpioLinesConfig.h
@@ -345,18 +345,18 @@ set(PROJECT_SOURCES
         settings/RxPipelineSettings.h
         settings/bands/BandSettings.h
         settings/TxPipelineSettings.h
-        settings/core/SettingUpdateSink.h
-        settings/core/SettingUpdateSource.h
-        settings/core/SettingValue.h
-        settings/core/Setting.h
-        settings/core/SettingRegistry.h
+        settings/base/SettingUpdateSink.h
+        settings/base/SettingUpdateSource.h
+        settings/base/SettingValue.h
+        settings/base/Setting.h
+        settings/base/SettingRegistry.h
         ui/qt/common/QtChartBase.cpp
         ui/qt/common/QtChartBase.h
         ui/qt/common/QtTimeSeriesChart.cpp
         ui/qt/common/QtTimeSeriesChart.h
         ui/qt/common/QtPanadapter.cpp
         ui/qt/common/QtPanadapter.h
-        settings/core/SteppableSetting.h
+        settings/base/SteppableSetting.h
         settings/bands/BandSelector.h
         settings/RadioSettings.cpp
         ui/qt/faces/FaceBase.h
@@ -365,7 +365,11 @@ set(PROJECT_SOURCES
         ui/qt/faces/standard/StandardFace.cpp
         ui/qt/faces/standard/StandardFace.h
         ui/qt/faces/RegisterFace.h
-        config/RadioUiConfig.h
+        config/UiConfig.h
+        ui/qt/common/FrequencyReadout/QtFrequencyReadout.cpp
+        ui/qt/common/FrequencyReadout/QtFrequencyReadout.h
+        ui/qt/common/QtNumberReadout.cpp
+        ui/qt/common/QtNumberReadout.h
 
 )
 
