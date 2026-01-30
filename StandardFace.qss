@@ -1,0 +1,3 @@
+QWidget#frequencyReadout {
+    border: 1px solid red;
+}

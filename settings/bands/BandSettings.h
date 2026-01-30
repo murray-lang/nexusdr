@@ -10,6 +10,7 @@
 #include "../base/SettingsBase.h"
 #include <QDebug>
 
+#define MAX_RX_PIPELINES 2
 
 class BandSettings : public SettingsBase
 {
@@ -17,10 +18,12 @@ public:
   enum Features
   {
     NONE = 0,
-    TX_PIPELINE = 0x01,
-    RX_PIPELINE = 0x02,
+    WITH_TX_PIPELINE = 0x01,
+    WITH_RX_PIPELINE = 0x02,
     FOCUS_RX_PIPELINE = 0x04,
     RX_PIPELINE_TRACKED_BY_TX = 0x08,
+    ADD_PIPELINE = 0x10,
+    REMOVE_PIPELINE = 0x20,
     ALL = static_cast<uint32_t>(~0U)
   };
 
@@ -108,15 +111,41 @@ public:
     return nullptr;
   }
 
-  void addRxPipeline()
+  bool addRxPipeline()
   {
+    if (m_rxPipelineSettings.size() >= MAX_RX_PIPELINES) {
+      return false;
+    }
     m_rxPipelineSettings.emplace_back( );
     RxPipelineSettings& newRxPipeline = m_rxPipelineSettings.back();
     RxPipelineSettings& firstRxPipeline = m_rxPipelineSettings.front();
     newRxPipeline = firstRxPipeline; // (Copy settings)
-    newRxPipeline.getRfSettings().setVfo(10000); // Move the new pipeline to the centre frequency.
+    if (m_rxPipelineSettings.size() == 1) {
+      // The first pipeline is put a little above the centre frequency.
+      newRxPipeline.getRfSettings().setVfo(10000);
+    } else if (m_rxPipelineSettings.size() == 2) {
+      // The second pipeline is a reflection of the first one around the centre frequency.
+      const RfSettings& firstRfSettings= firstRxPipeline.getRfSettings();
+      int64_t offsetOfFirst = firstRfSettings.getVfo() - firstRfSettings.getCentreFrequency();
+      newRxPipeline.getRfSettings().setVfo(firstRfSettings.getCentreFrequency() - offsetOfFirst);
+    }
     m_focusRxPipeline(m_rxPipelineSettings.size() - 1); // The new pipeline gets focus
-    m_changed |= RX_PIPELINE;
+    m_changed |= ADD_PIPELINE;
+    return true;
+  }
+
+  bool removeRxPipeline(uint32_t index)
+  {
+    if (index >= m_rxPipelineSettings.size() || m_rxPipelineSettings.size() == 1) {
+      return false;
+    }
+    m_rxPipelineSettings.erase(m_rxPipelineSettings.begin() + index);
+    if (m_focusRxPipeline() != 0) {
+      m_focusRxPipeline(0);
+      m_changed |= FOCUS_RX_PIPELINE;
+    }
+    m_changed |= REMOVE_PIPELINE;
+    return true;
   }
 
   [[nodiscard]] std::string getBandName() const
@@ -178,12 +207,16 @@ public:
       return m_focusRxPipeline.apply(val);
     case RX_PIPELINE_TRACKED_BY_TX:
       return applyRxPipelineTrackedByTx(val);
-    case TX_PIPELINE:
+    case WITH_TX_PIPELINE:
       update.stepNextFeature();
       return applyTxPipeline(update);
-    case RX_PIPELINE:
+    case WITH_RX_PIPELINE:
       update.stepNextFeature();
       return applyRxPipeline(update);
+    case ADD_PIPELINE:
+      return addRxPipeline();
+    case REMOVE_PIPELINE:
+      return removeRxPipeline(val);
     default:
       return false;
     }
@@ -202,12 +235,21 @@ public:
       return true;
     }
     const std::string& key = featureStrings[startIndex];
-    if (key == "tx-pipeline") {
-      featuresOut.push_back(TX_PIPELINE);
+    if (key == "with-tx-pipeline") {
+      featuresOut.push_back(WITH_TX_PIPELINE);
       return RxPipelineSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
-    } else if (key == "rx-pipeline") {
-      featuresOut.push_back(RX_PIPELINE);
+    }
+    if (key == "with-rx-pipeline") {
+      featuresOut.push_back(WITH_RX_PIPELINE);
       return RxPipelineSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
+    }
+    if (key == "add-pipeline") {
+      featuresOut.push_back(ADD_PIPELINE);
+      return true;
+    }
+    if (key == "remove-pipeline") {
+      featuresOut.push_back(REMOVE_PIPELINE);
+      return true;
     }
     return false;
   }
@@ -286,14 +328,14 @@ protected:
       if (m_focusRxPipeline() == m_rxPipelineTrackedByTx()) {
         if (focusPipelineSettings.hasSettingChanged(PipelineSettings::RF)) {
           m_txPipelineSettings.getRfSettings().copyFrequencies(focusPipelineSettings.getRfSettings());
-          m_changed |= TX_PIPELINE;
+          m_changed |= WITH_TX_PIPELINE;
         }
         if (focusPipelineSettings.hasSettingChanged( PipelineSettings::MODE)) {
           m_txPipelineSettings.setMode(focusPipelineSettings.getMode());
-          m_changed |= TX_PIPELINE;
+          m_changed |= WITH_TX_PIPELINE;
         }
       }
-      m_changed |= RX_PIPELINE;
+      m_changed |= WITH_RX_PIPELINE;
       return true;
     }
     return false;
@@ -302,7 +344,7 @@ protected:
   bool applyTxPipeline(SettingUpdate& setting)
   {
     if (m_txPipelineSettings.applyUpdate(setting)) {
-      m_changed |= TX_PIPELINE;
+      m_changed |= WITH_TX_PIPELINE;
       return true;
     }
     return false;
@@ -315,10 +357,16 @@ protected:
       m_rxPipelineTrackedByTx.apply(newRxPipelineIndex);
       RxPipelineSettings& trackedRxPipelineSettings = m_rxPipelineSettings[m_rxPipelineTrackedByTx()];
       m_txPipelineSettings.copyBasicsForTracking(trackedRxPipelineSettings);
-      m_changed |= RX_PIPELINE |TX_PIPELINE;
+      m_changed |= WITH_RX_PIPELINE |WITH_TX_PIPELINE;
       return true;
     }
     return false;
+  }
+
+  bool removeRxPipeline(const SettingValue& settingValue)
+  {
+    uint32_t index = std::get<uint32_t>(settingValue);
+    return removeRxPipeline(index);
   }
 
   Band m_band;

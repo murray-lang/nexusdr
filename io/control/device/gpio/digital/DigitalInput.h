@@ -30,7 +30,7 @@ public:
 
   virtual bool handleLineChange(DigitalInputLinesRequest::LineStates& changedLines);
 
-  void connect(SettingUpdateSink* pSink) override;
+  void connectSettingUpdateSink(SettingUpdateSink* pSink) override;
 protected:
   void notifyChange(const DigitalInputLinesRequest::LineState& lineState);
   void notifySettingUpdate(SettingUpdate& settingDelta) override;

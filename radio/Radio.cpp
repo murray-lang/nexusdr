@@ -151,6 +151,21 @@ Radio::applyBand(const std::string& bandName)
   applySettingUpdate(bandSetting);
 }
 
+void
+Radio::split(const std::string& bandA, const std::string& bandB)
+{
+  SettingUpdatePath splitPath({RadioSettings::BAND, BandSelector::SPLIT});
+  SettingUpdate splitSetting(splitPath, true, SettingUpdate::Meaning::VALUE);
+  applySettingUpdate(splitSetting);
+}
+
+void
+Radio::addPipeline()
+{
+  BandSettings* bandSettings = m_settings.getBandSelector().getFocusBandSettings();
+  bandSettings->addRxPipeline();
+}
+
 void Radio::ptt(bool on)
 {
   if (on) {

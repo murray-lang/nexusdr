@@ -295,7 +295,7 @@ MainWindow::createModeMenu(const Mode& currentMode)
   SettingUpdatePath settingPath({
     RadioSettings::Features::BAND,
     BandSelector::WITH_FOCUS,
-    BandSettings::Features::RX_PIPELINE,
+    BandSettings::Features::WITH_RX_PIPELINE,
     PipelineSettings::Features::MODE
   });
   for (const auto& mode : allModes) {
@@ -431,6 +431,8 @@ MainWindow::initialiseRadio()
     m_pRadio->start();
 
     m_pRadio->applyBand("40m");
+    // m_pRadio->split("40m", "20m");
+    // m_pRadio->addPipeline();
 
     RfSettings rfSettings;
     rfSettings.setGain(30.0);

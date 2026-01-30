@@ -72,7 +72,7 @@ public:
 
   BandSettings* getBandBSettings()
   {
-    return getBandSettings(m_bandAName);
+    return getBandSettings(m_bandBName);
   }
 
   BandSettings* getTxBandSettings()
@@ -337,7 +337,7 @@ protected:
     if (m_split == *pNewSplit) {
       return false;
     }
-    if (m_split) {
+    if (*pNewSplit) {
       if (m_bandBName.empty()) {
         m_bandBName = m_bandAName; // Start with both the same
         m_changed |= SELECT_B;

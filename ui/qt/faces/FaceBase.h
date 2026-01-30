@@ -7,11 +7,12 @@
 
 #include "SampleTypes.h"
 #include "settings/RadioSettingsSink.h"
+#include "settings/base/SettingUpdateSource.h"
 
 
 class Radio;
 
-class FaceBase : public QWidget
+class FaceBase : public QWidget //, public SettingUpdateSource //, public SettingUpdateSink
 {
   Q_OBJECT
 public:

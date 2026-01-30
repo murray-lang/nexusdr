@@ -12,12 +12,16 @@
 StandardFace::StandardFace(QWidget* parent)
   : FaceBase(parent)
   , ui(std::make_unique<Ui::StandardFace>())
-  , m_pRadio(nullptr)
+  // , m_pExternalSettingsSink(nullptr)
+  , m_internalSettingsSink(this)
   , m_pTimeSeriesChart(nullptr)
   , m_pPanadapter(nullptr)
   , m_reportedIqSampleRate(0)
 {
   ui->setupUi(this);
+  setAttribute(Qt::WA_StyledBackground, true);
+  qDebug() << "StandardFace objectName:" << this->objectName()
+           << "class:" << this->metaObject()->className();
 }
 
 StandardFace::~StandardFace()
@@ -52,6 +56,7 @@ StandardFace::initialise(RadioSettings* pRadioSettings)
     slotLayout->addWidget(m_pFrequencyReadout);
 
     m_pFrequencyReadout->initialise(pRadioSettings);
+    m_pFrequencyReadout->connectSettingUpdateSink(&m_internalSettingsSink);
   }
 }
 

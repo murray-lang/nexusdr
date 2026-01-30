@@ -13,7 +13,7 @@ class SettingUpdateSource
 {
 public:
   virtual ~SettingUpdateSource() = default;
-  virtual void connect(SettingUpdateSink* pSink)
+  virtual void connectSettingUpdateSink(SettingUpdateSink* pSink)
   {
     // This implementation is to avoid the need for a descendant class to implement an empty
     // connect() for this base class.

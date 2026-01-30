@@ -8,6 +8,7 @@
 #include <memory>
 
 #include "settings/RadioSettings.h"
+#include "radio/Radio.h"
 
 class QtFrequencyReadout;
 class QtTimeSeriesChart;
@@ -23,6 +24,9 @@ public:
   ~StandardFace() override;
 
   void initialise(RadioSettings* pRadioSettings) override;
+
+  // void connect(SettingUpdateSink* pSink) override { m_pExternalSettingsSink = pSink; }
+  // void applySettingUpdate(SettingUpdate& settingDelta) override;
 
   void setRadio(Radio* radio) override;
   void handleRadioSettingsChanged(RadioSettings* pRadioSettings) override;
@@ -40,9 +44,34 @@ public:
     uint32_t sampleRate) override;
   void handleTransmitterAudio(const vsdrreal* data, uint32_t length) override;
 
+protected:
+
+  // void notifySettingUpdate(SettingUpdate& settingUpdate) override
+  // {
+  //   if (m_pExternalSettingsSink != nullptr) {
+  //     m_pExternalSettingsSink->applySettingUpdate(settingUpdate);
+  //   }
+  // }
+  //------------------------------------------------------------------------------------------------------
+  class InternalSettingUpdateSink : public SettingUpdateSink
+  {
+  public:
+    InternalSettingUpdateSink(StandardFace* pOwningFace) : m_pOwningFace(pOwningFace) {}
+    void applySettingUpdate(SettingUpdate& settingUpdate) override
+    {
+      if (m_pOwningFace->m_pRadio != nullptr) {
+        m_pOwningFace->m_pRadio->applySettingUpdate(settingUpdate);
+      }
+
+    }
+  protected:
+    StandardFace* m_pOwningFace;
+  };
+  //-------------------------------------------------------------------------------------------------------
 private:
   std::unique_ptr<Ui::StandardFace> ui;
-  Radio* m_pRadio;
+  // SettingUpdateSink* m_pExternalSettingsSink;
+  InternalSettingUpdateSink m_internalSettingsSink;
   QtTimeSeriesChart* m_pTimeSeriesChart;
   QtPanadapter* m_pPanadapter;
   QtFrequencyReadout* m_pFrequencyReadout;

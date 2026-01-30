@@ -18,7 +18,7 @@ QtNumberReadout::QtNumberReadout(QWidget* parent)
   , m_value(new QLabel(this))
   , m_locale("")
 {
-
+  setAttribute(Qt::WA_StyledBackground, true);
 
   auto* v = new QVBoxLayout(this);
   v->setContentsMargins(0, 0, 0, 0);

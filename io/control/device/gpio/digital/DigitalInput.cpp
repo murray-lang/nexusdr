@@ -29,7 +29,7 @@ DigitalInput::configure(const DigitalInputConfig* pConfig)
 }
 
 void
-DigitalInput::connect(SettingUpdateSink* pSink)
+DigitalInput::connectSettingUpdateSink(SettingUpdateSink* pSink)
 {
   m_pSink = pSink;
 }

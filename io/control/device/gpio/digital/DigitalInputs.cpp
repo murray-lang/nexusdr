@@ -79,7 +79,7 @@ DigitalInputs::createInputs(const DigitalInputsConfig* pConfig)
     if (input == nullptr) {
       throw ConfigException("digitalInputs input has unknown input type: " + pConfig->getType());
     }
-    input->connect(&m_internalSink);
+    input->connectSettingUpdateSink(&m_internalSink);
     m_inputs.push_back(input);
   }
 }
