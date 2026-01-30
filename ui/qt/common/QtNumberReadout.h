@@ -8,6 +8,7 @@
 
 #include "SampleTypes.h"
 #include <locale>
+#include <span>
 
 class QLabel;
 
