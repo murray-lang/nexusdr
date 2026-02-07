@@ -2,7 +2,7 @@
 // Created by murray on 18/11/25.
 //
 #include "IqPipeline.h"
-#include "settings/PipelineSettings.h"
+#include "../../settings/pipeline/PipelineSettings.h"
 
 #define DEFAULT_PING_PONG_LENGTH 8192
 

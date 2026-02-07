@@ -68,52 +68,8 @@ QtNumberReadout::setValueText(const std::string& value)
   m_value->setText(value.c_str());
 }
 
-void QtNumberReadout::applyStyleProperties(std::span<const StyleProperty> props)
+void QtNumberReadout::setStyleProperties(std::span<const WidgetProperty> props)
 {
-  // Apply to this widget…
-  for (const auto& [k, v] : props)
-    setDynamicProperty(this, k, v);
-
-  // …and to internal widgets we control (without exposing them).
-  // This lets you write QSS against QLabel with the same properties if you want.
-  for (const auto& [k, v] : props)
-    setDynamicProperty(m_value, k, v);
-
-  repolishRecursively(this);
+  QWidgetPropertySetter::setWidgetProperties(this, props);
+  QWidgetPropertySetter::setWidgetProperties(m_value, props);
 }
-
-void
-QtNumberReadout::setDynamicProperty(QObject* obj, const std::string& key, const StyleValue& value)
-{
-  if (!obj) return;
-
-  QVariant v;
-  std::visit([&](const auto& x) {
-    using T = std::decay_t<decltype(x)>;
-    if constexpr (std::is_same_v<T, bool>)
-      v = QVariant{x};
-    else if constexpr (std::is_same_v<T, int64_t>)
-      v = QVariant::fromValue<qlonglong>(static_cast<qlonglong>(x));
-    else if constexpr (std::is_same_v<T, double>)
-      v = QVariant{x};
-    else if constexpr (std::is_same_v<T, std::string>)
-      v = QVariant{QString::fromStdString(x)};
-  }, value);
-
-  obj->setProperty(key.c_str(), v);
-}
-
-void
-QtNumberReadout::repolishRecursively(QWidget* w)
-{
-  if (!w) return;
-
-  w->style()->unpolish(w);
-  w->style()->polish(w);
-  w->update();
-
-  const auto children = w->findChildren<QWidget*>(QString{}, Qt::FindDirectChildrenOnly);
-  for (QWidget* child : children)
-    repolishRecursively(child);
-}
-

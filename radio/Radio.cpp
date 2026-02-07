@@ -96,12 +96,12 @@ Radio::applySettings(const RadioSettings& settings)
   BandSettings* pBandSettings = settings.getFocusBandSettings();
   if (settings.hasSettingChanged(RadioSettings::BAND)) {
 
-    RxPipelineSettings* rxPipelineSettings = pBandSettings->getFocusRxPipelineSettings();
+    RxPipelineSettings* rxPipelineSettings = pBandSettings->getFocusPipeline();
     if (m_pReceiver != nullptr) {
       m_pReceiver->adjustRfSettingsToLimits(rxPipelineSettings->getRfSettings());
       m_pReceiver->apply(rxPipelineSettings);
     }
-    TxPipelineSettings* txPipelineSettings = pBandSettings->getTxPipelineSettings();
+    TxPipelineSettings* txPipelineSettings = pBandSettings->getTxPipeline();
     if (m_pTransmitter != nullptr) {
       m_pTransmitter->adjustRfSettingsToLimits(txPipelineSettings->getRfSettings());
       m_pTransmitter->apply(txPipelineSettings);
@@ -157,13 +157,6 @@ Radio::split(const std::string& bandA, const std::string& bandB)
   SettingUpdatePath splitPath({RadioSettings::BAND, BandSelector::SPLIT});
   SettingUpdate splitSetting(splitPath, true, SettingUpdate::Meaning::VALUE);
   applySettingUpdate(splitSetting);
-}
-
-void
-Radio::addPipeline()
-{
-  BandSettings* bandSettings = m_settings.getBandSelector().getFocusBandSettings();
-  bandSettings->addRxPipeline();
 }
 
 void Radio::ptt(bool on)

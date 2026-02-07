@@ -1,7 +1,7 @@
 //
 // Created by murray on 20/11/25.
 //
-#include "settings/TxPipelineSettings.h"
+#include "../../settings/pipeline/TxPipelineSettings.h"
 #include "IqTxPipeline.h"
 #include "settings/ModeSettings.h"
 #include <qdebug.h>

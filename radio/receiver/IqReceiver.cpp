@@ -9,7 +9,7 @@
 #include "ReceiverIqEvent.h"
 #include <config/ReceiverConfig.h>
 
-#include "settings/RxPipelineSettings.h"
+#include "../../settings/pipeline/RxPipelineSettings.h"
 
 // #define FFT_SIZE 2048
 

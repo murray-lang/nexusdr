@@ -10,14 +10,16 @@
 #include <locale>
 #include <span>
 
+#include "QWidgetPropertySetter.h"
+
 class QLabel;
 
 class QtNumberReadout final : public QWidget
 {
   Q_OBJECT
 public:
-  using StyleValue = std::variant<bool, int64_t, double, std::string>;
-  using StyleProperty = std::pair<std::string, StyleValue>;
+  // using StyleValue = std::variant<bool, int64_t, double, std::string>;
+  // using StyleProperty = std::pair<std::string, StyleValue>;
 
   explicit QtNumberReadout(QWidget* parent = nullptr);
 
@@ -29,11 +31,9 @@ public:
   // QLabel* titleLabel() const noexcept { return m_title; }
   QLabel* valueLabel() const noexcept { return m_value; }
 
-  void applyStyleProperties(std::span<const StyleProperty> props);
+  void setStyleProperties(std::span<const WidgetProperty> props);
 
 private:
-  void repolishRecursively(QWidget* w);
-  void setDynamicProperty(QObject* obj, const std::string& key, const StyleValue& value);
 
   // QLabel* m_title;
   QLabel* m_value;

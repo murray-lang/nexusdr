@@ -2,7 +2,7 @@
 // Created by murray on 11/11/25.
 //
 
-#include "settings/TxPipelineSettings.h"
+#include "../../settings/pipeline/TxPipelineSettings.h"
 #include "IqTransmitter.h"
 #include "TransmitterAudioEvent.h"
 #include <qcoreapplication.h>

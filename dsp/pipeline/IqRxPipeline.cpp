@@ -8,7 +8,7 @@
 #define DEFAULT_SAMPLE_RATE 48000
 
 #include "settings/ModeSettings.h"
-#include "settings/RxPipelineSettings.h"
+#include "../../settings/pipeline/RxPipelineSettings.h"
 
 IqRxPipeline::IqRxPipeline(QObject* eventTarget) :
   IqPipeline(eventTarget),

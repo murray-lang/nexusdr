@@ -7,14 +7,14 @@
 #include <QWidget>
 #include <memory>
 
+#include "QtBandReadout.h"
+#include "QtVfoReadout.h"
 #include "settings/bands/BandSelector.h"
+#include "settings/bands/SplitBandId.h"
 #include "settings/base/SettingUpdateSink.h"
 #include "settings/base/SettingUpdateSource.h"
 
 class RadioSettings;
-class QtNumberReadout;
-class QStackedLayout;
-class QToolButton;
 
 namespace Ui { class QtFrequencyReadout; }
 
@@ -39,89 +39,32 @@ protected:
   }
 
 private slots:
-  void onSplitClicked();
-  void onCloseBandA();
-  void onCloseBandB();
+  void onSplitRequested(SplitBandId whichBand);
+  void onCloseRequested(SplitBandId whichBand);
+  void onMultiVfoActionRequested(SplitBandId whichBand,
+                            VfoId whichVfo,
+                            QtVfoReadout::MultiVfoAction action);
+  void onVfoTxActionRequested(SplitBandId whichBand,
+                            VfoId whichVfo,
+                            QtVfoReadout::VfoTxAction action);
+  void onBandClicked(SplitBandId whichBand);
+  void onVfoClicked(SplitBandId whichBand, VfoId whichVfo);
+  void onTxBandClicked(SplitBandId whichBand);
 
 private:
-  struct RowWidgets
-  {
-    QWidget* row = nullptr;              // styling container
-    QWidget* leftCell = nullptr;         // contains (action button + VFO A)
-    QWidget* rightCell = nullptr;        // contains stack
-    QStackedLayout* rightStack = nullptr;
-    QWidget* rightPlaceholder = nullptr;
-    QToolButton* actionButton = nullptr; // Split or Close depending on state
-  };
-
-  RowWidgets createBandRow(const QString& rowObjectName,
-                      QtNumberReadout* vfoA,
-                      QtNumberReadout* vfoB);
-
-  void initialiseGridLayout();
+  void initialiseLayout();
   void applyFrequencyChanges(BandSelector& bandSelector, bool onlyIfChanged = true);
-  void applyFrequencyChanges(
-    QtNumberReadout* readout,
-    const RxPipelineSettings* rxPipelineSettings,
-    bool onlyIfChanged = true
-  );
   void applyBandSelectorChange(BandSelector& bandSelector);
-  void applyBandSettings(
-    QtNumberReadout* pVfoReadoutA,
-    QtNumberReadout* pVfoReadoutB,
-    const BandSettings* bandSettings,
-    const std::string& txBandName,
-    const std::string& rxBandName,
-    const std::string& focusBandName,
-    bool* pShowVfoA,
-    bool* pShowVfoB
-  );
-  static void applyStyleContext(QtNumberReadout* w,
-                             const char* vfo,      // "A" or "B"
-                             const char* band,     // "A" or "B"
-                             bool focusVfo,
-                             bool focusRx,
-                             bool focusTx,
-                             bool ptt);
 
-  void applyPtt(bool ptt);
-  static void applyPtt(QtNumberReadout* w, bool ptt);
-  static void applyFocus(QtNumberReadout* w, bool focusVfo, bool focusRx, bool focusTx);
+  void setPttProperty(bool ptt, bool repolish = true);
 
-  void showHide(bool show_bandA_vfoA, bool show_bandA_vfoB, bool show_bandB_vfoA, bool show_bandB_vfoB);
+  void updateRowActionModes(bool hasBand1, bool hasBand2, bool isSplit);
 
-  void applyRowStretch(
-    QWidget* row,
-    QWidget* left,
-    bool showLeft,
-    QWidget* right,
-    bool showRight
-    ) const;
-
-  void updateRowActionButtons(bool showBandARow, bool showBandBRow, bool isSplit);
-
+private:
   std::unique_ptr<Ui::QtFrequencyReadout> ui;
 
   SettingUpdateSink* m_pSettingsSink;
 
-  QtNumberReadout* m_pReadoutBandA_VfoA;
-  QtNumberReadout* m_pReadoutBandA_VfoB;
-  QtNumberReadout* m_pReadoutBandB_VfoA;
-  QtNumberReadout* m_pReadoutBandB_VfoB;
-
-  QWidget* m_pBandARow;
-  QWidget* m_pBandBRow;
-
-  QWidget* m_pBandA_LeftCell;
-  QWidget* m_pBandA_RightCell;
-  QWidget* m_pBandB_LeftCell;
-  QWidget* m_pBandB_RightCell;
-
-  QStackedLayout* m_pBandA_RightStack;
-  QStackedLayout* m_pBandB_RightStack;
-  QWidget* m_pBandA_RightPlaceholder;
-  QWidget* m_pBandB_RightPlaceholder;
-
-  QToolButton* m_pBandA_ActionButton;
-  QToolButton* m_pBandB_ActionButton;
+  QtBandReadout* m_band1Readout;
+  QtBandReadout* m_band2Readout;
 };

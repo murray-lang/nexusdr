@@ -71,7 +71,7 @@ public:
   static BandSettings* getFocusBandSettings();
   static const std::string& getFocusBandName() { return m_bandSelector.getFocusBandName(); }
 
-  static const Bands& getBands() { return m_bandSelector.getBands(); }
+  static const Bands& getBands() { return m_bandSelector.getAllBands(); }
 
   void applyRfSettings(const RfSettings& settings, bool onlyChanged = false);
   void applyIfSettings(const IfSettings& settings);
@@ -94,11 +94,11 @@ public:
     m_changed &= ~PTT;
   }
 
-  RxPipelineSettings* getFocusRxPipelineSettings();
-  [[nodiscard]] const RxPipelineSettings* getFocusRxPipelineSettings() const;
+  RxPipelineSettings* getFocusPipeline();
+  [[nodiscard]] const RxPipelineSettings* getFocusPipeline() const;
   TxPipelineSettings* getTxPipelineSettings();
   [[nodiscard]] const TxPipelineSettings* getTxPipelineSettings() const;
-  [[nodiscard]] const Mode& getFocusRxPipelineMode() const;
+  [[nodiscard]] const Mode* getFocusRxPipelineMode() const;
 
   static SettingUpdatePath getSettingUpdatePath(const std::string& strDottedFeatures);
 

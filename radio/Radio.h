@@ -41,7 +41,6 @@ public:
   void applyBand(const std::string& bandName);
 
   void split(const std::string& bandA, const std::string& bandB);
-  void addPipeline();
 
   void applyRfSettings(const RfSettings& settings, bool onlyChanged = false)
   {

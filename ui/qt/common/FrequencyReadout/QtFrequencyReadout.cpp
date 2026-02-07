@@ -4,141 +4,70 @@
 
 #include "QtFrequencyReadout.h"
 #include "ui_QtFrequencyReadout.h"
-#include "../QtNumberReadout.h"
+
+#include "QtBandReadout.h"
+#include "QtVfoReadout.h"
+
 #include <QStyle>
-#include <QStackedLayout>
-#include <QToolButton>
 
 #include "settings/RadioSettings.h"
 #include "settings/bands/BandSelector.h"
-
 
 QtFrequencyReadout::QtFrequencyReadout(QWidget* parent)
   : QWidget(parent)
   , ui(std::make_unique<Ui::QtFrequencyReadout>())
   , m_pSettingsSink(nullptr)
-  , m_pReadoutBandA_VfoA(new QtNumberReadout(this))
-  , m_pReadoutBandA_VfoB(new QtNumberReadout(this))
-  , m_pReadoutBandB_VfoA(new QtNumberReadout(this))
-  , m_pReadoutBandB_VfoB(new QtNumberReadout(this))
-  , m_pBandARow(nullptr)
-  , m_pBandBRow(nullptr)
-  , m_pBandA_LeftCell(nullptr)
-  , m_pBandA_RightCell(nullptr)
-  , m_pBandB_LeftCell(nullptr)
-  , m_pBandB_RightCell(nullptr)
-  , m_pBandA_RightStack(nullptr)
-  , m_pBandB_RightStack(nullptr)
-  , m_pBandA_RightPlaceholder(nullptr)
-  , m_pBandB_RightPlaceholder(nullptr)
-  , m_pBandA_ActionButton(nullptr)
-  , m_pBandB_ActionButton(nullptr)
+  , m_band1Readout(nullptr)
+  , m_band2Readout(nullptr)
 {
   ui->setupUi(this);
   setAttribute(Qt::WA_StyledBackground, true);
-  initialiseGridLayout();
-
-  applyStyleContext(m_pReadoutBandA_VfoA, "A", "A", true, true, true, false);
-  applyStyleContext(m_pReadoutBandA_VfoB, "A", "B", false, false, false, false);
-  applyStyleContext(m_pReadoutBandB_VfoA, "B", "A", false, false, false, false);
-  applyStyleContext(m_pReadoutBandB_VfoB, "B", "B", false, false, false, false);
+  initialiseLayout();
 }
 
 QtFrequencyReadout::~QtFrequencyReadout() = default;
 
 void
-QtFrequencyReadout::initialiseGridLayout()
+QtFrequencyReadout::initialiseLayout()
 {
+  // Keep using the .ui gridLayout as a simple 2-row host.
   ui->gridLayout->setContentsMargins(0, 0, 0, 0);
   ui->gridLayout->setHorizontalSpacing(6);
   ui->gridLayout->setVerticalSpacing(2);
   ui->gridLayout->setColumnStretch(0, 1);
   ui->gridLayout->setColumnStretch(1, 1);
 
-  m_pReadoutBandA_VfoA->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-  m_pReadoutBandA_VfoB->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-  m_pReadoutBandB_VfoA->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-  m_pReadoutBandB_VfoB->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+  m_band1Readout = new QtBandReadout(SplitBandId::One, this);
+  // m_band1Readout->setObjectName("band1Row");
+  ui->gridLayout->addWidget(m_band1Readout, 0, 0, 1, 2);
 
-  // Build rows
-  {
-    RowWidgets bandA = createBandRow("bandARow", m_pReadoutBandA_VfoA, m_pReadoutBandA_VfoB);
-    m_pBandARow = bandA.row;
-    m_pBandA_LeftCell = bandA.leftCell;
-    m_pBandA_RightCell = bandA.rightCell;
-    m_pBandA_RightStack = bandA.rightStack;
-    m_pBandA_RightPlaceholder = bandA.rightPlaceholder;
-    m_pBandA_ActionButton = bandA.actionButton;
-    ui->gridLayout->addWidget(m_pBandARow, 0, 0, 1, 2);
-  }
+  m_band2Readout = new QtBandReadout(SplitBandId::Two, this);
+  // m_band2Readout->setObjectName("band2Row");
+  ui->gridLayout->addWidget(m_band2Readout, 1, 0, 1, 2);
 
-  {
-    RowWidgets bandB = createBandRow("bandBRow", m_pReadoutBandB_VfoA, m_pReadoutBandB_VfoB);
-    m_pBandBRow = bandB.row;
-    m_pBandB_LeftCell = bandB.leftCell;
-    m_pBandB_RightCell = bandB.rightCell;
-    m_pBandB_RightStack = bandB.rightStack;
-    m_pBandB_RightPlaceholder = bandB.rightPlaceholder;
-    m_pBandB_ActionButton = bandB.actionButton;
-    ui->gridLayout->addWidget(m_pBandBRow, 1, 0, 1, 2);
-  }
-}
+  // Wire row-level actions to frequency-readout actions (which produce SettingUpdates).
+  connect(m_band1Readout, &QtBandReadout::splitRequested, this, &QtFrequencyReadout::onSplitRequested);
+  connect(m_band2Readout, &QtBandReadout::splitRequested, this, &QtFrequencyReadout::onSplitRequested);
+  connect(m_band1Readout, &QtBandReadout::closeRequested, this, &QtFrequencyReadout::onCloseRequested);
+  connect(m_band2Readout, &QtBandReadout::closeRequested, this, &QtFrequencyReadout::onCloseRequested);
 
-QtFrequencyReadout::RowWidgets
-QtFrequencyReadout::createBandRow(const QString& rowObjectName,
-                                  QtNumberReadout* vfoA,
-                                  QtNumberReadout* vfoB)
-{
-  RowWidgets rowWidgets;
+  connect(m_band1Readout, &QtBandReadout::multiVfoActionRequested, this, &QtFrequencyReadout::onMultiVfoActionRequested);
+  connect(m_band2Readout, &QtBandReadout::multiVfoActionRequested, this, &QtFrequencyReadout::onMultiVfoActionRequested);
 
-  rowWidgets.row = new QWidget(this);
-  rowWidgets.row->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-  rowWidgets.row->setMinimumWidth(0);
-  rowWidgets.row->setObjectName(rowObjectName);
+  connect(m_band1Readout, &QtBandReadout::vfoTxActionRequested, this, &QtFrequencyReadout::onVfoTxActionRequested);
+  connect(m_band2Readout, &QtBandReadout::vfoTxActionRequested, this, &QtFrequencyReadout::onVfoTxActionRequested);
 
-  auto* rowLayout = new QHBoxLayout(rowWidgets.row);
-  rowLayout->setContentsMargins(0, 0, 0, 0);
-  rowLayout->setSpacing(6);
+  connect(m_band1Readout, &QtBandReadout::txBandRequested, this, &QtFrequencyReadout::onTxBandClicked);
+  connect(m_band2Readout, &QtBandReadout::txBandRequested, this, &QtFrequencyReadout::onTxBandClicked);
 
-  rowWidgets.leftCell = new QWidget(rowWidgets.row);
-  rowWidgets.leftCell->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-  rowWidgets.leftCell->setMinimumWidth(0);
+  connect(m_band1Readout, &QtBandReadout::bandClicked, this, &QtFrequencyReadout::onBandClicked);
+  connect(m_band2Readout, &QtBandReadout::bandClicked, this, &QtFrequencyReadout::onBandClicked);
+  connect(m_band1Readout, &QtBandReadout::vfoClicked, this, &QtFrequencyReadout::onVfoClicked);
+  connect(m_band2Readout, &QtBandReadout::vfoClicked, this, &QtFrequencyReadout::onVfoClicked);
 
-  auto* leftLayout = new QHBoxLayout(rowWidgets.leftCell);
-  leftLayout->setContentsMargins(0, 0, 0, 0);
-  leftLayout->setSpacing(6);
-
-  rowWidgets.actionButton = new QToolButton(rowWidgets.leftCell);
-  rowWidgets.actionButton->setAutoRaise(true);
-  rowWidgets.actionButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
-  rowWidgets.actionButton->setObjectName(rowObjectName + "actionButton");
-  rowWidgets.actionButton->setVisible(false); // controlled by updateRowActionButtons()
-  leftLayout->addWidget(rowWidgets.actionButton);
-
-  leftLayout->addWidget(vfoA);
-
-  rowWidgets.rightCell = new QWidget(rowWidgets.row);
-  rowWidgets.rightCell->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-  rowWidgets.rightCell->setMinimumWidth(0);
-
-  rowWidgets.rightStack = new QStackedLayout(rowWidgets.rightCell);
-  rowWidgets.rightStack->setContentsMargins(0, 0, 0, 0);
-
-  rowWidgets.rightPlaceholder = new QWidget(rowWidgets.rightCell);
-  rowWidgets.rightPlaceholder->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-  rowWidgets.rightPlaceholder->setMinimumWidth(0);
-  rowWidgets.rightPlaceholder->setObjectName("vfoPlaceholder");
-
-  rowWidgets.rightStack->addWidget(vfoB);
-  rowWidgets.rightStack->addWidget(rowWidgets.rightPlaceholder);
-
-  rowLayout->addWidget(rowWidgets.leftCell);
-  rowLayout->addWidget(rowWidgets.rightCell);
-
-  rowLayout->setStretchFactor(rowWidgets.leftCell, 1);
-  rowLayout->setStretchFactor(rowWidgets.rightCell, 1);
-
-  return rowWidgets;
+  m_band1Readout->setWidgetProperties(false);
+  m_band2Readout->setWidgetProperties(false);
+  QWidgetPropertySetter::setWidgetProperty(this, "role", "frequencyReadout", true);
 }
 
 void
@@ -150,6 +79,8 @@ QtFrequencyReadout::initialise(RadioSettings* pRadioSettings)
 void
 QtFrequencyReadout::applyRadioSettings(RadioSettings* pRadioSettings, bool onlyIfChanged)
 {
+  if (pRadioSettings == nullptr) return;
+
   if (pRadioSettings->hasSettingChanged(RadioSettings::BAND)) {
     BandSelector& bandSelector = pRadioSettings->getBandSelector();
     if (bandSelector.isChanged()) {
@@ -157,35 +88,26 @@ QtFrequencyReadout::applyRadioSettings(RadioSettings* pRadioSettings, bool onlyI
       applyFrequencyChanges(bandSelector, onlyIfChanged);
     }
   } else if (pRadioSettings->hasSettingChanged(RadioSettings::PTT)) {
-    applyPtt(pRadioSettings->getPtt());
+    setPttProperty(pRadioSettings->getPtt());
   }
 }
 
 void
 QtFrequencyReadout::applyFrequencyChanges(BandSelector& bandSelector, bool onlyIfChanged)
 {
-  BandSettings* bandASettings = bandSelector.getBandASettings();
-  applyFrequencyChanges(m_pReadoutBandA_VfoA, bandASettings->getRxPipelineSettings(0), onlyIfChanged);
-  applyFrequencyChanges(m_pReadoutBandA_VfoB, bandASettings->getRxPipelineSettings(1), onlyIfChanged);
-
-  BandSettings* bandBSettings = bandSelector.getBandBSettings();
-  if (bandBSettings != nullptr) {
-    applyFrequencyChanges(m_pReadoutBandB_VfoA, bandBSettings->getRxPipelineSettings(0), onlyIfChanged);
-    applyFrequencyChanges(m_pReadoutBandB_VfoB, bandBSettings->getRxPipelineSettings(1), onlyIfChanged);
+  // Band 1
+  if (bandSelector.hasBand(SplitBandId::One)) {
+    const BandSettings* band1 = bandSelector.getBandSettings(SplitBandId::One);
+    if (band1 != nullptr) {
+      m_band1Readout->applyFrequencyChanges(band1, onlyIfChanged);
+    }
   }
-}
 
-void
-QtFrequencyReadout::applyFrequencyChanges(
-  QtNumberReadout* readout,
-  const RxPipelineSettings* rxPipelineSettings,
-  bool onlyIfChanged
-  )
-{
-  if (rxPipelineSettings) {
-    const RfSettings& rfSettings = rxPipelineSettings->getRfSettings();
-    if (rfSettings.hasSettingChanged(RfSettings::VFO) || !onlyIfChanged) {
-      readout->setValue(rfSettings.getVfo());
+  // Band 2 (may be absent when not split)
+  if (bandSelector.hasBand(SplitBandId::Two)) {
+    const BandSettings* band2 = bandSelector.getBandSettings(SplitBandId::Two);
+    if (band2 != nullptr) {
+      m_band2Readout->applyFrequencyChanges(band2, onlyIfChanged);
     }
   }
 }
@@ -193,314 +115,191 @@ QtFrequencyReadout::applyFrequencyChanges(
 void
 QtFrequencyReadout::applyBandSelectorChange(BandSelector& bandSelector)
 {
-  BandSettings* bandASettings = bandSelector.getBandASettings();
-  BandSettings* bandBSettings = bandSelector.getBandBSettings();
   const std::string& txBandName = bandSelector.getTxBandName();
   const std::string& rxBandName = bandSelector.getRxBandName();
   const std::string& focusBandName = bandSelector.getFocusBandName();
 
-  bool show_bandA_vfoA = false;
-  bool show_bandA_vfoB = false;
-  bool show_bandB_vfoA = false;
-  bool show_bandB_vfoB = false;
+  const bool hasBand1 = bandSelector.hasBand(SplitBandId::One);
+  const bool hasBand2 = bandSelector.hasBand(SplitBandId::Two);
+  const bool isSplit = bandSelector.isSplit();
 
-  m_pBandARow->setProperty("focusBand", focusBandName == bandASettings->getBandName());
-  m_pBandARow->style()->unpolish(m_pBandARow);
-  m_pBandARow->style()->polish(m_pBandARow);
-  m_pBandARow->update();
+  // Visibility (Band 2 row disappears when not split)
+  m_band1Readout->setRowVisible(hasBand1);
+  m_band2Readout->setRowVisible(hasBand2);
 
-  applyBandSettings(
-      m_pReadoutBandA_VfoA,
-      m_pReadoutBandA_VfoB,
-      bandASettings,
-      txBandName,
-      rxBandName,
-      focusBandName,
-      &show_bandA_vfoA,
-      &show_bandA_vfoB
-    );
-
-
-  if (bandSelector.isSplit()) {
-    m_pBandBRow->setProperty("focusBand", focusBandName == bandBSettings->getBandName());
-    m_pBandBRow->style()->unpolish(m_pBandBRow);
-    m_pBandBRow->style()->polish(m_pBandBRow);
-    m_pBandBRow->update();
-
-    applyBandSettings(
-      m_pReadoutBandB_VfoA,
-      m_pReadoutBandB_VfoB,
-      bandBSettings,
-      txBandName,
-      rxBandName,
-      focusBandName,
-      &show_bandB_vfoA,
-      &show_bandB_vfoB
-    );
-
-
-  }
-  showHide(show_bandA_vfoA, show_bandA_vfoB, show_bandB_vfoA, show_bandB_vfoB);
-  const bool showBandARow = show_bandA_vfoA || show_bandA_vfoB;
-  const bool showBandBRow = show_bandB_vfoA || show_bandB_vfoB;
-  updateRowActionButtons(showBandARow, showBandBRow, bandSelector.isSplit());
-}
-
-void
-QtFrequencyReadout::updateRowActionButtons(bool showBandARow, bool showBandBRow, bool isSplit)
-{
-  if (!m_pBandA_ActionButton || !m_pBandB_ActionButton) {
-    // First call happens after initialiseGridLayout() has created rows; but be defensive.
+  if (hasBand1) {
+    const BandSettings* band1 = bandSelector.getBandSettings(SplitBandId::One);
+    m_band1Readout->applyBandSettings(band1, txBandName, rxBandName, focusBandName);
   }
 
-  const int visibleRows = (showBandARow ? 1 : 0) + (showBandBRow ? 1 : 0);
-  const bool singleRow = (visibleRows == 1);
-
-  auto setupAsSplit = [](QToolButton* b) {
-    if (!b) return;
-    b->setText("Split");
-    b->setToolTip("Split");
-    b->setVisible(true);
-  };
-
-  auto setupAsClose = [](QToolButton* b) {
-    if (!b) return;
-    b->setText("×");
-    b->setToolTip("Close");
-    b->setVisible(true);
-  };
-
-  // Reset connections (avoid stacking multiple connects as settings update)
-  if (m_pBandA_ActionButton) m_pBandA_ActionButton->disconnect(this);
-  if (m_pBandB_ActionButton) m_pBandB_ActionButton->disconnect(this);
-
-  if (isSplit) {
-    if (showBandARow) {
-      setupAsClose(m_pBandA_ActionButton);
-      connect(m_pBandA_ActionButton, &QToolButton::clicked, this, &QtFrequencyReadout::onCloseBandA);
-    } else if (m_pBandA_ActionButton) {
-      m_pBandA_ActionButton->setVisible(false);
-    }
-
-    if (showBandBRow) {
-      setupAsClose(m_pBandB_ActionButton);
-      connect(m_pBandB_ActionButton, &QToolButton::clicked, this, &QtFrequencyReadout::onCloseBandB);
-    } else if (m_pBandB_ActionButton) {
-      m_pBandB_ActionButton->setVisible(false);
-    }
-    return;
+  if (hasBand2) {
+    const BandSettings* band2 = bandSelector.getBandSettings(SplitBandId::Two);
+    m_band2Readout->applyBandSettings(band2, txBandName, rxBandName, focusBandName);
   }
 
-  // Not split: only show Split when exactly one row is visible
-  if (singleRow) {
-    if (showBandARow) {
-      setupAsSplit(m_pBandA_ActionButton);
-      if (m_pBandB_ActionButton) m_pBandB_ActionButton->setVisible(false);
-      connect(m_pBandA_ActionButton, &QToolButton::clicked, this, &QtFrequencyReadout::onSplitClicked);
-    } else {
-      setupAsSplit(m_pBandB_ActionButton);
-      if (m_pBandA_ActionButton) m_pBandA_ActionButton->setVisible(false);
-      connect(m_pBandB_ActionButton, &QToolButton::clicked, this, &QtFrequencyReadout::onSplitClicked);
-    }
-  } else {
-    if (m_pBandA_ActionButton) m_pBandA_ActionButton->setVisible(false);
-    if (m_pBandB_ActionButton) m_pBandB_ActionButton->setVisible(false);
-  }
-}
+  updateRowActionModes(hasBand1, hasBand2, isSplit);
 
-void
-QtFrequencyReadout::onSplitClicked()
-{
-  if (m_pSettingsSink != nullptr) {
-    SettingUpdatePath splitPath({RadioSettings::BAND, BandSelector::SPLIT});
-    SettingUpdate splitSetting(splitPath, true, SettingUpdate::Meaning::VALUE);
-    m_pSettingsSink->applySettingUpdate(splitSetting);
-  }
-}
-
-void
-QtFrequencyReadout::onCloseBandA()
-{
-
-}
-
-void
-QtFrequencyReadout::onCloseBandB()
-{
-
-}
-
-void
-QtFrequencyReadout::applyBandSettings(
-    QtNumberReadout* pVfoReadoutA,
-    QtNumberReadout* pVfoReadoutB,
-    const BandSettings* bandSettings,
-    const std::string& txBandName,
-    const std::string& rxBandName,
-    const std::string& focusBandName,
-    bool* pShowVfoA,
-    bool* pShowVfoB
-  )
-{
-  bool isFocusBand = bandSettings->getBandName() == focusBandName;
-  bool isTxBand = bandSettings->getBandName() == txBandName;
-  bool isRxBand = bandSettings->getBandName() == rxBandName;
-  bool haveVfoB = bandSettings->getNumRxPipelines() > 1;
-  *pShowVfoA = true;
-  *pShowVfoB = haveVfoB;
-  if (isFocusBand) {
-    uint32_t focusVfoIndex = bandSettings->getFocusRxPipeline();
-    uint32_t txVfoIndex = bandSettings->getRxPipelineTrackedByTx();
-    applyFocus(pVfoReadoutA, focusVfoIndex == 0, txVfoIndex == 0 && isTxBand, txVfoIndex == 0 && isFocusBand);
-    applyFocus(pVfoReadoutB, focusVfoIndex == 1, txVfoIndex == 1 && isTxBand, txVfoIndex == 1 && isFocusBand);
-  } else {
-    applyFocus(pVfoReadoutA, false, false, false);
-    applyFocus(pVfoReadoutB, false, false, false);
-  }
-}
-
-void
-QtFrequencyReadout::showHide(bool show_bandA_vfoA, bool show_bandA_vfoB, bool show_bandB_vfoA, bool show_bandB_vfoB)
-{
-  m_pReadoutBandA_VfoA->setVisible(show_bandA_vfoA);
-  m_pReadoutBandA_VfoB->setVisible(show_bandA_vfoB);
-  m_pReadoutBandB_VfoA->setVisible(show_bandB_vfoA);
-  m_pReadoutBandB_VfoB->setVisible(show_bandB_vfoB);
-
-  const bool showBandARow = show_bandA_vfoA || show_bandA_vfoB;
-  const bool showBandBRow = show_bandB_vfoA || show_bandB_vfoB;
-
-  m_pBandARow->setVisible(showBandARow);
-  m_pBandBRow->setVisible(showBandBRow);
-
-  // Two-column mode if either band has VFO B
-  const bool twoColumnMode = show_bandA_vfoB || show_bandB_vfoB;
-
-  // In two-column mode, keep the right cell visible for BOTH rows,
-  // and show either VFO B or an expanding placeholder so the column exists.
-  if (twoColumnMode) {
-    m_pBandA_RightCell->setVisible(true);
-    m_pBandB_RightCell->setVisible(true);
-
-    m_pBandA_RightStack->setCurrentWidget(show_bandA_vfoB ? static_cast<QWidget*>(m_pReadoutBandA_VfoB)
-                                                          : static_cast<QWidget*>(m_pBandA_RightPlaceholder));
-    m_pBandB_RightStack->setCurrentWidget(show_bandB_vfoB ? static_cast<QWidget*>(m_pReadoutBandB_VfoB)
-                                                          : static_cast<QWidget*>(m_pBandB_RightPlaceholder));
-
-    if (auto* hA = qobject_cast<QHBoxLayout*>(m_pBandARow->layout())) {
-      hA->setStretch(0, 1);
-      hA->setStretch(1, 1);
-    }
-    if (auto* hB = qobject_cast<QHBoxLayout*>(m_pBandBRow->layout())) {
-      hB->setStretch(0, 1);
-      hB->setStretch(1, 1);
-    }
-  } else {
-    // One-column stretched mode ONLY if both bands are single-VFO:
-    // hide the right cell entirely so left cell takes full width.
-    m_pBandA_RightCell->setVisible(false);
-    m_pBandB_RightCell->setVisible(false);
-
-    if (auto* hA = qobject_cast<QHBoxLayout*>(m_pBandARow->layout())) {
-      hA->setStretch(0, 1);
-      hA->setStretch(1, 0);
-    }
-    if (auto* hB = qobject_cast<QHBoxLayout*>(m_pBandBRow->layout())) {
-      hB->setStretch(0, 1);
-      hB->setStretch(1, 0);
-    }
-  }
-
-  ui->gridLayout->setRowStretch(0, showBandARow ? 1 : 0);
-  ui->gridLayout->setRowStretch(1, showBandBRow ? 1 : 0);
-
+  ui->gridLayout->setRowStretch(0, hasBand1 ? 1 : 0);
+  ui->gridLayout->setRowStretch(1, hasBand2 ? 1 : 0);
   ui->gridLayout->invalidate();
   updateGeometry();
 }
 
 void
-QtFrequencyReadout::applyRowStretch(
-    QWidget* row,
-    QWidget* left,
-    bool showLeft,
-    QWidget* right,
-    bool showRight
-    ) const
+QtFrequencyReadout::updateRowActionModes(bool hasBand1, bool hasBand2, bool isSplit)
 {
-  if (!row) return;
+  // With the row widget, the gutters are fixed and buttons are icon-only,
+  // so there is no horizontal jostling; we just change the action mode.
 
-  auto* h = qobject_cast<QHBoxLayout*>(row->layout());
-  if (!h) return;
+  if (!m_band1Readout || !m_band2Readout) return;
 
-  // Only visible widgets get stretch=1, hidden get stretch=0.
-  // - if one visible: it gets all space (1 vs 0)
-  // - if both visible: they share (1 vs 1)
-  if (left) {
-    h->setStretchFactor(left,  showLeft ? 1 : 0);
+  if (isSplit && hasBand1 && hasBand2) {
+    m_band1Readout->setLeftActionMode(QtBandReadout::BandAction::Close);
+    m_band2Readout->setLeftActionMode(QtBandReadout::BandAction::Close);
+    return;
   }
-  if (right) {
-    h->setStretchFactor(right, showRight ? 1 : 0);
+
+  // Not split: Band 1 is the only active row => it offers Split.
+  if (hasBand1 && !hasBand2) {
+    m_band1Readout->setLeftActionMode(QtBandReadout::BandAction::Split);
+    m_band2Readout->setLeftActionMode(QtBandReadout::BandAction::Disabled);
+    return;
+  }
+
+  // Fallback: disable actions (should be rare)
+  m_band1Readout->setLeftActionMode(QtBandReadout::BandAction::Disabled);
+  m_band2Readout->setLeftActionMode(QtBandReadout::BandAction::Disabled);
+}
+
+void
+QtFrequencyReadout::onSplitRequested(SplitBandId /*whichBand*/)
+{
+  if (m_pSettingsSink == nullptr) return;
+
+  SettingUpdatePath splitPath({RadioSettings::BAND, BandSelector::SPLIT});
+  SettingUpdate splitSetting(splitPath, true, SettingUpdate::Meaning::VALUE);
+  m_pSettingsSink->applySettingUpdate(splitSetting);
+}
+
+void
+QtFrequencyReadout::onCloseRequested(SplitBandId whichBand)
+{
+  if (m_pSettingsSink == nullptr) return;
+
+  BandSelector::Features select =
+    whichBand == SplitBandId::One ? BandSelector::SELECT_1 : BandSelector::SELECT_2;
+
+  SettingUpdatePath bandPath({RadioSettings::BAND, static_cast<uint32_t>(select)});
+  SettingUpdate bandSetting(bandPath, "", SettingUpdate::Meaning::VALUE); // Empty band name closes it
+  m_pSettingsSink->applySettingUpdate(bandSetting);
+}
+
+void
+QtFrequencyReadout::onMultiVfoActionRequested(SplitBandId whichBand,
+                                        VfoId whichVfo,
+                                        QtVfoReadout::MultiVfoAction action)
+{
+  uint32_t selectBand = whichBand == SplitBandId::One ? BandSelector::WITH_1 : BandSelector::WITH_2;
+
+  switch (action) {
+  case QtVfoReadout::MultiVfoAction::Multi:
+    {
+      SettingUpdatePath bandPath({
+        RadioSettings::BAND,
+        selectBand,
+        BandSettings::MULTI_PIPELINE
+      });
+      SettingUpdate bandSetting(bandPath, true, SettingUpdate::Meaning::VALUE);
+      m_pSettingsSink->applySettingUpdate(bandSetting);
+      break;
+    }
+  case QtVfoReadout::MultiVfoAction::Close:
+    {
+      SettingUpdatePath bandPath({
+        RadioSettings::BAND,
+        selectBand,
+        BandSettings::CLOSE_PIPELINE
+      });
+      SettingUpdate bandSetting(bandPath, whichVfo, SettingUpdate::Meaning::VALUE);
+      m_pSettingsSink->applySettingUpdate(bandSetting);
+      break;
+    }
   }
 }
 
 void
-QtFrequencyReadout::applyStyleContext(
-  QtNumberReadout* w,
-  const char* band,
-  const char* vfo,
-  bool focusVfo,
-  bool focusRx,
-  bool focusTx,
-  bool ptt)
+QtFrequencyReadout::onVfoTxActionRequested(SplitBandId whichBand,
+                            VfoId whichVfo,
+                            QtVfoReadout::VfoTxAction action)
 {
-  if (w) {
-    using P = QtNumberReadout::StyleProperty;
-    static std::array<P, 7> props;
+  uint32_t selectBand = whichBand == SplitBandId::One ? BandSelector::WITH_1 : BandSelector::WITH_2;
+  if (action == QtVfoReadout::VfoTxAction::Tx) {
+    SettingUpdatePath bandPath({
+        RadioSettings::BAND,
+        selectBand,
+        BandSettings::TX_PIPELINE
+      });
+    SettingUpdate bandSetting(bandPath, whichVfo, SettingUpdate::Meaning::VALUE);
+    m_pSettingsSink->applySettingUpdate(bandSetting);
+  }
 
-    props[0] = P("role", std::string("frequencyReadout"));
-    props[1] = P("vfo", vfo);        // "A" or "B"
-    props[2] = P("band", band);       // "A" or "B" (split side)
-    props[3] = P("focusVfo", focusVfo);
-    props[4] = P("focusRx", focusRx);
-    props[5] = P("focusTx", focusTx);
-    props[6] = P("ptt", ptt);
+  switch (action) {
+  case QtVfoReadout::VfoTxAction::Tx:
+    {
+      SettingUpdatePath bandPath({
+        RadioSettings::BAND,
+        selectBand,
+        BandSettings::MULTI_PIPELINE
+      });
+      SettingUpdate bandSetting(bandPath, true, SettingUpdate::Meaning::VALUE);
+      m_pSettingsSink->applySettingUpdate(bandSetting);
+      break;
+    }
 
-    w->applyStyleProperties(props);
   }
 }
 
 void
-QtFrequencyReadout::applyPtt(bool ptt)
+QtFrequencyReadout::setPttProperty(bool ptt, bool repolish)
 {
-  applyPtt(m_pReadoutBandA_VfoA, ptt);
-  applyPtt(m_pReadoutBandA_VfoB, ptt);
-  applyPtt(m_pReadoutBandB_VfoA, ptt);
-  applyPtt(m_pReadoutBandB_VfoB, ptt);
+  m_band1Readout->setPttProperty(ptt, false);
+  m_band2Readout->setPttProperty(ptt, false);
+  QWidgetPropertySetter::setWidgetProperty(this, "ptt", ptt, repolish);
 }
 
 void
-QtFrequencyReadout::applyPtt(QtNumberReadout* w, bool ptt)
+QtFrequencyReadout::onBandClicked(SplitBandId whichBand)
 {
-  if (w != nullptr) {
-    using P = QtNumberReadout::StyleProperty;
-    const auto props = std::array<P, 1>{
-      P{"ptt",      ptt},
-    };
-    w->applyStyleProperties(props);
-  }
+  if (m_pSettingsSink == nullptr) return;
+
+  SettingUpdatePath path({RadioSettings::BAND, BandSelector::FOCUS});
+  SettingUpdate u(path, whichBand, SettingUpdate::Meaning::VALUE);
+  m_pSettingsSink->applySettingUpdate(u);
 }
 
 void
-QtFrequencyReadout::applyFocus(QtNumberReadout* w, bool focusVfo, bool focusRx, bool focusTx)
+QtFrequencyReadout::onTxBandClicked(SplitBandId whichBand)
 {
-  if (w != nullptr) {
-    using P = QtNumberReadout::StyleProperty;
-    const auto props = std::array<P, 3>{
-      P{"focusVfo", focusVfo},
-      P{"focusRx", focusRx},
-      P{"focusTx", focusTx},
-    };
-    w->applyStyleProperties(props);
-  }
+  if (m_pSettingsSink == nullptr) return;
 
+  SettingUpdatePath path({RadioSettings::BAND, BandSelector::TX_BAND});
+  SettingUpdate update(path, whichBand, SettingUpdate::Meaning::VALUE);
+  m_pSettingsSink->applySettingUpdate(update);
+}
+
+void
+QtFrequencyReadout::onVfoClicked(SplitBandId whichBand, VfoId whichVfo)
+{
+  if (m_pSettingsSink == nullptr) return;
+
+  const uint32_t selectBand = (whichBand == SplitBandId::One) ? BandSelector::WITH_1 : BandSelector::WITH_2;
+
+  SettingUpdatePath path({
+    RadioSettings::BAND,
+    selectBand,
+    BandSettings::FOCUS_PIPELINE
+  });
+
+  SettingUpdate update(path, whichVfo, SettingUpdate::Meaning::VALUE);
+  m_pSettingsSink->applySettingUpdate(update);
 }

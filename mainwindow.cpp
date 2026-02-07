@@ -94,7 +94,7 @@ MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings)
   BandSettings* bandSettings = RadioSettings::getFocusBandSettings();
   updateBandButton(bandSettings->getBand());
 
-  RxPipelineSettings* rxPipelineSettings = bandSettings->getFocusRxPipelineSettings();
+  RxPipelineSettings* rxPipelineSettings = bandSettings->getFocusPipeline();
   if (rxPipelineSettings != nullptr) {
     const Mode& mode = rxPipelineSettings->getMode();
     updateModeButton(mode);
@@ -242,7 +242,7 @@ MainWindow::addModeButton()
   }
   RadioSettings& radioSettings = m_pRadio->getRadioSettings();
   const BandSettings* bandSettings = m_pRadio->getFocusBandSettings();
-  const RxPipelineSettings* rxPipelineSettings = bandSettings->getFocusRxPipelineSettings();
+  const RxPipelineSettings* rxPipelineSettings = bandSettings->getFocusPipeline();
   if (rxPipelineSettings == nullptr) {
     throw SettingsException("Radio pipeline settings not found for selected band");
   }
@@ -272,9 +272,9 @@ MainWindow::addModeButton()
     // hint: sizeHint() is usually accurate for menus before they are shown
     pos.setY(pos.y() - modeMenu->sizeHint().height());
 
-    const Mode& currMode = m_radioSettingsCopy.getFocusRxPipelineMode();
+    const Mode* currMode = m_radioSettingsCopy.getFocusRxPipelineMode();
     for (QAction *action : modeMenu->actions()) {
-      action->setChecked(currMode.getName() == action->text().toStdString());
+      action->setChecked(currMode->getName() == action->text().toStdString());
     }
     modeMenu->exec(pos);
   });
@@ -295,7 +295,7 @@ MainWindow::createModeMenu(const Mode& currentMode)
   SettingUpdatePath settingPath({
     RadioSettings::Features::BAND,
     BandSelector::WITH_FOCUS,
-    BandSettings::Features::WITH_RX_PIPELINE,
+    BandSettings::Features::WITH_FOCUS_PIPELINE,
     PipelineSettings::Features::MODE
   });
   for (const auto& mode : allModes) {
@@ -431,7 +431,7 @@ MainWindow::initialiseRadio()
     m_pRadio->start();
 
     m_pRadio->applyBand("40m");
-    // m_pRadio->split("40m", "20m");
+    m_pRadio->split("40m", "20m");
     // m_pRadio->addPipeline();
 
     RfSettings rfSettings;

@@ -2,5 +2,8 @@
     <qresource>
         <file>ui/icons/solid/sliders.svg</file>
         <file>ui/icons/solid/gear.svg</file>
+        <file>ui/icons/solid/clone.svg</file>
+        <file>ui/icons/solid/circle-xmark.svg</file>
+        <file>ui/icons/solid/arrows-left-right-to-line.svg</file>
     </qresource>
 </RCC>

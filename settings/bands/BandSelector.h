@@ -7,6 +7,7 @@
 
 #include "../base/SettingsBase.h"
 #include "Bands.h"
+#include "SplitBandId.h"
 #include "BandSettings.h"
 
 #define MAX_SPLIT_BANDS 2
@@ -17,16 +18,19 @@ public:
   enum Features
   {
     NONE = 0,
-    SELECT = 0x01,
-    SELECT_A = SELECT,
-    SELECT_B = 0x02,
-    WITH_FOCUS = 0x04,
-    FOCUS = 0x08,
-    SPLIT = 0x10,
-    TX_BAND = 0x20,
-    RX_BAND = 0x40,
+    SELECT = 0x001,
+    SELECT_1 = SELECT,
+    SELECT_2 = 0x002,
+    WITH_1 = 0x004,
+    WITH_2 = 0x008,
+    WITH_FOCUS = 0x010,
+    FOCUS = 0x020,
+    SPLIT = 0x040,
+    TX_BAND = 0x080,
+    RX_BAND = 0x100,
     ALL = static_cast<uint32_t>(~0U)
   };
+
   BandSelector() :
     SettingsBase()
     ,m_split(false)
@@ -47,9 +51,22 @@ public:
     }
   }
 
-  const Bands& getBands() const { return m_bands; }
-  const std::string& getBandAName() const { return m_bandAName; }
-  const std::string& getBandBName() const { return m_bandBName; }
+  static constexpr std::size_t toSplitIndex(SplitBandId b) noexcept {
+    return static_cast<std::size_t>(b);
+  }
+
+  const Bands& getAllBands() const { return m_bands; }
+
+  bool hasBand(SplitBandId idx) const {
+    const auto& nameOpt = m_selectedBandNames[toSplitIndex(idx)];
+    return nameOpt.has_value() && !nameOpt->empty();
+  }
+
+  std::optional<std::string> getSplitBandName(SplitBandId idx) const
+  {
+    return m_selectedBandNames.at(toSplitIndex(idx));
+  }
+  // const std::string& getBand2Name() const { return m_band2Name; }
   const std::string& getTxBandName() const { return m_txBandName; }
   const std::string& getRxBandName() const { return m_rxBandName; }
   const std::string& getFocusBandName() const { return m_focusBandName; }
@@ -65,16 +82,6 @@ public:
     return getBandSettings(m_focusBandName);
   }
 
-  BandSettings* getBandASettings()
-  {
-    return getBandSettings(m_bandAName);
-  }
-
-  BandSettings* getBandBSettings()
-  {
-    return getBandSettings(m_bandBName);
-  }
-
   BandSettings* getTxBandSettings()
   {
     return getBandSettings(m_txBandName);
@@ -83,6 +90,45 @@ public:
   BandSettings* getRxBandSettings()
   {
     return getBandSettings(m_rxBandName);
+  }
+
+  BandSettings* getBandSettings(SplitBandId idx)
+  {
+    std::optional<std::string>& nameOpt = m_selectedBandNames[toSplitIndex(idx)];
+    if (nameOpt.has_value()){
+      return getBandSettings(nameOpt.value());
+    }
+    return nullptr;;
+  }
+
+  const BandSettings* getBandSettings(SplitBandId idx) const
+  {
+    const std::optional<std::string>& nameOpt = m_selectedBandNames[toSplitIndex(idx)];
+    if (nameOpt.has_value()){
+      return getBandSettings(nameOpt.value());
+    }
+    return nullptr;;
+  }
+
+  bool closeBand(SplitBandId idx)
+  {
+    if (idx == SplitBandId::One) {
+      if (!m_selectedBandNames[1].has_value()) {
+        return false; // Cannot close the only band
+      }
+      m_selectedBandNames[0] = m_selectedBandNames[1];
+      m_changed |= SELECT_1;
+    }
+    m_selectedBandNames[1].reset();
+    const std::string& band1Name = m_selectedBandNames[0].value();
+    m_split = false;
+    m_txBandName = band1Name;
+    m_rxBandName = band1Name;
+    m_focusBandName = band1Name;
+    m_changed |= SPLIT | TX_BAND | RX_BAND | FOCUS | SELECT_2;
+    BandSettings* bandSettings = getBandSettings(band1Name);
+    bandSettings->setAllChanged(); // Tell the outside world to refresh its copy of this band.
+    return true;
   }
 
   BandSettings* getBandSettings(const std::string& bandName)
@@ -134,13 +180,15 @@ public:
     const auto& val = update.getValue();
 
     switch (feature) {
-    case SELECT_A: return selectA(update);
-    case SELECT_B: return selectB(update);
+    case SELECT_1: return selectBand(SplitBandId::One, update);
+    case SELECT_2: return selectBand(SplitBandId::Two, update);
     case WITH_FOCUS: return applyToFocusedBand(update.stepNextFeature());
-    case FOCUS: return applyFocusBand(val);
+    case WITH_1: return applyToBand(SplitBandId::One, update.stepNextFeature());
+    case WITH_2: return applyToBand(SplitBandId::Two, update.stepNextFeature());
+    case FOCUS: return setFocusBand(val);
     case SPLIT: return applySplit(val);
-    case TX_BAND: return applyTxBand(val);
-    case RX_BAND: return applyRxBand(val);
+    case TX_BAND: return setTxBand(val);
+    case RX_BAND: return setRxBand(val);
     default:
       return false;
     }
@@ -160,6 +208,14 @@ public:
       out.push_back(WITH_FOCUS);
       return BandSettings::getFeaturePath(featureStrings, out, startIndex + 1);
     }
+    if (key == "with-1") {
+      out.push_back(WITH_1);
+      return BandSettings::getFeaturePath(featureStrings, out, startIndex + 1);
+    }
+    if (key == "with-2") {
+      out.push_back(WITH_2);
+      return BandSettings::getFeaturePath(featureStrings, out, startIndex + 1);
+    }
     if (key == "focus") {
       out.push_back(FOCUS);
     }
@@ -167,12 +223,12 @@ public:
       out.push_back(SELECT);
       return true;
     }
-    if (key == "select-a") {
-      out.push_back(SELECT_A);
+    if (key == "select-1") {
+      out.push_back(SELECT_1);
       return true;
     }
-    if (key == "select-b") {
-      out.push_back(SELECT_B);
+    if (key == "select-2") {
+      out.push_back(SELECT_2);
       return true;
     }
     if (key == "split") {
@@ -193,24 +249,37 @@ public:
 
 protected:
 
-  bool selectA(SettingUpdate& update)
+  bool isBandNameInSelected(const std::string& bandName) const {
+    return std::any_of(m_selectedBandNames.begin(), m_selectedBandNames.end(),
+      [&](const std::optional<std::string>& s) {
+        return s.has_value() && *s == bandName;
+      });
+  }
+
+  bool selectBand(SplitBandId idx, SettingUpdate& update)
   {
     const auto& value = update.getValue();
+    std::optional<std::string> currBandNameOpt = getSplitBandName(idx);
+
     if (update.getMeaning() == SettingUpdate::VALUE) {
       if (const std::string* pBandName = std::get_if<std::string>(&value)) {
-        return selectA(*pBandName);
+        if (pBandName->empty()) {
+          return closeBand(idx);
+        } else {
+          return selectBand(idx, *pBandName);
+        }
       }
-    } else if (update.getMeaning() == SettingUpdate::DELTA) {
+    } else if (update.getMeaning() == SettingUpdate::DELTA && currBandNameOpt.has_value()) {
       if (const int32_t* pDelta = std::get_if<int32_t>(&value)) {
         if (*pDelta > 0) {
-          const Band* nextBand = m_bands.nextBandInOwnCategory(m_bandAName);
+          const Band* nextBand = m_bands.nextBandInOwnCategory(currBandNameOpt.value());
           if (nextBand != nullptr) {
-            return selectA(nextBand->getName());
+            return selectBand(idx, nextBand->getName());
           }
         } else if (*pDelta < 0) {
-          const Band* prevBand = m_bands.prevBandInOwnCategory(m_bandAName);
+          const Band* prevBand = m_bands.prevBandInOwnCategory(currBandNameOpt.value());
           if (prevBand != nullptr) {
-            return selectA(prevBand->getName());
+            return selectBand(idx, prevBand->getName());
           }
         }
       }
@@ -218,82 +287,35 @@ protected:
     return false;
   }
 
-  bool selectB(SettingUpdate& update)
+  bool selectBand(SplitBandId idx, const std::string& bandName)
   {
-    const auto& value = update.getValue();
-    if (update.getMeaning() == SettingUpdate::VALUE) {
-      if (const std::string* pBandName = std::get_if<std::string>(&value)) {
-        return selectB(*pBandName);
-      }
-    } else if (update.getMeaning() == SettingUpdate::DELTA) {
-      if (const int32_t* pDelta = std::get_if<int32_t>(&value)) {
-        if (*pDelta > 0) {
-          const Band* nextBand = m_bands.nextBandInOwnCategory(m_bandAName);
-          if (nextBand != nullptr) {
-            return selectB(nextBand->getName());
-          }
-        } else if (*pDelta < 0) {
-          const Band* prevBand = m_bands.prevBandInOwnCategory(m_bandAName);
-          if (prevBand != nullptr) {
-            return selectB(prevBand->getName());
-          }
-        }
-      }
-    }
-    return false;
-  }
-
-  bool selectA(const std::string& bandName)
-  {
-    if (bandName == m_bandAName) {
+    std::optional<std::string> currBandNameOpt = getSplitBandName(idx);
+    bool replacingBand = currBandNameOpt.has_value();
+    if (replacingBand && bandName == currBandNameOpt.value()) {
       return false; // i.e. No change
     }
+
     BandSettings* bandSettings = getOrCreateBandSettings(bandName);
     if (bandSettings == nullptr) {
       throw SettingsException("Invalid band name");
     }
-    if (m_bandAName == m_txBandName || m_txBandName.empty()) {
-      m_txBandName = bandName;
-      m_changed |= TX_BAND;
-    }
-    if (m_bandAName == m_rxBandName || m_rxBandName.empty()) {
-      m_rxBandName = bandName;
-      m_changed |= RX_BAND;
-    }
-    if (m_focusBandName.empty() || m_focusBandName == m_bandAName) {
-      m_focusBandName = bandName;
-      m_changed |= FOCUS;
-    }
-    m_bandAName = bandName;
-    m_changed |= SELECT_A;
-    // Dirty all the band settings so that external users know to update themselves
-    bandSettings->setAllChanged();
-    return true;
-  }
 
-  bool selectB(const std::string& bandName)
-  {
-    if (bandName == m_bandBName) {
-      return false; // i.e. No change
-    }
-    BandSettings* bandSettings = getOrCreateBandSettings(bandName);
-    if (bandSettings == nullptr) {
-      throw SettingsException("Invalid band name");
-    }
-    if (m_bandBName == m_txBandName || m_txBandName.empty()) {
+    const char * currBandName = replacingBand ? currBandNameOpt.value().c_str() : "";
+
+    if (!replacingBand || currBandName == m_txBandName || m_txBandName.empty()) {
       m_txBandName = bandName;
       m_changed |= TX_BAND;
     }
-    if (m_bandBName == m_rxBandName || m_rxBandName.empty()) {
+    if (!replacingBand || currBandName == m_rxBandName || m_rxBandName.empty()) {
       m_rxBandName = bandName;
       m_changed |= RX_BAND;
     }
-    if (m_focusBandName.empty() || m_focusBandName == m_bandBName) {
+    if (!replacingBand || (m_focusBandName.empty() || m_focusBandName == currBandName)){
       m_focusBandName = bandName;
       m_changed |= FOCUS;
     }
-    m_bandBName = bandName;
-    m_changed |= SELECT_B;
+    m_selectedBandNames.at(toSplitIndex(idx)) = bandName;
+    m_changed |= idx == SplitBandId::One ? SELECT_1 : SELECT_2;
     // Dirty all the band settings so that external users know to update themselves
     bandSettings->setAllChanged();
     return true;
@@ -328,6 +350,18 @@ protected:
     return bandSettings->applyUpdate(setting);
   }
 
+  bool applyToBand(SplitBandId id, SettingUpdate& setting)
+  {
+    if (setting.isExhausted()) {
+      throw SettingsException("Invalid setting path");
+    }
+    BandSettings* bandSettings = getBandSettings(id);
+    if (bandSettings == nullptr) {
+      return false;
+    }
+    return bandSettings->applyUpdate(setting);
+  }
+
   bool applySplit(const SettingValue& value)
   {
     const bool* pNewSplit = std::get_if<bool>(&value);
@@ -337,26 +371,28 @@ protected:
     if (m_split == *pNewSplit) {
       return false;
     }
+    std::optional<std::string>& band1NameOpt = m_selectedBandNames[0];
+    std::optional<std::string>& band2NameOpt = m_selectedBandNames[1];
     if (*pNewSplit) {
-      if (m_bandBName.empty()) {
-        m_bandBName = m_bandAName; // Start with both the same
-        m_changed |= SELECT_B;
+      if (!band2NameOpt.has_value()) {
+        band2NameOpt = band1NameOpt.value(); // Start with both the same
+        m_changed |= SELECT_2;
       }
       if (m_txBandName.empty()) {
-        m_txBandName = m_bandAName;
+        m_txBandName = band1NameOpt.value();
         m_changed |= TX_BAND;
       }
     } else {
-      if (m_focusBandName != m_bandAName) {
-        m_focusBandName = m_bandAName;
+      if (m_focusBandName != band1NameOpt.value()) {
+        m_focusBandName = band1NameOpt.value();
         m_changed |= FOCUS;
       }
-      if (m_txBandName != m_bandAName) {
-        m_txBandName = m_bandAName;
+      if (m_txBandName != band1NameOpt.value()) {
+        m_txBandName = band1NameOpt.value();
         m_changed |= TX_BAND;
       }
-      if (m_rxBandName != m_bandAName) {
-        m_rxBandName = m_bandAName;
+      if (m_rxBandName != band1NameOpt.value()) {
+        m_rxBandName = band1NameOpt.value();
         m_changed |= RX_BAND;
       }
     }
@@ -365,29 +401,42 @@ protected:
     return true;
   }
 
-  bool applyTxBand(const SettingValue& value)
+  bool setTxBand(const SettingValue& value)
   {
-    if (const std::string* pNewTxBandName = std::get_if<std::string>(&value)) {
-      if (m_txBandName == *pNewTxBandName) {
+    std::string txBandName;
+    if (const std::string* pBandName = std::get_if<std::string>(&value)) {
+      txBandName = *pBandName;
+    } else if (const SplitBandId* pTxBandId = std::get_if<SplitBandId>(&value)) {
+      std::optional<std::string> bandNameOpt = getSplitBandName(*pTxBandId);
+      if (bandNameOpt.has_value()) {
+        txBandName = bandNameOpt.value();
+      }
+    }
+
+    if (!txBandName.empty()) {
+      if (m_txBandName == txBandName) {
         return false;
       }
-      if (*pNewTxBandName != m_bandAName && *pNewTxBandName != m_bandBName) {
+      if (!isBandNameInSelected(txBandName)) {
         throw SettingsException("tx-band setting refers to an unselected band");
       }
-      m_txBandName = *pNewTxBandName;
+      m_txBandName = txBandName;
       m_changed |= TX_BAND;
+      // Dirty the band so that the outside world can respond to their areas of interest.
+      BandSettings* newTxBand = getTxBandSettings();
+      newTxBand->setAllChanged();
       return true;
     }
-    throw SettingsException("tx-band setting should be a string");
+    return false;
   }
 
-  bool applyRxBand(const SettingValue& value)
+  bool setRxBand(const SettingValue& value)
   {
     if (const std::string* pNewRxBandName = std::get_if<std::string>(&value)) {
       if (m_rxBandName == *pNewRxBandName) {
         return false;
       }
-      if (*pNewRxBandName != m_bandAName && *pNewRxBandName != m_bandBName) {
+      if (!isBandNameInSelected(*pNewRxBandName)) {
         throw SettingsException("rx-band setting refers to an unselected band");
       }
       m_rxBandName = *pNewRxBandName;
@@ -397,17 +446,29 @@ protected:
     throw SettingsException("tx-band setting should be a string");
   }
 
-  bool applyFocusBand(const SettingValue& value)
+  bool setFocusBand(const SettingValue& value)
   {
+    std::string focusBandName;
     if (const std::string* pBandName = std::get_if<std::string>(&value)) {
-      if (m_focusBandName == *pBandName) {
+      focusBandName = *pBandName;
+    } else if (const SplitBandId* pFocusBandId = std::get_if<SplitBandId>(&value)) {
+      std::optional<std::string> bandNameOpt = getSplitBandName(*pFocusBandId);
+      if (bandNameOpt.has_value()) {
+        focusBandName = bandNameOpt.value();
+      }
+    }
+    if (!focusBandName.empty()) {
+      if (m_focusBandName == focusBandName) {
         return false;
       }
-      if (*pBandName != m_bandAName && *pBandName != m_bandBName) {
+      if (!isBandNameInSelected(focusBandName)) {
         throw SettingsException("focus setting refers to an unselected band");
       }
-      m_focusBandName = *pBandName;
+      m_focusBandName = focusBandName;
       m_changed |= FOCUS;
+      // Dirty the band so that the outside world can respond to their areas of interest.
+      BandSettings* newFocusBand = getFocusBandSettings();
+      newFocusBand->setAllChanged();
       return true;
     }
     return false;
@@ -416,8 +477,9 @@ protected:
   Bands m_bands;
   std::unordered_map<std::string, BandSettings> m_bandSettingsCache;
   bool m_split;
-  std::string m_bandAName;
-  std::string m_bandBName;
+  std::array<std::optional<std::string>, MAX_SPLIT_BANDS> m_selectedBandNames;
+  // std::string m_band1Name;
+  // std::string m_band2Name;
   std::string m_txBandName;
   std::string m_rxBandName;
   std::string m_focusBandName;

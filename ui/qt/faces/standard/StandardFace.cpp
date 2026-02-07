@@ -69,7 +69,7 @@ void StandardFace::handleRadioSettingsChanged(RadioSettings* pRadioSettings)
 {
 
   BandSettings* bandSettings = pRadioSettings->getFocusBandSettings();
-  RxPipelineSettings* rxPipelineSettings = bandSettings->getFocusRxPipelineSettings();
+  RxPipelineSettings* rxPipelineSettings = bandSettings->getFocusPipeline();
   if (rxPipelineSettings == nullptr) {
     return;
   }
@@ -96,7 +96,7 @@ StandardFace::handleReceiverIq(
   uint32_t sampleRate)
 {
   m_reportedIqSampleRate = sampleRate;
-  RxPipelineSettings* rxPipelineSettings = pRadioSettings->getFocusRxPipelineSettings();
+  RxPipelineSettings* rxPipelineSettings = pRadioSettings->getFocusPipeline();
   if (rxPipelineSettings != nullptr) {
     const RfSettings& rfSettings = rxPipelineSettings->getRfSettings();
     uint32_t centreFrequency = rfSettings.getCentreFrequency();

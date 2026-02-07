@@ -147,6 +147,12 @@ public:
     m_vfo.merge(rhs.m_vfo);
   }
 
+  void pivotFrequencyAroundCentre()
+  {
+    int64_t offset = m_vfo.getValue() - m_centreFrequency.getValue();
+    m_vfo.setValue(m_centreFrequency.getValue() - offset);
+  }
+
   bool applyBandDefaults(const Band& band)
   {
     if (band.isValid()) {

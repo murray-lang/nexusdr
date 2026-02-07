@@ -5,12 +5,12 @@
 #pragma once
 
 #include "Band.h"
-#include "../TxPipelineSettings.h"
-#include "../RxPipelineSettings.h"
+#include "../pipeline/TxPipelineSettings.h"
+#include "../pipeline/RxPipelineSettings.h"
 #include "../base/SettingsBase.h"
 #include <QDebug>
 
-#define MAX_RX_PIPELINES 2
+#define MAX_PIPELINES 2
 
 class BandSettings : public SettingsBase
 {
@@ -18,362 +18,88 @@ public:
   enum Features
   {
     NONE = 0,
-    WITH_TX_PIPELINE = 0x01,
-    WITH_RX_PIPELINE = 0x02,
-    FOCUS_RX_PIPELINE = 0x04,
-    RX_PIPELINE_TRACKED_BY_TX = 0x08,
-    ADD_PIPELINE = 0x10,
-    REMOVE_PIPELINE = 0x20,
+    MULTI_PIPELINE = 0x01,
+    FOCUS_PIPELINE   = 0x02,
+    WITH_FOCUS_PIPELINE = 0x04,
+    TX_PIPELINE  = 0x08,
+    WITH_TX_PIPELINE   = 0x10,
+    CLOSE_PIPELINE = 0x20,
     ALL = static_cast<uint32_t>(~0U)
   };
 
-  BandSettings():
-   m_rxPipelineSettings({}),
-   m_focusRxPipeline(this, "focus-rx-pipeline", 0),
-   m_rxPipelineTrackedByTx (this, "rx-pipeline-tracked-by-tx", 0)
-  {
-    BandSettings::setAllChanged();
-  }
+  BandSettings();
 
-  BandSettings(const BandSettings& rhs) :
-        SettingsBase(rhs),
-        m_band(rhs.m_band),
-        m_txPipelineSettings(rhs.m_txPipelineSettings),
-        m_rxPipelineSettings(rhs.m_rxPipelineSettings),
-        m_focusRxPipeline(this, rhs.m_focusRxPipeline),
-        m_rxPipelineTrackedByTx(this, rhs.m_rxPipelineTrackedByTx)
-  {
-  }
+  BandSettings(const BandSettings& rhs);
   
-  BandSettings(const Band& band) :
-    // modeSettings(),
-    m_band(band),
-    m_txPipelineSettings(),
-    m_rxPipelineSettings({}),
-    m_focusRxPipeline(this, "focus-rx-pipeline", 0),
-    m_rxPipelineTrackedByTx (this, "rx-pipeline-tracked-by-tx", 0)
-  {
-    addRxPipeline();
-    applyBandDefaults(band);
-    BandSettings::setAllChanged();
-  }
+  explicit BandSettings(const Band& band);
   ~BandSettings() override = default;
 
-  BandSettings& operator=(const BandSettings& rhs)
-  {
-    if (this != &rhs) {
-      SettingsBase::operator=(rhs);
-      m_band = rhs.m_band;
-      m_txPipelineSettings = rhs.m_txPipelineSettings;
-      m_rxPipelineSettings = rhs.m_rxPipelineSettings;
-      m_focusRxPipeline = rhs.m_focusRxPipeline;
-      m_rxPipelineTrackedByTx = rhs.m_rxPipelineTrackedByTx;
-    }
-    return *this;
-  }
+  BandSettings& operator=(const BandSettings& rhs);
 
   [[nodiscard]] const Band& getBand() const { return m_band; }
-  [[nodiscard]] uint32_t getFocusRxPipeline() const { return m_focusRxPipeline(); }
-  [[nodiscard]] uint32_t getRxPipelineTrackedByTx() const { return m_rxPipelineTrackedByTx(); }
-  [[nodiscard]] uint32_t getNumRxPipelines() const { return m_rxPipelineSettings.size(); }
+  [[nodiscard]] bool isMulti() const { return m_multi(); }
+  [[nodiscard]] PipelineId getFocusId() const { return m_focusId(); }
+  [[nodiscard]] PipelineId getTxId() const { return m_txId(); }
 
-  // RxPipelineSettings& getRxPipelineSettings(uint32_t index) { return m_rxPipelineSettings[index]; }
+  bool splitPipelines(bool split);
+  [[nodiscard]] PipelineId getFocusPipelineId() const { return m_focusId(); }
+  RxPipelineSettings* getFocusPipeline();
+  [[nodiscard]] const RxPipelineSettings* getFocusPipeline() const;
+  TxPipelineSettings* getTxPipeline();
+  [[nodiscard]] const TxPipelineSettings* getTxPipeline() const;
+  RxPipelineSettings* getRxPipeline(PipelineId id);
+  [[nodiscard]] const RxPipelineSettings* getRxPipeline(PipelineId id) const;
 
-  void clearChanged() override
-  {
-    SettingsBase::clearChanged();
-    m_txPipelineSettings.clearChanged();
-    for (auto& rxSettings : m_rxPipelineSettings) {
-      rxSettings.clearChanged();
-    }
-  }
+  RfSettings* getFocusRxRfSettings();
+  [[nodiscard]] const RfSettings* getFocusRxRfSettings() const;
+  IfSettings* getFocusRxIfSettings();
+  [[nodiscard]] const IfSettings* getFocusRxIfSettings() const;
+  [[nodiscard]] const Mode* getFocusRxMode() const;
 
-  void setAllChanged() override
-  {
-    SettingsBase::setAllChanged();
-    m_txPipelineSettings.setAllChanged();
-    for (auto& rxSettings : m_rxPipelineSettings) {
-      rxSettings.setAllChanged();
-    }
-  }
+  bool closePipeline(PipelineId id);
+  void clearChanged() override;
+  void setAllChanged() override;
 
-  [[nodiscard]] bool hasRxFrequencyChanged() const
-  {
-    const RfSettings& rfSettings = getFocusRxRfSettings();
-    return rfSettings.hasSettingChanged(RfSettings::CENTER_FREQUENCY);
-  }
+  [[nodiscard]] std::string getBandName() const;
 
-  [[nodiscard]] const RxPipelineSettings* getRxPipelineSettings(uint32_t i) const
-  {
-    if (i < m_rxPipelineSettings.size()) {
-      return &m_rxPipelineSettings.at(i);
-    }
-    return nullptr;
-  }
+  void applyBandDefaults(const Band& band);
 
-  bool addRxPipeline()
-  {
-    if (m_rxPipelineSettings.size() >= MAX_RX_PIPELINES) {
-      return false;
-    }
-    m_rxPipelineSettings.emplace_back( );
-    RxPipelineSettings& newRxPipeline = m_rxPipelineSettings.back();
-    RxPipelineSettings& firstRxPipeline = m_rxPipelineSettings.front();
-    newRxPipeline = firstRxPipeline; // (Copy settings)
-    if (m_rxPipelineSettings.size() == 1) {
-      // The first pipeline is put a little above the centre frequency.
-      newRxPipeline.getRfSettings().setVfo(10000);
-    } else if (m_rxPipelineSettings.size() == 2) {
-      // The second pipeline is a reflection of the first one around the centre frequency.
-      const RfSettings& firstRfSettings= firstRxPipeline.getRfSettings();
-      int64_t offsetOfFirst = firstRfSettings.getVfo() - firstRfSettings.getCentreFrequency();
-      newRxPipeline.getRfSettings().setVfo(firstRfSettings.getCentreFrequency() - offsetOfFirst);
-    }
-    m_focusRxPipeline(m_rxPipelineSettings.size() - 1); // The new pipeline gets focus
-    m_changed |= ADD_PIPELINE;
-    return true;
-  }
+  bool setMode(const Mode& mode);
 
-  bool removeRxPipeline(uint32_t index)
-  {
-    if (index >= m_rxPipelineSettings.size() || m_rxPipelineSettings.size() == 1) {
-      return false;
-    }
-    m_rxPipelineSettings.erase(m_rxPipelineSettings.begin() + index);
-    if (m_focusRxPipeline() != 0) {
-      m_focusRxPipeline(0);
-      m_changed |= FOCUS_RX_PIPELINE;
-    }
-    m_changed |= REMOVE_PIPELINE;
-    return true;
-  }
+  void setCentreFrequencyDeltas(int32_t fine, int32_t coarse);
 
-  [[nodiscard]] std::string getBandName() const
-  {
-     return m_band.getName();
-  }
+  void applyRfSettings(const RfSettings& settings, bool onlyChanged = false);
 
-  void applyBandDefaults(const Band& band)
-  {
-    m_txPipelineSettings.applyBandDefaults(&band);
-    for (auto& rxPipeline : m_rxPipelineSettings) {
-      rxPipeline.applyBandDefaults(&band);
-    }
-  }
+  void applyIfSettings(const IfSettings& settings);
 
-  bool setMode(const Mode& mode)
-  {
-    RxPipelineSettings& focusPipelineSettings = m_rxPipelineSettings[m_focusRxPipeline()];
-    bool focusModeChanged = focusPipelineSettings.setMode(mode);
-    if (focusModeChanged && m_focusRxPipeline() == m_rxPipelineTrackedByTx()) {
-      m_txPipelineSettings.setMode(mode);
-    }
-    return focusModeChanged;
-  }
-
-  void setCentreFrequencyDeltas(int32_t fine, int32_t coarse)
-  {
-    m_txPipelineSettings.setCentreFrequencyDeltas(fine, coarse);
-    for (RxPipelineSettings& nextSettings : m_rxPipelineSettings) {
-      nextSettings.setCentreFrequencyDeltas(fine, coarse);
-    }
-  }
-
-  void applyRfSettings(const RfSettings& settings, bool onlyChanged = false)
-  {
-    m_txPipelineSettings.mergeRfSettings(settings, onlyChanged);
-    for (RxPipelineSettings& nextSettings : m_rxPipelineSettings) {
-      nextSettings.mergeRfSettings(settings, onlyChanged);
-    }
-  }
-
-  void applyIfSettings(const IfSettings& settings)
-  {
-    for (RxPipelineSettings& nextSettings : m_rxPipelineSettings) {
-      nextSettings.mergeIfSettings(settings);
-    }
-  }
-
-  bool applyUpdate(SettingUpdate& update) override
-  {
-    if (update.isExhausted()) {
-      throw SettingsException("Invalid setting path");
-    }
-    uint32_t feature = update.getCurrentFeature();
-    const auto& val = update.getValue();
-
-    switch (feature) {
-    case FOCUS_RX_PIPELINE:
-      return m_focusRxPipeline.apply(val);
-    case RX_PIPELINE_TRACKED_BY_TX:
-      return applyRxPipelineTrackedByTx(val);
-    case WITH_TX_PIPELINE:
-      update.stepNextFeature();
-      return applyTxPipeline(update);
-    case WITH_RX_PIPELINE:
-      update.stepNextFeature();
-      return applyRxPipeline(update);
-    case ADD_PIPELINE:
-      return addRxPipeline();
-    case REMOVE_PIPELINE:
-      return removeRxPipeline(val);
-    default:
-      return false;
-    }
-  }
+  bool applyUpdate(SettingUpdate& update) override;
 
   static bool getFeaturePath(
     const std::vector<std::string>& featureStrings,
     std::vector<uint32_t>& featuresOut,
     size_t startIndex
-    )
-  {
-    if (startIndex >= featureStrings.size()) {
-      throw SettingsException("Invalid feature path");
-    }
-    if (resolvePathForRegisteredSetting<BandSettings>(featureStrings, featuresOut, startIndex)) {
-      return true;
-    }
-    const std::string& key = featureStrings[startIndex];
-    if (key == "with-tx-pipeline") {
-      featuresOut.push_back(WITH_TX_PIPELINE);
-      return RxPipelineSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
-    }
-    if (key == "with-rx-pipeline") {
-      featuresOut.push_back(WITH_RX_PIPELINE);
-      return RxPipelineSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
-    }
-    if (key == "add-pipeline") {
-      featuresOut.push_back(ADD_PIPELINE);
-      return true;
-    }
-    if (key == "remove-pipeline") {
-      featuresOut.push_back(REMOVE_PIPELINE);
-      return true;
-    }
-    return false;
-  }
+    );
 
-  //TODO: add/remove rx pipelines.
+  RfSettings& getTxRfSettings();
 
-  RxPipelineSettings* getFocusRxPipelineSettings()
-  {
-    return &m_rxPipelineSettings[m_focusRxPipeline()];
-  }
-
-  [[nodiscard]] const RxPipelineSettings* getFocusRxPipelineSettings() const
-  {
-    return &m_rxPipelineSettings[m_focusRxPipeline()];
-  }
-
-  [[nodiscard]] const Mode& getFocusRxPipelineMode() const
-  {
-    return m_rxPipelineSettings[m_focusRxPipeline()].getMode();
-  }
-
-  TxPipelineSettings* getTxPipelineSettings()
-  {
-    return &m_txPipelineSettings;
-  }
-
-  [[nodiscard]] const TxPipelineSettings* getTxPipelineSettings() const
-  {
-    return &m_txPipelineSettings;
-  }
-
-  RfSettings& getFocusRxRfSettings()
-  {
-    return m_rxPipelineSettings[m_focusRxPipeline()].getRfSettings();
-  }
-
-  [[nodiscard]] const RfSettings& getFocusRxRfSettings() const
-  {
-    return m_rxPipelineSettings[m_focusRxPipeline()].getRfSettings();
-  }
-
-  IfSettings& getFocusRxIfSettings()
-  {
-    return m_rxPipelineSettings[m_focusRxPipeline()].getIfSettings();
-  }
-
-  [[nodiscard]] const IfSettings& getFocusRxIfSettings() const
-  {
-    return m_rxPipelineSettings[m_focusRxPipeline()].getIfSettings();
-  }
-
-  RfSettings& getTxRfSettings()
-  {
-    return m_txPipelineSettings.getRfSettings();
-  }
-
-  [[nodiscard]] const RfSettings& getTxRfSettings() const
-  {
-    return m_txPipelineSettings.getRfSettings();
-  }
-
-  // RxPipelineSettings* getFocusRxPipelineSettings()
-  // {
-  //   if (focusRxPipeline < rxPipelineSettings.size()) {
-  //     return &rxPipelineSettings[focusRxPipeline];
-  //   }
-  //   return nullptr;
-  // }
+  [[nodiscard]] const RfSettings& getTxRfSettings() const;
 
 protected:
 
-  bool applyRxPipeline(SettingUpdate& setting)
-  {
-    RxPipelineSettings& focusPipelineSettings = m_rxPipelineSettings[m_focusRxPipeline()];
-    if (focusPipelineSettings.applyUpdate(setting)) {
-      if (m_focusRxPipeline() == m_rxPipelineTrackedByTx()) {
-        if (focusPipelineSettings.hasSettingChanged(PipelineSettings::RF)) {
-          m_txPipelineSettings.getRfSettings().copyFrequencies(focusPipelineSettings.getRfSettings());
-          m_changed |= WITH_TX_PIPELINE;
-        }
-        if (focusPipelineSettings.hasSettingChanged( PipelineSettings::MODE)) {
-          m_txPipelineSettings.setMode(focusPipelineSettings.getMode());
-          m_changed |= WITH_TX_PIPELINE;
-        }
-      }
-      m_changed |= WITH_RX_PIPELINE;
-      return true;
-    }
-    return false;
-  }
-
-  bool applyTxPipeline(SettingUpdate& setting)
-  {
-    if (m_txPipelineSettings.applyUpdate(setting)) {
-      m_changed |= WITH_TX_PIPELINE;
-      return true;
-    }
-    return false;
-  }
-
-  bool applyRxPipelineTrackedByTx(const SettingValue& settingValue)
-  {
-    uint32_t newRxPipelineIndex = std::get<uint32_t>(settingValue);
-    if (m_rxPipelineTrackedByTx() != newRxPipelineIndex) {
-      m_rxPipelineTrackedByTx.apply(newRxPipelineIndex);
-      RxPipelineSettings& trackedRxPipelineSettings = m_rxPipelineSettings[m_rxPipelineTrackedByTx()];
-      m_txPipelineSettings.copyBasicsForTracking(trackedRxPipelineSettings);
-      m_changed |= WITH_RX_PIPELINE |WITH_TX_PIPELINE;
-      return true;
-    }
-    return false;
-  }
-
-  bool removeRxPipeline(const SettingValue& settingValue)
-  {
-    uint32_t index = std::get<uint32_t>(settingValue);
-    return removeRxPipeline(index);
-  }
+  bool applySplitPipelines(const SettingValue& settingValue);
+  bool setTxPipeline(const SettingValue& settingValue);
+  bool setFocusPipeline(const SettingValue& settingValue);
+  bool applyClosePipeline(const SettingValue& settingValue);
+  bool withFocusPipeline(SettingUpdate& setting);
+  bool withTxPipeline(SettingUpdate& setting);
 
   Band m_band;
-  // const ModeSettings& modeSettings;
-  TxPipelineSettings m_txPipelineSettings;
-  std::vector<RxPipelineSettings> m_rxPipelineSettings;
-  Setting<uint32_t, FOCUS_RX_PIPELINE, BandSettings> m_focusRxPipeline;
-  Setting<uint32_t, RX_PIPELINE_TRACKED_BY_TX, BandSettings> m_rxPipelineTrackedByTx;
+  RxPipelineSettings m_pipelineA;
+  std::optional<RxPipelineSettings> m_pipelineB;
+  TxPipelineSettings m_txPipeline;
+
+  Setting<bool, MULTI_PIPELINE, BandSettings> m_multi;
+  Setting<PipelineId, FOCUS_PIPELINE, BandSettings> m_focusId;
+  Setting<PipelineId, TX_PIPELINE, BandSettings> m_txId;
 
 };

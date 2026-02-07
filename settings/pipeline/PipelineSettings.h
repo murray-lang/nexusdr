@@ -3,9 +3,9 @@
 //
 
 #pragma once
-#include "RfSettings.h"
-#include "base/SettingsBase.h"
-#include "ModeSettings.h"
+#include "../RfSettings.h"
+#include "../base/SettingsBase.h"
+#include "../ModeSettings.h"
 #include <map>
 class PipelineSettings: public SettingsBase
 {
@@ -62,6 +62,11 @@ public:
     m_rfSettings.copyFrequencies(rhs.m_rfSettings);
     m_mode = rhs.m_mode;
     m_changed |= MODE;
+  }
+
+  void pivotFrequencyAroundCentre()
+  {
+    m_rfSettings.pivotFrequencyAroundCentre();
   }
 
   void applyBandDefaults(const Band* band)

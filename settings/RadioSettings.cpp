@@ -43,38 +43,38 @@ RadioSettings::applyIfSettings(const IfSettings& settings)
 }
 
 RxPipelineSettings*
-RadioSettings::getFocusRxPipelineSettings()
+RadioSettings::getFocusPipeline()
 {
   BandSettings* pBandSettings = getFocusBandSettings();
-  return pBandSettings->getFocusRxPipelineSettings();
+  return pBandSettings->getFocusPipeline();
 }
 
 const RxPipelineSettings*
-RadioSettings::getFocusRxPipelineSettings() const
+RadioSettings::getFocusPipeline() const
 {
   const BandSettings* pBandSettings = getFocusBandSettings();
-  return pBandSettings->getFocusRxPipelineSettings();
+  return pBandSettings->getFocusPipeline();
 }
 
 TxPipelineSettings*
 RadioSettings::getTxPipelineSettings()
 {
   BandSettings* pBandSettings = getFocusBandSettings();
-  return pBandSettings->getTxPipelineSettings();
+  return pBandSettings->getTxPipeline();
 }
 
 const TxPipelineSettings*
 RadioSettings::getTxPipelineSettings() const
 {
   const BandSettings* pBandSettings = getFocusBandSettings();
-  return pBandSettings->getTxPipelineSettings();
+  return pBandSettings->getTxPipeline();
 }
 
-const Mode&
+const Mode*
 RadioSettings::getFocusRxPipelineMode() const
 {
-  BandSettings* pBandSettings = getFocusBandSettings();
-  return pBandSettings->getFocusRxPipelineMode();
+  const BandSettings* pBandSettings = getFocusBandSettings();
+  return pBandSettings->getFocusRxMode();
 }
 
 bool

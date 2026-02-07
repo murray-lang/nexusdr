@@ -341,10 +341,11 @@ set(PROJECT_SOURCES
         settings/bands/BandCategory.h
         settings/bands/Bands.h
         settings/bands/Bands.cpp
-        settings/PipelineSettings.h
-        settings/RxPipelineSettings.h
+        settings/bands/BandSettings.cpp
+        settings/pipeline/PipelineSettings.h
+        settings/pipeline/RxPipelineSettings.h
         settings/bands/BandSettings.h
-        settings/TxPipelineSettings.h
+        settings/pipeline/TxPipelineSettings.h
         settings/base/SettingUpdateSink.h
         settings/base/SettingUpdateSource.h
         settings/base/SettingValue.h
@@ -370,6 +371,14 @@ set(PROJECT_SOURCES
         ui/qt/common/FrequencyReadout/QtFrequencyReadout.h
         ui/qt/common/QtNumberReadout.cpp
         ui/qt/common/QtNumberReadout.h
+        ui/qt/common/FrequencyReadout/QtBandReadout.cpp
+        ui/qt/common/FrequencyReadout/QtBandReadout.h
+        ui/qt/common/FrequencyReadout/QtVfoReadout.cpp
+        ui/qt/common/FrequencyReadout/QtVfoReadout.h
+        settings/pipeline/PipelineId.h
+        settings/bands/SplitBandId.h
+        ui/qt/common/QWidgetPropertySetter.cpp
+        ui/qt/common/QWidgetPropertySetter.h
 
 )
 
