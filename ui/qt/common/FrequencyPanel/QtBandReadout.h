@@ -9,7 +9,8 @@
 
 #include "settings/bands/BandSettings.h"
 #include "settings/bands/SplitBandId.h"
-#include "QtVfoReadout.h"
+#include "VfoReadout/QtVfoReadout.h"
+#include "VfoReadout/VfoActions.h"
 
 class QToolButton;
 
@@ -35,13 +36,12 @@ public:
   void setRowVisible(bool visible);
 
   // Controls what the *left* button means for this band row.
-  void setLeftActionMode(BandAction mode);
+  void setBandActionMode(BandAction mode);
 
   // Controls whether the right readout area shows VFO B or a placeholder
   void setVfoBVisible(bool visible);
 
-  // Optional future hook: reserve a right-side button without changing layout later
-  void setRightActionVisible(bool visible);
+  void setTxButtonVisible(bool visible);
 
   void applyBandSettings(const BandSettings* bandSettings,
                          const std::string& txBandName,
@@ -53,14 +53,15 @@ public:
   void setWidgetProperties(bool repolish = true);
 
   void setPttProperty(bool ptt, bool repolish = true);
+  void setIsBandSplitProperty(bool isSplit, bool repolish = true);
 
 signals:
   void splitRequested(SplitBandId whichBand);
   void closeRequested(SplitBandId whichBand);
   void txBandRequested(SplitBandId whichBand);
 
-  void multiVfoActionRequested(SplitBandId whichBand, VfoId whichVfo, QtVfoReadout::MultiVfoAction action);
-  void vfoTxActionRequested(SplitBandId whichBand, VfoId whichVfo, QtVfoReadout::VfoTxAction mode);
+  void multiVfoActionRequested(SplitBandId whichBand, VfoId whichVfo, MultiVfoAction action);
+  void vfoTxActionRequested(SplitBandId whichBand, VfoId whichVfo, VfoTxAction mode);
   void bandClicked(SplitBandId whichBand);
   void vfoClicked(SplitBandId whichBand, VfoId whichVfo);
 
@@ -88,8 +89,8 @@ private:
   // std::string m_bandName;
 
   // Layout pieces
-  QToolButton* m_leftButton = nullptr;
-  QToolButton* m_rightButton = nullptr;
+  QToolButton* m_addRemoveBandButton = nullptr;
+  QToolButton* m_txBandButton = nullptr;
 
   QtVfoReadout* m_vfoA = nullptr;
   QtVfoReadout* m_vfoB = nullptr;
@@ -103,6 +104,6 @@ private:
 
   QWidget* m_rightStackHost = nullptr;
 
-  BandAction m_leftAction = BandAction::Disabled;
-  BandAction m_RightAction = BandAction::Tx;
+  BandAction m_addRemoveBandAction = BandAction::Disabled;
+  BandAction m_selectTxBandAction = BandAction::Tx;
 };

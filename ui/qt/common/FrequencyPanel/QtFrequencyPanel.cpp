@@ -2,20 +2,20 @@
 // Created by murray on 28/1/26.
 //
 
-#include "QtFrequencyReadout.h"
-#include "ui_QtFrequencyReadout.h"
+#include "QtFrequencyPanel.h"
+#include "ui_QtFrequencyPanel.h"
 
 #include "QtBandReadout.h"
-#include "QtVfoReadout.h"
+#include "VfoReadout/QtVfoReadout.h"
 
 #include <QStyle>
 
 #include "settings/RadioSettings.h"
 #include "settings/bands/BandSelector.h"
 
-QtFrequencyReadout::QtFrequencyReadout(QWidget* parent)
+QtFrequencyPanel::QtFrequencyPanel(QWidget* parent)
   : QWidget(parent)
-  , ui(std::make_unique<Ui::QtFrequencyReadout>())
+  , ui(std::make_unique<Ui::QtFrequencyPanel>())
   , m_pSettingsSink(nullptr)
   , m_band1Readout(nullptr)
   , m_band2Readout(nullptr)
@@ -25,10 +25,10 @@ QtFrequencyReadout::QtFrequencyReadout(QWidget* parent)
   initialiseLayout();
 }
 
-QtFrequencyReadout::~QtFrequencyReadout() = default;
+QtFrequencyPanel::~QtFrequencyPanel() = default;
 
 void
-QtFrequencyReadout::initialiseLayout()
+QtFrequencyPanel::initialiseLayout()
 {
   // Keep using the .ui gridLayout as a simple 2-row host.
   ui->gridLayout->setContentsMargins(0, 0, 0, 0);
@@ -46,24 +46,24 @@ QtFrequencyReadout::initialiseLayout()
   ui->gridLayout->addWidget(m_band2Readout, 1, 0, 1, 2);
 
   // Wire row-level actions to frequency-readout actions (which produce SettingUpdates).
-  connect(m_band1Readout, &QtBandReadout::splitRequested, this, &QtFrequencyReadout::onSplitRequested);
-  connect(m_band2Readout, &QtBandReadout::splitRequested, this, &QtFrequencyReadout::onSplitRequested);
-  connect(m_band1Readout, &QtBandReadout::closeRequested, this, &QtFrequencyReadout::onCloseRequested);
-  connect(m_band2Readout, &QtBandReadout::closeRequested, this, &QtFrequencyReadout::onCloseRequested);
+  connect(m_band1Readout, &QtBandReadout::splitRequested, this, &QtFrequencyPanel::onSplitRequested);
+  connect(m_band2Readout, &QtBandReadout::splitRequested, this, &QtFrequencyPanel::onSplitRequested);
+  connect(m_band1Readout, &QtBandReadout::closeRequested, this, &QtFrequencyPanel::onCloseRequested);
+  connect(m_band2Readout, &QtBandReadout::closeRequested, this, &QtFrequencyPanel::onCloseRequested);
 
-  connect(m_band1Readout, &QtBandReadout::multiVfoActionRequested, this, &QtFrequencyReadout::onMultiVfoActionRequested);
-  connect(m_band2Readout, &QtBandReadout::multiVfoActionRequested, this, &QtFrequencyReadout::onMultiVfoActionRequested);
+  connect(m_band1Readout, &QtBandReadout::multiVfoActionRequested, this, &QtFrequencyPanel::onMultiVfoActionRequested);
+  connect(m_band2Readout, &QtBandReadout::multiVfoActionRequested, this, &QtFrequencyPanel::onMultiVfoActionRequested);
 
-  connect(m_band1Readout, &QtBandReadout::vfoTxActionRequested, this, &QtFrequencyReadout::onVfoTxActionRequested);
-  connect(m_band2Readout, &QtBandReadout::vfoTxActionRequested, this, &QtFrequencyReadout::onVfoTxActionRequested);
+  connect(m_band1Readout, &QtBandReadout::vfoTxActionRequested, this, &QtFrequencyPanel::onVfoTxActionRequested);
+  connect(m_band2Readout, &QtBandReadout::vfoTxActionRequested, this, &QtFrequencyPanel::onVfoTxActionRequested);
 
-  connect(m_band1Readout, &QtBandReadout::txBandRequested, this, &QtFrequencyReadout::onTxBandClicked);
-  connect(m_band2Readout, &QtBandReadout::txBandRequested, this, &QtFrequencyReadout::onTxBandClicked);
+  connect(m_band1Readout, &QtBandReadout::txBandRequested, this, &QtFrequencyPanel::onTxBandClicked);
+  connect(m_band2Readout, &QtBandReadout::txBandRequested, this, &QtFrequencyPanel::onTxBandClicked);
 
-  connect(m_band1Readout, &QtBandReadout::bandClicked, this, &QtFrequencyReadout::onBandClicked);
-  connect(m_band2Readout, &QtBandReadout::bandClicked, this, &QtFrequencyReadout::onBandClicked);
-  connect(m_band1Readout, &QtBandReadout::vfoClicked, this, &QtFrequencyReadout::onVfoClicked);
-  connect(m_band2Readout, &QtBandReadout::vfoClicked, this, &QtFrequencyReadout::onVfoClicked);
+  connect(m_band1Readout, &QtBandReadout::bandClicked, this, &QtFrequencyPanel::onBandClicked);
+  connect(m_band2Readout, &QtBandReadout::bandClicked, this, &QtFrequencyPanel::onBandClicked);
+  connect(m_band1Readout, &QtBandReadout::vfoClicked, this, &QtFrequencyPanel::onVfoClicked);
+  connect(m_band2Readout, &QtBandReadout::vfoClicked, this, &QtFrequencyPanel::onVfoClicked);
 
   m_band1Readout->setWidgetProperties(false);
   m_band2Readout->setWidgetProperties(false);
@@ -71,13 +71,13 @@ QtFrequencyReadout::initialiseLayout()
 }
 
 void
-QtFrequencyReadout::initialise(RadioSettings* pRadioSettings)
+QtFrequencyPanel::initialise(RadioSettings* pRadioSettings)
 {
   applyRadioSettings(pRadioSettings, false);
 }
 
 void
-QtFrequencyReadout::applyRadioSettings(RadioSettings* pRadioSettings, bool onlyIfChanged)
+QtFrequencyPanel::applyRadioSettings(RadioSettings* pRadioSettings, bool onlyIfChanged)
 {
   if (pRadioSettings == nullptr) return;
 
@@ -93,7 +93,7 @@ QtFrequencyReadout::applyRadioSettings(RadioSettings* pRadioSettings, bool onlyI
 }
 
 void
-QtFrequencyReadout::applyFrequencyChanges(BandSelector& bandSelector, bool onlyIfChanged)
+QtFrequencyPanel::applyFrequencyChanges(BandSelector& bandSelector, bool onlyIfChanged)
 {
   // Band 1
   if (bandSelector.hasBand(SplitBandId::One)) {
@@ -113,7 +113,7 @@ QtFrequencyReadout::applyFrequencyChanges(BandSelector& bandSelector, bool onlyI
 }
 
 void
-QtFrequencyReadout::applyBandSelectorChange(BandSelector& bandSelector)
+QtFrequencyPanel::applyBandSelectorChange(BandSelector& bandSelector)
 {
   const std::string& txBandName = bandSelector.getTxBandName();
   const std::string& rxBandName = bandSelector.getRxBandName();
@@ -123,6 +123,8 @@ QtFrequencyReadout::applyBandSelectorChange(BandSelector& bandSelector)
   const bool hasBand2 = bandSelector.hasBand(SplitBandId::Two);
   const bool isSplit = bandSelector.isSplit();
 
+
+
   // Visibility (Band 2 row disappears when not split)
   m_band1Readout->setRowVisible(hasBand1);
   m_band2Readout->setRowVisible(hasBand2);
@@ -130,14 +132,18 @@ QtFrequencyReadout::applyBandSelectorChange(BandSelector& bandSelector)
   if (hasBand1) {
     const BandSettings* band1 = bandSelector.getBandSettings(SplitBandId::One);
     m_band1Readout->applyBandSettings(band1, txBandName, rxBandName, focusBandName);
+    m_band1Readout->setTxButtonVisible(isSplit);
   }
 
   if (hasBand2) {
     const BandSettings* band2 = bandSelector.getBandSettings(SplitBandId::Two);
     m_band2Readout->applyBandSettings(band2, txBandName, rxBandName, focusBandName);
+    m_band2Readout->setTxButtonVisible(isSplit);
   }
 
   updateRowActionModes(hasBand1, hasBand2, isSplit);
+
+  setIsSplitProperty(isSplit, true);
 
   ui->gridLayout->setRowStretch(0, hasBand1 ? 1 : 0);
   ui->gridLayout->setRowStretch(1, hasBand2 ? 1 : 0);
@@ -146,7 +152,7 @@ QtFrequencyReadout::applyBandSelectorChange(BandSelector& bandSelector)
 }
 
 void
-QtFrequencyReadout::updateRowActionModes(bool hasBand1, bool hasBand2, bool isSplit)
+QtFrequencyPanel::updateRowActionModes(bool hasBand1, bool hasBand2, bool isSplit)
 {
   // With the row widget, the gutters are fixed and buttons are icon-only,
   // so there is no horizontal jostling; we just change the action mode.
@@ -154,25 +160,25 @@ QtFrequencyReadout::updateRowActionModes(bool hasBand1, bool hasBand2, bool isSp
   if (!m_band1Readout || !m_band2Readout) return;
 
   if (isSplit && hasBand1 && hasBand2) {
-    m_band1Readout->setLeftActionMode(QtBandReadout::BandAction::Close);
-    m_band2Readout->setLeftActionMode(QtBandReadout::BandAction::Close);
+    m_band1Readout->setBandActionMode(QtBandReadout::BandAction::Close);
+    m_band2Readout->setBandActionMode(QtBandReadout::BandAction::Close);
     return;
   }
 
   // Not split: Band 1 is the only active row => it offers Split.
   if (hasBand1 && !hasBand2) {
-    m_band1Readout->setLeftActionMode(QtBandReadout::BandAction::Split);
-    m_band2Readout->setLeftActionMode(QtBandReadout::BandAction::Disabled);
+    m_band1Readout->setBandActionMode(QtBandReadout::BandAction::Split);
+    m_band2Readout->setBandActionMode(QtBandReadout::BandAction::Disabled);
     return;
   }
 
   // Fallback: disable actions (should be rare)
-  m_band1Readout->setLeftActionMode(QtBandReadout::BandAction::Disabled);
-  m_band2Readout->setLeftActionMode(QtBandReadout::BandAction::Disabled);
+  m_band1Readout->setBandActionMode(QtBandReadout::BandAction::Disabled);
+  m_band2Readout->setBandActionMode(QtBandReadout::BandAction::Disabled);
 }
 
 void
-QtFrequencyReadout::onSplitRequested(SplitBandId /*whichBand*/)
+QtFrequencyPanel::onSplitRequested(SplitBandId /*whichBand*/)
 {
   if (m_pSettingsSink == nullptr) return;
 
@@ -182,7 +188,7 @@ QtFrequencyReadout::onSplitRequested(SplitBandId /*whichBand*/)
 }
 
 void
-QtFrequencyReadout::onCloseRequested(SplitBandId whichBand)
+QtFrequencyPanel::onCloseRequested(SplitBandId whichBand)
 {
   if (m_pSettingsSink == nullptr) return;
 
@@ -195,14 +201,14 @@ QtFrequencyReadout::onCloseRequested(SplitBandId whichBand)
 }
 
 void
-QtFrequencyReadout::onMultiVfoActionRequested(SplitBandId whichBand,
+QtFrequencyPanel::onMultiVfoActionRequested(SplitBandId whichBand,
                                         VfoId whichVfo,
-                                        QtVfoReadout::MultiVfoAction action)
+                                        MultiVfoAction action)
 {
   uint32_t selectBand = whichBand == SplitBandId::One ? BandSelector::WITH_1 : BandSelector::WITH_2;
 
   switch (action) {
-  case QtVfoReadout::MultiVfoAction::Multi:
+  case MultiVfoAction::Multi:
     {
       SettingUpdatePath bandPath({
         RadioSettings::BAND,
@@ -213,7 +219,7 @@ QtFrequencyReadout::onMultiVfoActionRequested(SplitBandId whichBand,
       m_pSettingsSink->applySettingUpdate(bandSetting);
       break;
     }
-  case QtVfoReadout::MultiVfoAction::Close:
+  case MultiVfoAction::Close:
     {
       SettingUpdatePath bandPath({
         RadioSettings::BAND,
@@ -228,12 +234,12 @@ QtFrequencyReadout::onMultiVfoActionRequested(SplitBandId whichBand,
 }
 
 void
-QtFrequencyReadout::onVfoTxActionRequested(SplitBandId whichBand,
+QtFrequencyPanel::onVfoTxActionRequested(SplitBandId whichBand,
                             VfoId whichVfo,
-                            QtVfoReadout::VfoTxAction action)
+                            VfoTxAction action)
 {
   uint32_t selectBand = whichBand == SplitBandId::One ? BandSelector::WITH_1 : BandSelector::WITH_2;
-  if (action == QtVfoReadout::VfoTxAction::Tx) {
+  if (action == VfoTxAction::Tx) {
     SettingUpdatePath bandPath({
         RadioSettings::BAND,
         selectBand,
@@ -244,7 +250,7 @@ QtFrequencyReadout::onVfoTxActionRequested(SplitBandId whichBand,
   }
 
   switch (action) {
-  case QtVfoReadout::VfoTxAction::Tx:
+  case VfoTxAction::Tx:
     {
       SettingUpdatePath bandPath({
         RadioSettings::BAND,
@@ -260,7 +266,7 @@ QtFrequencyReadout::onVfoTxActionRequested(SplitBandId whichBand,
 }
 
 void
-QtFrequencyReadout::setPttProperty(bool ptt, bool repolish)
+QtFrequencyPanel::setPttProperty(bool ptt, bool repolish)
 {
   m_band1Readout->setPttProperty(ptt, false);
   m_band2Readout->setPttProperty(ptt, false);
@@ -268,7 +274,15 @@ QtFrequencyReadout::setPttProperty(bool ptt, bool repolish)
 }
 
 void
-QtFrequencyReadout::onBandClicked(SplitBandId whichBand)
+QtFrequencyPanel::setIsSplitProperty(bool isSplit, bool repolish)
+{
+  if (m_band1Readout != nullptr) m_band1Readout->setIsBandSplitProperty(isSplit, false);
+  if (m_band2Readout != nullptr) m_band2Readout->setIsBandSplitProperty(isSplit, false);
+  QWidgetPropertySetter::setWidgetProperty(this, "isSplit", isSplit, repolish);
+}
+
+void
+QtFrequencyPanel::onBandClicked(SplitBandId whichBand)
 {
   if (m_pSettingsSink == nullptr) return;
 
@@ -278,7 +292,7 @@ QtFrequencyReadout::onBandClicked(SplitBandId whichBand)
 }
 
 void
-QtFrequencyReadout::onTxBandClicked(SplitBandId whichBand)
+QtFrequencyPanel::onTxBandClicked(SplitBandId whichBand)
 {
   if (m_pSettingsSink == nullptr) return;
 
@@ -288,7 +302,7 @@ QtFrequencyReadout::onTxBandClicked(SplitBandId whichBand)
 }
 
 void
-QtFrequencyReadout::onVfoClicked(SplitBandId whichBand, VfoId whichVfo)
+QtFrequencyPanel::onVfoClicked(SplitBandId whichBand, VfoId whichVfo)
 {
   if (m_pSettingsSink == nullptr) return;
 

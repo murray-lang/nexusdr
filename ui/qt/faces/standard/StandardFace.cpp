@@ -7,7 +7,7 @@
 #include "../RegisterFace.h"
 #include "../../common/QtPanadapter.h"
 #include "../../common/QtTimeSeriesChart.h"
-#include "../../common/FrequencyReadout/QtFrequencyReadout.h"
+#include "../../common/FrequencyPanel/QtFrequencyPanel.h"
 
 StandardFace::StandardFace(QWidget* parent)
   : FaceBase(parent)
@@ -52,11 +52,11 @@ StandardFace::initialise(RadioSettings* pRadioSettings)
     auto* slotLayout = new QHBoxLayout(ui->frequencyReadoutSlot);
     slotLayout->setContentsMargins(0, 0, 0, 0);
 
-    m_pFrequencyReadout = new QtFrequencyReadout(ui->frequencyReadoutSlot);
-    slotLayout->addWidget(m_pFrequencyReadout);
+    m_pFrequencyPanel = new QtFrequencyPanel(ui->frequencyReadoutSlot);
+    slotLayout->addWidget(m_pFrequencyPanel);
 
-    m_pFrequencyReadout->initialise(pRadioSettings);
-    m_pFrequencyReadout->connectSettingUpdateSink(&m_internalSettingsSink);
+    m_pFrequencyPanel->initialise(pRadioSettings);
+    m_pFrequencyPanel->connectSettingUpdateSink(&m_internalSettingsSink);
   }
 }
 
@@ -77,7 +77,7 @@ void StandardFace::handleRadioSettingsChanged(RadioSettings* pRadioSettings)
   auto centreFrequency = static_cast<int32_t>(rfSettings.getCentreFrequency());
   int32_t vfo = rfSettings.getVfo();
 
-  m_pFrequencyReadout->applyRadioSettings(pRadioSettings);
+  m_pFrequencyPanel->applyRadioSettings(pRadioSettings);
 
   if (m_reportedIqSampleRate > 0) {
     uint32_t xMin = centreFrequency - (m_reportedIqSampleRate / 2);

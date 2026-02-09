@@ -6,7 +6,7 @@
 #include <QIcon>
 #include <QStyle>
 
-#include "QtVfoReadout.h"
+#include "VfoReadout/QtVfoReadout.h"
 
 #include "ui/qt/common/QWidgetPropertySetter.h"
 
@@ -27,23 +27,23 @@ QtBandReadout::initialise()
 
   buildUi();
 
-  connect(m_leftButton, &QToolButton::clicked, this, &QtBandReadout::onLeftActionClicked);
-  connect(m_rightButton, &QToolButton::clicked, this, &QtBandReadout::onRightActionClicked);
+  connect(m_addRemoveBandButton, &QToolButton::clicked, this, &QtBandReadout::onLeftActionClicked);
+  connect(m_txBandButton, &QToolButton::clicked, this, &QtBandReadout::onRightActionClicked);
 
   // VFO badge clicks map to row-level split/close requests.
-  connect(m_vfoA, &QtVfoReadout::multiVfoActionRequested, this, [this](QtVfoReadout::MultiVfoAction mode) {
+  connect(m_vfoA, &QtVfoReadout::multiVfoActionRequested, this, [this](MultiVfoAction mode) {
     emit multiVfoActionRequested(m_bandIndex, VfoId::A, mode);
   });
 
-  connect(m_vfoB, &QtVfoReadout::multiVfoActionRequested, this, [this](QtVfoReadout::MultiVfoAction mode) {
+  connect(m_vfoB, &QtVfoReadout::multiVfoActionRequested, this, [this](MultiVfoAction mode) {
     emit multiVfoActionRequested(m_bandIndex, VfoId::B, mode);
   });
 
-  connect(m_vfoA, &QtVfoReadout::vfoTxActionRequested, this, [this](QtVfoReadout::VfoTxAction mode) {
+  connect(m_vfoA, &QtVfoReadout::vfoTxActionRequested, this, [this](VfoTxAction mode) {
     emit vfoTxActionRequested(m_bandIndex, VfoId::A, mode);
   });
 
-  connect(m_vfoB, &QtVfoReadout::vfoTxActionRequested, this, [this](QtVfoReadout::VfoTxAction mode) {
+  connect(m_vfoB, &QtVfoReadout::vfoTxActionRequested, this, [this](VfoTxAction mode) {
     emit vfoTxActionRequested(m_bandIndex, VfoId::B, mode);
   });
 
@@ -59,17 +59,17 @@ QtBandReadout::initialise()
   });
 
   // Icon-only buttons (no horizontal jostling due to text).
-  m_leftButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
+  m_addRemoveBandButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
   // m_rightButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
 
   // Keep icons consistent within the fixed-width gutters.
   const int iconPx = kActionSlotWidthPx - 6; // a little padding
-  m_leftButton->setIconSize(QSize(iconPx, iconPx));
+  m_addRemoveBandButton->setIconSize(QSize(iconPx, iconPx));
   // m_rightButton->setIconSize(QSize(iconPx, iconPx));
 
   // Defaults: stable gutters exist, but actions start disabled until parent configures them.
-  setLeftActionMode(BandAction::Disabled);
-  setRightActionVisible(true);
+  setBandActionMode(BandAction::Disabled);
+  setTxButtonVisible(true);
   setVfoBVisible(false);
 
   setWidgetProperties();
@@ -78,8 +78,8 @@ QtBandReadout::initialise()
 void
 QtBandReadout::setWidgetProperties(bool repolish)
 {
-  m_vfoA->setWidgetProperties(false);
-  m_vfoB->setWidgetProperties(false);
+  // m_vfoA->setWidgetProperties(false);
+  // m_vfoB->setWidgetProperties(false);
 
   using P = WidgetProperty;
   static std::array<P, 2> props;
@@ -98,6 +98,12 @@ QtBandReadout::setPttProperty(bool ptt, bool repolish)
   QWidgetPropertySetter::setWidgetProperty(this, "ptt", ptt, repolish);
 }
 
+void
+QtBandReadout::setIsBandSplitProperty(bool isBandSplit, bool repolish)
+{
+  QWidgetPropertySetter::setWidgetProperty(this, "isBandSplit", isBandSplit, repolish);
+}
+
 void QtBandReadout::buildUi()
 {
   m_rowLayout = new QHBoxLayout(this);
@@ -114,19 +120,19 @@ void QtBandReadout::buildUi()
   leftLayout->setSpacing(6);
 
   auto* leftSlot = new QWidget(m_leftCell);
-  leftSlot->setFixedWidth(kActionSlotWidthPx);
   leftSlot->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
+  leftSlot->setFixedWidth(kActionSlotWidthPx); // Different from right slot
 
   auto* leftSlotLayout = new QHBoxLayout(leftSlot);
   leftSlotLayout->setContentsMargins(0, 0, 0, 0);
-  leftSlotLayout->setSpacing(0);
+  leftSlotLayout->setSpacing(0); // Absent from right slot
 
-  m_leftButton = new QToolButton(leftSlot);
-  m_leftButton->setAutoRaise(true);
-  m_leftButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
-  m_leftButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-  m_leftButton->setCursor(Qt::PointingHandCursor);
-  leftSlotLayout->addWidget(m_leftButton);
+  m_addRemoveBandButton = new QToolButton(leftSlot);
+  m_addRemoveBandButton->setAutoRaise(true);
+  m_addRemoveBandButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
+  m_addRemoveBandButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+  m_addRemoveBandButton->setCursor(Qt::PointingHandCursor);
+  leftSlotLayout->addWidget(m_addRemoveBandButton);
 
   m_vfoA = new QtVfoReadout(VfoId::A, m_leftCell);
   m_vfoA->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
@@ -171,14 +177,14 @@ void QtBandReadout::buildUi()
   rightSlotLayout->setContentsMargins(0, 0, 0, 0);
   rightSlotLayout->setSpacing(0);
 
-  m_rightButton = new QToolButton(rightSlot);
-  m_rightButton->setText("TX");
-  m_rightButton->setAutoRaise(true);
+  m_txBandButton = new QToolButton(rightSlot);
+  m_txBandButton->setText("TX");
+  m_txBandButton->setAutoRaise(true);
   // m_rightButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
-  m_rightButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-  m_rightButton->setCursor(Qt::PointingHandCursor);
-  QWidgetPropertySetter::setWidgetProperty(m_rightButton, "role", "tx", true);
-  rightSlotLayout->addWidget(m_rightButton);
+  m_txBandButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+  m_txBandButton->setCursor(Qt::PointingHandCursor);
+  QWidgetPropertySetter::setWidgetProperty(m_txBandButton, "role", "tx", true);
+  rightSlotLayout->addWidget(m_txBandButton);
 
   rightLayout->addWidget(m_rightStackHost);
   rightLayout->addWidget(rightSlot);
@@ -209,9 +215,9 @@ void QtBandReadout::setRowVisible(bool visible)
   setVisible(visible);
 }
 
-void QtBandReadout::setLeftActionMode(BandAction mode)
+void QtBandReadout::setBandActionMode(BandAction mode)
 {
-  m_leftAction = mode;
+  m_addRemoveBandAction = mode;
   updateLeftButtonPresentation();
 }
 
@@ -237,10 +243,10 @@ void QtBandReadout::setVfoBVisible(bool visible)
   update();
 }
 
-void QtBandReadout::setRightActionVisible(bool visible)
+void QtBandReadout::setTxButtonVisible(bool visible)
 {
-  if (!m_rightButton) return;
-  m_rightButton->setVisible(visible);
+  if (!m_txBandButton) return;
+  m_txBandButton->setVisible(visible);
 }
 
 void QtBandReadout::applyFrequencyChanges(const BandSettings* bandSettings, bool onlyIfChanged)
@@ -275,24 +281,21 @@ void QtBandReadout::applyBandSettings(const BandSettings* bandSettings,
   const VfoId focusVfoId = bandSettings->getFocusId();
   const VfoId txVfoId = bandSettings->getTxId();
 
-  // Badge rules:
-  // - Single VFO: Split badge on VFO A
-  // - Two VFOs: Close badge on BOTH
   if (!haveVfoB) {
-    m_vfoA->setMultiVfoAction(QtVfoReadout::MultiVfoAction::Multi);
-    m_vfoB->setMultiVfoAction(QtVfoReadout::MultiVfoAction::None);
-    m_vfoA->setVfoTxAction(QtVfoReadout::VfoTxAction::None);
-    m_vfoB->setVfoTxAction(QtVfoReadout::VfoTxAction::None);
+    m_vfoA->setMultiVfoAction(MultiVfoAction::Multi);
+    m_vfoB->setMultiVfoAction(MultiVfoAction::None);
+    m_vfoA->setVfoTxAction(VfoTxAction::None);
+    m_vfoB->setVfoTxAction(VfoTxAction::None);
   } else {
-    m_vfoA->setMultiVfoAction(QtVfoReadout::MultiVfoAction::Close);
-    m_vfoB->setMultiVfoAction(QtVfoReadout::MultiVfoAction::Close);
-    m_vfoA->setVfoTxAction(QtVfoReadout::VfoTxAction::Tx);
-    m_vfoB->setVfoTxAction(QtVfoReadout::VfoTxAction::Tx);
+    m_vfoA->setMultiVfoAction(MultiVfoAction::Close);
+    m_vfoB->setMultiVfoAction(MultiVfoAction::Close);
+    m_vfoA->setVfoTxAction(isTxBand ? VfoTxAction::Tx : VfoTxAction::None);
+    m_vfoB->setVfoTxAction(isTxBand ? VfoTxAction::Tx : VfoTxAction::None);
   }
 
 
-  m_vfoA->applyFocusAndTx(focusVfoId == VfoId::A, txVfoId == VfoId::A);
-  m_vfoB->applyFocusAndTx(focusVfoId == VfoId::B, txVfoId == VfoId::B);
+  m_vfoA->applyFocusAndTx(focusVfoId == VfoId::A, txVfoId == VfoId::A && isTxBand);
+  m_vfoB->applyFocusAndTx(focusVfoId == VfoId::B, txVfoId == VfoId::B && isTxBand);
 }
 
 void QtBandReadout::applyFrequencyChanges(QtVfoReadout* readout,
@@ -309,39 +312,39 @@ void QtBandReadout::applyFrequencyChanges(QtVfoReadout* readout,
 
 void QtBandReadout::updateLeftButtonPresentation()
 {
-  if (!m_leftButton) return;
+  if (!m_addRemoveBandButton) return;
 
   const QIcon splitIcon(":/ui/icons/solid/clone.svg");
   const QIcon closeIcon(":/ui/icons/solid/circle-xmark.svg");
 
-  m_leftButton->setText(QString());
-  m_leftButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
+  m_addRemoveBandButton->setText(QString());
+  m_addRemoveBandButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
 
-  switch (m_leftAction) {
+  switch (m_addRemoveBandAction) {
     case BandAction::Split:
-      m_leftButton->setIcon(splitIcon);
-      m_leftButton->setToolTip("Split");
-      m_leftButton->setEnabled(true);
+      m_addRemoveBandButton->setIcon(splitIcon);
+      m_addRemoveBandButton->setToolTip("Split");
+      m_addRemoveBandButton->setEnabled(true);
       break;
 
     case BandAction::Close:
-      m_leftButton->setIcon(closeIcon);
-      m_leftButton->setToolTip("Close");
-      m_leftButton->setEnabled(true);
+      m_addRemoveBandButton->setIcon(closeIcon);
+      m_addRemoveBandButton->setToolTip("Close");
+      m_addRemoveBandButton->setEnabled(true);
       break;
 
     case BandAction::Disabled:
       // Keep a stable icon footprint even when disabled (no jostling).
-      m_leftButton->setIcon(splitIcon);
-      m_leftButton->setToolTip(QString());
-      m_leftButton->setEnabled(false);
+      m_addRemoveBandButton->setIcon(splitIcon);
+      m_addRemoveBandButton->setToolTip(QString());
+      m_addRemoveBandButton->setEnabled(false);
       break;
   }
 }
 
 void QtBandReadout::onLeftActionClicked()
 {
-  switch (m_leftAction) {
+  switch (m_addRemoveBandAction) {
     case BandAction::Split:
       emit splitRequested(m_bandIndex);
       break;
@@ -365,16 +368,16 @@ QtBandReadout::mousePressEvent(QMouseEvent* e)
 
   if (e->button() == Qt::LeftButton) {
     // Ignore clicks on the gutter buttons (they handle themselves).
-    if (m_leftButton) {
-      const QPoint p = m_leftButton->mapFrom(this, e->position().toPoint());
-      if (m_leftButton->isVisible() && m_leftButton->rect().contains(p)) {
+    if (m_addRemoveBandButton) {
+      const QPoint p = m_addRemoveBandButton->mapFrom(this, e->position().toPoint());
+      if (m_addRemoveBandButton->isVisible() && m_addRemoveBandButton->rect().contains(p)) {
         QWidget::mousePressEvent(e);
         return;
       }
     }
-    if (m_rightButton) {
-      const QPoint p = m_rightButton->mapFrom(this, e->position().toPoint());
-      if (m_rightButton->isVisible() && m_rightButton->rect().contains(p)) {
+    if (m_txBandButton) {
+      const QPoint p = m_txBandButton->mapFrom(this, e->position().toPoint());
+      if (m_txBandButton->isVisible() && m_txBandButton->rect().contains(p)) {
         QWidget::mousePressEvent(e);
         return;
       }

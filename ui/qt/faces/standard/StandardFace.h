@@ -10,7 +10,7 @@
 #include "settings/RadioSettings.h"
 #include "radio/Radio.h"
 
-class QtFrequencyReadout;
+class QtFrequencyPanel;
 class QtTimeSeriesChart;
 class QtPanadapter;
 class Radio;
@@ -74,6 +74,6 @@ private:
   InternalSettingUpdateSink m_internalSettingsSink;
   QtTimeSeriesChart* m_pTimeSeriesChart;
   QtPanadapter* m_pPanadapter;
-  QtFrequencyReadout* m_pFrequencyReadout;
+  QtFrequencyPanel* m_pFrequencyPanel;
   uint32_t m_reportedIqSampleRate;
 };

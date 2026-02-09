@@ -4,19 +4,17 @@
 #include <span>
 #include <string>
 
-#include "../QtNumberReadout.h"   // for StyleProperty / StyleValue + value API
+#include "../../QtNumberReadout.h"
+#include "VfoActions.h"
 #include "SampleTypes.h"
 #include "settings/pipeline/PipelineId.h"
 
-class QToolButton;
+class QtVfoToolRow;
 
 class QtVfoReadout final : public QWidget
 {
   Q_OBJECT
 public:
-  enum class MultiVfoAction { None, Multi, Close };
-  enum class VfoTxAction { None, Tx };
-
   explicit QtVfoReadout(VfoId id, QWidget* parent = nullptr);
   ~QtVfoReadout() override = default;
 
@@ -24,8 +22,9 @@ public:
   void setValue(int64_t value);
   void setValue(sdrreal value);
   void setValueText(const std::string& value);
-  // void applyStyleProperties(std::span<const StyleProperty> props);
   void applyFocusAndTx(bool focus, bool tx);
+
+  void setMuted(bool muted);
 
   void setMultiVfoAction(MultiVfoAction mode);
   [[nodiscard]] MultiVfoAction multiVfoAction() const noexcept { return m_multiVfoAction; }
@@ -37,33 +36,26 @@ public:
   void setPttProperty(bool ptt, bool repolish = true);
 
   signals:
+    void muteToggledRequested(VfoId id, bool muted);
     void multiVfoActionRequested(MultiVfoAction mode);
     void vfoTxActionRequested(VfoTxAction mode);
     void clicked(VfoId id);
 
 protected:
-  void resizeEvent(QResizeEvent* e) override;
-  void showEvent(QShowEvent* e) override;
-
   void mousePressEvent(QMouseEvent* e) override;
   bool event(QEvent* e) override;
 
 private:
   void buildUi();
-  void updateMultiVfoPresentation();
-  void updateVfoTxPresentation();
-  void layoutMultiButton();
-  void layoutTxButton();
-
-  static constexpr int kBadgeSizePx = 24;
-  static constexpr int kBadgeInsetPx = 2;
+  [[nodiscard]] bool isInteractiveChildAt(const QPoint& localPos) const;
 
   VfoId m_id;
   bool m_hasFocus;
   bool m_isTx;
+
   QtNumberReadout* m_readout = nullptr;
-  QToolButton* m_multiButton = nullptr;
-  QToolButton* m_txButton = nullptr;
+  QtVfoToolRow* m_toolRow = nullptr;
+
   MultiVfoAction m_multiVfoAction = MultiVfoAction::None;
   VfoTxAction m_vfoTxAction = VfoTxAction::None;
 };

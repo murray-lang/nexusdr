@@ -367,18 +367,21 @@ set(PROJECT_SOURCES
         ui/qt/faces/standard/StandardFace.h
         ui/qt/faces/RegisterFace.h
         config/UiConfig.h
-        ui/qt/common/FrequencyReadout/QtFrequencyReadout.cpp
-        ui/qt/common/FrequencyReadout/QtFrequencyReadout.h
+        ui/qt/common/FrequencyPanel/QtFrequencyPanel.cpp
+        ui/qt/common/FrequencyPanel/QtFrequencyPanel.h
         ui/qt/common/QtNumberReadout.cpp
         ui/qt/common/QtNumberReadout.h
-        ui/qt/common/FrequencyReadout/QtBandReadout.cpp
-        ui/qt/common/FrequencyReadout/QtBandReadout.h
-        ui/qt/common/FrequencyReadout/QtVfoReadout.cpp
-        ui/qt/common/FrequencyReadout/QtVfoReadout.h
+        ui/qt/common/FrequencyPanel/QtBandReadout.cpp
+        ui/qt/common/FrequencyPanel/QtBandReadout.h
+        ui/qt/common/FrequencyPanel/VfoReadout/QtVfoReadout.cpp
+        ui/qt/common/FrequencyPanel/VfoReadout/QtVfoReadout.h
         settings/pipeline/PipelineId.h
         settings/bands/SplitBandId.h
         ui/qt/common/QWidgetPropertySetter.cpp
         ui/qt/common/QWidgetPropertySetter.h
+        ui/qt/common/FrequencyPanel/VfoReadout/VfoActions.h
+        ui/qt/common/FrequencyPanel/VfoReadout/QtVfoToolRow.cpp
+        ui/qt/common/FrequencyPanel/VfoReadout/QtVfoToolRow.h
 
 )
 

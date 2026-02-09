@@ -8,7 +8,7 @@
 #include <memory>
 
 #include "QtBandReadout.h"
-#include "QtVfoReadout.h"
+#include "VfoReadout/QtVfoReadout.h"
 #include "settings/bands/BandSelector.h"
 #include "settings/bands/SplitBandId.h"
 #include "settings/base/SettingUpdateSink.h"
@@ -16,14 +16,14 @@
 
 class RadioSettings;
 
-namespace Ui { class QtFrequencyReadout; }
+namespace Ui { class QtFrequencyPanel; }
 
-class QtFrequencyReadout : public QWidget, public SettingUpdateSource
+class QtFrequencyPanel : public QWidget, public SettingUpdateSource
 {
   Q_OBJECT
 public:
-  explicit QtFrequencyReadout(QWidget* parent = nullptr);
-  ~QtFrequencyReadout() override;
+  explicit QtFrequencyPanel(QWidget* parent = nullptr);
+  ~QtFrequencyPanel() override;
 
   void initialise(RadioSettings* pRadioSettings);
   void applyRadioSettings(RadioSettings* pRadioSettings, bool onlyIfChanged = true);
@@ -43,10 +43,10 @@ private slots:
   void onCloseRequested(SplitBandId whichBand);
   void onMultiVfoActionRequested(SplitBandId whichBand,
                             VfoId whichVfo,
-                            QtVfoReadout::MultiVfoAction action);
+                            MultiVfoAction action);
   void onVfoTxActionRequested(SplitBandId whichBand,
                             VfoId whichVfo,
-                            QtVfoReadout::VfoTxAction action);
+                            VfoTxAction action);
   void onBandClicked(SplitBandId whichBand);
   void onVfoClicked(SplitBandId whichBand, VfoId whichVfo);
   void onTxBandClicked(SplitBandId whichBand);
@@ -57,11 +57,12 @@ private:
   void applyBandSelectorChange(BandSelector& bandSelector);
 
   void setPttProperty(bool ptt, bool repolish = true);
+  void setIsSplitProperty(bool isSplit, bool repolish = true);
 
   void updateRowActionModes(bool hasBand1, bool hasBand2, bool isSplit);
 
 private:
-  std::unique_ptr<Ui::QtFrequencyReadout> ui;
+  std::unique_ptr<Ui::QtFrequencyPanel> ui;
 
   SettingUpdateSink* m_pSettingsSink;
 
