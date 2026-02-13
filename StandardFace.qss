@@ -1,3 +1,92 @@
-QWidget#frequencyReadout {
-    border: 1px solid red;
+QWidget#StandardFace QtFrequencyPanel {
+    
 }
+
+QWidget#StandardFace QtBandReadout {
+    border-width: 1px;
+    border-style: solid;
+    border-top-color: #061922;
+    border-left-color: #061922;
+    border-bottom-color: #065a7f;
+    border-right-color: #065a7f;
+}
+
+QWidget#StandardFace QToolButton {
+    border: 1px solid rgba(255,255,255,80);
+    border-radius: 2px;
+    padding: 0px;
+    color: black;
+}
+
+QWidget#StandardFace QtBandReadout QToolButton[role=split] {
+    border-color: #0dacf1;
+    background-color: #0dacf1;
+}
+
+
+QWidget#StandardFace QtFrequencyPanel QtVfoReadout QLabel {
+    padding-right: 5px;
+    font-weight: bold;
+    font-style: italic;
+}
+
+QWidget#StandardFace QtFrequencyPanel[isSplit=false] QtVfoReadout QLabel {
+    font-size: 52px;
+}
+
+QWidget#StandardFace QtFrequencyPanel[isSplit=true] QtVfoReadout QLabel {
+    font-size: 36px;
+}
+
+QWidget#StandardFace QtVfoReadout[vfo="A"] {
+    /*border: 1px solid orange;*/
+}
+
+QWidget#StandardFace QtVfoReadout[vfo="B"] {
+    /*border: 1px solid purple;*/
+}
+
+QWidget#StandardFace QtVfoReadout[focusVfo=true] QtNumberReadout {
+    border-color: #0384bc;
+    border-width: 2px;
+    border-radius: 3px;
+    border-style: solid;
+}
+
+QWidget#StandardFace QtMiniVfoToolbar {
+    /*border: 1px solid red;*/
+}
+
+QWidget#StandardFace QtMiniVfoToolbar QToolButton {
+    color: black;
+}
+
+/*
+QWidget#StandardFace QtMiniVfoToolbar QToolButton:pressed {
+  background: rgba(255,255,255,40);
+}
+*/
+
+QWidget#StandardFace QtMiniVfoToolbar QToolButton[role=mute] {
+}
+
+QWidget#StandardFace QtMiniVfoToolbar QToolButton[role=ab] {
+    border-color: #0dacf1;
+    background-color: #0dacf1;
+}
+
+QWidget#StandardFace QtMiniVfoToolbar QToolButton[role=tx][active=false] {
+    border-color: #360d07;
+    background-color: #360d07;
+}
+QWidget#StandardFace QtMiniVfoToolbar QToolButton[role=tx][active=true] {
+    border-color: #ff2402;
+    background-color: #ff2402;
+}
+
+QWidget#StandardFace QtMiniVfoToolbar QToolButton[role=mode] {
+    border-color: #00d03f;
+    background-color: #00d03f;
+    color: black;
+}
+
