@@ -28,7 +28,12 @@ public:
   void initialise(RadioSettings* pRadioSettings);
   void applyRadioSettings(RadioSettings* pRadioSettings, bool onlyIfChanged = true);
 
-  void connectSettingUpdateSink(SettingUpdateSink* pSink) override { m_pSettingsSink = pSink; };
+  void connectSettingUpdateSink(SettingUpdateSink* pSink) override
+  {
+    m_pSettingsSink = pSink;
+    if (m_band1Readout) m_band1Readout->connectSettingUpdateSink(pSink);
+    if (m_band2Readout) m_band2Readout->connectSettingUpdateSink(pSink);
+  };
 
 protected:
   void notifySettingUpdate(SettingUpdate& settingUpdate) override

@@ -142,11 +142,27 @@ Radio::applySettingUpdate(SettingUpdate& update)
   }
 }
 
+void Radio::applySettingUpdates(SettingUpdate* updates, std::size_t count)
+{
+  if (!updates) return;
+
+  bool anyChanged = false;
+
+  for (std::size_t i = 0; i < count; ++i) {
+    updates[i].resetCursor();
+    anyChanged |= m_settings.applyUpdate(updates[i]);
+  }
+
+  if (anyChanged) {
+    applySettings(m_settings);
+  }
+}
+
 void
 Radio::applyBand(const std::string& bandName)
 {
   // qDebug() << "Radio::applyBand(): applying band " << bandName.c_str() << ". Existing band: " << m_settings.bandName.c_str() ;
-  SettingUpdatePath bandPath({RadioSettings::BAND, BandSelector::SELECT});
+  SettingUpdatePath bandPath({RadioSettings::BAND, BandSelector::REPLACE_FOCUS});
   SettingUpdate bandSetting(bandPath, bandName, SettingUpdate::Meaning::VALUE);
   applySettingUpdate(bandSetting);
 }

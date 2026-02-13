@@ -9,6 +9,7 @@
 
 #include "settings/bands/BandSettings.h"
 #include "settings/bands/SplitBandId.h"
+#include "settings/base/SettingUpdateSink.h"
 #include "VfoReadout/QtVfoReadout.h"
 #include "VfoReadout/VfoActions.h"
 
@@ -25,7 +26,11 @@ public:
 
   void initialise();
 
-  [[nodiscard]] SplitBandId bandIndex() const noexcept { return m_bandIndex; }
+  // Let the row forward SettingUpdates from its children to the sink,
+  // without QtFrequencyPanel knowing about VFO internals.
+  void connectSettingUpdateSink(SettingUpdateSink* pSink) { m_pSettingsSink = pSink; }
+
+  [[nodiscard]] SplitBandId bandIndex() const noexcept { return m_splitBandId; }
 
   // VFO cells are now proper standalone widgets
   [[nodiscard]] QtVfoReadout* vfoA() const noexcept { return m_vfoA; }
@@ -41,14 +46,13 @@ public:
   // Controls whether the right readout area shows VFO B or a placeholder
   void setVfoBVisible(bool visible);
 
-  void setTxButtonVisible(bool visible);
-
   void applyBandSettings(const BandSettings* bandSettings,
                          const std::string& txBandName,
                          const std::string& rxBandName,
                          const std::string& focusBandName);
 
   void applyFrequencyChanges(const BandSettings* bandSettings, bool onlyIfChanged = true);
+  void applyPipelineChanges(const BandSettings* bandSettings, bool onlyIfChanged = true);
 
   void setWidgetProperties(bool repolish = true);
 
@@ -58,10 +62,11 @@ public:
 signals:
   void splitRequested(SplitBandId whichBand);
   void closeRequested(SplitBandId whichBand);
-  void txBandRequested(SplitBandId whichBand);
 
   void multiVfoActionRequested(SplitBandId whichBand, VfoId whichVfo, MultiVfoAction action);
   void vfoTxActionRequested(SplitBandId whichBand, VfoId whichVfo, VfoTxAction mode);
+  // Bubble up SettingUpdates from child VFO toolbars
+  // void settingUpdateRequested(QVector<SettingUpdate>& updates);
   void bandClicked(SplitBandId whichBand);
   void vfoClicked(SplitBandId whichBand, VfoId whichVfo);
 
@@ -71,11 +76,11 @@ protected:
 
 private slots:
   void onLeftActionClicked();
-  void onRightActionClicked();
 
 private:
   void buildUi();
   void updateLeftButtonPresentation();
+  void updateActionGutterWidth();
 
   static void applyFrequencyChanges(QtVfoReadout* readout,
                                    const class RxPipelineSettings* rxPipelineSettings,
@@ -85,12 +90,10 @@ private:
 
   static constexpr int kActionSlotWidthPx = 28;
 
-  SplitBandId m_bandIndex;
-  // std::string m_bandName;
+  SplitBandId m_splitBandId;
 
   // Layout pieces
   QToolButton* m_addRemoveBandButton = nullptr;
-  QToolButton* m_txBandButton = nullptr;
 
   QtVfoReadout* m_vfoA = nullptr;
   QtVfoReadout* m_vfoB = nullptr;
@@ -103,6 +106,9 @@ private:
   QWidget* m_rightCell = nullptr;
 
   QWidget* m_rightStackHost = nullptr;
+  QWidget* m_actionGutter = nullptr;
+
+  SettingUpdateSink* m_pSettingsSink = nullptr;
 
   BandAction m_addRemoveBandAction = BandAction::Disabled;
   BandAction m_selectTxBandAction = BandAction::Tx;

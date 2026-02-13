@@ -46,6 +46,8 @@ public:
     return *this;
   }
 
+  void resetCursor() noexcept { m_cursor = 0; }
+
   [[nodiscard]] bool isExhausted() const
   {
     return m_cursor >= m_settingPath.getFeatures().size();

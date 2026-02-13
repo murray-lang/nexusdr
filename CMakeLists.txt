@@ -365,6 +365,7 @@ set(PROJECT_SOURCES
         ui/qt/faces/FaceFactory.h
         ui/qt/faces/standard/StandardFace.cpp
         ui/qt/faces/standard/StandardFace.h
+        ui/qt/faces/standard/StandardFace.ui
         ui/qt/faces/RegisterFace.h
         config/UiConfig.h
         ui/qt/common/FrequencyPanel/QtFrequencyPanel.cpp
@@ -375,13 +376,14 @@ set(PROJECT_SOURCES
         ui/qt/common/FrequencyPanel/QtBandReadout.h
         ui/qt/common/FrequencyPanel/VfoReadout/QtVfoReadout.cpp
         ui/qt/common/FrequencyPanel/VfoReadout/QtVfoReadout.h
+        ui/qt/common/MiniVfoToolbar/QtMiniVfoToolbar.ui
         settings/pipeline/PipelineId.h
         settings/bands/SplitBandId.h
         ui/qt/common/QWidgetPropertySetter.cpp
         ui/qt/common/QWidgetPropertySetter.h
         ui/qt/common/FrequencyPanel/VfoReadout/VfoActions.h
-        ui/qt/common/FrequencyPanel/VfoReadout/QtVfoToolRow.cpp
-        ui/qt/common/FrequencyPanel/VfoReadout/QtVfoToolRow.h
+        ui/qt/common/MiniVfoToolbar/QtMiniVfoToolbar.cpp
+        ui/qt/common/MiniVfoToolbar/QtMiniVfoToolbar.h
 
 )
 

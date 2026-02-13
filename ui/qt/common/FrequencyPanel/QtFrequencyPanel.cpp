@@ -39,11 +39,11 @@ QtFrequencyPanel::initialiseLayout()
 
   m_band1Readout = new QtBandReadout(SplitBandId::One, this);
   // m_band1Readout->setObjectName("band1Row");
-  ui->gridLayout->addWidget(m_band1Readout, 0, 0, 1, 2);
+  ui->gridLayout->addWidget(m_band1Readout, 0, 0, 1, 2, Qt::AlignLeft);
 
   m_band2Readout = new QtBandReadout(SplitBandId::Two, this);
   // m_band2Readout->setObjectName("band2Row");
-  ui->gridLayout->addWidget(m_band2Readout, 1, 0, 1, 2);
+  ui->gridLayout->addWidget(m_band2Readout, 1, 0, 1, 2, Qt::AlignLeft);
 
   // Wire row-level actions to frequency-readout actions (which produce SettingUpdates).
   connect(m_band1Readout, &QtBandReadout::splitRequested, this, &QtFrequencyPanel::onSplitRequested);
@@ -57,13 +57,21 @@ QtFrequencyPanel::initialiseLayout()
   connect(m_band1Readout, &QtBandReadout::vfoTxActionRequested, this, &QtFrequencyPanel::onVfoTxActionRequested);
   connect(m_band2Readout, &QtBandReadout::vfoTxActionRequested, this, &QtFrequencyPanel::onVfoTxActionRequested);
 
-  connect(m_band1Readout, &QtBandReadout::txBandRequested, this, &QtFrequencyPanel::onTxBandClicked);
-  connect(m_band2Readout, &QtBandReadout::txBandRequested, this, &QtFrequencyPanel::onTxBandClicked);
+  // connect(m_band1Readout, &QtBandReadout::txBandRequested, this, &QtFrequencyPanel::onTxBandClicked);
+  // connect(m_band2Readout, &QtBandReadout::txBandRequested, this, &QtFrequencyPanel::onTxBandClicked);
 
   connect(m_band1Readout, &QtBandReadout::bandClicked, this, &QtFrequencyPanel::onBandClicked);
   connect(m_band2Readout, &QtBandReadout::bandClicked, this, &QtFrequencyPanel::onBandClicked);
   connect(m_band1Readout, &QtBandReadout::vfoClicked, this, &QtFrequencyPanel::onVfoClicked);
   connect(m_band2Readout, &QtBandReadout::vfoClicked, this, &QtFrequencyPanel::onVfoClicked);
+
+  // // NEW: forward SettingUpdates from rows to the sink.
+  // connect(m_band1Readout, &QtBandReadout::settingUpdateRequested, this, [this](SettingUpdate u) {
+  //   if (m_pSettingsSink) m_pSettingsSink->applySettingUpdate(u);
+  // });
+  // connect(m_band2Readout, &QtBandReadout::settingUpdateRequested, this, [this](SettingUpdate u) {
+  //   if (m_pSettingsSink) m_pSettingsSink->applySettingUpdate(u);
+  // });
 
   m_band1Readout->setWidgetProperties(false);
   m_band2Readout->setWidgetProperties(false);
@@ -100,6 +108,7 @@ QtFrequencyPanel::applyFrequencyChanges(BandSelector& bandSelector, bool onlyIfC
     const BandSettings* band1 = bandSelector.getBandSettings(SplitBandId::One);
     if (band1 != nullptr) {
       m_band1Readout->applyFrequencyChanges(band1, onlyIfChanged);
+      m_band1Readout->applyPipelineChanges(band1, onlyIfChanged);
     }
   }
 
@@ -108,6 +117,7 @@ QtFrequencyPanel::applyFrequencyChanges(BandSelector& bandSelector, bool onlyIfC
     const BandSettings* band2 = bandSelector.getBandSettings(SplitBandId::Two);
     if (band2 != nullptr) {
       m_band2Readout->applyFrequencyChanges(band2, onlyIfChanged);
+      m_band2Readout->applyPipelineChanges(band2, onlyIfChanged);
     }
   }
 }
@@ -132,13 +142,27 @@ QtFrequencyPanel::applyBandSelectorChange(BandSelector& bandSelector)
   if (hasBand1) {
     const BandSettings* band1 = bandSelector.getBandSettings(SplitBandId::One);
     m_band1Readout->applyBandSettings(band1, txBandName, rxBandName, focusBandName);
-    m_band1Readout->setTxButtonVisible(isSplit);
+    // m_band1Readout->setTxButtonVisible(isSplit);
   }
 
   if (hasBand2) {
     const BandSettings* band2 = bandSelector.getBandSettings(SplitBandId::Two);
     m_band2Readout->applyBandSettings(band2, txBandName, rxBandName, focusBandName);
-    m_band2Readout->setTxButtonVisible(isSplit);
+    // m_band2Readout->setTxButtonVisible(isSplit);
+  }
+
+  // Vertically center the single band by spanning both rows
+  if (ui && ui->gridLayout && m_band1Readout && m_band2Readout) {
+    ui->gridLayout->removeWidget(m_band1Readout);
+    ui->gridLayout->removeWidget(m_band2Readout);
+
+    if (hasBand1 && !hasBand2) {
+      ui->gridLayout->addWidget(m_band1Readout, 0, 0, 2, 2, Qt::AlignVCenter | Qt::AlignLeft);
+      ui->gridLayout->addWidget(m_band2Readout, 1, 0, 1, 2, Qt::AlignLeft); // hidden anyway
+    } else {
+      ui->gridLayout->addWidget(m_band1Readout, 0, 0, 1, 2, Qt::AlignLeft);
+      ui->gridLayout->addWidget(m_band2Readout, 1, 0, 1, 2, Qt::AlignLeft);
+    }
   }
 
   updateRowActionModes(hasBand1, hasBand2, isSplit);
@@ -306,14 +330,6 @@ QtFrequencyPanel::onVfoClicked(SplitBandId whichBand, VfoId whichVfo)
 {
   if (m_pSettingsSink == nullptr) return;
 
-  const uint32_t selectBand = (whichBand == SplitBandId::One) ? BandSelector::WITH_1 : BandSelector::WITH_2;
-
-  SettingUpdatePath path({
-    RadioSettings::BAND,
-    selectBand,
-    BandSettings::FOCUS_PIPELINE
-  });
-
-  SettingUpdate update(path, whichVfo, SettingUpdate::Meaning::VALUE);
+  SettingUpdate update = RadioSettings::makeBandSetFocusPipelineUpdate(whichBand, whichVfo);
   m_pSettingsSink->applySettingUpdate(update);
 }

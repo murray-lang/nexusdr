@@ -37,6 +37,7 @@ public:
   void applySettings(const RadioSettings& settings) override;
   // void applySettings(const RadioSettings& settings, BandSettings* pBandSettings) override;
   void applySettingUpdate(SettingUpdate& setting) override;
+  void applySettingUpdates(SettingUpdate* updates, std::size_t count) override;
 
   void applyBand(const std::string& bandName);
 

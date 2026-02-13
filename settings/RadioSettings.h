@@ -102,12 +102,24 @@ public:
 
   static SettingUpdatePath getSettingUpdatePath(const std::string& strDottedFeatures);
 
+  // ---- New: canonical SettingUpdate factories (UI should use these) ----
+  static SettingUpdate makeBandSetMultiPipelineUpdate(SplitBandId whichBand, bool enable);
+  static SettingUpdate makeBandClosePipelineUpdate(SplitBandId whichBand, PipelineId whichPipeline);
+  static SettingUpdate makeBandSetTxPipelineUpdate(SplitBandId whichBand, PipelineId whichPipeline);
+  static SettingUpdate makeBandSetFocusPipelineUpdate(SplitBandId whichBand, PipelineId whichPipeline);
+  static SettingUpdate makeBandSetSetTxBandUpdate(SplitBandId whichBand);
+
+  // Applies to the *focused* pipeline within that band (assumes focus is already correct).
+  static SettingUpdate makeBandSetModeOnFocusPipelineUpdate(SplitBandId whichBand, Mode::Type modeType);
+
   static bool getFeaturePath(
     const std::vector<std::string>& featureStrings,
     std::vector<uint32_t>& featuresOut,
     size_t startIndex = 0
     );
 protected:
+  static uint32_t toWithBandFeature(SplitBandId whichBand);
+
   Setting<bool, PTT, RadioSettings> m_ptt;
   // Setting<std::string, BAND, RadioSettings> m_bandName;
   ReceiverSettings m_rxSettings;

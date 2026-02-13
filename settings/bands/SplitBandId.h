@@ -4,4 +4,4 @@
 
 #pragma once
 
-enum class SplitBandId { One = 0, Two = 1 };
+enum class SplitBandId { None = -1, One = 0, Two = 1 };

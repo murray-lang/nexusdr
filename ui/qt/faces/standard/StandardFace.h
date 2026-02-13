@@ -64,6 +64,12 @@ protected:
       }
 
     }
+    void applySettingUpdates(SettingUpdate* updates, std::size_t count) override
+    {
+      if (m_pOwningFace->m_pRadio != nullptr) {
+        m_pOwningFace->m_pRadio->applySettingUpdates(updates, count);
+      }
+    }
   protected:
     StandardFace* m_pOwningFace;
   };

@@ -114,7 +114,7 @@
       <property name="maximumSize">
        <size>
         <width>16777215</width>
-        <height>100</height>
+        <height>150</height>
        </size>
       </property>
       <layout class="QHBoxLayout" name="frequencyReadoutHostLayout" stretch="0,1,0">

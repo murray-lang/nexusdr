@@ -37,12 +37,11 @@ public:
   BandSettings& operator=(const BandSettings& rhs);
 
   [[nodiscard]] const Band& getBand() const { return m_band; }
-  [[nodiscard]] bool isMulti() const { return m_multi(); }
-  [[nodiscard]] PipelineId getFocusId() const { return m_focusId(); }
-  [[nodiscard]] PipelineId getTxId() const { return m_txId(); }
+  [[nodiscard]] bool isMultiPipeline() const { return m_isMultiPipeline(); }
+  [[nodiscard]] PipelineId getTxPipelineId() const { return m_txPipelineId(); }
 
   bool splitPipelines(bool split);
-  [[nodiscard]] PipelineId getFocusPipelineId() const { return m_focusId(); }
+  [[nodiscard]] PipelineId getFocusPipelineId() const { return m_focusPipelineId(); }
   RxPipelineSettings* getFocusPipeline();
   [[nodiscard]] const RxPipelineSettings* getFocusPipeline() const;
   TxPipelineSettings* getTxPipeline();
@@ -98,8 +97,8 @@ protected:
   std::optional<RxPipelineSettings> m_pipelineB;
   TxPipelineSettings m_txPipeline;
 
-  Setting<bool, MULTI_PIPELINE, BandSettings> m_multi;
-  Setting<PipelineId, FOCUS_PIPELINE, BandSettings> m_focusId;
-  Setting<PipelineId, TX_PIPELINE, BandSettings> m_txId;
+  Setting<bool, MULTI_PIPELINE, BandSettings> m_isMultiPipeline;
+  Setting<PipelineId, FOCUS_PIPELINE, BandSettings> m_focusPipelineId;
+  Setting<PipelineId, TX_PIPELINE, BandSettings> m_txPipelineId;
 
 };

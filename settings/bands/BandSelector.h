@@ -18,16 +18,16 @@ public:
   enum Features
   {
     NONE = 0,
-    SELECT = 0x001,
-    SELECT_1 = SELECT,
-    SELECT_2 = 0x002,
-    WITH_1 = 0x004,
-    WITH_2 = 0x008,
-    WITH_FOCUS = 0x010,
-    FOCUS = 0x020,
-    SPLIT = 0x040,
-    TX_BAND = 0x080,
-    RX_BAND = 0x100,
+    REPLACE_FOCUS = 0x001,
+    SELECT_1 = 0x002,
+    SELECT_2 = 0x004,
+    WITH_1 = 0x008,
+    WITH_2 = 0x010,
+    WITH_FOCUS = 0x020,
+    FOCUS = 0x040,
+    SPLIT = 0x080,
+    TX_BAND = 0x100,
+    RX_BAND = 0x200,
     ALL = static_cast<uint32_t>(~0U)
   };
 
@@ -72,6 +72,19 @@ public:
   const std::string& getFocusBandName() const { return m_focusBandName; }
   bool isSplit() const { return m_split; }
 
+  SplitBandId getFocusBandId() const
+  {
+    if (m_focusBandName.empty()) {
+      return SplitBandId::None;
+    }
+    if (m_focusBandName == m_selectedBandNames[0]) {
+      return SplitBandId::One;
+    }
+    if (m_focusBandName == m_selectedBandNames[1]) {
+      return SplitBandId::Two;
+    }
+    return SplitBandId::None;
+  }
   BandSettings* getFocusBandSettings()
   {
     return getBandSettings(m_focusBandName);
@@ -180,6 +193,7 @@ public:
     const auto& val = update.getValue();
 
     switch (feature) {
+    case REPLACE_FOCUS: return replaceFocusBand(update);
     case SELECT_1: return selectBand(SplitBandId::One, update);
     case SELECT_2: return selectBand(SplitBandId::Two, update);
     case WITH_FOCUS: return applyToFocusedBand(update.stepNextFeature());
@@ -219,8 +233,8 @@ public:
     if (key == "focus") {
       out.push_back(FOCUS);
     }
-    if (key == "select") {
-      out.push_back(SELECT);
+    if (key == "replace-focus") {
+      out.push_back(REPLACE_FOCUS);
       return true;
     }
     if (key == "select-1") {
@@ -256,8 +270,22 @@ protected:
       });
   }
 
+  bool replaceFocusBand(SettingUpdate& update)
+  {
+    const auto& value = update.getValue();
+    const std::string replacementBandName = std::get<std::string>(value);
+    if (replacementBandName.empty() || replacementBandName == m_focusBandName) {
+      return false;
+    }
+    SplitBandId idx = m_focusBandName.empty() ? SplitBandId::One : getFocusBandId();
+    return selectBand(idx, replacementBandName);
+  }
+
   bool selectBand(SplitBandId idx, SettingUpdate& update)
   {
+    if (idx == SplitBandId::None) {
+      return false;
+    }
     const auto& value = update.getValue();
     std::optional<std::string> currBandNameOpt = getSplitBandName(idx);
 
@@ -289,6 +317,9 @@ protected:
 
   bool selectBand(SplitBandId idx, const std::string& bandName)
   {
+    if (idx == SplitBandId::None) {
+      return false;
+    }
     std::optional<std::string> currBandNameOpt = getSplitBandName(idx);
     bool replacingBand = currBandNameOpt.has_value();
     if (replacingBand && bandName == currBandNameOpt.value()) {
@@ -375,8 +406,8 @@ protected:
     std::optional<std::string>& band2NameOpt = m_selectedBandNames[1];
     if (*pNewSplit) {
       if (!band2NameOpt.has_value()) {
-        band2NameOpt = band1NameOpt.value(); // Start with both the same
-        m_changed |= SELECT_2;
+        // band2NameOpt = band1NameOpt.value(); // Start with both the same
+        selectBand(SplitBandId::Two, band1NameOpt.value());
       }
       if (m_txBandName.empty()) {
         m_txBandName = band1NameOpt.value();
