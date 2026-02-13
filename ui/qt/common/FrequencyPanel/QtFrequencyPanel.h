@@ -62,6 +62,8 @@ private:
   void applyFrequencyAndPipelineChanges(BandSelector& bandSelector, bool onlyIfChanged = true);
   void applyBandSelectorChange(BandSelector& bandSelector);
 
+  bool hasChangesOtherThanVfo(BandSelector& bandSelector) const;
+
   void setPttProperty(bool ptt, bool repolish = true);
   void setIsSplitProperty(bool isSplit, bool repolish = true);
 
