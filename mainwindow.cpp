@@ -104,6 +104,7 @@ MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings, uint64_
   m_radioSettingsCopy.clearChanged();
   if (sequence == currentSequence) {
     bandSettings->clearChanged();
+    // m_radioSettingsCopy.getBandSelector().clearChanged();
   }
 }
 

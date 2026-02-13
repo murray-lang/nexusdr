@@ -115,32 +115,49 @@ QtFrequencyPanel::applyRadioSettings(RadioSettings* pRadioSettings, bool onlyIfC
 bool
 QtFrequencyPanel::hasChangesOtherThanVfo(BandSelector& bandSelector) const
 {
-  uint32_t bandSelectorChanges = BandSelector::REPLACE_FOCUS
-    | BandSelector::SELECT_1
-    | BandSelector::SELECT_2
-    | BandSelector::FOCUS
-    | BandSelector::SPLIT
-    | BandSelector::TX_BAND
-    | BandSelector::RX_BAND;
-  if (bandSelector.hasSettingChanged(bandSelectorChanges)) {
+  uint32_t pipelineChanges = 
+      BandSettings::MULTI_PIPELINE
+    | BandSettings::FOCUS_PIPELINE
+    | BandSettings::TX_PIPELINE
+    // | BandSettings::WITH_TX_PIPELINE
+    | BandSettings::CLOSE_PIPELINE;
+  const BandSettings* band1 = bandSelector.getBandSettings(SplitBandId::One);
+  
+  if (band1 && band1->hasSettingChanged(pipelineChanges)) {
+    return true;
+  } 
+  const BandSettings* band2 = bandSelector.getBandSettings(SplitBandId::Two);
+  if (band2 && band2->hasSettingChanged(pipelineChanges)) {
     return true;
   }
-  bandSelectorChanges = BandSelector::WITH_1
-    | BandSelector::WITH_2
-    | BandSelector::WITH_FOCUS;
-  if (bandSelector.hasSettingChanged(bandSelectorChanges)) {
-    BandSettings* bandSettings = bandSelector.getFocusBandSettings();
-    uint32_t pipelineChanges = BandSettings::MULTI_PIPELINE
-      | BandSettings::FOCUS_PIPELINE
-      | BandSettings::TX_PIPELINE
-      | BandSettings::WITH_TX_PIPELINE
-      | BandSettings::CLOSE_PIPELINE;
-    if (bandSettings->hasSettingChanged(pipelineChanges)) {
-      return true;
-    }
-    // pipelineChanges = BandSettings::WITH_FOCUS_PIPELINE
-  }
   return false;
+
+  // uint32_t bandSelectorChanges = BandSelector::REPLACE_FOCUS
+  //   | BandSelector::SELECT_1
+  //   | BandSelector::SELECT_2
+  //   | BandSelector::FOCUS
+  //   | BandSelector::SPLIT
+  //   | BandSelector::TX_BAND
+  //   | BandSelector::RX_BAND;
+  // if (bandSelector.hasSettingChanged(bandSelectorChanges)) {
+  //   return true;
+  // }
+  // bandSelectorChanges = BandSelector::WITH_1
+  //   | BandSelector::WITH_2
+  //   | BandSelector::WITH_FOCUS;
+  // if (bandSelector.hasSettingChanged(bandSelectorChanges)) {
+  //   BandSettings* bandSettings = bandSelector.getFocusBandSettings();
+  //   uint32_t pipelineChanges = BandSettings::MULTI_PIPELINE
+  //     | BandSettings::FOCUS_PIPELINE
+  //     | BandSettings::TX_PIPELINE
+  //     | BandSettings::WITH_TX_PIPELINE
+  //     | BandSettings::CLOSE_PIPELINE;
+  //   if (bandSettings->hasSettingChanged(pipelineChanges)) {
+  //     return true;
+  //   }
+  //   // pipelineChanges = BandSettings::WITH_FOCUS_PIPELINE
+  // }
+  // return false;
 }
 
 void
