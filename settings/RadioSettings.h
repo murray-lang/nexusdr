@@ -33,7 +33,7 @@ public:
     ALL = static_cast<uint32_t>(~0U)
   };
 
-  RadioSettings() : m_ptt(this, "ptt", false)//, m_bandName(this, "band", "")
+  RadioSettings() : m_ptt(this, "ptt", false)
   {
     RadioSettings::setAllChanged();
   };

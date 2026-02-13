@@ -7,6 +7,7 @@
 #include <QWidget>
 #include <variant>
 #include <string>
+#include <span>
 
 using PropertyValue = std::variant<bool, int64_t, double, std::string, const char*>;
 using WidgetProperty = std::pair<std::string, PropertyValue>;

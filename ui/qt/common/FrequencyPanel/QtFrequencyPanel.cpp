@@ -92,8 +92,15 @@ QtFrequencyPanel::applyRadioSettings(RadioSettings* pRadioSettings, bool onlyIfC
   if (pRadioSettings->hasSettingChanged(RadioSettings::BAND)) {
     BandSelector& bandSelector = pRadioSettings->getBandSelector();
     if (bandSelector.isChanged()) {
-      applyBandSelectorChange(bandSelector);
-      applyFrequencyChanges(bandSelector, onlyIfChanged);
+      BandSettings* focusBand = bandSelector.getFocusBandSettings();
+      if (onlyIfChanged && focusBand != nullptr && focusBand->hasFocusVfoChanged()) {
+        // Do the bare minimum for VFO changes otherwise Qt stuff bogs everything down.
+        applyFrequencyChanges(bandSelector, onlyIfChanged);
+      } else {
+        applyBandSelectorChange(bandSelector);
+        applyFrequencyAndPipelineChanges(bandSelector, onlyIfChanged);
+      }
+      
     }
   } else if (pRadioSettings->hasSettingChanged(RadioSettings::PTT)) {
     setPttProperty(pRadioSettings->getPtt());
@@ -102,6 +109,26 @@ QtFrequencyPanel::applyRadioSettings(RadioSettings* pRadioSettings, bool onlyIfC
 
 void
 QtFrequencyPanel::applyFrequencyChanges(BandSelector& bandSelector, bool onlyIfChanged)
+{
+  // Band 1
+  if (bandSelector.hasBand(SplitBandId::One)) {
+    const BandSettings* band1 = bandSelector.getBandSettings(SplitBandId::One);
+    if (band1 != nullptr) {
+      m_band1Readout->applyFrequencyChanges(band1, onlyIfChanged);
+    }
+  }
+
+  // Band 2 (may be absent when not split)
+  if (bandSelector.hasBand(SplitBandId::Two)) {
+    const BandSettings* band2 = bandSelector.getBandSettings(SplitBandId::Two);
+    if (band2 != nullptr) {
+      m_band2Readout->applyFrequencyChanges(band2, onlyIfChanged);
+    }
+  }
+}
+
+void
+QtFrequencyPanel::applyFrequencyAndPipelineChanges(BandSelector& bandSelector, bool onlyIfChanged)
 {
   // Band 1
   if (bandSelector.hasBand(SplitBandId::One)) {
@@ -125,6 +152,7 @@ QtFrequencyPanel::applyFrequencyChanges(BandSelector& bandSelector, bool onlyIfC
 void
 QtFrequencyPanel::applyBandSelectorChange(BandSelector& bandSelector)
 {
+  
   const std::string& txBandName = bandSelector.getTxBandName();
   const std::string& rxBandName = bandSelector.getRxBandName();
   const std::string& focusBandName = bandSelector.getFocusBandName();

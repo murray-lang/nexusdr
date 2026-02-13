@@ -55,6 +55,11 @@ public:
   [[nodiscard]] const IfSettings* getFocusRxIfSettings() const;
   [[nodiscard]] const Mode* getFocusRxMode() const;
 
+  bool hasFocusVfoChanged() const {
+    const RxPipelineSettings* focusPipeline = getFocusPipeline();
+    return focusPipeline != nullptr && focusPipeline->hasVfoChanged();
+  }
+
   bool closePipeline(PipelineId id);
   void clearChanged() override;
   void setAllChanged() override;

@@ -27,6 +27,8 @@ public:
   void start();
   void stop();
 
+  uint64_t getUpdateSequence() const { return m_updateSequence; }
+
   template<typename T>
   void applySetting(const char * dottedString, T value, bool isDelta = false)
   {
@@ -88,5 +90,6 @@ protected:
   RadioControl* m_pControl;
 
   QObject* m_pEventTarget;
+  uint64_t m_updateSequence;
 };
 

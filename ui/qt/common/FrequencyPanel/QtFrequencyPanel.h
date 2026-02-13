@@ -59,6 +59,7 @@ private slots:
 private:
   void initialiseLayout();
   void applyFrequencyChanges(BandSelector& bandSelector, bool onlyIfChanged = true);
+  void applyFrequencyAndPipelineChanges(BandSelector& bandSelector, bool onlyIfChanged = true);
   void applyBandSelectorChange(BandSelector& bandSelector);
 
   void setPttProperty(bool ptt, bool repolish = true);

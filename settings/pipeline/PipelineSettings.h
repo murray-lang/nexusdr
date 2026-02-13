@@ -44,6 +44,10 @@ public:
     return *this;
   }
 
+  bool hasVfoChanged() const {
+    return m_rfSettings.hasSettingChanged(RfSettings::VFO);
+  }
+
   void clearChanged() override
   {
     SettingsBase::clearChanged();
@@ -152,7 +156,7 @@ public:
       settingChange = m_rfSettings.applyUpdate(update.stepNextFeature());
       if (settingChange) {
         m_changed |= RF;
-      }
+      } 
       break;
     case MODE:
       settingChange = applyModeSetting(update.stepNextFeature());

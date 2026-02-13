@@ -17,7 +17,8 @@ Radio::Radio(QObject *pEventTarget) :
   m_pReceiver(nullptr),
   m_pTransmitter(nullptr),
   m_pControl(nullptr),
-  m_pEventTarget(pEventTarget)
+  m_pEventTarget(pEventTarget),
+  m_updateSequence(0)
 {
   m_pReceiver = new IqReceiver(pEventTarget);
   m_pTransmitter = new IqTransmitter(pEventTarget);
@@ -122,9 +123,7 @@ Radio::applySettings(const RadioSettings& settings)
     }
   }
   if (m_pEventTarget != nullptr) {
-    // qDebug() << "Radio::applySettings posting RadioSettingsEvent";
-    // qDebug() << m_settings.mode.getName().c_str();
-    RadioSettingsEvent* rse = new RadioSettingsEvent(settings);
+    RadioSettingsEvent* rse = new RadioSettingsEvent(settings, ++m_updateSequence);
     QCoreApplication::postEvent(m_pEventTarget, rse);
   }
   m_settings.clearChanged();

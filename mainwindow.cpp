@@ -70,7 +70,7 @@ MainWindow::customEvent(QEvent* event)
       m_pFace->handleReceiverAudio(audioEvent->buffer.get(), audioEvent->dataLength);
     } else if (event->type() == RadioSettingsEvent::RadioSettingsEventType) {
       auto* radioSettingsEvent = dynamic_cast<RadioSettingsEvent*>(event);
-      handleRadioSettingsEvent(radioSettingsEvent->getRadioSettings());
+      handleRadioSettingsEvent(radioSettingsEvent->getRadioSettings(), radioSettingsEvent->getSequence());
     } else if (event->type() == TransmitterIqEvent::TxIqEvent) {
       auto* iqEvent = dynamic_cast<TransmitterIqEvent*>(event);
       m_pFace->handleTransmitterIq(&m_radioSettingsCopy, iqEvent->buffer.get(), iqEvent->dataLength, iqEvent->sampleRate);
@@ -82,11 +82,10 @@ MainWindow::customEvent(QEvent* event)
 }
 
 void
-MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings)
+MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings, uint64_t sequence)
 {
+  uint64_t currentSequence = m_pRadio->getUpdateSequence();
   m_radioSettingsCopy = radioSettings;
-
-  // Find the existing band dialog if it's open
   auto* bandDialog = findChild<QtBandDialog*>("bandPanel");
   if (bandDialog != nullptr) {
     bandDialog->applySettings(m_radioSettingsCopy);
@@ -103,7 +102,9 @@ MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings)
     m_pFace->handleRadioSettingsChanged(&m_radioSettingsCopy);
   }
   m_radioSettingsCopy.clearChanged();
-  bandSettings->clearChanged();
+  if (sequence == currentSequence) {
+    bandSettings->clearChanged();
+  }
 }
 
 void
