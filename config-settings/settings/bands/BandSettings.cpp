@@ -62,6 +62,7 @@ BandSettings::splitPipelines(bool split)
   if (split) {
     m_pipelineB = m_pipelineA;
     m_pipelineB.value().pivotFrequencyAroundCentre();
+    m_pipelineB.value().setAllChanged();
     m_focusPipelineId.apply(PipelineId::B);
     m_txPipelineId.apply(PipelineId::B);
     m_txPipeline.copyBasicsForTracking(m_pipelineB.value());

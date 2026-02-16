@@ -12,8 +12,10 @@ QChartView {
     qproperty-seriesLineColor: "#00d03f";
     qproperty-seriesAreaColor: "#00952d";
     qproperty-gridColor: "#061922";
-    qproperty-cursorLineColor: "#ca1c00";
-    qproperty-cursorAreaColor: "#80791d0e";
+    qproperty-cursorALineColor: "#ca1c00";
+    qproperty-cursorAAreaColor: "#80791d0e";
+    qproperty-cursorBLineColor: "#ca6B00";
+    qproperty-cursorBAreaColor: "#8079470e";
 }
 
 QToolBar#toolBar {

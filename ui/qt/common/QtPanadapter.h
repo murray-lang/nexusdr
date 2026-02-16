@@ -6,6 +6,7 @@
 #include <QAreaSeries>
 
 #include "QtChartBase.h"
+#include "config-settings/settings/pipeline/PipelineId.h"
 
 
 class QtPanadapter : public QtChartBase
@@ -16,30 +17,37 @@ public:
 
   void initialise() override;
 
-  void addPassbandOverlay(int32_t loCut, int32_t hiCut);
-  void updatePassbandOverlay(int32_t loCut, int32_t hiCut);
+  void showCursorB(bool show);
+
+  void addPassbandOverlayA(int64_t loCut, int64_t hiCut);
+  void addPassbandOverlayB(int64_t loCut, int64_t hiCut);
+  void updatePassbandOverlayA(int64_t loCut, int64_t hiCut);
+  void updatePassbandOverlayB(int64_t loCut, int64_t hiCut);
 
   void plot(
     const vsdrcomplex* timeSeriesData,
     uint32_t length,
     uint32_t sampleRate,
-    uint32_t centreFrequency,
+    int64_t centreFrequency,
     bool shuffle = true
   );
 
   void plot(
     const vsdrreal* spectrumData,
     uint32_t sampleRate,
-    uint32_t centreFrequency,
+    int64_t centreFrequency,
     bool shuffle = true
   );
 
-  void updateCursorPosition(uint32_t frequency, uint32_t loCut, uint32_t hiCut);
+  void updateCursorPositionA(int64_t frequency, int32_t loCut, int32_t hiCut);
+  void updateCursorPositionB(int64_t frequency, int32_t loCut, int32_t hiCut);
 
 protected:
   static void powerSpectrum(const std::vector<sdrcomplex>& timeSeries, uint32_t timeSeriesLength, vsdrreal& spectrumOut);
 
   QAreaSeries m_areaSeries;
-  QGraphicsLineItem* m_verticalCursorLine;
-  QGraphicsRectItem* m_filterPassbandRect;
+  QGraphicsLineItem* m_verticalCursorLineA;
+  QGraphicsRectItem* m_filterPassbandRectA;
+  QGraphicsLineItem* m_verticalCursorLineB;
+  QGraphicsRectItem* m_filterPassbandRectB;
 };

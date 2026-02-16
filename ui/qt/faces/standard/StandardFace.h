@@ -46,6 +46,10 @@ public:
 
 protected:
 
+  void updatePanadapter(BandSettings* bandSettings);
+  void updateCursorA(RxPipelineSettings* rxPipelineSettings);
+  void updateCursorB(RxPipelineSettings* rxPipelineSettings);
+
   // void notifySettingUpdate(SettingUpdate& settingUpdate) override
   // {
   //   if (m_pExternalSettingsSink != nullptr) {

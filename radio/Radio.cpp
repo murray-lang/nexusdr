@@ -97,10 +97,10 @@ Radio::applySettings(const RadioSettings& settings)
   if (settings.hasSettingChanged(RadioSettings::BAND)) {
 
     BandSettings* pBandSettings = settings.getFocusBandSettings();
-    RxPipelineSettings* rxPipelineSettings = pBandSettings->getFocusPipeline();
+    // RxPipelineSettings* rxPipelineSettings = pBandSettings->getFocusPipeline();
     if (m_pReceiver != nullptr) {
-      m_pReceiver->adjustRfSettingsToLimits(rxPipelineSettings->getRfSettings());
-      m_pReceiver->apply(rxPipelineSettings);
+      // m_pReceiver->adjustRfSettingsToLimits(rxPipelineSettings->getRfSettings());
+      m_pReceiver->apply(pBandSettings);
     }
     TxPipelineSettings* txPipelineSettings = pBandSettings->getTxPipeline();
     if (m_pTransmitter != nullptr) {

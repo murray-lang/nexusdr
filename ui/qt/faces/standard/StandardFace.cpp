@@ -67,6 +67,7 @@ void StandardFace::setRadio(Radio* radio) {
 
 void StandardFace::handleRadioSettingsChanged(RadioSettings* pRadioSettings)
 {
+  m_pFrequencyPanel->applyRadioSettings(pRadioSettings);
 
   BandSettings* bandSettings = pRadioSettings->getFocusBandSettings();
   RxPipelineSettings* rxPipelineSettings = bandSettings->getFocusPipeline();
@@ -74,18 +75,52 @@ void StandardFace::handleRadioSettingsChanged(RadioSettings* pRadioSettings)
     return;
   }
   RfSettings& rfSettings = rxPipelineSettings->getRfSettings();
-  auto centreFrequency = static_cast<int32_t>(rfSettings.getCentreFrequency());
-  int32_t vfo = rfSettings.getVfo();
-
-  m_pFrequencyPanel->applyRadioSettings(pRadioSettings);
-
+  auto centreFrequency = static_cast<int64_t>(rfSettings.getCentreFrequency());
   if (m_reportedIqSampleRate > 0) {
-    uint32_t xMin = centreFrequency - (m_reportedIqSampleRate / 2);
-    uint32_t xMax = centreFrequency + (m_reportedIqSampleRate / 2);
+    int64_t xMin = centreFrequency - (m_reportedIqSampleRate / 2);
+    int64_t xMax = centreFrequency + (m_reportedIqSampleRate / 2);
     m_pPanadapter->setSeriesXMinMax(xMin, xMax);
   }
+  updatePanadapter(bandSettings);
+}
+
+void
+StandardFace::updatePanadapter(BandSettings* bandSettings)
+{
+  RxPipelineSettings* rxPipelineASettings = bandSettings->getRxPipeline(PipelineId::A);
+  updateCursorA(rxPipelineASettings);
+
+  if (bandSettings->isMultiPipeline()) {
+    RxPipelineSettings* rxPipelineBSettings = bandSettings->getRxPipeline(PipelineId::B);
+    m_pPanadapter->showCursorB(true);
+    updateCursorB(rxPipelineBSettings);
+  } else {
+    m_pPanadapter->showCursorB(false);
+  }
+}
+
+void
+StandardFace::updateCursorA(RxPipelineSettings* rxPipelineSettings)
+{
+  if (rxPipelineSettings == nullptr) {
+    return;
+  }
+  RfSettings& rfSettings = rxPipelineSettings->getRfSettings();
+  int64_t vfo = rfSettings.getVfo();
   const Mode& mode = rxPipelineSettings->getMode();
-  m_pPanadapter->updateCursorPosition(vfo, mode.getLoCut(), mode.getHiCut());
+  m_pPanadapter->updateCursorPositionA(vfo, mode.getLoCut(), mode.getHiCut());
+}
+
+void
+StandardFace::updateCursorB(RxPipelineSettings* rxPipelineSettings)
+{
+  if (rxPipelineSettings == nullptr) {
+    return;
+  }
+  RfSettings& rfSettings = rxPipelineSettings->getRfSettings();
+  int64_t vfo = rfSettings.getVfo();
+  const Mode& mode = rxPipelineSettings->getMode();
+  m_pPanadapter->updateCursorPositionB(vfo, mode.getLoCut(), mode.getHiCut());
 }
 
 void
