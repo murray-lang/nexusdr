@@ -8,7 +8,7 @@
 
 #include "ControlSink.h"
 #include "ControlSource.h"
-#include <config/ControlConfig.h>
+#include "config-settings/config/ControlConfig.h"
 
 #include "ControlException.h"
 

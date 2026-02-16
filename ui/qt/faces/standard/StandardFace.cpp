@@ -7,16 +7,21 @@
 #include "../RegisterFace.h"
 #include "../../common/QtPanadapter.h"
 #include "../../common/QtTimeSeriesChart.h"
+#include "../../common/FrequencyPanel/QtFrequencyPanel.h"
 
 StandardFace::StandardFace(QWidget* parent)
   : FaceBase(parent)
   , ui(std::make_unique<Ui::StandardFace>())
-  , m_pRadio(nullptr)
+  // , m_pExternalSettingsSink(nullptr)
+  , m_internalSettingsSink(this)
   , m_pTimeSeriesChart(nullptr)
   , m_pPanadapter(nullptr)
   , m_reportedIqSampleRate(0)
 {
   ui->setupUi(this);
+  setAttribute(Qt::WA_StyledBackground, true);
+  qDebug() << "StandardFace objectName:" << this->objectName()
+           << "class:" << this->metaObject()->className();
 }
 
 StandardFace::~StandardFace()
@@ -41,6 +46,18 @@ StandardFace::initialise(RadioSettings* pRadioSettings)
 
   ui->volumeSlider->setRange(0, 100);
   ui->volumeSlider->setValue(100);
+
+  // Centered frequency readout in grid row 2
+  if (ui->frequencyReadoutSlot != nullptr) {
+    auto* slotLayout = new QHBoxLayout(ui->frequencyReadoutSlot);
+    slotLayout->setContentsMargins(0, 0, 0, 0);
+
+    m_pFrequencyPanel = new QtFrequencyPanel(ui->frequencyReadoutSlot);
+    slotLayout->addWidget(m_pFrequencyPanel);
+
+    m_pFrequencyPanel->initialise(pRadioSettings);
+    m_pFrequencyPanel->connectSettingUpdateSink(&m_internalSettingsSink);
+  }
 }
 
 
@@ -48,10 +65,11 @@ void StandardFace::setRadio(Radio* radio) {
   FaceBase::setRadio(radio);
 }
 
-void StandardFace::notifyRadioSettingsChanged() {
+void StandardFace::handleRadioSettingsChanged(RadioSettings* pRadioSettings)
+{
 
-  BandSettings* bandSettings = m_pRadioSettings->getFocusBandSettings();
-  RxPipelineSettings* rxPipelineSettings = bandSettings->getFocusRxPipelineSettings();
+  BandSettings* bandSettings = pRadioSettings->getFocusBandSettings();
+  RxPipelineSettings* rxPipelineSettings = bandSettings->getFocusPipeline();
   if (rxPipelineSettings == nullptr) {
     return;
   }
@@ -59,8 +77,7 @@ void StandardFace::notifyRadioSettingsChanged() {
   auto centreFrequency = static_cast<int32_t>(rfSettings.getCentreFrequency());
   int32_t vfo = rfSettings.getVfo();
 
-  ui->centreFrequencyLcd->display(centreFrequency);
-  ui->cursorFrequencyLcd->display(vfo);
+  m_pFrequencyPanel->applyRadioSettings(pRadioSettings);
 
   if (m_reportedIqSampleRate > 0) {
     uint32_t xMin = centreFrequency - (m_reportedIqSampleRate / 2);
@@ -72,10 +89,14 @@ void StandardFace::notifyRadioSettingsChanged() {
 }
 
 void
-StandardFace::handleReceiverIq(const vsdrcomplex* data, uint32_t length, uint32_t sampleRate)
+StandardFace::handleReceiverIq(
+  RadioSettings* pRadioSettings,
+  const vsdrcomplex* data,
+  uint32_t length,
+  uint32_t sampleRate)
 {
   m_reportedIqSampleRate = sampleRate;
-  RxPipelineSettings* rxPipelineSettings = m_pRadioSettings->getFocusRxPipelineSettings();
+  RxPipelineSettings* rxPipelineSettings = pRadioSettings->getFocusPipeline();
   if (rxPipelineSettings != nullptr) {
     const RfSettings& rfSettings = rxPipelineSettings->getRfSettings();
     uint32_t centreFrequency = rfSettings.getCentreFrequency();
@@ -94,10 +115,14 @@ StandardFace::handleReceiverAudio(const vsdrreal* data, uint32_t length)
 }
 
 void
-StandardFace::handleTransmitterIq(const vsdrcomplex* data, uint32_t length, uint32_t sampleRate)
+StandardFace::handleTransmitterIq(
+  RadioSettings* pRadioSettings,
+  const vsdrcomplex* data,
+  uint32_t length,
+  uint32_t sampleRate)
 {
   m_reportedIqSampleRate = sampleRate;
-  TxPipelineSettings* txPipelineSettings = m_pRadioSettings->getTxPipelineSettings();
+  TxPipelineSettings* txPipelineSettings = pRadioSettings->getTxPipelineSettings();
   if (txPipelineSettings != nullptr) {
     const RfSettings& rfSettings = txPipelineSettings->getRfSettings();
     uint32_t centreFrequency = rfSettings.getCentreFrequency();

@@ -7,13 +7,13 @@
 
 #include "SampleTypes.h"
 #include "SignalEmitter.h"
-#include "config/TransmitterConfig.h"
+#include "../../config-settings/config/TransmitterConfig.h"
 #include "io/audio/AudioInput.h"
 #include "io/audio/AudioOutput.h"
 #include "../../dsp/pipeline/IqTxPipeline.h"
 #include "io/iq/IqIo.h"
 #include "../../io/control/PttSink.h"
-#include "settings/TransmitterSettingsSink.h"
+#include "config-settings/settings/TransmitterSettingsSink.h"
 
 class ModeSettings;
 

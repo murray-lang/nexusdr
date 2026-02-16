@@ -8,7 +8,7 @@
 #include <AudioDriverFactory.h>
 #include "AudioIo.h"
 #include "AudioSink.h"
-#include "config/AudioConfig.h"
+#include "../../config-settings/config/AudioConfig.h"
 
 // template<typename T>
 class AudioInput : public AudioIo

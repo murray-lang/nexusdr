@@ -13,7 +13,7 @@
 
 #include "io/audio/drivers/RtAudio/RtAudioOutputDriver.h"
 #include "radio/Radio.h"
-#include "config/RadioConfig.h"
+#include "config-settings/config/RadioConfig.h"
 #include "ui/qt/common/QtPanadapter.h"
 #include "ui/qt/faces/FaceBase.h"
 // #include "settings/RadioSettingsEventPublisher.h"
@@ -48,7 +48,7 @@ protected:
   // void handleReceiverAudioEvent(const vsdrreal* data, uint32_t length);
   // void handleTransmitterIqEvent(const vsdrcomplex* data, uint32_t length, uint32_t sampleRate);
   // void handleTransmitterAudioEvent(const vsdrreal* data, uint32_t length);
-  void handleRadioSettingsEvent(const RadioSettings& radioSettings);
+  void handleRadioSettingsEvent(const RadioSettings& radioSettings, uint64_t sequence);
 
   void closeActiveToolbarPopups();
 

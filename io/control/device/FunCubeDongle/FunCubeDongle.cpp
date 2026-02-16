@@ -28,27 +28,33 @@ FunCubeDongle::applySettings(const RadioSettings& radioSettings)
   if (radioSettings.hasSettingChanged(RadioSettings::BAND)) {
     BandSettings* pBandSettings = radioSettings.getFocusBandSettings();
     // qDebug() << "  FunCubeDongle::applySettings: BAND_SETTINGS changed";
-    const RfSettings& rfSettings = pBandSettings->getFocusRxRfSettings();
-    if (rfSettings.hasSettingChanged(RfSettings::CENTER_FREQUENCY)) {
+    const RfSettings* rfSettings = pBandSettings->getFocusRxRfSettings();
+    if (rfSettings != nullptr) {
+      if (rfSettings->hasSettingChanged(RfSettings::CENTER_FREQUENCY)) {
         // qDebug() << "    FunCubeDongle::applySettings: FREQUENCY changed to " << rfSettings.frequency;
-      setFrequency(rfSettings.getCentreFrequency());
-      setRfFilter(rfSettings.getCentreFrequency());
-    }
-    if (rfSettings.hasSettingChanged(RfSettings::GAIN)) {
-      float gain = rfSettings.getGain();
-      setLnaGain(gain);
-      m_lastRfGain = gain;
+        setFrequency(rfSettings->getCentreFrequency());
+        setRfFilter(rfSettings->getCentreFrequency());
+      }
+      if (rfSettings->hasSettingChanged(RfSettings::GAIN)) {
+        float gain = rfSettings->getGain();
+        setLnaGain(gain);
+        m_lastRfGain = gain;
+      }
     }
 
-    const IfSettings& ifSettings = pBandSettings->getFocusRxIfSettings();
-    if (ifSettings.hasSettingChanged(IfSettings::BANDWIDTH)) {
-      setIfFilter(ifSettings.getBandwidth());
+
+    const IfSettings* ifSettings = pBandSettings->getFocusRxIfSettings();
+    if ( ifSettings != nullptr ) {
+      if (ifSettings->hasSettingChanged(IfSettings::BANDWIDTH)) {
+        setIfFilter(ifSettings->getBandwidth());
+      }
+      if (ifSettings->hasSettingChanged(IfSettings::GAIN)) {
+        float gain = ifSettings->getGain();
+        setIfGain(gain);
+        m_lastIfGain = gain;
+      }
     }
-    if (ifSettings.hasSettingChanged(IfSettings::GAIN)) {
-      float gain = ifSettings.getGain();
-      setIfGain(gain);
-      m_lastIfGain = gain;
-    }
+
 
     //setRfFilter(TRFE_8_16);
     //setIfFilter(TIFE_200KHZ);

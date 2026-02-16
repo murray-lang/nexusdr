@@ -180,11 +180,11 @@ set(PROJECT_SOURCES
         io/control/device/FunCubeDongle/FunCubeDongle.cpp
         io/control/device/FunCubeDongle/FunCubeDongle.h
         io/control/ControlException.h
-        settings/RfSettings.h
-        settings/IfSettings.h
-        settings/ReceiverSettings.h
-        settings/RadioSettings.h
-        settings/TransmitterSettings.h
+        config-settings/settings/RfSettings.h
+        config-settings/settings/IfSettings.h
+        config-settings/settings/ReceiverSettings.h
+        config-settings/settings/RadioSettings.h
+        config-settings/settings/TransmitterSettings.h
 
         dsp/pipeline/demodulators/AmDemodulator.cpp
         dsp/pipeline/filters/kernels/FirKernel.h
@@ -202,12 +202,12 @@ set(PROJECT_SOURCES
         dsp/pipeline/decimator/MyFirCoefficients.h
 
         dsp/pipeline/monitoring/MonitoringStage.h
-        config/RadioConfig.h
-        config/ReceiverConfig.h
-        config/TransmitterConfig.h
-        config/AudioConfig.h
-        config/ConfigBase.h
-        config/ConfigException.h
+        config-settings/config/RadioConfig.h
+        config-settings/config/ReceiverConfig.h
+        config-settings/config/TransmitterConfig.h
+        config-settings/config/AudioConfig.h
+        config-settings/config/ConfigBase.h
+        config-settings/config/ConfigException.h
 
 
         io/audio/AudioInput.h
@@ -230,15 +230,15 @@ set(PROJECT_SOURCES
         io/control/ControlSinkFactory.h
         io/control/ControlSinkFactory.cpp
 
-        settings/ReceiverSettingsSink.h
+        config-settings/settings/ReceiverSettingsSink.h
         io/control/PttSink.h
         radio/Radio.cpp
         radio/Radio.h
-        settings/RadioSettingsSink.h
-        config/ControlConfig.h
+        config-settings/settings/RadioSettingsSink.h
+        config-settings/config/ControlConfig.h
         io/control/ControlSink.cpp
         io/control/ControlSink.h
-        settings/RadioSettingsSource.h
+        config-settings/settings/RadioSettingsSource.h
         io/control/ControlSource.h
         io/control/PttSource.h
         io/control/ControlSourceFactory.cpp
@@ -254,10 +254,10 @@ set(PROJECT_SOURCES
         io/control/device/gpio/digital/GpioRotaryEncoder.h
         io/control/device/gpio/digital/DigitalInputs.cpp
         io/control/device/gpio/digital/DigitalInputs.h
-        settings/core/SettingUpdatePath.h
-        settings/core/SettingUpdate.h
-        settings/core/SettingsException.h
-        settings/core/SettingsBase.h
+        config-settings/settings/base/SettingUpdatePath.h
+        config-settings/settings/base/SettingUpdate.h
+        config-settings/settings/base/SettingsException.h
+        config-settings/settings/base/SettingsBase.h
         util/StringUtils.cpp
         util/StringUtils.h
         io/control/RadioControl.cpp
@@ -269,27 +269,27 @@ set(PROJECT_SOURCES
         io/control/device/gpio/digital/DigitalInputFactory.cpp
         io/control/device/gpio/digital/DigitalInputFactory.h
         io/control/device/gpio/digital/DigitalInputFactory.cpp
-        config/VariantConfig.h
-        config/ConfigFactory.cpp
-        config/ConfigFactory.h
-        config/DigitalInputsConfig.h
-        config/RotaryEncoderConfig.h
-        config/DigitalInputConfig.h
-        config/FunCubeConfig.h
-        settings/RadioSettingsEvent.cpp
-        settings/RadioSettingsEvent.h
-        settings/core/SettingUpdateEvent.cpp
-        settings/core/SettingUpdateEvent.h
+        config-settings/config/VariantConfig.h
+        config-settings/config/ConfigFactory.cpp
+        config-settings/config/ConfigFactory.h
+        config-settings/config/DigitalInputsConfig.h
+        config-settings/config/RotaryEncoderConfig.h
+        config-settings/config/DigitalInputConfig.h
+        config-settings/config/FunCubeConfig.h
+        config-settings/settings/RadioSettingsEvent.cpp
+        config-settings/settings/RadioSettingsEvent.h
+        config-settings/settings/base/SettingUpdateEvent.cpp
+        config-settings/settings/base/SettingUpdateEvent.h
         io/control/device/gpio/GpioLines.cpp
         io/control/device/gpio/GpioLines.h
-        config/GpioLinesConfig.h
+        config-settings/config/GpioLinesConfig.h
         dsp/pipeline/demodulators/SsbDemodulator.cpp
         dsp/pipeline/demodulators/SsbDemodulator.h
-        settings/Mode.h
-        settings/ModeSettings.h
-        settings/ModeSettings.cpp
+        config-settings/settings/Mode.h
+        config-settings/settings/ModeSettings.h
+        config-settings/settings/ModeSettings.cpp
         dsp/pipeline/resampler/Resampler.h
-        settings/TransmitterSettingsSink.h
+        config-settings/settings/TransmitterSettingsSink.h
         dsp/utils/HilbertTransform.h
         dsp/pipeline/modulators/Modulator.h
         dsp/pipeline/modulators/SsbModulator.h
@@ -297,37 +297,37 @@ set(PROJECT_SOURCES
         dsp/iq/AudioIqSource.h
         dsp/iq/IqSourceFactory.cpp
         dsp/iq/IqSourceFactory.h
-        config/AudioIqSourceConfig.h
+        config-settings/config/AudioIqSourceConfig.h
         dsp/iq/AudioSignalIqSource.h
         io/audio/AudioSink.h
-        config/AudioSignalIqSourceConfig.h
+        config-settings/config/AudioSignalIqSourceConfig.h
         dsp/pipeline/IqPipeline.h
         dsp/pipeline/IqRxPipeline.h
         dsp/pipeline/IqRxPipeline.cpp
         dsp/pipeline/IqPipeline.cpp
         dsp/pipeline/IqTxPipeline.cpp
         dsp/pipeline/IqTxPipeline.h
-        config/IqIoConfig.h
+        config-settings/config/IqIoConfig.h
         io/iq/IqIo.cpp
         io/iq/IqIo.h
         radio/transmitter/TransmitterIqEvent.cpp
         radio/transmitter/TransmitterIqEvent.h
         io/control/device/gpio/digital/DigitalOutput.cpp
         io/control/device/gpio/digital/DigitalOutput.h
-        config/DigitalOutputConfig.h
+        config-settings/config/DigitalOutputConfig.h
         io/control/device/gpio/digital/DigitalOutputLinesRequest.h
         io/control/device/gpio/digital/DigitalOutputLinesRequest.cpp
         dsp/pipeline/modulators/CwModulator.h
         dsp/pipeline/demodulators/CwDemodulator.cpp
         dsp/pipeline/demodulators/CwDemodulator.h
         dsp/pipeline/correction/IqCorrection.h
-        settings/IqCorrectionSettings.h
-        settings/MicSettings.h
+        config-settings/settings/IqCorrectionSettings.h
+        config-settings/settings/MicSettings.h
         dsp/pipeline/oscillators/TwoToneSignalStage.h
-        settings/TestSettings.h
-        settings/TwoToneSettings.h
-        config/BandSelectorConfig.h
-        config/BandSelectorLookupItemConfig.h
+        config-settings/settings/TestSettings.h
+        config-settings/settings/TwoToneSettings.h
+        config-settings/config/BandSelectorConfig.h
+        config-settings/config/BandSelectorLookupItemConfig.h
         io/control/device/gpio/digital/GpioBandSelector.cpp
         io/control/device/gpio/digital/GpioBandSelector.h
         io/audio/drivers/AudioDriver.h
@@ -337,35 +337,53 @@ set(PROJECT_SOURCES
         ui/qt/common/QtChartTheme.h
         ui/qt/common/QtBandDialog.cpp
         ui/qt/common/QtBandDialog.h
-        settings/bands/Band.h
-        settings/bands/BandCategory.h
-        settings/bands/Bands.h
-        settings/bands/Bands.cpp
-        settings/PipelineSettings.h
-        settings/RxPipelineSettings.h
-        settings/bands/BandSettings.h
-        settings/TxPipelineSettings.h
-        settings/core/SettingUpdateSink.h
-        settings/core/SettingUpdateSource.h
-        settings/core/SettingValue.h
-        settings/core/Setting.h
-        settings/core/SettingRegistry.h
+        config-settings/settings/bands/Band.h
+        config-settings/settings/bands/BandCategory.h
+        config-settings/settings/bands/Bands.h
+        config-settings/settings/bands/Bands.cpp
+        config-settings/settings/bands/BandSettings.cpp
+        config-settings/settings/pipeline/PipelineSettings.h
+        config-settings/settings/pipeline/RxPipelineSettings.h
+        config-settings/settings/bands/BandSettings.h
+        config-settings/settings/pipeline/TxPipelineSettings.h
+        config-settings/settings/base/SettingUpdateSink.h
+        config-settings/settings/base/SettingUpdateSource.h
+        config-settings/settings/base/SettingValue.h
+        config-settings/settings/base/Setting.h
+        config-settings/settings/base/SettingRegistry.h
         ui/qt/common/QtChartBase.cpp
         ui/qt/common/QtChartBase.h
         ui/qt/common/QtTimeSeriesChart.cpp
         ui/qt/common/QtTimeSeriesChart.h
         ui/qt/common/QtPanadapter.cpp
         ui/qt/common/QtPanadapter.h
-        settings/core/SteppableSetting.h
-        settings/bands/BandSelector.h
-        settings/RadioSettings.cpp
+        config-settings/settings/base/SteppableSetting.h
+        config-settings/settings/bands/BandSelector.h
+        config-settings/settings/RadioSettings.cpp
         ui/qt/faces/FaceBase.h
         ui/qt/faces/FaceFactory.cpp
         ui/qt/faces/FaceFactory.h
         ui/qt/faces/standard/StandardFace.cpp
         ui/qt/faces/standard/StandardFace.h
+        ui/qt/faces/standard/StandardFace.ui
         ui/qt/faces/RegisterFace.h
-        config/RadioUiConfig.h
+        config-settings/config/UiConfig.h
+        ui/qt/common/FrequencyPanel/QtFrequencyPanel.cpp
+        ui/qt/common/FrequencyPanel/QtFrequencyPanel.h
+        ui/qt/common/QtNumberReadout.cpp
+        ui/qt/common/QtNumberReadout.h
+        ui/qt/common/FrequencyPanel/QtBandReadout.cpp
+        ui/qt/common/FrequencyPanel/QtBandReadout.h
+        ui/qt/common/FrequencyPanel/VfoReadout/QtVfoReadout.cpp
+        ui/qt/common/FrequencyPanel/VfoReadout/QtVfoReadout.h
+        ui/qt/common/MiniVfoToolbar/QtMiniVfoToolbar.ui
+        config-settings/settings/pipeline/PipelineId.h
+        config-settings/settings/bands/SplitBandId.h
+        ui/qt/common/QWidgetPropertySetter.cpp
+        ui/qt/common/QWidgetPropertySetter.h
+        ui/qt/common/FrequencyPanel/VfoReadout/VfoActions.h
+        ui/qt/common/MiniVfoToolbar/QtMiniVfoToolbar.cpp
+        ui/qt/common/MiniVfoToolbar/QtMiniVfoToolbar.h
 
 )
 

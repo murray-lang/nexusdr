@@ -7,7 +7,7 @@
 
 #include "ControlBase.h"
 #include "PttSink.h"
-#include "settings/RadioSettingsSink.h"
+#include "config-settings/settings/RadioSettingsSink.h"
 
 class ControlSink : public ControlBase, public RadioSettingsSink, public PttSink
 {

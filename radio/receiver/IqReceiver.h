@@ -2,8 +2,8 @@
 
 #include "../../SignalEmitter.h"
 #include "../../io/audio/drivers/RtAudio/RtAudioOutputDriver.h"
-#include "config/ReceiverConfig.h"
-#include <settings/ReceiverSettingsSink.h>
+#include "../../config-settings/config/ReceiverConfig.h"
+#include "config-settings/settings/ReceiverSettingsSink.h"
 #include "../../dsp/pipeline/IqRxPipeline.h"
 #include "io/iq/IqIo.h"
 

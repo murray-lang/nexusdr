@@ -116,6 +116,9 @@ public:
         if (m_queue.empty()) {
           m_dataAvailable.wait(&m_mutex);
         }
+        if (!m_running) {
+          break;
+        }
         if (!m_queue.empty()) {
           uint32_t requiredFrames = m_maxPacketFrames - m_numCurrentFrames;
           uint32_t numIncomingFrames = m_queue.size() / m_format.channelCount;

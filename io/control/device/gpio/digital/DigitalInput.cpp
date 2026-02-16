@@ -3,9 +3,9 @@
 //
 
 #include "DigitalInput.h"
-#include <settings/RadioSettings.h>
+#include "config-settings/settings/RadioSettings.h"
 
-#include "../../../../../settings/core/SettingUpdateSink.h"
+#include "config-settings/settings/base/SettingUpdateSink.h"
 
 DigitalInput::DigitalInput() :
   GpioLines(Direction::INPUT),
@@ -29,7 +29,7 @@ DigitalInput::configure(const DigitalInputConfig* pConfig)
 }
 
 void
-DigitalInput::connect(SettingUpdateSink* pSink)
+DigitalInput::connectSettingUpdateSink(SettingUpdateSink* pSink)
 {
   m_pSink = pSink;
 }

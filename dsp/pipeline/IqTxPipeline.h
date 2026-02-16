@@ -14,7 +14,7 @@
 #include "resampler/Resampler.h"
 #include "dsp/pipeline/monitoring/MonitoringStage.h"
 #include "modulators/CwModulator.h"
-#include "settings/TransmitterSettingsSink.h"
+#include "config-settings/settings/TransmitterSettingsSink.h"
 #include <chrono>
 
 #include "modulators/FmModulator.h"

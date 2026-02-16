@@ -6,8 +6,8 @@
 
 #include "AudioIqSource.h"
 #include "AudioSignalIqSource.h"
-#include "config/AudioIqSourceConfig.h"
-#include "config/AudioSignalIqSourceConfig.h"
+#include "../../config-settings/config/AudioIqSourceConfig.h"
+#include "config-settings/config/AudioSignalIqSourceConfig.h"
 
 IqSource*
 IqSourceFactory::create(const ConfigBase* pConfig)

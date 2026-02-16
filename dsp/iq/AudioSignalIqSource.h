@@ -4,7 +4,7 @@
 
 #pragma once
 #include "IqSource.h"
-#include "config/AudioSignalIqSourceConfig.h"
+#include "../../config-settings/config/AudioSignalIqSourceConfig.h"
 #include "io/audio/AudioInput.h"
 #include "io/audio/AudioSink.h"
 

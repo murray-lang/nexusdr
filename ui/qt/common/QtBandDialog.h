@@ -5,8 +5,8 @@
 #pragma once
 #include <QDialog>
 
-#include "../../../settings/bands/BandCategory.h"
-#include "settings/RadioSettingsSink.h"
+#include "config-settings/settings/bands/BandCategory.h"
+#include "config-settings/settings/RadioSettingsSink.h"
 
 class Bands;
 

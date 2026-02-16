@@ -16,12 +16,12 @@ QChartView {
     qproperty-cursorAreaColor: "#80791d0e";
 }
 
-QToolBar {
+QToolBar#toolBar {
     background-color: #0c394c;
     qproperty-iconSize: 48px 48px;
 }
 
-QToolButton {
+QToolBar#toolBar QToolButton {
     color: palette(window-text);
     border-radius: 0px;
     qproperty-iconSize: 48px 48px;

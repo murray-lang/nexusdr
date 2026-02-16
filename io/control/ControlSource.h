@@ -5,7 +5,7 @@
 #pragma once
 
 #include "ControlBase.h"
-#include <settings/RadioSettingsSource.h>
+#include "config-settings/settings/RadioSettingsSource.h"
 
 class ControlSource : public ControlBase, public RadioSettingsSource
 {

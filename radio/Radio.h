@@ -7,14 +7,14 @@
 
 // #include <io/control/ControlSink.h>
 #include <io/control/ControlSource.h>
-#include "config/RadioConfig.h"
+#include "../config-settings/config/RadioConfig.h"
 #include <io/control/RadioControl.h>
 #include "receiver/IqReceiver.h"
-#include <settings/RadioSettingsSink.h>
+#include "config-settings/settings/RadioSettingsSink.h"
 
-#include "../settings/ModeSettings.h"
-#include "../settings/bands/BandSelector.h"
-#include "settings/RadioSettings.h"
+#include "config-settings/settings/ModeSettings.h"
+#include "config-settings/settings/bands/BandSelector.h"
+#include "config-settings/settings/RadioSettings.h"
 #include "transmitter/IqTransmitter.h"
 
 class Radio : public RadioSettingsSink, PttSink {
@@ -27,6 +27,8 @@ public:
   void start();
   void stop();
 
+  uint64_t getUpdateSequence() const { return m_updateSequence; }
+
   template<typename T>
   void applySetting(const char * dottedString, T value, bool isDelta = false)
   {
@@ -37,8 +39,11 @@ public:
   void applySettings(const RadioSettings& settings) override;
   // void applySettings(const RadioSettings& settings, BandSettings* pBandSettings) override;
   void applySettingUpdate(SettingUpdate& setting) override;
+  void applySettingUpdates(SettingUpdate* updates, std::size_t count) override;
 
   void applyBand(const std::string& bandName);
+
+  void split(const std::string& bandA, const std::string& bandB);
 
   void applyRfSettings(const RfSettings& settings, bool onlyChanged = false)
   {
@@ -85,5 +90,6 @@ protected:
   RadioControl* m_pControl;
 
   QObject* m_pEventTarget;
+  uint64_t m_updateSequence;
 };
 

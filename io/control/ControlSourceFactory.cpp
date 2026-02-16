@@ -4,7 +4,7 @@
 
 #include "ControlSourceFactory.h"
 
-#include "config/DigitalInputsConfig.h"
+#include "../../config-settings/config/DigitalInputsConfig.h"
 #include "util/StringUtils.h"
 #include "device/gpio/digital/DigitalInputs.h"
 #include "device/gpio/digital/GpioRotaryEncoder.h"

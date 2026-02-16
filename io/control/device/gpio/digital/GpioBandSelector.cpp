@@ -4,11 +4,11 @@
 
 #include "io/control/device/gpio/Gpio.h"
 #include "io/control/device/gpio/GpioException.h"
-#include "settings/RadioSettings.h"
+#include "config-settings/settings/RadioSettings.h"
 #include "GpioBandSelector.h"
 
-#include "config/BandSelectorConfig.h"
-#include "config/DigitalInputConfig.h"
+#include "../../../../../config-settings/config/BandSelectorConfig.h"
+#include "../../../../../config-settings/config/DigitalInputConfig.h"
 
 GpioBandSelector::GpioBandSelector() :
   m_defaultOut(0),

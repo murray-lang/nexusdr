@@ -19,8 +19,8 @@
 
 #include <QToolButton>
 #include "ui/qt/common/QtChartTheme.h"
-#include "settings/bands/Bands.h"
-#include "settings/RadioSettingsEvent.h"
+#include "config-settings/settings/bands/Bands.h"
+#include "config-settings/settings/RadioSettingsEvent.h"
 #include "ui/qt/common/QtBandDialog.h"
 #include "ui/qt/common/QtTimeSeriesChart.h"
 #include "ui/qt/faces/FaceFactory.h"
@@ -64,16 +64,16 @@ MainWindow::customEvent(QEvent* event)
   if (m_pFace) {
     if (event->type() == ReceiverIqEvent::RxIqEvent) {
       auto* iqEvent = dynamic_cast<ReceiverIqEvent*>(event);
-      m_pFace->handleReceiverIq(iqEvent->buffer.get(), iqEvent->dataLength, iqEvent->sampleRate);
+      m_pFace->handleReceiverIq(&m_radioSettingsCopy,iqEvent->buffer.get(), iqEvent->dataLength, iqEvent->sampleRate);
     } else if (event->type() == ReceiverAudioEvent::RxAudioEvent) {
       auto* audioEvent = dynamic_cast<ReceiverAudioEvent*>(event);
       m_pFace->handleReceiverAudio(audioEvent->buffer.get(), audioEvent->dataLength);
     } else if (event->type() == RadioSettingsEvent::RadioSettingsEventType) {
       auto* radioSettingsEvent = dynamic_cast<RadioSettingsEvent*>(event);
-      handleRadioSettingsEvent(radioSettingsEvent->getRadioSettings());
+      handleRadioSettingsEvent(radioSettingsEvent->getRadioSettings(), radioSettingsEvent->getSequence());
     } else if (event->type() == TransmitterIqEvent::TxIqEvent) {
       auto* iqEvent = dynamic_cast<TransmitterIqEvent*>(event);
-      m_pFace->handleTransmitterIq(iqEvent->buffer.get(), iqEvent->dataLength, iqEvent->sampleRate);
+      m_pFace->handleTransmitterIq(&m_radioSettingsCopy, iqEvent->buffer.get(), iqEvent->dataLength, iqEvent->sampleRate);
     } else if (event->type() == TransmitterAudioEvent::TxAudioEvent) {
       auto* audioEvent = dynamic_cast<TransmitterAudioEvent*>(event);
       m_pFace->handleTransmitterAudio(audioEvent->buffer.get(), audioEvent->dataLength);
@@ -82,27 +82,30 @@ MainWindow::customEvent(QEvent* event)
 }
 
 void
-MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings)
+MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings, uint64_t sequence)
 {
+  uint64_t currentSequence = m_pRadio->getUpdateSequence();
   m_radioSettingsCopy = radioSettings;
-
-  // Find the existing band dialog if it's open
   auto* bandDialog = findChild<QtBandDialog*>("bandPanel");
   if (bandDialog != nullptr) {
     bandDialog->applySettings(m_radioSettingsCopy);
   }
-  BandSettings* bandSettings = m_radioSettingsCopy.getFocusBandSettings();
+  BandSettings* bandSettings = RadioSettings::getFocusBandSettings();
   updateBandButton(bandSettings->getBand());
 
-  RxPipelineSettings* rxPipelineSettings = bandSettings->getFocusRxPipelineSettings();
+  RxPipelineSettings* rxPipelineSettings = bandSettings->getFocusPipeline();
   if (rxPipelineSettings != nullptr) {
     const Mode& mode = rxPipelineSettings->getMode();
     updateModeButton(mode);
   }
   if (m_pFace) {
-    m_pFace->notifyRadioSettingsChanged();
+    m_pFace->handleRadioSettingsChanged(&m_radioSettingsCopy);
   }
   m_radioSettingsCopy.clearChanged();
+  if (sequence == currentSequence) {
+    bandSettings->clearChanged();
+    // m_radioSettingsCopy.getBandSelector().clearChanged();
+  }
 }
 
 void
@@ -241,7 +244,7 @@ MainWindow::addModeButton()
   }
   RadioSettings& radioSettings = m_pRadio->getRadioSettings();
   const BandSettings* bandSettings = m_pRadio->getFocusBandSettings();
-  const RxPipelineSettings* rxPipelineSettings = bandSettings->getFocusRxPipelineSettings();
+  const RxPipelineSettings* rxPipelineSettings = bandSettings->getFocusPipeline();
   if (rxPipelineSettings == nullptr) {
     throw SettingsException("Radio pipeline settings not found for selected band");
   }
@@ -271,9 +274,9 @@ MainWindow::addModeButton()
     // hint: sizeHint() is usually accurate for menus before they are shown
     pos.setY(pos.y() - modeMenu->sizeHint().height());
 
-    const Mode& currMode = m_radioSettingsCopy.getFocusRxPipelineMode();
+    const Mode* currMode = m_radioSettingsCopy.getFocusRxPipelineMode();
     for (QAction *action : modeMenu->actions()) {
-      action->setChecked(currMode.getName() == action->text().toStdString());
+      action->setChecked(currMode->getName() == action->text().toStdString());
     }
     modeMenu->exec(pos);
   });
@@ -293,8 +296,8 @@ MainWindow::createModeMenu(const Mode& currentMode)
 
   SettingUpdatePath settingPath({
     RadioSettings::Features::BAND,
-    BandSelector::SELECTED,
-    BandSettings::Features::RX_PIPELINE,
+    BandSelector::WITH_FOCUS,
+    BandSettings::Features::WITH_FOCUS_PIPELINE,
     PipelineSettings::Features::MODE
   });
   for (const auto& mode : allModes) {
@@ -430,6 +433,8 @@ MainWindow::initialiseRadio()
     m_pRadio->start();
 
     m_pRadio->applyBand("40m");
+    //m_pRadio->split("40m", "20m");
+    // m_pRadio->addPipeline();
 
     RfSettings rfSettings;
     rfSettings.setGain(30.0);

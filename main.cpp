@@ -63,12 +63,36 @@ int main(int argc, char *argv[])
   QApplication app(argc, argv);
 
   const QString styleSheetPath = configHome + "/cutesdr-vk6hl.qss";
-  QFile file(styleSheetPath);
-  if (file.open(QFile::ReadOnly | QFile::Text)) {
-    QTextStream ts(&file);
-    app.setStyleSheet(ts.readAll());
-    file.close();
-    qDebug() << "Loaded custom stylesheet from:" << styleSheetPath;
+  const QString standardFaceQssPath = configHome + "/StandardFace.qss";
+
+  auto readQssFile = [](const QString& path) -> QString {
+    QFile f(path);
+    if (!f.open(QFile::ReadOnly | QFile::Text)) {
+      return {};
+    }
+    QTextStream ts(&f);
+    return ts.readAll();
+  };
+
+  QString combinedQss;
+  const QString baseQss = readQssFile(styleSheetPath);
+  if (!baseQss.isEmpty()) {
+    combinedQss += baseQss;
+    combinedQss += "\n";
+  }
+
+  const QString faceQss = readQssFile(standardFaceQssPath);
+  if (!faceQss.isEmpty()) {
+    combinedQss += "\n/* ---- StandardFace.qss ---- */\n";
+    combinedQss += faceQss;
+    combinedQss += "\n";
+  }
+
+  if (!combinedQss.isEmpty()) {
+    app.setStyleSheet(combinedQss);
+    qDebug() << "Loaded stylesheets from:" << styleSheetPath << "and" << standardFaceQssPath;
+  } else {
+    qDebug() << "No stylesheets loaded (missing/empty):" << styleSheetPath << "and" << standardFaceQssPath;
   }
 
   MainWindow w(radioConfig);

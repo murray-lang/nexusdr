@@ -11,8 +11,8 @@
 #include <QMouseEvent>
 
 #include "ui_QtBandDialog.h"
-#include "../../../settings/bands/Bands.h"
-#include "settings/RadioSettings.h"
+#include "config-settings/settings/bands/Bands.h"
+#include "config-settings/settings/RadioSettings.h"
 #include "radio/Radio.h"
 
 QtBandDialog::QtBandDialog(Radio* pRadio, QWidget *parent) :

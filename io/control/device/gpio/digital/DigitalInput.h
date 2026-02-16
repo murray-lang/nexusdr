@@ -6,10 +6,10 @@
 
 #include <cstdint>
 #include <vector>
-#include <config/DigitalInputConfig.h>
-#include "../../../../../settings/core/SettingUpdatePath.h"
+#include "config-settings/config/DigitalInputConfig.h"
+#include "config-settings/settings/base/SettingUpdatePath.h"
 #include "DigitalInputLinesRequest.h"
-#include "../../../../../settings/core/SettingUpdateSource.h"
+#include "config-settings/settings/base/SettingUpdateSource.h"
 #include "io/control/ControlException.h"
 
 
@@ -30,7 +30,7 @@ public:
 
   virtual bool handleLineChange(DigitalInputLinesRequest::LineStates& changedLines);
 
-  void connect(SettingUpdateSink* pSink) override;
+  void connectSettingUpdateSink(SettingUpdateSink* pSink) override;
 protected:
   void notifyChange(const DigitalInputLinesRequest::LineState& lineState);
   void notifySettingUpdate(SettingUpdate& settingDelta) override;

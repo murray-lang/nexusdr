@@ -7,8 +7,8 @@
 #define PING_PONG_LENGTH 8192
 #define DEFAULT_SAMPLE_RATE 48000
 
-#include "settings/ModeSettings.h"
-#include "settings/RxPipelineSettings.h"
+#include "config-settings/settings/ModeSettings.h"
+#include "config-settings/settings/pipeline/RxPipelineSettings.h"
 
 IqRxPipeline::IqRxPipeline(QObject* eventTarget) :
   IqPipeline(eventTarget),
