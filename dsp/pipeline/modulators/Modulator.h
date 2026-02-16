@@ -8,7 +8,7 @@
 
 #include "SampleTypes.h"
 
-#include "settings/Mode.h"
+#include "config-settings/settings/Mode.h"
 
 class Modulator //: public IqPipelineStage
 {

@@ -4,11 +4,12 @@
 #include "ControlSinkFactory.h"
 #include <nlohmann/json.hpp>
 
-#include "config/BandSelectorConfig.h"
-#include "config/FunCubeConfig.h"
+#include "../../config-settings/config/BandSelectorConfig.h"
+#include "../../config-settings/config/FunCubeConfig.h"
 #include "device/FunCubeDongle/FunCubeDongle.h"
 #include "device/gpio/digital/GpioBandSelector.h"
 #include "device/gpio/digital/DigitalOutput.h"
+#include "util/StringUtils.h"
 
 ControlSink*
 ControlSinkFactory::create(const ConfigBase* pConfig)

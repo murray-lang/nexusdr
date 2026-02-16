@@ -7,7 +7,7 @@
 #include "io/control/ControlException.h"
 #include "io/control/device/gpio/Gpio.h"
 #include "io/control/device/gpio/GpioException.h"
-#include "settings/RadioSettings.h"
+#include "config-settings/settings/RadioSettings.h"
 
 DigitalOutput::DigitalOutput() :
   GpioLines(Direction::OUTPUT)

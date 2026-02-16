@@ -7,7 +7,7 @@
 #include "../FaceBase.h"
 #include <memory>
 
-#include "settings/RadioSettings.h"
+#include "config-settings/settings/RadioSettings.h"
 #include "radio/Radio.h"
 
 class QtFrequencyPanel;

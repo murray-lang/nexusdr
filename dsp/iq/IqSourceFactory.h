@@ -6,7 +6,7 @@
 #include <string>
 
 #include "IqSource.h"
-#include "config/ConfigBase.h"
+#include "../../config-settings/config/ConfigBase.h"
 
 
 class IqSourceFactory

@@ -7,12 +7,12 @@
 #include <QWidget>
 #include <memory>
 
-#include "settings/RadioSettings.h"
-#include "settings/bands/BandSettings.h"
-#include "settings/bands/SplitBandId.h"
-#include "settings/base/SettingUpdate.h"
-#include "settings/pipeline/PipelineId.h"
-#include "settings/Mode.h"
+#include "config-settings/settings/RadioSettings.h"
+#include "config-settings/settings/bands/BandSettings.h"
+#include "config-settings/settings/bands/SplitBandId.h"
+#include "config-settings/settings/base/SettingUpdate.h"
+#include "config-settings/settings/pipeline/PipelineId.h"
+#include "config-settings/settings/Mode.h"
 
 namespace Ui { class QtMiniVfoToolbar; }
 

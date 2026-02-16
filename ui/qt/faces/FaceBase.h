@@ -6,8 +6,8 @@
 #include <QWidget>
 
 #include "SampleTypes.h"
-#include "settings/RadioSettingsSink.h"
-#include "settings/base/SettingUpdateSource.h"
+#include "config-settings/settings/RadioSettingsSink.h"
+#include "config-settings/settings/base/SettingUpdateSource.h"
 
 
 class Radio;

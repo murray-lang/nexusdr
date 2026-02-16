@@ -4,7 +4,7 @@
 
 #include "GpioLines.h"
 
-#include "config/ConfigException.h"
+#include "../../../../config-settings/config/ConfigException.h"
 
 GpioLines::GpioLines() :
   m_direction(Direction::AS_IS),

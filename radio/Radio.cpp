@@ -6,9 +6,8 @@
 
 #include <qcoreapplication.h>
 
-#include "settings/RadioSettings.h"
-#include "settings/RadioSettingsEvent.h"
-#include "../settings/base/SettingUpdateEvent.h"
+#include "config-settings/settings/RadioSettings.h"
+#include "config-settings/settings/RadioSettingsEvent.h"
 #include <QDebug>
 
 
@@ -94,9 +93,10 @@ Radio::applySettings(const RadioSettings& settings)
     return; // Don't try to do anything else concurrently with PTT.
   }
 
-  BandSettings* pBandSettings = settings.getFocusBandSettings();
+
   if (settings.hasSettingChanged(RadioSettings::BAND)) {
 
+    BandSettings* pBandSettings = settings.getFocusBandSettings();
     RxPipelineSettings* rxPipelineSettings = pBandSettings->getFocusPipeline();
     if (m_pReceiver != nullptr) {
       m_pReceiver->adjustRfSettingsToLimits(rxPipelineSettings->getRfSettings());

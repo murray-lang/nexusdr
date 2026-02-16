@@ -9,10 +9,10 @@
 
 #include "QtBandReadout.h"
 #include "VfoReadout/QtVfoReadout.h"
-#include "settings/bands/BandSelector.h"
-#include "settings/bands/SplitBandId.h"
-#include "settings/base/SettingUpdateSink.h"
-#include "settings/base/SettingUpdateSource.h"
+#include "config-settings/settings/bands/BandSelector.h"
+#include "config-settings/settings/bands/SplitBandId.h"
+#include "config-settings/settings/base/SettingUpdateSink.h"
+#include "config-settings/settings/base/SettingUpdateSource.h"
 
 class RadioSettings;
 

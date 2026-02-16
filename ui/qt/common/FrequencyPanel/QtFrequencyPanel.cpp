@@ -10,8 +10,8 @@
 
 #include <QStyle>
 
-#include "settings/RadioSettings.h"
-#include "settings/bands/BandSelector.h"
+#include "config-settings/settings/RadioSettings.h"
+#include "config-settings/settings/bands/BandSelector.h"
 
 QtFrequencyPanel::QtFrequencyPanel(QWidget* parent)
   : QWidget(parent)

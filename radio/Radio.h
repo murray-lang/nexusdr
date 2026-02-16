@@ -7,14 +7,14 @@
 
 // #include <io/control/ControlSink.h>
 #include <io/control/ControlSource.h>
-#include "config/RadioConfig.h"
+#include "../config-settings/config/RadioConfig.h"
 #include <io/control/RadioControl.h>
 #include "receiver/IqReceiver.h"
-#include <settings/RadioSettingsSink.h>
+#include "config-settings/settings/RadioSettingsSink.h"
 
-#include "../settings/ModeSettings.h"
-#include "../settings/bands/BandSelector.h"
-#include "settings/RadioSettings.h"
+#include "config-settings/settings/ModeSettings.h"
+#include "config-settings/settings/bands/BandSelector.h"
+#include "config-settings/settings/RadioSettings.h"
 #include "transmitter/IqTransmitter.h"
 
 class Radio : public RadioSettingsSink, PttSink {

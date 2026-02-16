@@ -4,8 +4,8 @@
 #include <string>
 #include <cstdint>
 #include "../Mode.h"
-#include "settings/bands/SplitBandId.h"
-#include "settings/pipeline/PipelineId.h"
+#include "config-settings/settings/bands/SplitBandId.h"
+#include "config-settings/settings/pipeline/PipelineId.h"
 
 /**
  * The unified variant type for all setting data in the system.

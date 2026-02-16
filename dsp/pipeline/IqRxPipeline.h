@@ -16,7 +16,7 @@
 #include "demodulators/CwDemodulator.h"
 #include "filters/FastFIR.h"
 #include "oscillators/OscillatorMixer.h"
-#include "settings/ReceiverSettingsSink.h"
+#include "config-settings/settings/ReceiverSettingsSink.h"
 #include "dsp/pipeline/monitoring/MonitoringStage.h"
 
 class ModeSettings;

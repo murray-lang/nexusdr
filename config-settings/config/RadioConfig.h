@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <config/ControlConfig.h>
+#include "config-settings/config/ControlConfig.h"
 #include "ConfigBase.h"
 #include "UiConfig.h"
 #include "ReceiverConfig.h"

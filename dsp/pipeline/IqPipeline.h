@@ -8,12 +8,12 @@
 #include "dsp/iq/IqSource.h"
 #include "io/audio/AudioSink.h"
 #include "io/iq/IqIo.h"
-#include "settings/Mode.h"
+#include "config-settings/settings/Mode.h"
 #include "../../io/control/PttSink.h"
 #include "oscillators/OscillatorMixer.h"
 #include <qcoreevent.h>
 
-#include "settings/RfSettings.h"
+#include "config-settings/settings/RfSettings.h"
 
 
 class PipelineSettings;

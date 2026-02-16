@@ -9,8 +9,7 @@
 #include "../Gpio.h"
 #include "DigitalInputLinesRequest.h"
 #include <QThread>
-#include <config/DigitalInputConfig.h>
-#include "config/DigitalInputsConfig.h"
+#include "config-settings/config/DigitalInputsConfig.h"
 #include "io/control/ControlException.h"
 
 class DigitalInputs : public ControlSource, public DigitalInputLinesRequest::Callback
@@ -39,6 +38,7 @@ protected:
   void deleteInputs();
 
   void createLineToInputMap();
+
   void readInitialInputStates();
 
   class InternalSink : public SettingUpdateSink

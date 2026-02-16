@@ -13,12 +13,9 @@
 #include <string>
 #include <vector>
 
-// #include "bands/Band.h"
-// #include "./bands/Bands.h"
 #include "bands/BandSettings.h"
 #include "bands/BandSelector.h"
 #include "base/SettingsException.h"
-#include "../util/StringUtils.h"
 
 
 class RadioSettings : public SettingsBase {

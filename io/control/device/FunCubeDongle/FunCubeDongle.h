@@ -7,7 +7,7 @@
 
 #include "../../ControlSink.h"
 #include "../usb/HidUsbControl.h"
-#include "settings/RadioSettings.h"
+#include "config-settings/settings/RadioSettings.h"
 #include "FCDHidCmd.h"
 #include "io/control/ControlException.h"
 

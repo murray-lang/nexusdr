@@ -19,8 +19,8 @@
 
 #include <QToolButton>
 #include "ui/qt/common/QtChartTheme.h"
-#include "settings/bands/Bands.h"
-#include "settings/RadioSettingsEvent.h"
+#include "config-settings/settings/bands/Bands.h"
+#include "config-settings/settings/RadioSettingsEvent.h"
 #include "ui/qt/common/QtBandDialog.h"
 #include "ui/qt/common/QtTimeSeriesChart.h"
 #include "ui/qt/faces/FaceFactory.h"

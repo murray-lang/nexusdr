@@ -3,11 +3,11 @@
 //
 
 #pragma once
-#include "config/DigitalOutputConfig.h"
+#include "config-settings/config/DigitalOutputConfig.h"
 #include "io/control/ControlSink.h"
 #include "io/control/device/gpio/GpioLines.h"
-#include "settings/RadioSettingsSink.h"
-#include "../../../../../settings/base/SettingUpdatePath.h"
+#include "config-settings/settings/RadioSettingsSink.h"
+#include "config-settings/settings/base/SettingUpdatePath.h"
 
 
 class DigitalOutputLinesRequest;

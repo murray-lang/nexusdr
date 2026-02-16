@@ -8,7 +8,7 @@
 #include <string>
 #include <nlohmann/json.hpp>
 
-#include "config/ConfigBase.h"
+#include "../../config-settings/config/ConfigBase.h"
 
 class ControlBase {
 public:

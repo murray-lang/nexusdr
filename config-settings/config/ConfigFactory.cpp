@@ -6,7 +6,7 @@
 
 #include "AudioConfig.h"
 #include "ReceiverConfig.h"
-#include "TransmitterConfig.h"  
+#include "TransmitterConfig.h"
 #include "VariantConfig.h"
 #include <stdexcept>
 

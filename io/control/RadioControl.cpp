@@ -7,9 +7,9 @@
 #include "ControlException.h"
 #include "ControlSinkFactory.h"
 #include "ControlSourceFactory.h"
-#include "config/ConfigException.h"
-#include "settings/RadioSettings.h"
-#include "../../settings/base/SettingUpdatePath.h"
+#include "../../config-settings/config/ConfigException.h"
+#include "config-settings/settings/RadioSettings.h"
+#include "config-settings/settings/base/SettingUpdatePath.h"
 
 RadioControl::RadioControl() :
   m_internalSink(this),

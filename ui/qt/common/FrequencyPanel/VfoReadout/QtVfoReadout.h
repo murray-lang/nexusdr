@@ -6,8 +6,8 @@
 #include "../../QtNumberReadout.h"
 #include "VfoActions.h"
 #include "SampleTypes.h"
-#include "settings/pipeline/PipelineId.h"
-#include "settings/base/SettingUpdate.h"
+#include "config-settings/settings/pipeline/PipelineId.h"
+#include "config-settings/settings/base/SettingUpdate.h"
 
 class BandSettings;
 class QtMiniVfoToolbar;

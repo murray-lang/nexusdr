@@ -4,7 +4,7 @@
 
 #pragma once
 #include "dsp/pipeline/IqPipelineStage.h"
-#include "settings/IqCorrectionSettings.h"
+#include "config-settings/settings/IqCorrectionSettings.h"
 #include <qdebug.h>
 
 

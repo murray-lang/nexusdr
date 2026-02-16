@@ -1,6 +1,6 @@
 #pragma once
 
-#include "settings/Mode.h"
+#include "config-settings/settings/Mode.h"
 #include "SampleTypes.h"
 
 class Demodulator

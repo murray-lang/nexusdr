@@ -4,6 +4,8 @@
 
 #include "RadioSettings.h"
 
+#include "util/StringUtils.h"
+
 BandSelector RadioSettings::m_bandSelector;
 
 BandSettings*

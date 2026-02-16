@@ -7,7 +7,7 @@
 #include <string>
 
 #include "ControlSink.h"
-#include "config/ConfigBase.h"
+#include "../../config-settings/config/ConfigBase.h"
 
 
 class ControlSinkFactory

@@ -3,15 +3,14 @@
 //
 
 #include "DigitalInputs.h"
-#include <config/ConfigException.h>
+#include "config-settings/config/ConfigException.h"
+#include "config-settings/config/DigitalInputsConfig.h"
 #include "../../../ControlSource.h"
 #include "../../../ControlSourceFactory.h"
 #include <poll.h>
 #include <qdebug.h>
-#include <config/DigitalInputConfig.h>
 
 #include "DigitalInputFactory.h"
-#include "config/DigitalInputsConfig.h"
 #include "io/control/device/gpio/GpioException.h"
 #include "io/control/device/gpio/GpioLines.h"
 

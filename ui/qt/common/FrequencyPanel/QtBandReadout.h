@@ -7,9 +7,9 @@
 #include <QWidget>
 #include <QStackedLayout>
 
-#include "settings/bands/BandSettings.h"
-#include "settings/bands/SplitBandId.h"
-#include "settings/base/SettingUpdateSink.h"
+#include "config-settings/settings/bands/BandSettings.h"
+#include "config-settings/settings/bands/SplitBandId.h"
+#include "config-settings/settings/base/SettingUpdateSink.h"
 #include "VfoReadout/QtVfoReadout.h"
 #include "VfoReadout/VfoActions.h"
 

@@ -6,10 +6,10 @@
 
 #include <cstdint>
 #include <vector>
-#include <config/DigitalInputConfig.h>
-#include "../../../../../settings/base/SettingUpdatePath.h"
+#include "config-settings/config/DigitalInputConfig.h"
+#include "config-settings/settings/base/SettingUpdatePath.h"
 #include "DigitalInputLinesRequest.h"
-#include "../../../../../settings/base/SettingUpdateSource.h"
+#include "config-settings/settings/base/SettingUpdateSource.h"
 #include "io/control/ControlException.h"
 
 

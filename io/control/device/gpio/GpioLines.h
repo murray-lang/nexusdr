@@ -6,7 +6,7 @@
 
 #include <cstdint>
 
-#include "config/GpioLinesConfig.h"
+#include "../../../../config-settings/config/GpioLinesConfig.h"
 
 
 class GpioLines
