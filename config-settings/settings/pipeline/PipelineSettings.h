@@ -54,10 +54,10 @@ public:
     m_rfSettings.clearChanged();
   }
 
-  void setAllChanged() override
+  void markAllChanged() override
   {
-    SettingsBase::setAllChanged();
-    m_rfSettings.setAllChanged();
+    SettingsBase::markAllChanged();
+    m_rfSettings.markAllChanged();
   }
 
 

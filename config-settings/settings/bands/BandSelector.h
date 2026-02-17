@@ -140,7 +140,7 @@ public:
     m_focusBandName = band1Name;
     m_changed |= SPLIT | TX_BAND | RX_BAND | FOCUS | SELECT_2;
     BandSettings* bandSettings = getBandSettings(band1Name);
-    bandSettings->setAllChanged(); // Tell the outside world to refresh its copy of this band.
+    bandSettings->markAllChanged(); // Tell the outside world to refresh its copy of this band.
     return true;
   }
 
@@ -348,7 +348,7 @@ protected:
     m_selectedBandNames.at(toSplitIndex(idx)) = bandName;
     m_changed |= idx == SplitBandId::One ? SELECT_1 : SELECT_2;
     // Dirty all the band settings so that external users know to update themselves
-    bandSettings->setAllChanged();
+    bandSettings->markAllChanged();
     return true;
   }
 
@@ -455,7 +455,7 @@ protected:
       m_changed |= TX_BAND;
       // Dirty the band so that the outside world can respond to their areas of interest.
       BandSettings* newTxBand = getTxBandSettings();
-      newTxBand->setAllChanged();
+      newTxBand->markAllChanged();
       return true;
     }
     return false;
@@ -499,7 +499,7 @@ protected:
       m_changed |= FOCUS;
       // Dirty the band so that the outside world can respond to their areas of interest.
       BandSettings* newFocusBand = getFocusBandSettings();
-      newFocusBand->setAllChanged();
+      newFocusBand->markAllChanged();
       return true;
     }
     return false;

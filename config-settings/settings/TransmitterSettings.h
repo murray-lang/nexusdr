@@ -89,12 +89,12 @@ public:
     m_testSettings.clearChanged();
   }
 
-  void setAllChanged() override
+  void markAllChanged() override
   {
-    SettingsBase::setAllChanged();
-    m_correctionSettings.setAllChanged();
-    m_micSettings.setAllChanged();
-    m_testSettings.setAllChanged();
+    SettingsBase::markAllChanged();
+    m_correctionSettings.markAllChanged();
+    m_micSettings.markAllChanged();
+    m_testSettings.markAllChanged();
   }
 
   static bool getFeaturePath(

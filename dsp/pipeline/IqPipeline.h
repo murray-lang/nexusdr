@@ -53,9 +53,19 @@ public:
   virtual void apply(const PipelineSettings* settings);
 
 protected:
-  void addStage(IqPipelineStage* pStage)
+  void appendStage(IqPipelineStage* pStage)
   {
     m_stages.push_back(pStage);
+  }
+
+  void prependStage(IqPipelineStage* pStage)
+  {
+    m_stages.insert(m_stages.begin(), pStage);
+  }
+
+  void removeFirstStage()
+  {
+    m_stages.erase(m_stages.begin());
   }
 
 protected:

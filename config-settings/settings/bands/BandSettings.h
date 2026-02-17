@@ -21,9 +21,11 @@ public:
     MULTI_PIPELINE = 0x01,
     FOCUS_PIPELINE   = 0x02,
     WITH_FOCUS_PIPELINE = 0x04,
-    TX_PIPELINE  = 0x08,
-    WITH_TX_PIPELINE   = 0x10,
-    CLOSE_PIPELINE = 0x20,
+    WITH_PIPELINE_A = 0x08,
+    WITH_PIPELINE_B = 0x10,
+    TX_PIPELINE  = 0x20,
+    WITH_TX_PIPELINE   = 0x40,
+    CLOSE_PIPELINE = 0x80,
     ALL = static_cast<uint32_t>(~0U)
   };
 
@@ -62,20 +64,15 @@ public:
 
   bool closePipeline(PipelineId id);
   void clearChanged() override;
-  void setAllChanged() override;
+  void markAllChanged() override;
 
   [[nodiscard]] std::string getBandName() const;
 
   void applyBandDefaults(const Band& band);
-
   bool setMode(const Mode& mode);
-
   void setCentreFrequencyDeltas(int32_t fine, int32_t coarse);
-
   void applyRfSettings(const RfSettings& settings, bool onlyChanged = false);
-
   void applyIfSettings(const IfSettings& settings);
-
   bool applyUpdate(SettingUpdate& update) override;
 
   static bool getFeaturePath(
@@ -95,7 +92,10 @@ protected:
   bool setFocusPipeline(const SettingValue& settingValue);
   bool applyClosePipeline(const SettingValue& settingValue);
   bool withFocusPipeline(SettingUpdate& setting);
+  bool withPipelineA(SettingUpdate& setting);
+  bool withPipelineB(SettingUpdate& setting);
   bool withTxPipeline(SettingUpdate& setting);
+  bool updateTxPipelineWithRx(RxPipelineSettings& pipeline);
 
   Band m_band;
   RxPipelineSettings m_pipelineA;

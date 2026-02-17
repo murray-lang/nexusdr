@@ -35,6 +35,8 @@ public:
 
   void ptt(bool on) override {};
 
+  void monitor(bool monitor);
+
   void apply(const ReceiverSettings& settings) override;
 
   void apply(const RxPipelineSettings* settings);
@@ -62,4 +64,5 @@ protected:
   Demodulator* m_pDemodulator;
   vsdrreal m_audioBuffer;
   MonitoringStage* m_pMonitoringStage;
+  bool m_monitoring;
 };

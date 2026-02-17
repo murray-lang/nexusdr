@@ -14,8 +14,10 @@ class QtChartTheme : public QWidget {
   Q_PROPERTY(QString seriesLineColor READ seriesLineColor WRITE setSeriesLineColor)
   Q_PROPERTY(QString seriesAreaColor READ seriesAreaColor WRITE setSeriesAreaColor)
   Q_PROPERTY(QString gridColor READ gridColor WRITE setGridColor)
-  Q_PROPERTY(QString cursorLineColor READ cursorLineColor WRITE setCursorLineColor)
-  Q_PROPERTY(QString cursorAreaColor READ cursorAreaColor WRITE setCursorAreaColor)
+  Q_PROPERTY(QString cursorALineColor READ cursorALineColor WRITE setCursorALineColor)
+  Q_PROPERTY(QString cursorAAreaColor READ cursorAAreaColor WRITE setCursorAAreaColor)
+  Q_PROPERTY(QString cursorBLineColor READ cursorBLineColor WRITE setCursorBLineColor)
+  Q_PROPERTY(QString cursorBAreaColor READ cursorBAreaColor WRITE setCursorBAreaColor)
 
 public:
   explicit QtChartTheme(QWidget* parent = nullptr) : QWidget(parent) {}
@@ -38,11 +40,17 @@ public:
   [[nodiscard]] QString gridColor() const { return m_gridColor; }
   void setGridColor(const QString& c) { m_gridColor = c; }
 
-  [[nodiscard]] QString cursorLineColor() const { return m_cursorLineColor; }
-  void setCursorLineColor(const QString& c) { m_cursorLineColor = c; }
+  [[nodiscard]] QString cursorALineColor() const { return m_cursorALineColor; }
+  void setCursorALineColor(const QString& c) { m_cursorALineColor = c; }
 
-  [[nodiscard]] QString cursorAreaColor() const { return m_cursorAreaColor; }
-  void setCursorAreaColor(const QString& c) { m_cursorAreaColor = c; }
+  [[nodiscard]] QString cursorAAreaColor() const { return m_cursorAAreaColor; }
+  void setCursorAAreaColor(const QString& c) { m_cursorAAreaColor = c; }
+
+  [[nodiscard]] QString cursorBLineColor() const { return m_cursorBLineColor; }
+  void setCursorBLineColor(const QString& c) { m_cursorBLineColor = c; }
+
+  [[nodiscard]] QString cursorBAreaColor() const { return m_cursorBAreaColor; }
+  void setCursorBAreaColor(const QString& c) { m_cursorBAreaColor = c; }
 
 private:
   QString m_textColor;
@@ -51,6 +59,8 @@ private:
   QString m_seriesLineColor;
   QString m_seriesAreaColor;
   QString m_gridColor;
-  QString m_cursorLineColor;
-  QString m_cursorAreaColor;
+  QString m_cursorALineColor;
+  QString m_cursorAAreaColor;
+  QString m_cursorBLineColor;
+  QString m_cursorBAreaColor;
 };

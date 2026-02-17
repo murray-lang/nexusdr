@@ -384,6 +384,8 @@ set(PROJECT_SOURCES
         ui/qt/common/FrequencyPanel/VfoReadout/VfoActions.h
         ui/qt/common/MiniVfoToolbar/QtMiniVfoToolbar.cpp
         ui/qt/common/MiniVfoToolbar/QtMiniVfoToolbar.h
+        dsp/pipeline/RxPipelineAudioTap.cpp
+        dsp/pipeline/RxPipelineAudioTap.h
 
 )
 

@@ -51,10 +51,10 @@ public:
     m_ifSettings.clearChanged();
   }
 
-  void setAllChanged() override
+  void markAllChanged() override
   {
-    PipelineSettings::setAllChanged();
-    m_ifSettings.setAllChanged();
+    PipelineSettings::markAllChanged();
+    m_ifSettings.markAllChanged();
   }
 
   IfSettings& getIfSettings()

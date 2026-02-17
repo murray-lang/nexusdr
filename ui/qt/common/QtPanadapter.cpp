@@ -13,8 +13,10 @@
 
 QtPanadapter::QtPanadapter(QWidget* parent, const char* viewName, const char* themeName) :
   QtChartBase(parent, viewName, themeName)
-  ,m_verticalCursorLine(new QGraphicsLineItem() )
-  ,m_filterPassbandRect(nullptr)
+  ,m_verticalCursorLineA(new QGraphicsLineItem() )
+  ,m_filterPassbandRectA(nullptr)
+  ,m_verticalCursorLineB(new QGraphicsLineItem() )
+  ,m_filterPassbandRectB(nullptr)
 {
 }
 
@@ -64,63 +66,180 @@ QtPanadapter::initialise()
 
   m_pChart->legend()->hide();
 
-  QString cursorLineColorStr = m_pTheme->property("cursorLineColor").toString();
-  m_verticalCursorLine->setPen(QPen(QColor(cursorLineColorStr), 1.5, Qt::SolidLine));
-  m_pChart->scene()->addItem(m_verticalCursorLine);
+  // Recalculate cursor/overlay positions whenever the chart mapping changes
+  if (m_pChartView) {
+    QObject::connect(m_pChart, &QChart::plotAreaChanged, m_pChartView, [this](const QRectF&) {
+      refreshOverlays();
+    });
 
+    if (!m_pChart->axes(Qt::Horizontal).isEmpty()) {
+      if (auto* xAxis = qobject_cast<QValueAxis*>(m_pChart->axes(Qt::Horizontal).first())) {
+        QObject::connect(xAxis, &QValueAxis::rangeChanged, m_pChartView, [this](qreal, qreal) {
+          refreshOverlays();
+        });
+      }
+    }
+    if (!m_pChart->axes(Qt::Vertical).isEmpty()) {
+      if (auto* yAxis = qobject_cast<QValueAxis*>(m_pChart->axes(Qt::Vertical).first())) {
+        QObject::connect(yAxis, &QValueAxis::rangeChanged, m_pChartView, [this](qreal, qreal) {
+          refreshOverlays();
+        });
+      }
+    }
+  }
+
+  QString cursorALineColorStr = m_pTheme->property("cursorALineColor").toString();
+  m_verticalCursorLineA->setPen(QPen(QColor(cursorALineColorStr), 1.5, Qt::SolidLine));
+  m_pChart->scene()->addItem(m_verticalCursorLineA);
+
+  QString cursorBLineColorStr = m_pTheme->property("cursorBLineColor").toString();
+  m_verticalCursorLineB->setPen(QPen(QColor(cursorBLineColorStr), 1.5, Qt::SolidLine));
+  m_pChart->scene()->addItem(m_verticalCursorLineB);
 }
 
 void
-QtPanadapter::updateCursorPosition(uint32_t frequency, uint32_t loCut, uint32_t hiCut)
+QtPanadapter::showCursorB(bool show)
 {
+  if (m_verticalCursorLineB) {
+    if (show) {
+      m_verticalCursorLineB->show();
+
+    } else {
+      m_verticalCursorLineB->hide();
+    }
+  }
+  if (m_filterPassbandRectB) {
+    if (show) {
+      m_filterPassbandRectB->show();
+
+    } else {
+      m_filterPassbandRectB->hide();
+    }
+  }
+}
+
+void
+QtPanadapter::refreshOverlays()
+{
+  if (m_cursorA.valid && m_cursorA.visible) {
+    updateCursorPositionA(m_cursorA.frequency, m_cursorA.loCut, m_cursorA.hiCut);
+  }
+  if (m_cursorB.valid && m_cursorB.visible) {
+    updateCursorPositionB(m_cursorB.frequency, m_cursorB.loCut, m_cursorB.hiCut);
+  }
+}
+
+void
+QtPanadapter::updateCursorPositionA(int64_t frequency, int32_t loCut, int32_t hiCut)
+{
+  m_cursorA.valid = true;
+  m_cursorA.visible = true;
+  m_cursorA.frequency = frequency;
+  m_cursorA.loCut = loCut;
+  m_cursorA.hiCut = hiCut;
+
   auto *axisY = qobject_cast<QValueAxis*>(m_pChart->axes(Qt::Vertical).first());
   double yMin = axisY->min();
   double yMax = axisY->max();
 
-  QPointF p1 = m_pChart->mapToPosition(QPointF(frequency, yMin));
-  QPointF p2 = m_pChart->mapToPosition(QPointF(frequency, yMax));
+  QPointF p1 = m_pChart->mapToPosition(QPointF(static_cast<qreal>(frequency), yMin));
+  QPointF p2 = m_pChart->mapToPosition(QPointF(static_cast<qreal>(frequency), yMax));
 
-  m_verticalCursorLine->setLine(QLineF(p1, p2));
-  m_verticalCursorLine->show();
+  // qDebug() << "updateCursorPositionA: frequency = " << frequency << " p1 = " << p1.x() << " p2 = " << p2.x();
 
-  int32_t loCutWrtFreq = frequency + loCut;
-  int32_t hioCutWrtFreq = frequency + hiCut;
-  updatePassbandOverlay(loCutWrtFreq, hioCutWrtFreq);
+  m_verticalCursorLineA->setLine(QLineF(p1, p2));
+  m_verticalCursorLineA->show();
+
+  int64_t loCutWrtFreq = frequency + loCut;
+  int64_t hioCutWrtFreq = frequency + hiCut;
+  updatePassbandOverlayA(loCutWrtFreq, hioCutWrtFreq);
 }
 
 void
-QtPanadapter::addPassbandOverlay(int32_t loCut, int32_t hiCut)
+QtPanadapter::updateCursorPositionB(int64_t frequency, int32_t loCut, int32_t hiCut)
 {
-  QString cursorAreaColorStr = m_pTheme->property("cursorAreaColor").toString();
+  m_cursorB.valid = true;
+  m_cursorB.frequency = frequency;
+  m_cursorB.loCut = loCut;
+  m_cursorB.hiCut = hiCut;
 
-  m_filterPassbandRect = new QGraphicsRectItem(loCut, 0, hiCut - loCut, 100);
-  m_filterPassbandRect->setBrush(QColor(cursorAreaColorStr));
+  auto *axisY = qobject_cast<QValueAxis*>(m_pChart->axes(Qt::Vertical).first());
+  double yMin = axisY->min();
+  double yMax = axisY->max();
+
+  QPointF p1 = m_pChart->mapToPosition(QPointF(static_cast<qreal>(frequency), yMin));
+  QPointF p2 = m_pChart->mapToPosition(QPointF(static_cast<qreal>(frequency), yMax));
+
+  m_verticalCursorLineB->setLine(QLineF(p1, p2));
+  m_verticalCursorLineB->show();
+
+  int64_t loCutWrtFreq = frequency + loCut;
+  int64_t hioCutWrtFreq = frequency + hiCut;
+  updatePassbandOverlayB(loCutWrtFreq, hioCutWrtFreq);
+}
+
+void
+QtPanadapter::addPassbandOverlayA(int64_t loCut, int64_t hiCut)
+{
+  QString cursorAAreaColorStr = m_pTheme->property("cursorAAreaColor").toString();
+
+  m_filterPassbandRectA = new QGraphicsRectItem(static_cast<qreal>(loCut), 0, static_cast<qreal>(hiCut - loCut) , 100);
+  m_filterPassbandRectA->setBrush(QColor(cursorAAreaColorStr));
   // m_filterPassbandRect->setBrush(QColor(100, 50, 200, 80)); // Semi-transparent
-  m_filterPassbandRect->setPen(Qt::NoPen);
-  m_pChart->scene()->addItem(m_filterPassbandRect);
+  m_filterPassbandRectA->setPen(Qt::NoPen);
+  m_pChart->scene()->addItem(m_filterPassbandRectA);
 }
 
 void
-QtPanadapter::updatePassbandOverlay(int32_t loCut, int32_t hiCut)
+QtPanadapter::addPassbandOverlayB(int64_t loCut, int64_t hiCut)
 {
-  if (m_filterPassbandRect == nullptr) {
-    addPassbandOverlay(loCut, hiCut);
+  QString cursorBAreaColorStr = m_pTheme->property("cursorBAreaColor").toString();
+
+  m_filterPassbandRectB = new QGraphicsRectItem(static_cast<qreal>(loCut), 0, static_cast<qreal>(hiCut - loCut), 100);
+  m_filterPassbandRectB->setBrush(QColor(cursorBAreaColorStr));
+  // m_filterPassbandRect->setBrush(QColor(100, 50, 200, 80)); // Semi-transparent
+  m_filterPassbandRectB->setPen(Qt::NoPen);
+  m_pChart->scene()->addItem(m_filterPassbandRectB);
+}
+
+void
+QtPanadapter::updatePassbandOverlayA(int64_t loCut, int64_t hiCut)
+{
+  if (m_filterPassbandRectA == nullptr) {
+    addPassbandOverlayA(loCut, hiCut);
   }
   QRectF plotArea = m_pChart->plotArea();
-  double plotLoX = m_pChart->mapToPosition(QPointF(loCut, 0)).x();
-  double plotHiX = m_pChart->mapToPosition(QPointF(hiCut, 0)).x();
+  double plotLoX = m_pChart->mapToPosition(QPointF(static_cast<qreal>(loCut), 0)).x();
+  double plotHiX = m_pChart->mapToPosition(QPointF(static_cast<qreal>(hiCut), 0)).x();
   double width = plotHiX - plotLoX;
   QRectF r(plotLoX, plotArea.top(), width, plotArea.height());
-  m_filterPassbandRect->setRect(r);
+  m_filterPassbandRectA->setRect(r);
+}
+
+void
+QtPanadapter::updatePassbandOverlayB(int64_t loCut, int64_t hiCut)
+{
+  if (m_filterPassbandRectB == nullptr) {
+    addPassbandOverlayB(loCut, hiCut);
+  }
+  QRectF plotArea = m_pChart->plotArea();
+  double plotLoX = m_pChart->mapToPosition(QPointF(static_cast<qreal>(loCut), 0)).x();
+  double plotHiX = m_pChart->mapToPosition(QPointF(static_cast<qreal>(hiCut), 0)).x();
+  double width = plotHiX - plotLoX;
+  QRectF r(plotLoX, plotArea.top(), width, plotArea.height());
+  m_filterPassbandRectB->setRect(r);
 }
 
 void
 QtPanadapter::plot(const vsdrcomplex* timeSeriesData,
     uint32_t length,
     uint32_t sampleRate,
-    uint32_t centreFrequency,
+    int64_t centreFrequency,
     bool shuffle)
 {
+  if (centreFrequency != 14190000) {
+    bool pb = true;
+  }
   vsdrreal spectrum(length);
   powerSpectrum(*timeSeriesData, length, spectrum);
   plot(&spectrum, sampleRate, centreFrequency, shuffle);
@@ -130,11 +249,11 @@ void
 QtPanadapter::plot(
     const vsdrreal* spectrumData,
     uint32_t sampleRate,
-    uint32_t centreFrequency,
+    int64_t centreFrequency,
     bool shuffle
   )
 {
-  qreal plotX = centreFrequency - (sampleRate / 2);
+  qreal plotX = static_cast<qreal>(centreFrequency) - (static_cast<qreal>(sampleRate) / 2);
   qreal binWidth = static_cast<qreal>(sampleRate) / static_cast<qreal>(spectrumData->size());
 
   QList<QPointF> spectrumPoints;

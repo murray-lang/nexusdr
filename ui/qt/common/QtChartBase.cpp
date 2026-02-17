@@ -98,12 +98,13 @@ QtChartBase::plot(const vsdrcomplex data, uint32_t length)
 }
 
 void
-QtChartBase::setSeriesXMinMax(uint32_t min, uint32_t max)
+QtChartBase::setSeriesXMinMax(int64_t min, int64_t max)
 {
   if ( min != m_xMin || max != m_xMax) {
     m_xMin = min;
     m_xMax = max;
 
-    m_pChart->axes(Qt::Horizontal).first()->setRange(m_xMin, m_xMax);
+    m_pChart->axes(Qt::Horizontal)
+      .first()->setRange(static_cast<qlonglong>(m_xMin), static_cast<qlonglong>(m_xMax));
   }
 }

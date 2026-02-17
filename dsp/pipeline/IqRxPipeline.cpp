@@ -20,16 +20,17 @@ IqRxPipeline::IqRxPipeline(QObject* eventTarget) :
   m_cwDemodulator(ModeSettings::getModeByType(Mode::CWU),DEFAULT_SAMPLE_RATE),
   m_pDemodulator(nullptr),
   m_audioBuffer(PING_PONG_LENGTH),
-  m_pMonitoringStage(nullptr)
+  m_pMonitoringStage(nullptr),
+  m_monitoring(false)
 {
   m_pMonitoringStage = new MonitoringStage(eventTarget, ReceiverIqEvent::RxIqEvent, [this]() { return this->m_inputSampleRate; });
 
-  addStage(m_pMonitoringStage);
-  addStage(&m_iqCorrection);
+  // appendStage(m_pMonitoringStage);
+  appendStage(&m_iqCorrection);
   // addStage(m_pMonitoringStage);
-  addStage(&m_oscillatorMixer);
-  addStage(&m_ifFilter);
-  addStage(&m_decimator);
+  appendStage(&m_oscillatorMixer);
+  appendStage(&m_ifFilter);
+  appendStage(&m_decimator);
   // addStage(&m_ifFilter);
 
 }
@@ -47,6 +48,20 @@ IqRxPipeline::initialise(IqIo* pIo, AudioSink* pAudioSink)
   m_oscillatorMixer.initialise(m_inputSampleRate, 0);
   uint32_t preferredOutputRate = pIo->getOutputSampleRate();
   setOutputSampleRate(preferredOutputRate);
+}
+
+void
+IqRxPipeline::monitor(bool monitor)
+{
+  if (monitor != m_monitoring) {
+    std::lock_guard<std::mutex> lock(m_settingsMutex);
+    m_monitoring = monitor;
+    if (m_monitoring) {
+      prependStage(m_pMonitoringStage);
+    } else {
+      removeFirstStage();
+    }
+  }
 }
 
 void

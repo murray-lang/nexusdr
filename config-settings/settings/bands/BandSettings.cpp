@@ -11,7 +11,7 @@ BandSettings::BandSettings()
   , m_focusPipelineId(this, "focus-pipeline", PipelineId::A)
   , m_txPipelineId(this, "tx-pipeline", PipelineId::A)
 {
-  BandSettings::setAllChanged();
+  BandSettings::markAllChanged();
 }
 
 BandSettings::BandSettings(const BandSettings& rhs)
@@ -35,7 +35,7 @@ BandSettings::BandSettings(const Band& band)
 {
   // addRxPipeline();
   applyBandDefaults(band);
-  BandSettings::setAllChanged();
+  BandSettings::markAllChanged();
 }
 
 BandSettings& BandSettings::operator=(const BandSettings& rhs)
@@ -62,6 +62,7 @@ BandSettings::splitPipelines(bool split)
   if (split) {
     m_pipelineB = m_pipelineA;
     m_pipelineB.value().pivotFrequencyAroundCentre();
+    m_pipelineB.value().markAllChanged();
     m_focusPipelineId.apply(PipelineId::B);
     m_txPipelineId.apply(PipelineId::B);
     m_txPipeline.copyBasicsForTracking(m_pipelineB.value());
@@ -197,13 +198,13 @@ void BandSettings::clearChanged()
   }
 }
 
-void BandSettings::setAllChanged()
+void BandSettings::markAllChanged()
 {
-  SettingsBase::setAllChanged();
-  m_txPipeline.setAllChanged();
-  m_pipelineA.setAllChanged();
+  SettingsBase::markAllChanged();
+  m_txPipeline.markAllChanged();
+  m_pipelineA.markAllChanged();
   if (m_pipelineB.has_value()) {
-    m_pipelineB.value().setAllChanged();
+    m_pipelineB.value().markAllChanged();
   }
 }
 
@@ -276,6 +277,12 @@ bool BandSettings::applyUpdate(SettingUpdate& update)
   case WITH_FOCUS_PIPELINE:
     update.stepNextFeature();
     return withFocusPipeline(update);
+  case WITH_PIPELINE_A:
+    update.stepNextFeature();
+    return withFocusPipeline(update);
+  case WITH_PIPELINE_B:
+    update.stepNextFeature();
+    return withFocusPipeline(update);
   case TX_PIPELINE:
     return setTxPipeline(val);
   case WITH_TX_PIPELINE:
@@ -306,6 +313,14 @@ bool BandSettings::getFeaturePath(
   // }
   if (key == "with-focus-pipeline") {
     featuresOut.push_back(WITH_FOCUS_PIPELINE);
+    return RxPipelineSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
+  }
+  if (key == "with-pipeline-a") {
+    featuresOut.push_back(WITH_PIPELINE_A);
+    return RxPipelineSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
+  }
+  if (key == "with-pipeline-b") {
+    featuresOut.push_back(WITH_PIPELINE_B);
     return RxPipelineSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
   }
   if (key == "with-tx-pipeline") {
@@ -390,17 +405,39 @@ bool BandSettings::withFocusPipeline(SettingUpdate& setting)
     return false;
   }
   if (focusPipelineSettings->applyUpdate(setting)) {
-    if (m_focusPipelineId() == m_txPipelineId()) {
-      if (focusPipelineSettings->hasSettingChanged(PipelineSettings::RF)) {
-        m_txPipeline.getRfSettings().copyFrequencies(focusPipelineSettings->getRfSettings());
-        m_changed |= WITH_TX_PIPELINE;
-      }
-      if (focusPipelineSettings->hasSettingChanged(PipelineSettings::MODE)) {
-        m_txPipeline.setMode(focusPipelineSettings->getMode());
-        m_changed |= WITH_TX_PIPELINE;
-      }
-    }
     m_changed |= WITH_FOCUS_PIPELINE;
+    if (m_focusPipelineId() == m_txPipelineId()) {
+      updateTxPipelineWithRx(*focusPipelineSettings);
+    }
+    return true;
+  }
+  return false;
+}
+
+bool BandSettings::withPipelineA(SettingUpdate& setting)
+{
+  if (m_pipelineA.applyUpdate(setting)) {
+    m_changed |= WITH_PIPELINE_A;
+    if (m_focusPipelineId() == PipelineId::A) {
+      m_changed |= WITH_FOCUS_PIPELINE;
+    }
+    if (m_txPipelineId() == PipelineId::A) {
+      updateTxPipelineWithRx(m_pipelineA);
+    }
+    return true;
+  }
+  return false;
+}
+
+bool BandSettings::withPipelineB(SettingUpdate& setting)
+{
+  if (m_pipelineB.has_value() && m_pipelineB->applyUpdate(setting)) {
+    if (m_focusPipelineId() == PipelineId::B) {
+      m_changed |= WITH_FOCUS_PIPELINE;
+    }
+    if (m_txPipelineId() == PipelineId::B) {
+      updateTxPipelineWithRx(m_pipelineB.value());
+    }
     return true;
   }
   return false;
@@ -413,4 +450,22 @@ bool BandSettings::withTxPipeline(SettingUpdate& setting)
     return true;
   }
   return false;
+}
+
+bool
+BandSettings::updateTxPipelineWithRx(RxPipelineSettings& rxPipeline)
+{
+  bool changed = false;
+  if (rxPipeline.hasSettingChanged(PipelineSettings::RF)) {
+    m_txPipeline.getRfSettings().copyFrequencies(rxPipeline.getRfSettings());
+    changed = true;
+  }
+  if (rxPipeline.hasSettingChanged(PipelineSettings::MODE)) {
+    m_txPipeline.setMode(rxPipeline.getMode());
+    changed = true;
+  }
+  if (changed) {
+    m_changed |= WITH_TX_PIPELINE;
+  }
+  return changed;
 }
