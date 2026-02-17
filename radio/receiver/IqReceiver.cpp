@@ -80,6 +80,10 @@ IqReceiver::apply(BandSettings* bandSettings)
   }
   if (bandSettings->hasSettingChanged(BandSettings::FOCUS_PIPELINE)) {
     PipelineId newFocusPipelineId = bandSettings->getFocusPipelineId();
+    m_iqPipelineA.monitor(newFocusPipelineId == PipelineId::A);
+    if (m_pipelineBEnabled) {
+      m_iqPipelineB.monitor(newFocusPipelineId == PipelineId::B);
+    }
     if (newFocusPipelineId != m_focusPipelineId) {
       m_focusPipelineId = newFocusPipelineId;
     }

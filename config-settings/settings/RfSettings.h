@@ -171,12 +171,12 @@ public:
     return false;
   }
 
-  void setAllChanged() override
+  void markAllChanged() override
   {
-    SettingsBase::setAllChanged();
-    m_centreFrequency.setAllChanged();
-    m_vfo.setAllChanged();
-    m_gain.setAllChanged();
+    SettingsBase::markAllChanged();
+    m_centreFrequency.markAllChanged();
+    m_vfo.markAllChanged();
+    m_gain.markAllChanged();
   }
 
   bool merge(const RfSettings& settings, bool onlyChanged = false)

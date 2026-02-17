@@ -31,7 +31,7 @@ public:
   void setChanged(uint32_t feature) { m_changed |= feature; }
   [[nodiscard]] bool hasSettingChanged(uint32_t feature) const { return (m_changed & feature) != 0; }
   virtual void clearChanged() { m_changed = 0; }
-  virtual void setAllChanged() { m_changed = ~0U; }
+  virtual void markAllChanged() { m_changed = ~0U; }
 
   virtual bool applyUpdate(SettingUpdate& setting) = 0;
 

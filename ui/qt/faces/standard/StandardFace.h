@@ -86,4 +86,5 @@ private:
   QtPanadapter* m_pPanadapter;
   QtFrequencyPanel* m_pFrequencyPanel;
   uint32_t m_reportedIqSampleRate;
+  bool m_debugIqUpdate = false;
 };

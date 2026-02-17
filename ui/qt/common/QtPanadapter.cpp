@@ -66,6 +66,28 @@ QtPanadapter::initialise()
 
   m_pChart->legend()->hide();
 
+  // Recalculate cursor/overlay positions whenever the chart mapping changes
+  if (m_pChartView) {
+    QObject::connect(m_pChart, &QChart::plotAreaChanged, m_pChartView, [this](const QRectF&) {
+      refreshOverlays();
+    });
+
+    if (!m_pChart->axes(Qt::Horizontal).isEmpty()) {
+      if (auto* xAxis = qobject_cast<QValueAxis*>(m_pChart->axes(Qt::Horizontal).first())) {
+        QObject::connect(xAxis, &QValueAxis::rangeChanged, m_pChartView, [this](qreal, qreal) {
+          refreshOverlays();
+        });
+      }
+    }
+    if (!m_pChart->axes(Qt::Vertical).isEmpty()) {
+      if (auto* yAxis = qobject_cast<QValueAxis*>(m_pChart->axes(Qt::Vertical).first())) {
+        QObject::connect(yAxis, &QValueAxis::rangeChanged, m_pChartView, [this](qreal, qreal) {
+          refreshOverlays();
+        });
+      }
+    }
+  }
+
   QString cursorALineColorStr = m_pTheme->property("cursorALineColor").toString();
   m_verticalCursorLineA->setPen(QPen(QColor(cursorALineColorStr), 1.5, Qt::SolidLine));
   m_pChart->scene()->addItem(m_verticalCursorLineA);
@@ -97,14 +119,33 @@ QtPanadapter::showCursorB(bool show)
 }
 
 void
+QtPanadapter::refreshOverlays()
+{
+  if (m_cursorA.valid && m_cursorA.visible) {
+    updateCursorPositionA(m_cursorA.frequency, m_cursorA.loCut, m_cursorA.hiCut);
+  }
+  if (m_cursorB.valid && m_cursorB.visible) {
+    updateCursorPositionB(m_cursorB.frequency, m_cursorB.loCut, m_cursorB.hiCut);
+  }
+}
+
+void
 QtPanadapter::updateCursorPositionA(int64_t frequency, int32_t loCut, int32_t hiCut)
 {
+  m_cursorA.valid = true;
+  m_cursorA.visible = true;
+  m_cursorA.frequency = frequency;
+  m_cursorA.loCut = loCut;
+  m_cursorA.hiCut = hiCut;
+
   auto *axisY = qobject_cast<QValueAxis*>(m_pChart->axes(Qt::Vertical).first());
   double yMin = axisY->min();
   double yMax = axisY->max();
 
   QPointF p1 = m_pChart->mapToPosition(QPointF(static_cast<qreal>(frequency), yMin));
   QPointF p2 = m_pChart->mapToPosition(QPointF(static_cast<qreal>(frequency), yMax));
+
+  // qDebug() << "updateCursorPositionA: frequency = " << frequency << " p1 = " << p1.x() << " p2 = " << p2.x();
 
   m_verticalCursorLineA->setLine(QLineF(p1, p2));
   m_verticalCursorLineA->show();
@@ -117,6 +158,11 @@ QtPanadapter::updateCursorPositionA(int64_t frequency, int32_t loCut, int32_t hi
 void
 QtPanadapter::updateCursorPositionB(int64_t frequency, int32_t loCut, int32_t hiCut)
 {
+  m_cursorB.valid = true;
+  m_cursorB.frequency = frequency;
+  m_cursorB.loCut = loCut;
+  m_cursorB.hiCut = hiCut;
+
   auto *axisY = qobject_cast<QValueAxis*>(m_pChart->axes(Qt::Vertical).first());
   double yMin = axisY->min();
   double yMax = axisY->max();
@@ -191,6 +237,9 @@ QtPanadapter::plot(const vsdrcomplex* timeSeriesData,
     int64_t centreFrequency,
     bool shuffle)
 {
+  if (centreFrequency != 14190000) {
+    bool pb = true;
+  }
   vsdrreal spectrum(length);
   powerSpectrum(*timeSeriesData, length, spectrum);
   plot(&spectrum, sampleRate, centreFrequency, shuffle);

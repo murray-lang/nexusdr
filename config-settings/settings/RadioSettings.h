@@ -32,7 +32,7 @@ public:
 
   RadioSettings() : m_ptt(this, "ptt", false)
   {
-    RadioSettings::setAllChanged();
+    RadioSettings::markAllChanged();
   };
 
   RadioSettings(const RadioSettings& rhs) : 
@@ -82,11 +82,11 @@ public:
     m_txSettings.clearChanged();
   }
 
-  void setAllChanged() override
+  void markAllChanged() override
   {
-    SettingsBase::setAllChanged();
-    m_rxSettings.setAllChanged();
-    m_txSettings.setAllChanged();
+    SettingsBase::markAllChanged();
+    m_rxSettings.markAllChanged();
+    m_txSettings.markAllChanged();
     // Not PTT! That being set will short-circuit all other changes
     m_changed &= ~PTT;
   }

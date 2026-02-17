@@ -109,6 +109,9 @@ StandardFace::updateCursorA(RxPipelineSettings* rxPipelineSettings)
   int64_t vfo = rfSettings.getVfo();
   const Mode& mode = rxPipelineSettings->getMode();
   m_pPanadapter->updateCursorPositionA(vfo, mode.getLoCut(), mode.getHiCut());
+  if (vfo == 14180000) {
+    m_debugIqUpdate = true;
+  }
 }
 
 void
@@ -130,6 +133,7 @@ StandardFace::handleReceiverIq(
   uint32_t length,
   uint32_t sampleRate)
 {
+
   m_reportedIqSampleRate = sampleRate;
   RxPipelineSettings* rxPipelineSettings = pRadioSettings->getFocusPipeline();
   if (rxPipelineSettings != nullptr) {
@@ -140,6 +144,12 @@ StandardFace::handleReceiverIq(
 
     m_pPanadapter->setSeriesXMinMax(xMin, xMax);
     m_pPanadapter->plot(data, length, sampleRate, centreFrequency, true);
+
+    if (m_debugIqUpdate) {
+      if (rfSettings.getVfo() != 14180000) {
+        bool bp = true;
+      }
+    }
   }
 }
 

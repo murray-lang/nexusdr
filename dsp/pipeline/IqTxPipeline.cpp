@@ -36,12 +36,12 @@ IqTxPipeline::IqTxPipeline(QObject* eventTarget) :
   m_twoToneSignal.setEnabled(false); // For now
   
   // addStage(m_pMonitoringStage);
-  addStage(&m_ifFilter);
-  addStage(&m_resampler);
+  appendStage(&m_ifFilter);
+  appendStage(&m_resampler);
   // addStage(m_pMonitoringStage);
-  addStage(&m_oscillatorMixer);
-  addStage(m_pMonitoringStage);
-  addStage(&m_iqCorrection);
+  appendStage(&m_oscillatorMixer);
+  appendStage(m_pMonitoringStage);
+  appendStage(&m_iqCorrection);
   
   // addStage(m_pMonitoringStage);
 }

@@ -45,6 +45,19 @@ public:
 protected:
   static void powerSpectrum(const std::vector<sdrcomplex>& timeSeries, uint32_t timeSeriesLength, vsdrreal& spectrumOut);
 
+  void refreshOverlays();
+
+  struct CursorState {
+    bool valid = false;
+    bool visible = false;
+    int64_t frequency = 0;
+    int32_t loCut = 0;
+    int32_t hiCut = 0;
+  };
+
+  CursorState m_cursorA;
+  CursorState m_cursorB;
+
   QAreaSeries m_areaSeries;
   QGraphicsLineItem* m_verticalCursorLineA;
   QGraphicsRectItem* m_filterPassbandRectA;
