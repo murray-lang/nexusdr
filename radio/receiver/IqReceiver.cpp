@@ -65,19 +65,22 @@ IqReceiver::apply(BandSettings* bandSettings)
     }
   }
   if (multiPipelineChanged) {
-    // Apply A (always present)
-    if (auto* rxA = bandSettings->getRxPipeline(PipelineId::A); rxA != nullptr) {
-      adjustRfSettingsToLimits(rxA->getRfSettings());
-      m_iqPipelineA.apply(rxA);
-    }
-    // Apply B if present
+    RxPipelineSettings* rxPipelineASettings = bandSettings->getRxPipeline(PipelineId::A);
+    adjustRfSettingsToLimits(rxPipelineASettings, m_iqPipelineA);
+    m_iqPipelineA.apply(rxPipelineASettings);
+
     if (m_pipelineBEnabled) {
-      if (auto* rxB = bandSettings->getRxPipeline(PipelineId::B); rxB != nullptr) {
-        adjustRfSettingsToLimits(rxB->getRfSettings());
-        m_iqPipelineB.apply(rxB);
-      }
+      RxPipelineSettings* rxPipelineBSettings = bandSettings->getRxPipeline(PipelineId::B);
+      adjustRfSettingsToLimits(rxPipelineBSettings, m_iqPipelineB);
+      m_iqPipelineB.apply(rxPipelineBSettings);
     }
+  } else if (bandSettings->hasSettingChanged(BandSettings::WITH_FOCUS_PIPELINE)) {
+    IqRxPipeline* focusPipeline = m_focusPipelineId == PipelineId::A ? &m_iqPipelineA : &m_iqPipelineB;
+    RxPipelineSettings* focusPipelineSettings = bandSettings->getFocusPipeline();
+    adjustRfSettingsToLimits(focusPipelineSettings, *focusPipeline);
+    focusPipeline->apply(focusPipelineSettings);
   }
+ 
   if (bandSettings->hasSettingChanged(BandSettings::FOCUS_PIPELINE)) {
     PipelineId newFocusPipelineId = bandSettings->getFocusPipelineId();
     m_iqPipelineA.monitor(newFocusPipelineId == PipelineId::A);
@@ -88,23 +91,23 @@ IqReceiver::apply(BandSettings* bandSettings)
       m_focusPipelineId = newFocusPipelineId;
     }
   }
-  if (bandSettings->hasSettingChanged(BandSettings::WITH_FOCUS_PIPELINE)) {
-    IqRxPipeline* focusPipeline = m_focusPipelineId == PipelineId::A ? &m_iqPipelineA : &m_iqPipelineB;
-    focusPipeline->apply(bandSettings->getRxPipeline(m_focusPipelineId));
-  }
 }
 
-bool
-IqReceiver::adjustRfSettingsToLimits(RfSettings& rfSettings, bool onlyIfChanged) const
+bool IqReceiver::adjustRfSettingsToLimits(RxPipelineSettings* rxPipelineSettings, IqRxPipeline& pipeline, bool onlyIfChanged) const
 {
+  if (rxPipelineSettings == nullptr) {
+    return false;
+  }
+  RfSettings& rfSettings = rxPipelineSettings->getRfSettings();
+
   if (onlyIfChanged) {
     if (rfSettings.hasSettingChanged(RfSettings::CENTER_FREQUENCY)
       || rfSettings.hasSettingChanged(RfSettings::VFO)) {
-      return m_iqPipelineA.adjustRfSettingsToLimits(rfSettings);
+      return pipeline.adjustRfSettingsToLimits(rfSettings);
       }
     return false;
   }
-  return m_iqPipelineA.adjustRfSettingsToLimits(rfSettings);
+  return pipeline.adjustRfSettingsToLimits(rfSettings);
 }
 
 void

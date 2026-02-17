@@ -45,7 +45,7 @@ public:
 
   void setMode(const Mode& mode);
 
-  bool adjustRfSettingsToLimits(RfSettings& rfSettings, bool onlyIfChanged = true) const;
+  bool adjustRfSettingsToLimits(RxPipelineSettings* rxPipelineSettings, IqRxPipeline& pipeline, bool onlyIfChanged = true) const;
 
 protected:
   static uint32_t downmixToMono(const vsdrreal& in,
