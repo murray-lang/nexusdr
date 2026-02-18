@@ -68,6 +68,9 @@ MainWindow::customEvent(QEvent* event)
     } else if (event->type() == ReceiverAudioEvent::RxAudioEvent) {
       auto* audioEvent = dynamic_cast<ReceiverAudioEvent*>(event);
       m_pFace->handleReceiverAudio(audioEvent->buffer.get(), audioEvent->dataLength);
+    } else if (event->type() == ReceiverMeterEvent::RxMeterEvent) {
+      auto* meterEvent = dynamic_cast<ReceiverMeterEvent*>(event);
+      m_pFace->handleReceiverMeter(meterEvent->rssiDbFs(), meterEvent->sampleRate(), meterEvent->agcGainDb());
     } else if (event->type() == RadioSettingsEvent::RadioSettingsEventType) {
       auto* radioSettingsEvent = dynamic_cast<RadioSettingsEvent*>(event);
       handleRadioSettingsEvent(radioSettingsEvent->getRadioSettings(), radioSettingsEvent->getSequence());

@@ -8,6 +8,8 @@
 #include "../../common/QtPanadapter.h"
 #include "../../common/QtTimeSeriesChart.h"
 #include "../../common/FrequencyPanel/QtFrequencyPanel.h"
+#include "../../common/s-meter/QtSMeter.h"
+
 
 StandardFace::StandardFace(QWidget* parent)
   : FaceBase(parent)
@@ -17,11 +19,14 @@ StandardFace::StandardFace(QWidget* parent)
   , m_pTimeSeriesChart(nullptr)
   , m_pPanadapter(nullptr)
   , m_reportedIqSampleRate(0)
+  , m_pSmeter(nullptr)
+  , m_rssiMinDbFs(-114.0f)
+  , m_rssiMaxDbFs(-20.0f)
 {
   ui->setupUi(this);
   setAttribute(Qt::WA_StyledBackground, true);
-  qDebug() << "StandardFace objectName:" << this->objectName()
-           << "class:" << this->metaObject()->className();
+  // qDebug() << "StandardFace objectName:" << this->objectName()
+  //          << "class:" << this->metaObject()->className();
 }
 
 StandardFace::~StandardFace()
@@ -44,6 +49,28 @@ StandardFace::initialise(RadioSettings* pRadioSettings)
   m_pTimeSeriesChart = new QtTimeSeriesChart(this, "timeseriesView", "chartTheme");
   m_pTimeSeriesChart->initialise();
 
+  if (ui->sMeterSlot != nullptr && m_pSmeter == nullptr) {
+
+    if (ui->sMeterSlot->layout() == nullptr) {
+      auto* l = new QVBoxLayout(ui->sMeterSlot);
+      l->setContentsMargins(0, 0, 0, 0);
+      l->setSpacing(0);
+    }
+    m_pSmeter = new QtSMeter(ui->sMeterSlot);
+    m_pSmeter->setObjectName("sMeter");
+
+    m_pSmeter->setReferenceDbFs(-60.0f);
+    m_pSmeter->setOrientation(Qt::Horizontal);
+    m_pSmeter->setThickness(12);
+
+    m_pSmeter->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    // m_pSmeter->setMinimumHeight(18);
+    // m_pSmeter->setMaximumHeight(24);
+
+    ui->sMeterSlot->layout()->addWidget(m_pSmeter);
+
+  }
+
   ui->volumeSlider->setRange(0, 100);
   ui->volumeSlider->setValue(100);
 
@@ -63,6 +90,15 @@ StandardFace::initialise(RadioSettings* pRadioSettings)
 
 void StandardFace::setRadio(Radio* radio) {
   FaceBase::setRadio(radio);
+}
+
+void StandardFace::handleReceiverMeter(float rssiDbFs, uint32_t sampleRate, std::optional<float> agcGainDb)
+{
+  (void)sampleRate;
+
+  if (m_pSmeter) {
+    m_pSmeter->setReading(rssiDbFs, agcGainDb);
+  }
 }
 
 void StandardFace::handleRadioSettingsChanged(RadioSettings* pRadioSettings)
@@ -109,9 +145,6 @@ StandardFace::updateCursorA(RxPipelineSettings* rxPipelineSettings)
   int64_t vfo = rfSettings.getVfo();
   const Mode& mode = rxPipelineSettings->getMode();
   m_pPanadapter->updateCursorPositionA(vfo, mode.getLoCut(), mode.getHiCut());
-  if (vfo == 14180000) {
-    m_debugIqUpdate = true;
-  }
 }
 
 void
@@ -144,12 +177,6 @@ StandardFace::handleReceiverIq(
 
     m_pPanadapter->setSeriesXMinMax(xMin, xMax);
     m_pPanadapter->plot(data, length, sampleRate, centreFrequency, true);
-
-    if (m_debugIqUpdate) {
-      if (rfSettings.getVfo() != 14180000) {
-        bool bp = true;
-      }
-    }
   }
 }
 

@@ -13,6 +13,11 @@
 IqRxPipeline::IqRxPipeline(QObject* eventTarget) :
   IqPipeline(eventTarget),
   m_ifFilter(FFT_SIZE),
+  m_sMeterStage(eventTarget,
+    [this]() { return this->m_outputSampleRate; },
+    [this]() -> std::optional<float> { return this->m_iqAgcStage.getGainDb(); }
+    ),
+  m_iqAgcStage(7e-4f, 0.25f),
   m_amDemodulator(ModeSettings::getModeByType(Mode::AMN), DEFAULT_SAMPLE_RATE),
   m_fmnDemodulator(ModeSettings::getModeByType(Mode::FMN),DEFAULT_SAMPLE_RATE),
   m_fmwDemodulator(ModeSettings::getModeByType(Mode::FMW),DEFAULT_SAMPLE_RATE),
@@ -31,6 +36,8 @@ IqRxPipeline::IqRxPipeline(QObject* eventTarget) :
   appendStage(&m_oscillatorMixer);
   appendStage(&m_ifFilter);
   appendStage(&m_decimator);
+  appendStage(&m_sMeterStage);
+  appendStage(&m_iqAgcStage);
   // addStage(&m_ifFilter);
 
 }

@@ -7,6 +7,7 @@
 
 #include "correction/DcShift.h"
 #include "IqPipeline.h"
+#include "agc/IqAgcStage.h"
 #include "correction/IqCorrection.h"
 #include "decimator/Decimator.h"
 #include "demodulators/AmDemodulator.h"
@@ -18,6 +19,7 @@
 #include "oscillators/OscillatorMixer.h"
 #include "config-settings/settings/ReceiverSettingsSink.h"
 #include "dsp/pipeline/monitoring/MonitoringStage.h"
+#include "s-meter/SMeterStage.h"
 
 class ModeSettings;
 class RxPipelineSettings;
@@ -56,6 +58,10 @@ protected:
   // OscillatorMixer m_oscillatorMixer;
   Decimator m_decimator;
   BandPassFilter m_ifFilter;
+
+  SMeterStage m_sMeterStage;
+  IqAgcStage m_iqAgcStage;
+
   AmDemodulator m_amDemodulator;
   FmDemodulator m_fmnDemodulator;
   FmDemodulator m_fmwDemodulator;

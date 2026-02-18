@@ -13,6 +13,7 @@
 class QtFrequencyPanel;
 class QtTimeSeriesChart;
 class QtPanadapter;
+class QtSMeter;
 class Radio;
 
 namespace Ui { class StandardFace; }
@@ -37,6 +38,8 @@ public:
     uint32_t length,
     uint32_t sampleRate) override;
   void handleReceiverAudio(const vsdrreal* data, uint32_t length) override;
+  void handleReceiverMeter(float rssiDbFs, uint32_t sampleRate, std::optional<float> agcGainDb) override;
+
   void handleTransmitterIq(
     RadioSettings* pRadioSettings,
     const vsdrcomplex* data,
@@ -86,5 +89,8 @@ private:
   QtPanadapter* m_pPanadapter;
   QtFrequencyPanel* m_pFrequencyPanel;
   uint32_t m_reportedIqSampleRate;
-  bool m_debugIqUpdate = false;
+
+  QtSMeter* m_pSmeter;
+  float m_rssiMinDbFs;
+  float m_rssiMaxDbFs;
 };
