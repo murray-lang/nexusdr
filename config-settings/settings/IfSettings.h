@@ -19,13 +19,13 @@ public:
   };
   IfSettings() :
     m_bandwidth(this, "bandwidth", 0),
-    m_gain(this, "gain", 0.0)
+    m_gain(this, "gain", 0.0),
   {
   }
   IfSettings(const IfSettings& rhs) :
     SettingsBase(rhs),
     m_bandwidth(this, rhs.m_bandwidth),
-    m_gain(this, rhs.m_gain)
+    m_gain(this, rhs.m_gain),
   {
   }
   ~IfSettings() override = default;
@@ -41,9 +41,9 @@ public:
   }
 
   [[nodiscard]] uint32_t getBandwidth() const { return m_bandwidth(); }
-  [[nodiscard]] float getGain() const { return m_gain(); }
-
   void setBandwidth(uint32_t bandwidth) { m_bandwidth(bandwidth); }
+
+  [[nodiscard]] float getGain() const { return m_gain(); }
   void setGain(float gain) { m_gain(gain); }
 
   bool merge(const IfSettings& rhs)

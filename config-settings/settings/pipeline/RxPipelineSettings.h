@@ -22,7 +22,7 @@ public:
   RxPipelineSettings() :
     PipelineSettings(),
     m_mute(this, "mute", false),
-    m_agc(this, "agc", 0.0)
+    m_agc(this, "agc", Agc::DEFAULT)
   {
   }
 
@@ -56,6 +56,9 @@ public:
     PipelineSettings::markAllChanged();
     m_ifSettings.markAllChanged();
   }
+
+  [[nodiscard]] Agc getAgc() const { return m_agc(); }
+  void setAgc(Agc agc) { m_agc(agc); }
 
   IfSettings& getIfSettings()
   {
@@ -138,6 +141,6 @@ public:
 
 protected:
   Setting<bool, MUTE, RxPipelineSettings> m_mute;
-  Setting<float, AGC, RxPipelineSettings> m_agc;
+  Setting<Agc, AGC, RxPipelineSettings> m_agc;
   IfSettings m_ifSettings;
 };

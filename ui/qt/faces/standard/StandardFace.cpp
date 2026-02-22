@@ -8,7 +8,8 @@
 #include "../../common/QtPanadapter.h"
 #include "../../common/QtTimeSeriesChart.h"
 #include "../../common/FrequencyPanel/QtFrequencyPanel.h"
-#include "../../common/s-meter/QtSMeter.h"
+#include "../../common/SMeter/QtSMeter.h"
+#include <QStyle>
 
 
 StandardFace::StandardFace(QWidget* parent)
@@ -61,18 +62,18 @@ StandardFace::initialise(RadioSettings* pRadioSettings)
 
     m_pSmeter->setReferenceDbFs(-60.0f);
     m_pSmeter->setOrientation(Qt::Horizontal);
-    m_pSmeter->setThickness(12);
 
-    m_pSmeter->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    m_pSmeter->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    // m_pSmeter->style()->polish(m_pSmeter);
+    // m_pSmeter->update();
     // m_pSmeter->setMinimumHeight(18);
     // m_pSmeter->setMaximumHeight(24);
 
     ui->sMeterSlot->layout()->addWidget(m_pSmeter);
-
   }
 
-  ui->volumeSlider->setRange(0, 100);
-  ui->volumeSlider->setValue(100);
+  // ui->volumeSlider->setRange(0, 100);
+  // ui->volumeSlider->setValue(100);
 
   // Centered frequency readout in grid row 2
   if (ui->frequencyReadoutSlot != nullptr) {

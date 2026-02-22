@@ -1,3 +1,33 @@
+
+
+QWidget#StandardFace QtSMeter#sMeter {
+    qproperty-barThicknessPx: 6;
+    qproperty-showScale: true;
+    qproperty-overS9MaxDb: 40;
+    qproperty-scalePlacementText: bottom;
+    qproperty-scalePadPx: 0;
+    qproperty-backgroundColor: #0c394c;
+    qproperty-borderColor: #30343a;
+    qproperty-borderWidth: 0;
+
+    qproperty-barTrackColor: #1e2126;
+    qproperty-barOkColor: #3bd16f;
+    qproperty-barWarnColor: #ffd24a;
+    qproperty-barAlarmColor: #ff4d4d;
+
+    qproperty-tickColor: white;
+    qproperty-labelColor: white;
+
+    qproperty-endPaddingPx: 12;
+    qproperty-hideLabelsWhenTight: false;
+}
+
+QWidget#StandardFace QLabel#sMeterLabel {
+    color: white;
+    font-size: 12pt;
+    vertical-align: top;
+}
+
 QWidget#StandardFace QtFrequencyPanel {
     
 }
@@ -9,6 +39,7 @@ QWidget#StandardFace QtBandReadout {
     border-left-color: #061922;
     border-bottom-color: #065a7f;
     border-right-color: #065a7f;
+    background-color: black;
 }
 
 QWidget#StandardFace QToolButton {
@@ -25,6 +56,7 @@ QWidget#StandardFace QtBandReadout QToolButton[role=split] {
 
 
 QWidget#StandardFace QtFrequencyPanel QtVfoReadout QLabel {
+    color: #0dacf1;
     padding-right: 5px;
     font-weight: bold;
     font-style: italic;
@@ -47,9 +79,9 @@ QWidget#StandardFace QtVfoReadout[vfo="B"] {
 }
 
 QWidget#StandardFace QtVfoReadout[focusVfo=true] QtNumberReadout {
-    border-color: #0384bc;
-    border-width: 2px;
-    border-radius: 3px;
+    border-bottom-color: #0384bc;
+    border-bottom-width: 3px;
+    /*border-radius: 3px;*/
     border-style: solid;
 }
 
