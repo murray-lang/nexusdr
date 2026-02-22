@@ -84,12 +84,9 @@ public:
 
     // Process sample-by-sample for API safety/portability.
     for (uint32_t i = 0; i < inputLength; ++i) {
-      const liquid_float_complex x(in.at(i).real(), in.at(i).imag());
 
-      liquid_float_complex y{};
-      agc_crcf_execute(m_agc, x, &y);
+      agc_crcf_execute(m_agc, in.at(i), &out.at(i));
 
-      out.at(i) = sdrcomplex(y.real(), y.imag());
       m_lastGain.store(agc_crcf_get_gain(m_agc), std::memory_order_relaxed);
     }
     return inputLength;
