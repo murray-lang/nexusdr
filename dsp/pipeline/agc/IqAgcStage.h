@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <stdexcept>
+#include <complex>
 
 constexpr float SLOW_LOOP_BANDWIDTH = 2e-4f;
 constexpr float MEDIUM_LOOP_BANDWIDTH = 7e-4f;
@@ -83,11 +84,12 @@ public:
 
     // Process sample-by-sample for API safety/portability.
     for (uint32_t i = 0; i < inputLength; ++i) {
+      const liquid_float_complex x(in.at(i).real(), in.at(i).imag());
+
       liquid_float_complex y{};
-      agc_crcf_execute(m_agc,
-                      static_cast<liquid_float_complex>(in[i]),
-                      &y);
-      out[i] = static_cast<vsdrcomplex::value_type>(y);
+      agc_crcf_execute(m_agc, x, &y);
+
+      out.at(i) = sdrcomplex(y.real(), y.imag());
       m_lastGain.store(agc_crcf_get_gain(m_agc), std::memory_order_relaxed);
     }
     return inputLength;
