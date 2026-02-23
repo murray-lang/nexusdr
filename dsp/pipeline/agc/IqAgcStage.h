@@ -11,19 +11,17 @@
 #include <stdexcept>
 #include <complex>
 
-constexpr float SLOW_LOOP_BANDWIDTH = 2e-4f;
-constexpr float MEDIUM_LOOP_BANDWIDTH = 7e-4f;
-constexpr float FAST_LOOP_BANDWIDTH = 3e-3f;
+constexpr float SLOW_LOOP_BANDWIDTH = 1e-4f;
+constexpr float MEDIUM_LOOP_BANDWIDTH = 1e-3f;
+constexpr float FAST_LOOP_BANDWIDTH = 1e-2f;
 constexpr float DEFAULT_LOOP_BANDWIDTH = MEDIUM_LOOP_BANDWIDTH;
-constexpr float DEFAULT_TARGET_RMS = 0.25f;
 
 class IqAgcStage : public IqPipelineStage
 {
 public:
   // SSB-friendly defaults: fairly gentle loop, modest target level
-  IqAgcStage(float loopBandwidth = DEFAULT_LOOP_BANDWIDTH, float targetRms = DEFAULT_TARGET_RMS) :
+  IqAgcStage(float loopBandwidth = DEFAULT_LOOP_BANDWIDTH) :
     m_agc(nullptr),
-    m_targetRms(std::max(1e-6f, targetRms)),
     m_lastGain(1.0f),
     m_off(false)
   {
@@ -32,10 +30,6 @@ public:
       throw std::runtime_error("agc_crcf_create() failed");
     }
     agc_crcf_set_bandwidth(m_agc, loopBandwidth);
-
-    // liquid-dsp AGC uses a "desired signal level" (gain drives output toward this).
-    // For complex float, this is effectively an RMS-ish target.
-    agc_crcf_set_signal_level(m_agc, m_targetRms);
   }
 
   ~IqAgcStage() override
@@ -65,14 +59,6 @@ public:
   void setOff(bool off) { m_off = off; }
   [[nodiscard]] bool isOff() const { return m_off; }
 
-  void setTargetRms(float targetRms)
-  {
-    agc_crcf_set_signal_level(m_agc, targetRms);
-    m_targetRms = targetRms;
-  }
-  [[nodiscard]] float getTargetRms() const { return m_targetRms; }
-
-
   uint32_t processSamples(ComplexPingPongBuffers& buffers, uint32_t inputLength) override
   {
     if (m_off) {
@@ -82,13 +68,9 @@ public:
     const vsdrcomplex& in = buffers.input();
     vsdrcomplex& out = buffers.output();
 
-    // Process sample-by-sample for API safety/portability.
-    for (uint32_t i = 0; i < inputLength; ++i) {
-
-      agc_crcf_execute(m_agc, in.at(i), &out.at(i));
-
-      m_lastGain.store(agc_crcf_get_gain(m_agc), std::memory_order_relaxed);
-    }
+    agc_crcf_execute_block(m_agc, (liquid_float_complex *)in.data(), inputLength, (liquid_float_complex *)out.data() );
+    
+    m_lastGain.store(agc_crcf_get_gain(m_agc), std::memory_order_relaxed);
     return inputLength;
   }
 
@@ -100,7 +82,6 @@ public:
 
 private:
   agc_crcf m_agc;
-  float m_targetRms;
   std::atomic<float> m_lastGain;
   bool m_off;
 };
