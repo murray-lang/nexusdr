@@ -69,10 +69,11 @@ public:
   }
   void stop() override {
     if (m_running) {
+      m_running = false;
       m_rtAudio.stopStream();
       m_rtAudio.closeStream();
-      m_running = false;
       m_dataAvailable.wakeOne();
+      wait();
     }
   }
 

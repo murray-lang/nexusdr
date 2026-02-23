@@ -54,7 +54,10 @@ MainWindow::MainWindow(RadioConfig& radioConfig, QWidget *parent)
 
 MainWindow::~MainWindow()
 {
-  delete m_pRadio;
+  if (m_pRadio) {
+    m_pRadio->stop();
+    delete m_pRadio;
+  }
   delete ui;
 }
 
