@@ -19,17 +19,16 @@ constexpr float DEFAULT_LOOP_BANDWIDTH = MEDIUM_LOOP_BANDWIDTH;
 class IqAgcStage : public IqPipelineStage
 {
 public:
-  // SSB-friendly defaults: fairly gentle loop, modest target level
-  IqAgcStage(float loopBandwidth = DEFAULT_LOOP_BANDWIDTH) :
+  IqAgcStage(AgcSpeed speed = AgcSpeed::DEFAULT) :
     m_agc(nullptr),
     m_lastGain(1.0f),
-    m_off(false)
+    m_speed(speed)
   {
     m_agc = agc_crcf_create();
     if (!m_agc) {
       throw std::runtime_error("agc_crcf_create() failed");
     }
-    agc_crcf_set_bandwidth(m_agc, loopBandwidth);
+    setBandwidth(speed);
   }
 
   ~IqAgcStage() override
@@ -40,35 +39,27 @@ public:
     }
   }
 
-
-
-  void setBandwidth(float bandwidth)
+  void setSpeed(AgcSpeed speed)
   {
-    agc_crcf_set_bandwidth(m_agc, bandwidth);
+    m_speed = speed;
+    setBandwidth(speed);
   }
+  [[nodiscard]] AgcSpeed getSpeed() const { return m_speed; }
 
   [[nodiscard]] float getBandwidth() const
   {
     return agc_crcf_get_bandwidth(m_agc);
   }
 
-  void setFast() { setBandwidth(FAST_LOOP_BANDWIDTH); setOff(false); }
-  void setMedium() { setBandwidth(MEDIUM_LOOP_BANDWIDTH); setOff(false); }
-  void setSlow() { setBandwidth(SLOW_LOOP_BANDWIDTH); setOff(false); }
-
-  void setOff(bool off) { m_off = off; }
-  [[nodiscard]] bool isOff() const { return m_off; }
+  bool isOff() const { return m_speed == AgcSpeed::OFF; }
 
   uint32_t processSamples(ComplexPingPongBuffers& buffers, uint32_t inputLength) override
   {
-    if (m_off) {
+    if (m_speed == AgcSpeed::OFF) {
       buffers.flip();
       return inputLength;
     }
-    const vsdrcomplex& in = buffers.input();
-    vsdrcomplex& out = buffers.output();
-
-    agc_crcf_execute_block(m_agc, (liquid_float_complex *)in.data(), inputLength, (liquid_float_complex *)out.data() );
+    agc_crcf_execute_block(m_agc, buffers.input().data(), inputLength, buffers.output().data() );
     
     m_lastGain.store(agc_crcf_get_gain(m_agc), std::memory_order_relaxed);
     return inputLength;
@@ -80,8 +71,34 @@ public:
     return 20.0f * std::log10(g);
   }
 
+protected:
+  float speedToBandwidth(AgcSpeed speed) const
+  {
+    switch (speed) {
+    case AgcSpeed::FAST:
+      return FAST_LOOP_BANDWIDTH;
+    case AgcSpeed::MEDIUM:
+      return MEDIUM_LOOP_BANDWIDTH;
+    case AgcSpeed::SLOW:
+      return SLOW_LOOP_BANDWIDTH;
+    default:
+      return DEFAULT_LOOP_BANDWIDTH;
+    }
+  }
+
+  void setBandwidth(AgcSpeed speed)
+  {
+    float bw = speedToBandwidth(speed);
+    setBandwidth(bw);
+  }
+
+  void setBandwidth(float bandwidth)
+  {
+    agc_crcf_set_bandwidth(m_agc, bandwidth);
+  }
+
 private:
   agc_crcf m_agc;
   std::atomic<float> m_lastGain;
-  bool m_off;
+  AgcSpeed m_speed;
 };

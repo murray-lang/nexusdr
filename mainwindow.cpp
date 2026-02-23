@@ -435,7 +435,8 @@ MainWindow::initialiseRadio()
     m_pRadio->configure(&m_radioConfig);
     m_pRadio->start();
 
-    m_pRadio->applyBand("40m");
+    m_pRadio->applyBand("20m");
+    m_pRadio->applyAgcSpeed(AgcSpeed::FAST);
     //m_pRadio->split("40m", "20m");
     // m_pRadio->addPipeline();
 

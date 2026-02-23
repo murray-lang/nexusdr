@@ -407,7 +407,9 @@ set(PROJECT_SOURCES
         ui/qt/common/ScaleRenderer/ScaleLayoutHelpers.h
         ui/qt/common/SMeter/QtSMeter.cpp
         ui/qt/common/SMeter/QtSMeter.h
-        config-settings/settings/Agc.h
+        config-settings/settings/AgcSpeed.h
+        config-settings/settings/base/SettingUpdateHelpers.cpp
+        config-settings/settings/base/SettingUpdateHelpers.h
 
 )
 

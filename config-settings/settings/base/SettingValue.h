@@ -6,7 +6,7 @@
 #include "../Mode.h"
 #include "config-settings/settings/bands/SplitBandId.h"
 #include "config-settings/settings/pipeline/PipelineId.h"
-#include "config-settings/settings/Agc.h"
+#include "config-settings/settings/AgcSpeed.h"
 
 /**
  * The unified variant type for all setting data in the system.
@@ -23,5 +23,5 @@ using SettingValue = std::variant<
   bool,
   SplitBandId,
   PipelineId,
-  Agc
+  AgcSpeed
 >;

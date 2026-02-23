@@ -12,6 +12,7 @@
 
 #include "config-settings/settings/RadioSettings.h"
 #include "config-settings/settings/bands/BandSelector.h"
+#include "config-settings/settings/base/SettingUpdateHelpers.h"
 
 QtFrequencyPanel::QtFrequencyPanel(QWidget* parent)
   : QWidget(parent)
@@ -411,6 +412,6 @@ QtFrequencyPanel::onVfoClicked(SplitBandId whichBand, VfoId whichVfo)
 {
   if (m_pSettingsSink == nullptr) return;
 
-  SettingUpdate update = RadioSettings::makeBandSetFocusPipelineUpdate(whichBand, whichVfo);
+  SettingUpdate update = SettingUpdateHelpers::makeSetFocusPipeline(whichBand, whichVfo);
   m_pSettingsSink->applySettingUpdate(update);
 }

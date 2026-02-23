@@ -10,6 +10,7 @@
 #include <array>
 
 #include "ui_QtMiniVfoToolbar.h"
+#include "config-settings/settings/base/SettingUpdateHelpers.h"
 #include "ui/qt/common/QWidgetPropertySetter.h"
 
 const auto closeIconName = QStringLiteral(":/ui/icons/solid/circle-xmark.svg");
@@ -142,13 +143,13 @@ void QtMiniVfoToolbar::onAbPressed()
 
   ;
   if (!m_bandSettings->isMultiPipeline()) {
-    QVector<SettingUpdate> update = {{ RadioSettings::makeBandSetMultiPipelineUpdate(m_bandId, true) }};
+    QVector<SettingUpdate> update = {{ SettingUpdateHelpers::makeSetMultiPipeline(m_bandId, true) }};
     emit settingUpdateRequested(update);
     return;
   }
 
   // Close the pipeline associated with *this* VFO cell (A can close A; B can close B).
-  QVector<SettingUpdate> update = {{ RadioSettings::makeBandClosePipelineUpdate(m_bandId, m_vfoId)}};
+  QVector<SettingUpdate> update = {{ SettingUpdateHelpers::makeClosePipeline(m_bandId, m_vfoId)}};
   emit settingUpdateRequested(update);
 }
 
@@ -158,8 +159,8 @@ void QtMiniVfoToolbar::onTxPressed()
 
   QVector<SettingUpdate> update = {
     {
-      RadioSettings::makeBandSetSetTxBandUpdate(m_bandId),
-      RadioSettings::makeBandSetTxPipelineUpdate(m_bandId, m_vfoId)
+      SettingUpdateHelpers::makeSetTxBand(m_bandId),
+      SettingUpdateHelpers::makeSetTxPipeline(m_bandId, m_vfoId)
     }};
   emit settingUpdateRequested(update);
 }
