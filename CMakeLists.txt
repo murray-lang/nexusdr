@@ -22,8 +22,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #list(APPEND CMAKE_PREFIX_PATH "/usr/lib/aarch-linux-gnu/cmake")
 list(APPEND CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/cmake")
 
-set(VOLK_MIN_VERSION "2.4.1")         ## first version with CPU features
-
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
 
 find_package(PkgConfig)
@@ -78,25 +76,6 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui Widgets Charts)
 #    message("Qwt NOT found")
 #endif()
 find_library(HIDAPI_LIBRARY hidapi-libusb)
-
-message(STATUS "")
-message(STATUS "Configuring VOLK support...")
-find_package(Volk)
-if(Volk_FOUND)
-  message(STATUS "  Found VOLK:")
-  message(STATUS "  * Version: ${Volk_VERSION}")
-  message(STATUS "  * Libraries: ${VOLK_LIBRARIES}")
-  message(STATUS "  * Includes: ${VOLK_INCLUDE_DIRS}")
-  if("${Volk_VERSION}" STREQUAL "")
-    message(WARNING "Empty VOLK version string. Assuming compatibility. Good luck!")
-  else()
-    if("${Volk_VERSION}" VERSION_LESS ${VOLK_MIN_VERSION})
-      message(FATAL_ERROR "VOLK version ${Volk_VERSION} < ${VOLK_MIN_VERSION}")
-    endif()
-  endif()
-else()
-  message(WARNING "VOLK not found.")
-endif()
 
 if( ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     find_package(USB)
@@ -452,7 +431,6 @@ endif()
 target_include_directories(cutesdr-vk6hl PUBLIC
     ${CMAKE_SOURCE_DIR}
     ${AUDIO_DRIVER_INCLUDE_DIRS}
-    ${VOLK_INCLUDE_DIRS}
     /usr/include/hidapi/
 #    ${SAMPLERATE_INCLUDE_DIRS}
     ${LIQUID_INCLUDE_DIR}
@@ -469,11 +447,9 @@ set (COMMON_LIBRARIES
 
     ${AUDIO_DRIVER_LIBS}
     ${AUDIO_LINK_LIBS}
-    ${VOLK_LIBRARIES}
     usb-1.0
     hidapi-libusb
     nlohmann_json::nlohmann_json
-#    ${SAMPLERATE_LIBRARIES}
     ${LIQUID_LIBRARY}
 )
 

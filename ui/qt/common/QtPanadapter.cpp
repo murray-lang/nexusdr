@@ -8,6 +8,7 @@
 #include "dsp/utils/constants.h"
 #include "dsp/utils/window.h"
 #include <volk/volk.h>
+#include <cmath>
 
 #include "dsp/utils/pocketfft/pocketfft_hdronly.h"
 
@@ -305,10 +306,10 @@ QtPanadapter::powerSpectrum(const vsdrcomplex& timeSeries, uint32_t timeSeriesLe
       static_cast<sdrreal>(1.0)
   );
 
-  volk_32fc_s32f_x2_power_spectral_density_32f(
-    spectrumOut.data(),
-    fftOut.data(),
-    static_cast<float>(timeSeriesLength), 1.0,
-    timeSeriesLength
-  );
+  auto rbw = static_cast<float>(timeSeriesLength);
+  auto normalization = static_cast<float>(timeSeriesLength);
+  for (uint32_t i = 0; i < timeSeriesLength; i++) {
+    float mag_sq = std::norm(fftOut.at(i));
+    spectrumOut.at(i) = 10.0f * std::log10(mag_sq / (rbw * normalization));
+  }
 }
