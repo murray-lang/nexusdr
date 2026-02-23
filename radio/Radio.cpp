@@ -10,6 +10,8 @@
 #include "config-settings/settings/RadioSettingsEvent.h"
 #include <QDebug>
 
+#include "config-settings/settings/base/SettingUpdateHelpers.h"
+
 
 Radio::Radio(QObject *pEventTarget) :
   m_settings(),
@@ -160,10 +162,9 @@ void Radio::applySettingUpdates(SettingUpdate* updates, std::size_t count)
 void
 Radio::applyBand(const std::string& bandName)
 {
+  SettingUpdate update = SettingUpdateHelpers::makeSetBand(bandName);
   // qDebug() << "Radio::applyBand(): applying band " << bandName.c_str() << ". Existing band: " << m_settings.bandName.c_str() ;
-  SettingUpdatePath bandPath({RadioSettings::BAND, BandSelector::REPLACE_FOCUS});
-  SettingUpdate bandSetting(bandPath, bandName, SettingUpdate::Meaning::VALUE);
-  applySettingUpdate(bandSetting);
+  applySettingUpdate(update);
 }
 
 void
@@ -174,7 +175,15 @@ Radio::split(const std::string& bandA, const std::string& bandB)
   applySettingUpdate(splitSetting);
 }
 
-void Radio::ptt(bool on)
+void
+Radio::applyAgcSpeed(AgcSpeed speed)
+{
+  SettingUpdate update = SettingUpdateHelpers::makeSetAgcSpeedOnFocusPipeline(speed);
+  applySettingUpdate(update);
+}
+
+void
+Radio::ptt(bool on)
 {
   if (on) {
     pttOn();

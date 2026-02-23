@@ -68,6 +68,9 @@ MainWindow::customEvent(QEvent* event)
     } else if (event->type() == ReceiverAudioEvent::RxAudioEvent) {
       auto* audioEvent = dynamic_cast<ReceiverAudioEvent*>(event);
       m_pFace->handleReceiverAudio(audioEvent->buffer.get(), audioEvent->dataLength);
+    } else if (event->type() == ReceiverMeterEvent::RxMeterEvent) {
+      auto* meterEvent = dynamic_cast<ReceiverMeterEvent*>(event);
+      m_pFace->handleReceiverMeter(meterEvent->rssiDbFs(), meterEvent->sampleRate(), meterEvent->agcGainDb());
     } else if (event->type() == RadioSettingsEvent::RadioSettingsEventType) {
       auto* radioSettingsEvent = dynamic_cast<RadioSettingsEvent*>(event);
       handleRadioSettingsEvent(radioSettingsEvent->getRadioSettings(), radioSettingsEvent->getSequence());
@@ -432,7 +435,8 @@ MainWindow::initialiseRadio()
     m_pRadio->configure(&m_radioConfig);
     m_pRadio->start();
 
-    m_pRadio->applyBand("40m");
+    m_pRadio->applyBand("20m");
+    m_pRadio->applyAgcSpeed(AgcSpeed::FAST);
     //m_pRadio->split("40m", "20m");
     // m_pRadio->addPipeline();
 

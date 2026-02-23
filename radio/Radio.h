@@ -54,6 +54,8 @@ public:
     m_settings.applyIfSettings(settings);
   }
 
+  void applyAgcSpeed(AgcSpeed speed);
+
   // void setCentreFrequencyDeltas(int32_t fine, int32_t coarse);
 
   RadioSettings& getRadioSettings() { return m_settings; }

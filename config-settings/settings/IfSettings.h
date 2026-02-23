@@ -41,9 +41,9 @@ public:
   }
 
   [[nodiscard]] uint32_t getBandwidth() const { return m_bandwidth(); }
-  [[nodiscard]] float getGain() const { return m_gain(); }
-
   void setBandwidth(uint32_t bandwidth) { m_bandwidth(bandwidth); }
+
+  [[nodiscard]] float getGain() const { return m_gain(); }
   void setGain(float gain) { m_gain(gain); }
 
   bool merge(const IfSettings& rhs)

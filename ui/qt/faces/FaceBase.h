@@ -20,7 +20,6 @@ public:
   FaceBase(QWidget* pParent)
     : QWidget(pParent)
     , m_pRadio(nullptr)
-    // , m_pRadioSettings(nullptr)
   {}
   ~FaceBase() override = default;
 
@@ -42,7 +41,16 @@ public:
     const vsdrcomplex* data,
     uint32_t length,
     uint32_t sampleRate) = 0;
+
   virtual void handleReceiverAudio(const vsdrreal* data, uint32_t length) = 0;
+
+  virtual void handleReceiverMeter(float rssiDbFs, uint32_t sampleRate, std::optional<float> agcGainDb)
+  {
+    (void)rssiDbFs;
+    (void)sampleRate;
+    (void)agcGainDb;
+  }
+
   virtual void handleTransmitterIq(
     RadioSettings* pRadioSettings,
     const vsdrcomplex* data,

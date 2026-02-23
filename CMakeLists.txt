@@ -40,7 +40,6 @@ else()
     message(FATAL_ERROR "liquid-dsp not found!")
 endif()
 
-
 # find_path(PIGPIO_INCLUDE_DIR pigpio.h PATHS /usr/local/include /usr/include)   
 # find_library(PIGPIO_LIBRARY NAMES pigpio PATHS /usr/local/lib /usr/lib)
 
@@ -72,6 +71,12 @@ message(STATUS "${AUDIO_LINK_LIBS}")
 find_package(nlohmann_json 3.11.2 REQUIRED)
 find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui Widgets Charts)
+#find_package(Qwt REQUIRED)
+#if(QWT_FOUND)
+#    message("Qwt found")
+#else()
+#    message("Qwt NOT found")
+#endif()
 find_library(HIDAPI_LIBRARY hidapi-libusb)
 
 message(STATUS "")
@@ -386,6 +391,25 @@ set(PROJECT_SOURCES
         ui/qt/common/MiniVfoToolbar/QtMiniVfoToolbar.h
         dsp/pipeline/RxPipelineAudioTap.cpp
         dsp/pipeline/RxPipelineAudioTap.h
+        radio/receiver/ReceiverMeterEvent.cpp
+        radio/receiver/ReceiverMeterEvent.h
+        dsp/pipeline/SMeter/SMeterStage.h
+        dsp/pipeline/agc/IqAgcStage.h
+        ui/qt/common/ScaleRenderer/ScaleRenderer.cpp
+        ui/qt/common/ScaleRenderer/ScaleRenderer.h
+        ui/qt/common/SMeter/SMeterTickProvider.cpp
+        ui/qt/common/SMeter/SMeterTickProvider.h
+        ui/qt/common/ScaleRenderer/LinearTickProvider.cpp
+        ui/qt/common/ScaleRenderer/LinearTickProvider.h
+        ui/qt/common/ScaleRenderer/NiceNumberTickProvider.cpp
+        ui/qt/common/ScaleRenderer/NiceNumberTickProvider.h
+        ui/qt/common/ScaleRenderer/ScaleModelHelpers.h
+        ui/qt/common/ScaleRenderer/ScaleLayoutHelpers.h
+        ui/qt/common/SMeter/QtSMeter.cpp
+        ui/qt/common/SMeter/QtSMeter.h
+        config-settings/settings/AgcSpeed.h
+        config-settings/settings/base/SettingUpdateHelpers.cpp
+        config-settings/settings/base/SettingUpdateHelpers.h
 
 )
 
@@ -433,6 +457,7 @@ target_include_directories(cutesdr-vk6hl PUBLIC
 #    ${SAMPLERATE_INCLUDE_DIRS}
     ${LIQUID_INCLUDE_DIR}
     ${PLATFORM_INCLUDE_DIRS}
+#    ${QWT_INCLUDE_DIR}
 )
 target_link_directories(cutesdr-vk6hl PRIVATE ${DSPL_DIR})
 
@@ -457,6 +482,7 @@ target_link_libraries(cutesdr-vk6hl
     PRIVATE
     ${COMMON_LIBRARIES}
     ${PLATFORM_LIBRARIES}
+#    ${QWT_LIBRARY}
 )
 
 set_target_properties(cutesdr-vk6hl PROPERTIES
