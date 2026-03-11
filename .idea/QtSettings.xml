@@ -1,24 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="QtSettings">
-    <option name="myCurrentProfile" value="Debug" />
     <option name="mySettingsPerProfile">
       <map>
-        <entry key="Debug">
+        <entry key="linux-debug">
           <value>
             <PerProfileState>
               <option name="myQmlPath" value="/usr/lib/x86_64-linux-gnu/qt6/qml" />
               <option name="myQtBinPath" value="/usr/lib/qt6/bin" />
-              <option name="myCustomQtBinPath" value="/usr/lib/qt6/bin" />
             </PerProfileState>
           </value>
         </entry>
-        <entry key="Release">
+        <entry key="linux-release">
           <value>
             <PerProfileState>
               <option name="myQmlPath" value="/usr/lib/x86_64-linux-gnu/qt6/qml" />
               <option name="myQtBinPath" value="/usr/lib/qt6/bin" />
-              <option name="myCustomQtBinPath" value="/usr/lib/qt6/bin" />
+            </PerProfileState>
+          </value>
+        </entry>
+        <entry key="rpi-debug">
+          <value>
+            <PerProfileState>
+              <option name="myQmlPath" value="/usr/lib/x86_64-linux-gnu/qt6/qml" />
+              <option name="myQtBinPath" value="/usr/lib/qt6/bin" />
+            </PerProfileState>
+          </value>
+        </entry>
+        <entry key="rpi-release">
+          <value>
+            <PerProfileState>
+              <option name="myQmlPath" value="/usr/lib/x86_64-linux-gnu/qt6/qml" />
+              <option name="myQtBinPath" value="/usr/lib/qt6/bin" />
             </PerProfileState>
           </value>
         </entry>

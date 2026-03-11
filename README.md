@@ -1,4 +1,4 @@
-# cutesdr-vk6hl
+# nexusdr
 An SDR implementation drawing on the work of cutesdr (https://sourceforge.net/projects/cutesdr/)
 
 

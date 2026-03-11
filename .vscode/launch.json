@@ -7,10 +7,10 @@
         
 
         {
-            "name": "Debug cutesdr-vk6hl",
+            "name": "Debug nexusdr",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/cutesdr-vk6hl",
+            "program": "${workspaceFolder}/build/nexusdr",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
