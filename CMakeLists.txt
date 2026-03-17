@@ -210,4 +210,6 @@ set(UTIL_SOURCES
         src/core/util/StringUtils.h
 )
 
-include(cmake/platforms/${TARGET_PLATFORM}.cmake)
+set(APP_DIR ${CMAKE_SOURCE_DIR}/src/app)
+
+include(cmake/platforms/${TARGET_PLATFORM}/${TARGET_PLATFORM}.cmake)
