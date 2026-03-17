@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/cutesdr-vk6hl.iml" filepath="$PROJECT_DIR$/.idea/cutesdr-vk6hl.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/nexusdr.iml" filepath="$PROJECT_DIR$/.idea/nexusdr.iml" />
     </modules>
   </component>
 </project>

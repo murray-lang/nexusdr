@@ -1,0 +1,65 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "linux-debug",
+      "displayName": "Linux Debug",
+      "binaryDir": "${sourceDir}/build-linux-debug",
+      "toolchainFile": "${sourceDir}/linux-toolchain.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "TARGET_PLATFORM": "linux"
+      }
+    },
+    {
+      "name": "linux-release",
+      "displayName": "Linux Release",
+      "binaryDir": "${sourceDir}/build-linux-release",
+      "toolchainFile": "${sourceDir}/linux-toolchain.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "TARGET_PLATFORM": "linux"
+      }
+    },
+    {
+      "name": "rpi-debug",
+      "displayName": "RPi Debug",
+      "binaryDir": "${sourceDir}/build-rpi-debug",
+      "toolchainFile": "${sourceDir}/linux-toolchain.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "TARGET_PLATFORM": "rpi"
+      }
+    },
+    {
+      "name": "rpi-release",
+      "displayName": "RPi Release",
+      "binaryDir": "${sourceDir}/build-rpi-release",
+      "toolchainFile": "${sourceDir}/linux-toolchain.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "TARGET_PLATFORM": "rpi"
+      }
+    },
+    {
+      "name": "stm32-debug",
+      "displayName": "STM32 Debug",
+      "binaryDir": "${sourceDir}/build-stm32-debug",
+      "toolchainFile": "${sourceDir}/arm-none-eabi-toolchain.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "TARGET_PLATFORM": "stm32h745i"
+      }
+    },
+    {
+      "name": "stm32-release",
+      "displayName": "STM32 Release",
+      "binaryDir": "${sourceDir}/build-stm32-release",
+      "toolchainFile": "${sourceDir}/arm-none-eabi-toolchain.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "TARGET_PLATFORM": "stm32h745i"
+      }
+    }
+  ]
+}

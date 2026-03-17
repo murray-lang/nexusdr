@@ -1,479 +1,215 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.15)
+set(SUPPORTED_PLATFORMS "linux" "rpi" "stm32h745i")
 
-project(cutesdr-vk6hl VERSION 0.1 LANGUAGES CXX)
+set(CMAKE_VERBOSE_MAKEFILE ON)
+
+project(nexusdr VERSION 0.1 LANGUAGES CXX)
 
 if(POLICY CMP0167)
     cmake_policy(SET CMP0167 NEW)
 endif()
 
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
+set (CONFIG_SOURCES
+        src/core/config-settings/config/RadioConfig.h
+        src/core/config-settings/config/ReceiverConfig.h
+        src/core/config-settings/config/TransmitterConfig.h
+        src/core/config-settings/config/AudioConfig.h
+        src/core/config-settings/config/ConfigBase.h
+        src/core/config-settings/config/ConfigException.h
+        src/core/config-settings/config/ControlConfig.h
+        src/core/config-settings/config/VariantConfig.h
+        src/core/config-settings/config/ConfigFactory.cpp
+        src/core/config-settings/config/ConfigFactory.h
+        src/core/config-settings/config/DigitalInputsConfig.h
+        src/core/config-settings/config/RotaryEncoderConfig.h
+        src/core/config-settings/config/DigitalInputConfig.h
+        src/core/config-settings/config/FunCubeConfig.h
+        src/core/config-settings/config/GpioLinesConfig.h
+        src/core/config-settings/config/AudioIqSourceConfig.h
+        src/core/config-settings/config/AudioSignalIqSourceConfig.h
+        src/core/config-settings/config/IqIoConfig.h
+        src/core/config-settings/config/DigitalOutputConfig.h
+        src/core/config-settings/config/BandSelectorConfig.h
+        src/core/config-settings/config/BandSelectorLookupItemConfig.h
+        src/core/config-settings/config/UiConfig.h
+)
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(SETTINGS_SOURCES
+        src/core/config-settings/settings/RfSettings.h
+        src/core/config-settings/settings/IfSettings.h
+        src/core/config-settings/settings/ReceiverSettings.h
+        src/core/config-settings/settings/RadioSettings.h
+        src/core/config-settings/settings/TransmitterSettings.h
+        src/core/config-settings/settings/ReceiverSettingsSink.h
+        src/core/config-settings/settings/RadioSettingsSink.h
+        src/core/config-settings/settings/base/SettingUpdatePath.h
+        src/core/config-settings/settings/base/SettingUpdate.h
+        src/core/config-settings/settings/base/SettingsException.h
+        src/core/config-settings/settings/base/SettingsBase.h
+        src/core/config-settings/settings/RadioSettingsSource.h
 
-#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --enable-threads")
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --enable-threads")
+        src/core/config-settings/settings/Mode.h
+        src/core/config-settings/settings/ModeSettings.h
+        src/core/config-settings/settings/ModeSettings.cpp
+        src/core/config-settings/settings/TransmitterSettingsSink.h
+        src/core/config-settings/settings/IqCorrectionSettings.h
+        src/core/config-settings/settings/MicSettings.h
+        src/core/config-settings/settings/TestSettings.h
+        src/core/config-settings/settings/TwoToneSettings.h
+        src/core/config-settings/settings/bands/Band.h
+        src/core/config-settings/settings/bands/BandCategory.h
+        src/core/config-settings/settings/bands/Bands.h
+        src/core/config-settings/settings/bands/Bands.cpp
+        src/core/config-settings/settings/bands/BandSettings.cpp
+        src/core/config-settings/settings/pipeline/PipelineSettings.h
+        src/core/config-settings/settings/pipeline/RxPipelineSettings.h
+        src/core/config-settings/settings/bands/BandSettings.h
+        src/core/config-settings/settings/pipeline/TxPipelineSettings.h
+        src/core/config-settings/settings/base/SettingUpdateSink.h
+        src/core/config-settings/settings/base/SettingUpdateSource.h
+        src/core/config-settings/settings/base/SettingValue.h
+        src/core/config-settings/settings/base/Setting.h
+        src/core/config-settings/settings/base/SettingRegistry.h
+        src/core/config-settings/settings/pipeline/PipelineId.h
+        src/core/config-settings/settings/bands/SplitBandId.h
+        src/core/config-settings/settings/base/SteppableSetting.h
+        src/core/config-settings/settings/bands/BandSelector.h
+        src/core/config-settings/settings/RadioSettings.cpp
+        src/core/config-settings/settings/AgcSpeed.h
+        src/core/config-settings/settings/base/SettingUpdateHelpers.cpp
+        src/core/config-settings/settings/base/SettingUpdateHelpers.h
+)
 
-# list(APPEND CMAKE_PREFIX_PATH "/home/murray/Qt/6.9.1/gcc_64/lib/cmake")
-#list(APPEND CMAKE_PREFIX_PATH "/home/murray/Qt6.5/6.5.3/gcc_64/lib/cmake")
-#list(APPEND CMAKE_PREFIX_PATH "/home/murray/Qt/6.5.0/gcc_64/lib/cmake")
-#list(APPEND CMAKE_PREFIX_PATH "/usr/lib/aarch-linux-gnu/cmake")
-list(APPEND CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/cmake")
+set (DSP_SOURCES
+        src/core/dsp/iq/PingPongBufferSink.h
+        src/core/dsp/iq/IqSink.h
+        src/core/dsp/iq/IqSource.h
+        src/core/dsp/iq/AudioIqSource.h
+        src/core/dsp/iq/IqSourceFactory.cpp
+        src/core/dsp/iq/IqSourceFactory.h
+        src/core/dsp/iq/AudioSignalIqSource.h
+        src/core/dsp/pipeline/oscillators/Oscillator.h
+        src/core/dsp/pipeline/oscillators/Oscillator.cpp
+        src/core/dsp/pipeline/IqPipelineStage.h
+        src/core/dsp/pipeline/oscillators/OscillatorStage.h
+        src/core/dsp/pipeline/oscillators/OscillatorMixer.h
+        src/core/dsp/pipeline/oscillators/OscillatorInjector.h
+        src/core/dsp/pipeline/filters/FastFIR.h
+        src/core/dsp/pipeline/correction/DcShift.h
+        src/core/dsp/pipeline/demodulators/Demodulator.h
+        src/core/dsp/pipeline/demodulators/AmDemodulator.h
+        src/core/dsp/pipeline/demodulators/AmDemodulator.cpp
+        src/core/dsp/pipeline/filters/kernels/FirKernel.h
+        src/core/dsp/pipeline/filters/kernels/BandPassFirKernel.h
+        src/core/dsp/pipeline/filters/kernels/BandPassFirKernel.cpp
+        src/core/dsp/pipeline/filters/kernels/BandStopFirKernel.cpp
+        src/core/dsp/pipeline/filters/kernels/BandStopFirKernel.h
+        src/core/dsp/pipeline/filters/kernels/LowPassFirKernel.cpp
+        src/core/dsp/pipeline/filters/kernels/LowPassFirKernel.h
+        src/core/dsp/pipeline/filters/OverlapBuffers.h
+        src/core/dsp/pipeline/decimator/Decimator.h
+        src/core/dsp/pipeline/decimator/MyFirCoefficients.h
+        src/core/dsp/pipeline/monitoring/MonitoringStage.h
+        src/core/dsp/pipeline/demodulators/FmDemodulator.cpp
+        src/core/dsp/pipeline/demodulators/FmDemodulator.h
+        src/core/dsp/pipeline/demodulators/SsbDemodulator.cpp
+        src/core/dsp/pipeline/demodulators/SsbDemodulator.h
+        src/core/dsp/pipeline/resampler/Resampler.h
+        src/core/dsp/pipeline/modulators/Modulator.h
+        src/core/dsp/pipeline/modulators/SsbModulator.h
+        src/core/dsp/pipeline/IqPipeline.h
+        src/core/dsp/pipeline/IqRxPipeline.h
+        src/core/dsp/pipeline/IqRxPipeline.cpp
+        src/core/dsp/pipeline/IqPipeline.cpp
+        src/core/dsp/pipeline/IqTxPipeline.cpp
+        src/core/dsp/pipeline/IqTxPipeline.h
+        src/core/dsp/pipeline/modulators/CwModulator.h
+        src/core/dsp/pipeline/demodulators/CwDemodulator.cpp
+        src/core/dsp/pipeline/demodulators/CwDemodulator.h
+        src/core/dsp/pipeline/correction/IqCorrection.h
+        src/core/dsp/pipeline/oscillators/TwoToneSignalStage.h
+        src/core/dsp/pipeline/modulators/FmModulator.h
+        src/core/dsp/pipeline/RxPipelineAudioTap.cpp
+        src/core/dsp/pipeline/RxPipelineAudioTap.h
+        src/core/dsp/pipeline/SMeter/SMeterStage.h
+        src/core/dsp/pipeline/agc/IqAgcStage.h
+        src/core/dsp/utils/window.h
+        src/core/dsp/utils/OverlapBuffers.h
+        src/core/dsp/utils/FilterCoefficients.h
+        src/core/dsp/utils/FftData.h
+        src/core/dsp/utils/constants.h
+        src/core/dsp/utils/PingPongBuffers.h
+        src/core/dsp/utils/VectorAssembler.h
+        src/core/dsp/utils/pocketfft/pocketfft_hdronly.h
+        src/core/dsp/utils/HilbertTransform.h
+)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
+set(IO_SOURCES
+        ${USB_API_SOURCES}
+        ${GPIO_SOURCES}
+        src/io/audio/AudioInput.h
+        src/io/audio/AudioException.h
+        src/io/audio/AudioException.cpp
+        src/io/audio/AudioIo.h
+        src/io/audio/AudioOutput.h
+        src/io/audio/AudioSink.h
+        src/io/audio/drivers/AudioDriver.h
+        src/io/audio/drivers/AudioInputDriver.h
+        src/io/audio/drivers/AudioOutputDriver.h
+        src/io/control/ControlBase.h
+        src/io/control/ControlException.h
+        src/io/control/ControlSink.cpp
+        src/io/control/ControlSink.h
+        src/io/control/ControlSource.h
+        src/io/control/ControlSourceFactory.cpp
+        src/io/control/ControlSourceFactory.h
+        src/io/control/ControlSinkFactory.h
+        src/io/control/ControlSinkFactory.cpp
+        src/io/control/device/usb/UsbControl.h
+        src/io/control/device/usb/UsbException.cpp
+        src/io/control/device/usb/UsbException.h
+        src/io/control/device/usb/LibUsbControl.h
+        src/io/control/device/usb/HidUsbControl.h
+        src/io/control/device/FunCubeDongle/FunCubeDongle.cpp
+        src/io/control/device/FunCubeDongle/FunCubeDongle.h
+        src/io/control/PttSink.h
+        src/io/control/PttSource.h
+        src/io/control/RadioControl.cpp
+        src/io/control/RadioControl.h
+        src/io/iq/IqIo.cpp
+        src/io/iq/IqIo.h
+)
 
-find_package(PkgConfig)
-find_package(RtAudio REQUIRED)
+set(RADIO_SOURCES
+        src/core/radio/receiver/IqReceiver.h src/core/radio/receiver/IqReceiver.cpp
 
-#pkg_check_modules(SAMPLERATE REQUIRED samplerate)
+        src/core/radio/transmitter/IqTransmitter.cpp
+        src/core/radio/transmitter/IqTransmitter.h
 
-find_path(LIQUID_INCLUDE_DIR NAMES liquid/liquid.h)
-find_library(LIQUID_LIBRARY NAMES liquid)
-
-if(LIQUID_INCLUDE_DIR AND LIQUID_LIBRARY)
-    message(STATUS "Found liquid-dsp: ${LIQUID_LIBRARY}")
-else()
-    message(FATAL_ERROR "liquid-dsp not found!")
-endif()
-
-# find_path(PIGPIO_INCLUDE_DIR pigpio.h PATHS /usr/local/include /usr/include)   
-# find_library(PIGPIO_LIBRARY NAMES pigpio PATHS /usr/local/lib /usr/lib)
-
-
-# Prefer pigpio if available
-# if(PIGPIO_INCLUDE_DIR AND PIGPIO_LIBRARY)
-if(false)
-   set(IS_RPI TRUE)
-    message(STATUS "pigpio found")
-    add_definitions(-DUSE_PIGPIO)
-    set(USE_PIGPIO ON)
-else()
-    # Otherwise GPIOD will have to do.
-    set(USE_PIGPIO OFF)
-    pkg_check_modules(GPIOD QUIET IMPORTED_TARGET libgpiod)
-
-    if(GPIOD_FOUND)
-        message(STATUS "libgpiod found")
-        add_definitions(-DUSE_GPIOD)
-        set(USE_GPIOD ON)
-    endif()
-endif()
-
-add_definitions(-DMAX_GPIO=27)
-
-include(CMakeLists_AudioLibs.txt)
-message(STATUS "${AUDIO_LINK_LIBS}")
-
-find_package(nlohmann_json 3.11.2 REQUIRED)
-find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui Widgets Charts)
-#find_package(Qwt REQUIRED)
-#if(QWT_FOUND)
-#    message("Qwt found")
-#else()
-#    message("Qwt NOT found")
-#endif()
-find_library(HIDAPI_LIBRARY hidapi-libusb)
-
-if( ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    find_package(USB)
-    if(NOT LIBUSB_FOUND)
-        message(FATAL_ERROR "libusb required to compile cutesdr-vk6hl")
-    endif()
-    if(HIDAPI_LIBRARY)
-        MESSAGE(STATUS "System Hidapi Lib ${HIDAPI_LIBRARY} is used")
-    else()
-        MESSAGE(FATAL_ERROR "Hidapi required to compile cutesdr-vk6hl")
-    endif()
-endif()
-
-if(USE_PIGPIO)
-    set (PLATFORM_SOURCES
-            io/control/device/gpio/impl/pigpio/GpioImplPiGpio.h
-            io/control/device/gpio/impl/pigpio/GpioImplPiGpio.cpp
-            io/control/device/gpio/impl/pigpio/DigitalInputsRequestImplPiGpio.h
-            io/control/device/gpio/impl/pigpio/DigitalInputsRequestImplPiGpio.cpp
-            io/control/device/gpio/impl/pigpio/DigitalOutputsRequestImplPiGpio.h
-            io/control/device/gpio/impl/pigpio/DigitalOutputsRequestImplPiGpio.cpp
-    )
-    
-elseif(USE_GPIOD)
-    set (PLATFORM_SOURCES
-            io/control/device/gpio/impl/gpiod/GpioImplGpiod.h
-            io/control/device/gpio/impl/gpiod/GpioImplGpiod.cpp
-            io/control/device/gpio/impl/gpiod/DigitalInputLinesRequestImplGpiod.h
-            io/control/device/gpio/impl/gpiod/DigitalInputLinesRequestImplGpiod.cpp
-            io/control/device/gpio/impl/gpiod/DigitalOutputLinesRequestImplGpiod.cpp
-            io/control/device/gpio/impl/gpiod/DigitalOutputLinesRequestImplGpiod.h
-    )
-endif()
-
-if (RTAUDIO_FOUND)
-    set (AUDIO_DRIVER_SOURCES
-            io/audio/drivers/RtAudio/RtAudioDriver.h
-            io/audio/drivers/RtAudio/RtAudioOutputDriver.h
-            io/audio/drivers/RtAudio/RtAudioInputDriver.h
-            io/audio/drivers/RtAudio/AudioDriverFactory.h
-    )
-    set (AUDIO_DRIVER_INCLUDE_DIRS
-            /usl/local/include
-            /usr/local/include/rtaudio
-            io/audio/drivers/RtAudio
-    )
-    set (AUDIO_DRIVER_LIBS
-            /usr/local/lib/librtaudio.so
-    )
-endif()
-
-set(PROJECT_SOURCES
-        ${PLATFORM_SOURCES}
-        main.cpp
-        mainwindow.h mainwindow.cpp
-        mainwindow-1024x600.ui
-        resources.qrc
-        SampleTypes.h
-
-        dsp/utils/FilterCoefficients.h
-        dsp/utils/FftData.h
-        dsp/pipeline/oscillators/Oscillator.h dsp/pipeline/oscillators/Oscillator.cpp
-        dsp/utils/constants.h
-        dsp/utils/PingPongBuffers.h
-        dsp/utils/VectorAssembler.h
-        dsp/utils/pocketfft/pocketfft_hdronly.h
-        radio/receiver/IqReceiver.h radio/receiver/IqReceiver.cpp
-        dsp/pipeline/IqPipelineStage.h
-        dsp/pipeline/oscillators/OscillatorStage.h
-        dsp/pipeline/oscillators/OscillatorMixer.h
-        dsp/pipeline/oscillators/OscillatorInjector.h
-        dsp/pipeline/filters/FastFIR.h
-        dsp/pipeline/correction/DcShift.h
-        dsp/pipeline/demodulators/Demodulator.h
-        dsp/pipeline/demodulators/AmDemodulator.h
-
-        io/control/device/usb/UsbControl.h
-        io/control/device/usb/UsbException.cpp
-        io/control/device/usb/UsbException.h
-        io/control/device/usb/LibUsbControl.cpp
-        io/control/device/usb/LibUsbControl.h
-        io/control/device/usb/HidUsbControl.cpp
-        io/control/device/usb/HidUsbControl.h
-        io/control/device/usb/UsbControl.cpp
-        io/control/ControlBase.h
-        io/control/device/FunCubeDongle/FunCubeDongle.cpp
-        io/control/device/FunCubeDongle/FunCubeDongle.h
-        io/control/ControlException.h
-        config-settings/settings/RfSettings.h
-        config-settings/settings/IfSettings.h
-        config-settings/settings/ReceiverSettings.h
-        config-settings/settings/RadioSettings.h
-        config-settings/settings/TransmitterSettings.h
-
-        dsp/pipeline/demodulators/AmDemodulator.cpp
-        dsp/pipeline/filters/kernels/FirKernel.h
-        dsp/pipeline/filters/kernels/BandPassFirKernel.h
-        dsp/pipeline/filters/kernels/BandPassFirKernel.cpp
-        dsp/pipeline/filters/kernels/BandStopFirKernel.cpp
-        dsp/pipeline/filters/kernels/BandStopFirKernel.h
-        dsp/pipeline/filters/kernels/LowPassFirKernel.cpp
-        dsp/pipeline/filters/kernels/LowPassFirKernel.h
-        SignalEmitter.h
-        dsp/pipeline/filters/OverlapBuffers.h
-        dsp/utils/window.h
-        dsp/utils/OverlapBuffers.h
-        dsp/pipeline/decimator/Decimator.h
-        dsp/pipeline/decimator/MyFirCoefficients.h
-
-        dsp/pipeline/monitoring/MonitoringStage.h
-        config-settings/config/RadioConfig.h
-        config-settings/config/ReceiverConfig.h
-        config-settings/config/TransmitterConfig.h
-        config-settings/config/AudioConfig.h
-        config-settings/config/ConfigBase.h
-        config-settings/config/ConfigException.h
-
-
-        io/audio/AudioInput.h
-
-        io/audio/AudioException.h
-        io/audio/AudioException.cpp
-        dsp/iq/PingPongBufferSink.h
-        io/audio/AudioIo.h
-        io/audio/AudioOutput.h
-
-        dsp/iq/IqSink.h
-        radio/receiver/ReceiverIqEvent.h
-        radio/receiver/ReceiverIqEvent.cpp
-        radio/receiver/ReceiverAudioEvent.cpp
-        radio/receiver/ReceiverAudioEvent.h
-        radio/transmitter/IqTransmitter.cpp
-        radio/transmitter/IqTransmitter.h
-        radio/transmitter/TransmitterAudioEvent.cpp
-        radio/transmitter/TransmitterAudioEvent.h
-        io/control/ControlSinkFactory.h
-        io/control/ControlSinkFactory.cpp
-
-        config-settings/settings/ReceiverSettingsSink.h
-        io/control/PttSink.h
-        radio/Radio.cpp
-        radio/Radio.h
-        config-settings/settings/RadioSettingsSink.h
-        config-settings/config/ControlConfig.h
-        io/control/ControlSink.cpp
-        io/control/ControlSink.h
-        config-settings/settings/RadioSettingsSource.h
-        io/control/ControlSource.h
-        io/control/PttSource.h
-        io/control/ControlSourceFactory.cpp
-        io/control/ControlSourceFactory.h
-
-        io/control/device/gpio/Gpio.cpp
-        io/control/device/gpio/Gpio.h
-        io/control/device/gpio/GpioException.cpp
-        io/control/device/gpio/GpioException.h
-        io/control/device/gpio/digital/DigitalInputLinesRequest.cpp
-        io/control/device/gpio/digital/DigitalInputLinesRequest.h
-        io/control/device/gpio/digital/GpioRotaryEncoder.cpp
-        io/control/device/gpio/digital/GpioRotaryEncoder.h
-        io/control/device/gpio/digital/DigitalInputs.cpp
-        io/control/device/gpio/digital/DigitalInputs.h
-        config-settings/settings/base/SettingUpdatePath.h
-        config-settings/settings/base/SettingUpdate.h
-        config-settings/settings/base/SettingsException.h
-        config-settings/settings/base/SettingsBase.h
-        util/StringUtils.cpp
-        util/StringUtils.h
-        io/control/RadioControl.cpp
-        io/control/RadioControl.h
-        dsp/pipeline/demodulators/FmDemodulator.cpp
-        dsp/pipeline/demodulators/FmDemodulator.h
-        io/control/device/gpio/digital/DigitalInput.h
-        io/control/device/gpio/digital/DigitalInput.cpp
-        io/control/device/gpio/digital/DigitalInputFactory.cpp
-        io/control/device/gpio/digital/DigitalInputFactory.h
-        io/control/device/gpio/digital/DigitalInputFactory.cpp
-        config-settings/config/VariantConfig.h
-        config-settings/config/ConfigFactory.cpp
-        config-settings/config/ConfigFactory.h
-        config-settings/config/DigitalInputsConfig.h
-        config-settings/config/RotaryEncoderConfig.h
-        config-settings/config/DigitalInputConfig.h
-        config-settings/config/FunCubeConfig.h
-        config-settings/settings/RadioSettingsEvent.cpp
-        config-settings/settings/RadioSettingsEvent.h
-        config-settings/settings/base/SettingUpdateEvent.cpp
-        config-settings/settings/base/SettingUpdateEvent.h
-        io/control/device/gpio/GpioLines.cpp
-        io/control/device/gpio/GpioLines.h
-        config-settings/config/GpioLinesConfig.h
-        dsp/pipeline/demodulators/SsbDemodulator.cpp
-        dsp/pipeline/demodulators/SsbDemodulator.h
-        config-settings/settings/Mode.h
-        config-settings/settings/ModeSettings.h
-        config-settings/settings/ModeSettings.cpp
-        dsp/pipeline/resampler/Resampler.h
-        config-settings/settings/TransmitterSettingsSink.h
-        dsp/utils/HilbertTransform.h
-        dsp/pipeline/modulators/Modulator.h
-        dsp/pipeline/modulators/SsbModulator.h
-        dsp/iq/IqSource.h
-        dsp/iq/AudioIqSource.h
-        dsp/iq/IqSourceFactory.cpp
-        dsp/iq/IqSourceFactory.h
-        config-settings/config/AudioIqSourceConfig.h
-        dsp/iq/AudioSignalIqSource.h
-        io/audio/AudioSink.h
-        config-settings/config/AudioSignalIqSourceConfig.h
-        dsp/pipeline/IqPipeline.h
-        dsp/pipeline/IqRxPipeline.h
-        dsp/pipeline/IqRxPipeline.cpp
-        dsp/pipeline/IqPipeline.cpp
-        dsp/pipeline/IqTxPipeline.cpp
-        dsp/pipeline/IqTxPipeline.h
-        config-settings/config/IqIoConfig.h
-        io/iq/IqIo.cpp
-        io/iq/IqIo.h
-        radio/transmitter/TransmitterIqEvent.cpp
-        radio/transmitter/TransmitterIqEvent.h
-        io/control/device/gpio/digital/DigitalOutput.cpp
-        io/control/device/gpio/digital/DigitalOutput.h
-        config-settings/config/DigitalOutputConfig.h
-        io/control/device/gpio/digital/DigitalOutputLinesRequest.h
-        io/control/device/gpio/digital/DigitalOutputLinesRequest.cpp
-        dsp/pipeline/modulators/CwModulator.h
-        dsp/pipeline/demodulators/CwDemodulator.cpp
-        dsp/pipeline/demodulators/CwDemodulator.h
-        dsp/pipeline/correction/IqCorrection.h
-        config-settings/settings/IqCorrectionSettings.h
-        config-settings/settings/MicSettings.h
-        dsp/pipeline/oscillators/TwoToneSignalStage.h
-        config-settings/settings/TestSettings.h
-        config-settings/settings/TwoToneSettings.h
-        config-settings/config/BandSelectorConfig.h
-        config-settings/config/BandSelectorLookupItemConfig.h
-        io/control/device/gpio/digital/GpioBandSelector.cpp
-        io/control/device/gpio/digital/GpioBandSelector.h
-        io/audio/drivers/AudioDriver.h
-        io/audio/drivers/AudioInputDriver.h
-        io/audio/drivers/AudioOutputDriver.h
-        dsp/pipeline/modulators/FmModulator.h
-        ui/qt/common/QtChartTheme.h
-        ui/qt/common/QtBandDialog.cpp
-        ui/qt/common/QtBandDialog.h
-        config-settings/settings/bands/Band.h
-        config-settings/settings/bands/BandCategory.h
-        config-settings/settings/bands/Bands.h
-        config-settings/settings/bands/Bands.cpp
-        config-settings/settings/bands/BandSettings.cpp
-        config-settings/settings/pipeline/PipelineSettings.h
-        config-settings/settings/pipeline/RxPipelineSettings.h
-        config-settings/settings/bands/BandSettings.h
-        config-settings/settings/pipeline/TxPipelineSettings.h
-        config-settings/settings/base/SettingUpdateSink.h
-        config-settings/settings/base/SettingUpdateSource.h
-        config-settings/settings/base/SettingValue.h
-        config-settings/settings/base/Setting.h
-        config-settings/settings/base/SettingRegistry.h
-        ui/qt/common/QtChartBase.cpp
-        ui/qt/common/QtChartBase.h
-        ui/qt/common/QtTimeSeriesChart.cpp
-        ui/qt/common/QtTimeSeriesChart.h
-        ui/qt/common/QtPanadapter.cpp
-        ui/qt/common/QtPanadapter.h
-        config-settings/settings/base/SteppableSetting.h
-        config-settings/settings/bands/BandSelector.h
-        config-settings/settings/RadioSettings.cpp
-        ui/qt/faces/FaceBase.h
-        ui/qt/faces/FaceFactory.cpp
-        ui/qt/faces/FaceFactory.h
-        ui/qt/faces/standard/StandardFace.cpp
-        ui/qt/faces/standard/StandardFace.h
-        ui/qt/faces/standard/StandardFace.ui
-        ui/qt/faces/RegisterFace.h
-        config-settings/config/UiConfig.h
-        ui/qt/common/FrequencyPanel/QtFrequencyPanel.cpp
-        ui/qt/common/FrequencyPanel/QtFrequencyPanel.h
-        ui/qt/common/QtNumberReadout.cpp
-        ui/qt/common/QtNumberReadout.h
-        ui/qt/common/FrequencyPanel/QtBandReadout.cpp
-        ui/qt/common/FrequencyPanel/QtBandReadout.h
-        ui/qt/common/FrequencyPanel/VfoReadout/QtVfoReadout.cpp
-        ui/qt/common/FrequencyPanel/VfoReadout/QtVfoReadout.h
-        ui/qt/common/MiniVfoToolbar/QtMiniVfoToolbar.ui
-        config-settings/settings/pipeline/PipelineId.h
-        config-settings/settings/bands/SplitBandId.h
-        ui/qt/common/QWidgetPropertySetter.cpp
-        ui/qt/common/QWidgetPropertySetter.h
-        ui/qt/common/FrequencyPanel/VfoReadout/VfoActions.h
-        ui/qt/common/MiniVfoToolbar/QtMiniVfoToolbar.cpp
-        ui/qt/common/MiniVfoToolbar/QtMiniVfoToolbar.h
-        dsp/pipeline/RxPipelineAudioTap.cpp
-        dsp/pipeline/RxPipelineAudioTap.h
-        radio/receiver/ReceiverMeterEvent.cpp
-        radio/receiver/ReceiverMeterEvent.h
-        dsp/pipeline/SMeter/SMeterStage.h
-        dsp/pipeline/agc/IqAgcStage.h
-        ui/qt/common/ScaleRenderer/ScaleRenderer.cpp
-        ui/qt/common/ScaleRenderer/ScaleRenderer.h
-        ui/qt/common/SMeter/SMeterTickProvider.cpp
-        ui/qt/common/SMeter/SMeterTickProvider.h
-        ui/qt/common/ScaleRenderer/LinearTickProvider.cpp
-        ui/qt/common/ScaleRenderer/LinearTickProvider.h
-        ui/qt/common/ScaleRenderer/NiceNumberTickProvider.cpp
-        ui/qt/common/ScaleRenderer/NiceNumberTickProvider.h
-        ui/qt/common/ScaleRenderer/ScaleModelHelpers.h
-        ui/qt/common/ScaleRenderer/ScaleLayoutHelpers.h
-        ui/qt/common/SMeter/QtSMeter.cpp
-        ui/qt/common/SMeter/QtSMeter.h
-        config-settings/settings/AgcSpeed.h
-        config-settings/settings/base/SettingUpdateHelpers.cpp
-        config-settings/settings/base/SettingUpdateHelpers.h
+        src/core/radio/Radio.cpp
+        src/core/radio/Radio.h
 
 )
 
-if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-    qt_add_executable(cutesdr-vk6hl
-        MANUAL_FINALIZATION
-        ${PROJECT_SOURCES}
-    )
-# Define target properties for Android with Qt 6 as:
-#    set_property(TARGET cutesdr-vk6hl APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
-#                 ${CMAKE_CURRENT_SOURCE_DIR}/android)
-# For more information, see https://doc.qt.io/qt-6/qt-add-executable.html#target-creation
-else()
-    if(ANDROID)
-        add_library(cutesdr-vk6hl SHARED
-            ${PROJECT_SOURCES}
-        )
-# Define properties for Android with Qt 5 after find_package() calls as:
-#    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
-    else()
-        add_executable(cutesdr-vk6hl
-            ${PROJECT_SOURCES}
-        )
-    endif()
-endif()
-
-if(USE_PIGPIO)
-   set(PLATFORM_LIBRARIES
-        ${PIGPIO_LIBRARY}
-    )
-    set(PLATFORM_INCLUDE_DIRS
-        ${PIGPIO_INCLUDE_DIR}
-    )
-elseif(USE_GPIOD)
-    set (PLATFORM_LIBRARIES
-        PkgConfig::GPIOD
-    )
-endif()
-
-target_include_directories(cutesdr-vk6hl PUBLIC
-    ${CMAKE_SOURCE_DIR}
-    ${AUDIO_DRIVER_INCLUDE_DIRS}
-    /usr/include/hidapi/
-#    ${SAMPLERATE_INCLUDE_DIRS}
-    ${LIQUID_INCLUDE_DIR}
-    ${PLATFORM_INCLUDE_DIRS}
-#    ${QWT_INCLUDE_DIR}
-)
-target_link_directories(cutesdr-vk6hl PRIVATE ${DSPL_DIR})
-
-set (COMMON_LIBRARIES
-    Qt${QT_VERSION_MAJOR}::Core
-    Qt${QT_VERSION_MAJOR}::Gui
-    Qt${QT_VERSION_MAJOR}::Widgets
-    Qt${QT_VERSION_MAJOR}::Charts
-
-    ${AUDIO_DRIVER_LIBS}
-    ${AUDIO_LINK_LIBS}
-    usb-1.0
-    hidapi-libusb
-    nlohmann_json::nlohmann_json
-    ${LIQUID_LIBRARY}
+set(EVENT_SOURCES
+        src/core/events/EventDispatcher.h
+        src/core/events/EventBase.h
+        src/core/events/EventTarget.h
+        src/core/events/EventType.h
+        src/core/config-settings/settings/events/RadioSettingsEvent.h
+        src/core/config-settings/settings/events/SettingUpdateEvent.h
+        src/core/radio/receiver/events/ReceiverMeterEvent.h
+        src/core/radio/receiver/events/ReceiverIqEvent.h
+        src/core/radio/receiver/events/ReceiverAudioEvent.h
+        src/core/radio/transmitter/events/TransmitterIqEvent.h
+        src/core/radio/transmitter/events/TransmitterAudioEvent.h
 )
 
-
-target_link_libraries(cutesdr-vk6hl
-    PRIVATE
-    ${COMMON_LIBRARIES}
-    ${PLATFORM_LIBRARIES}
-#    ${QWT_LIBRARY}
+set(UTIL_SOURCES
+        src/core/util/StringUtils.cpp
+        src/core/util/StringUtils.h
 )
 
-set_target_properties(cutesdr-vk6hl PROPERTIES
-    MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com
-    MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
-    MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
-    MACOSX_BUNDLE TRUE
-    WIN32_EXECUTABLE TRUE
-    AUTOUIC_SEARCH_PATHS "${CMAKE_CURRENT_SOURCE_DIR}"
-)
+set(APP_DIR ${CMAKE_SOURCE_DIR}/src/app)
 
-install(TARGETS cutesdr-vk6hl
-    BUNDLE DESTINATION .
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
-
-if(QT_VERSION_MAJOR EQUAL 6)
-    qt_finalize_executable(cutesdr-vk6hl)
-endif()
+include(cmake/platforms/${TARGET_PLATFORM}/${TARGET_PLATFORM}.cmake)
