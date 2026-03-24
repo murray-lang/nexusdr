@@ -11,7 +11,7 @@
 #include <QStyle>
 
 #include "core/config-settings/settings/RadioSettings.h"
-#include "core/config-settings/settings/bands/BandSelector.h"
+#include "core/config-settings/settings/bands/ActiveBandSettings.h"
 #include "core/config-settings/settings/base/SettingUpdateHelpers.h"
 
 QtFrequencyPanel::QtFrequencyPanel(QWidget* parent)
@@ -91,7 +91,7 @@ QtFrequencyPanel::applyRadioSettings(RadioSettings* pRadioSettings, bool onlyIfC
   if (pRadioSettings == nullptr) return;
 
   if (pRadioSettings->hasSettingChanged(RadioSettings::BAND)) {
-    BandSelector& bandSelector = pRadioSettings->getBandSelector();
+    ActiveBandSettings& bandSelector = pRadioSettings->getActiveBandSettings();
     if (bandSelector.isChanged()) {
       if (hasChangesOtherThanVfo(bandSelector)) {
         applyBandSelectorChange(bandSelector);
@@ -114,7 +114,7 @@ QtFrequencyPanel::applyRadioSettings(RadioSettings* pRadioSettings, bool onlyIfC
 }
 
 bool
-QtFrequencyPanel::hasChangesOtherThanVfo(BandSelector& bandSelector) const
+QtFrequencyPanel::hasChangesOtherThanVfo(ActiveBandSettings& bandSelector) const
 {
   uint32_t pipelineChanges = 
       BandSettings::MULTI_PIPELINE
@@ -162,7 +162,7 @@ QtFrequencyPanel::hasChangesOtherThanVfo(BandSelector& bandSelector) const
 }
 
 void
-QtFrequencyPanel::applyFrequencyChanges(BandSelector& bandSelector, bool onlyIfChanged)
+QtFrequencyPanel::applyFrequencyChanges(ActiveBandSettings& bandSelector, bool onlyIfChanged)
 {
   // Band 1
   if (bandSelector.hasBand(SplitBandId::One)) {
@@ -182,7 +182,7 @@ QtFrequencyPanel::applyFrequencyChanges(BandSelector& bandSelector, bool onlyIfC
 }
 
 void
-QtFrequencyPanel::applyFrequencyAndPipelineChanges(BandSelector& bandSelector, bool onlyIfChanged)
+QtFrequencyPanel::applyFrequencyAndPipelineChanges(ActiveBandSettings& bandSelector, bool onlyIfChanged)
 {
   // Band 1
   if (bandSelector.hasBand(SplitBandId::One)) {
@@ -204,7 +204,7 @@ QtFrequencyPanel::applyFrequencyAndPipelineChanges(BandSelector& bandSelector, b
 }
 
 void
-QtFrequencyPanel::applyBandSelectorChange(BandSelector& bandSelector)
+QtFrequencyPanel::applyBandSelectorChange(ActiveBandSettings& bandSelector)
 {
   
   const std::string& txBandName = bandSelector.getTxBandName();
@@ -288,7 +288,7 @@ QtFrequencyPanel::onSplitRequested(SplitBandId /*whichBand*/)
 {
   if (m_pSettingsSink == nullptr) return;
 
-  SettingUpdatePath splitPath({RadioSettings::BAND, BandSelector::SPLIT});
+  SettingUpdatePath splitPath({RadioSettings::BAND, ActiveBandSettings::SPLIT});
   SettingUpdate splitSetting(splitPath, true, SettingUpdate::Meaning::VALUE);
   m_pSettingsSink->applySettingUpdate(splitSetting);
 }
@@ -298,8 +298,8 @@ QtFrequencyPanel::onCloseRequested(SplitBandId whichBand)
 {
   if (m_pSettingsSink == nullptr) return;
 
-  BandSelector::Features select =
-    whichBand == SplitBandId::One ? BandSelector::SELECT_1 : BandSelector::SELECT_2;
+  ActiveBandSettings::Features select =
+    whichBand == SplitBandId::One ? ActiveBandSettings::SELECT_1 : ActiveBandSettings::SELECT_2;
 
   SettingUpdatePath bandPath({RadioSettings::BAND, static_cast<uint32_t>(select)});
   SettingUpdate bandSetting(bandPath, "", SettingUpdate::Meaning::VALUE); // Empty band name closes it
@@ -311,7 +311,7 @@ QtFrequencyPanel::onMultiVfoActionRequested(SplitBandId whichBand,
                                         VfoId whichVfo,
                                         MultiVfoAction action)
 {
-  uint32_t selectBand = whichBand == SplitBandId::One ? BandSelector::WITH_1 : BandSelector::WITH_2;
+  uint32_t selectBand = whichBand == SplitBandId::One ? ActiveBandSettings::WITH_1 : ActiveBandSettings::WITH_2;
 
   switch (action) {
   case MultiVfoAction::Multi:
@@ -344,7 +344,7 @@ QtFrequencyPanel::onVfoTxActionRequested(SplitBandId whichBand,
                             VfoId whichVfo,
                             VfoTxAction action)
 {
-  uint32_t selectBand = whichBand == SplitBandId::One ? BandSelector::WITH_1 : BandSelector::WITH_2;
+  uint32_t selectBand = whichBand == SplitBandId::One ? ActiveBandSettings::WITH_1 : ActiveBandSettings::WITH_2;
   if (action == VfoTxAction::Tx) {
     SettingUpdatePath bandPath({
         RadioSettings::BAND,
@@ -392,7 +392,7 @@ QtFrequencyPanel::onBandClicked(SplitBandId whichBand)
 {
   if (m_pSettingsSink == nullptr) return;
 
-  SettingUpdatePath path({RadioSettings::BAND, BandSelector::FOCUS});
+  SettingUpdatePath path({RadioSettings::BAND, ActiveBandSettings::FOCUS});
   SettingUpdate u(path, whichBand, SettingUpdate::Meaning::VALUE);
   m_pSettingsSink->applySettingUpdate(u);
 }
@@ -402,7 +402,7 @@ QtFrequencyPanel::onTxBandClicked(SplitBandId whichBand)
 {
   if (m_pSettingsSink == nullptr) return;
 
-  SettingUpdatePath path({RadioSettings::BAND, BandSelector::TX_BAND});
+  SettingUpdatePath path({RadioSettings::BAND, ActiveBandSettings::TX_BAND});
   SettingUpdate update(path, whichBand, SettingUpdate::Meaning::VALUE);
   m_pSettingsSink->applySettingUpdate(update);
 }

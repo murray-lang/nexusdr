@@ -73,7 +73,7 @@ set(SETTINGS_SOURCES
         src/core/config-settings/settings/pipeline/PipelineId.h
         src/core/config-settings/settings/bands/SplitBandId.h
         src/core/config-settings/settings/base/SteppableSetting.h
-        src/core/config-settings/settings/bands/BandSelector.h
+        src/core/config-settings/settings/bands/ActiveBandSettings.h
         src/core/config-settings/settings/RadioSettings.cpp
         src/core/config-settings/settings/AgcSpeed.h
         src/core/config-settings/settings/base/SettingUpdateHelpers.cpp
@@ -180,15 +180,21 @@ set(IO_SOURCES
         src/io/iq/IqIo.h
 )
 
-set(RADIO_SOURCES
-        src/core/radio/receiver/IqReceiver.h src/core/radio/receiver/IqReceiver.cpp
+set(RADIO_BASE_SOURCES
+        src/core/radio/RadioBase.h
+)
 
+set(RADIO_MASTER_SOURCES
+        src/core/radio/RadioMaster.cpp
+        src/core/radio/RadioMaster.h
+)
+
+set(RADIO_ENGINE_SOURCES
+        src/core/radio/receiver/IqReceiver.h src/core/radio/receiver/IqReceiver.cpp
         src/core/radio/transmitter/IqTransmitter.cpp
         src/core/radio/transmitter/IqTransmitter.h
-
-        src/core/radio/Radio.cpp
-        src/core/radio/Radio.h
-
+#        src/core/radio/Radio.cpp
+#        src/core/radio/Radio.h
 )
 
 set(EVENT_SOURCES

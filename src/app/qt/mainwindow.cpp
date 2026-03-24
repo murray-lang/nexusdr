@@ -101,16 +101,16 @@ MainWindow::customEvent(QEvent* event)
 void
 MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings, uint64_t sequence)
 {
-  uint64_t currentSequence = m_pRadio->getUpdateSequence();
+  uint64_t currentSequence = m_pRadio->getUpdateSequenceNo();
   m_radioSettingsCopy = radioSettings;
   auto* bandDialog = findChild<QtBandDialog*>("bandPanel");
   if (bandDialog != nullptr) {
     bandDialog->applySettings(m_radioSettingsCopy);
   }
-  BandSettings* bandSettings = RadioSettings::getFocusBandSettings();
+  BandSettings* bandSettings = m_radioSettingsCopy.getFocusBandSettings();
   updateBandButton(bandSettings->getBand());
 
-  RxPipelineSettings* rxPipelineSettings = bandSettings->getFocusPipeline();
+  const RxPipelineSettings* rxPipelineSettings = bandSettings->getFocusPipeline();
   if (rxPipelineSettings != nullptr) {
     const Mode& mode = rxPipelineSettings->getMode();
     updateModeButton(mode);
@@ -313,7 +313,7 @@ MainWindow::createModeMenu(const Mode& currentMode)
 
   SettingUpdatePath settingPath({
     RadioSettings::Features::BAND,
-    BandSelector::WITH_FOCUS,
+    ActiveBandSettings::WITH_FOCUS,
     BandSettings::Features::WITH_FOCUS_PIPELINE,
     PipelineSettings::Features::MODE
   });

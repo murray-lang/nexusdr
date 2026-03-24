@@ -26,7 +26,7 @@ FunCubeDongle::applySettings(const RadioSettings& radioSettings)
 {
     // qDebug() << "FunCubeDongle::applySettings called";
   if (radioSettings.hasSettingChanged(RadioSettings::BAND)) {
-    BandSettings* pBandSettings = radioSettings.getFocusBandSettings();
+    const BandSettings* pBandSettings = radioSettings.getFocusBandSettings();
     // qDebug() << "  FunCubeDongle::applySettings: BAND_SETTINGS changed";
     const RfSettings* rfSettings = pBandSettings->getFocusRxRfSettings();
     if (rfSettings != nullptr) {

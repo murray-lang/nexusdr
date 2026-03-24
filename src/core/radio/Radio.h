@@ -9,37 +9,30 @@
 #include <io/control/ControlSource.h>
 #include "core/config-settings/config/RadioConfig.h"
 #include <io/control/RadioControl.h>
+
+#include "RadioBase.h"
 #include "receiver/IqReceiver.h"
 #include "core/config-settings/settings/RadioSettingsSink.h"
 
 #include "core/config-settings/settings/ModeSettings.h"
-#include "core/config-settings/settings/bands/BandSelector.h"
+#include "core/config-settings/settings/bands/ActiveBandSettings.h"
 #include "core/config-settings/settings/RadioSettings.h"
 #include "transmitter/IqTransmitter.h"
 
-class Radio : public RadioSettingsSink, PttSink {
+class Radio : public RadioBase {
 
 public:
-  explicit Radio(QObject *pEventTarget = nullptr);
+  explicit Radio(EventTarget *pEventTarget = nullptr);
   ~Radio() override;
 
   void configure(const RadioConfig* pConfig);
   void start();
   void stop();
 
-  uint64_t getUpdateSequence() const { return m_updateSequence; }
-
-  template<typename T>
-  void applySetting(const char * dottedString, T value, bool isDelta = false)
-  {
-    SettingUpdatePath path = RadioSettings::getSettingUpdatePath(dottedString);
-    SettingUpdate update(path, value, isDelta ? SettingUpdate::DELTA : SettingUpdate::VALUE);
-    applySettingUpdate(update);
-  }
   void applySettings(const RadioSettings& settings) override;
   // void applySettings(const RadioSettings& settings, BandSettings* pBandSettings) override;
-  void applySettingUpdate(SettingUpdate& setting) override;
-  void applySettingUpdates(SettingUpdate* updates, std::size_t count) override;
+  // void applySettingUpdate(SettingUpdate& setting) override;
+  // void applySettingUpdates(SettingUpdate* updates, std::size_t count) override;
 
   void applyBand(const std::string& bandName);
 
@@ -58,24 +51,23 @@ public:
 
   // void setCentreFrequencyDeltas(int32_t fine, int32_t coarse);
 
-  RadioSettings& getRadioSettings() { return m_settings; }
-  [[nodiscard]] const RadioSettings& getRadioSettings() const { return m_settings; }
-  static const BandSettings* getBandSettings(const std::string& bandName)
+
+  const BandSettings* getBandSettings(const std::string& bandName)
   {
-    return RadioSettings::getBandSettings(bandName);
+    return m_settings.getBandSettings(bandName);
   }
-  static  const BandSettings* getFocusBandSettings()
+  const BandSettings* getFocusBandSettings()
   {
-    return RadioSettings::getFocusBandSettings();
+    return m_settings.getFocusBandSettings();
   }
-  static const std::string& getFocusBandName()
+  const std::string& getFocusBandName()
   {
-    return RadioSettings::getFocusBandName();
+    return m_settings.getFocusBandName();
   }
 
-  static const Bands& getBands()
+  const Bands& getBands()
   {
-    return RadioSettings::getBands();
+    return m_settings.getBands();
   }
 
   void ptt(bool on) override;
@@ -85,13 +77,12 @@ protected:
   void pttOff();
 
 protected:
-  RadioSettings m_settings;
+
   // BandSelector m_bandSelector;
   IqReceiver* m_pReceiver;
   IqTransmitter* m_pTransmitter;
   RadioControl* m_pControl;
 
-  QObject* m_pEventTarget;
-  uint64_t m_updateSequence;
+
 };
 

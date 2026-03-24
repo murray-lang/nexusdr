@@ -6,18 +6,28 @@
 
 #include "core/util/StringUtils.h"
 
-BandSelector RadioSettings::m_bandSelector;
+// ActiveBandSettings RadioSettings::m_activeBandSettings;
 
 BandSettings*
 RadioSettings::getBandSettings(const std::string& bandName)
 {
-  return m_bandSelector.getBandSettings(bandName);
+  return m_activeBandSettings.getBandSettings(bandName);
 }
 
 BandSettings*
 RadioSettings::getFocusBandSettings()
 {
-  BandSettings* pBandSettings = m_bandSelector.getFocusBandSettings();
+  BandSettings* pBandSettings = m_activeBandSettings.getFocusBandSettings();
+  if (pBandSettings == nullptr) {
+    throw SettingsException("No band selected");
+  }
+  return pBandSettings;
+}
+
+const BandSettings*
+RadioSettings::getFocusBandSettings() const
+{
+ const BandSettings* pBandSettings = m_activeBandSettings.getFocusBandSettings();
   if (pBandSettings == nullptr) {
     throw SettingsException("No band selected");
   }
@@ -27,20 +37,20 @@ RadioSettings::getFocusBandSettings()
 void
 RadioSettings::setCentreFrequencyDeltas(int32_t fine, int32_t coarse)
 {
-  m_bandSelector.setCentreFrequencyDeltas(fine, coarse);
+  m_activeBandSettings.setCentreFrequencyDeltas(fine, coarse);
 }
 
 void
 RadioSettings::applyRfSettings(const RfSettings& settings, bool onlyChanged)
 {
-  m_bandSelector.applyRfSettings(settings, onlyChanged);
+  m_activeBandSettings.applyRfSettings(settings, onlyChanged);
   m_changed |= BAND;
 }
 
 void
 RadioSettings::applyIfSettings(const IfSettings& settings)
 {
-  m_bandSelector.applyIfSettings(settings);
+  m_activeBandSettings.applyIfSettings(settings);
   m_changed |= BAND;
 }
 
@@ -92,7 +102,7 @@ RadioSettings::applyUpdate(SettingUpdate& update)
   case PTT:
     return m_ptt.apply(val);
   case BAND:
-    if (m_bandSelector.applyUpdate(update.stepNextFeature())) {
+    if (m_activeBandSettings.applyUpdate(update.stepNextFeature())) {
       m_changed |= BAND;
       return true;
     }
@@ -146,7 +156,7 @@ RadioSettings::getFeaturePath(
   const std::string& key = featureStrings[startIndex];
   if (key == "band") {
     featuresOut.push_back(BAND);
-    return BandSelector::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
+    return ActiveBandSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
   }
   if (key == "rx") {
     featuresOut.push_back(RX);

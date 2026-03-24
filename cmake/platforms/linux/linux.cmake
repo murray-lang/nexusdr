@@ -108,6 +108,14 @@ set(EVENT_SOURCES
         src/core/radio/transmitter/events/qt/TransmitterIqEvent.cpp
 )
 
+set (RADIO_SOURCES
+    ${RADIO_BASE_SOURCES}
+    ${RADIO_MASTER_SOURCES}
+    ${RADIO_ENGINE_SOURCES}
+    src/core/radio/Radio.cpp
+    src/core/radio/Radio.h
+)
+
 set (CORE_SOURCES
         ${CONFIG_SOURCES}
         ${SETTINGS_SOURCES}

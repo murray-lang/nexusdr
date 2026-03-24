@@ -1,30 +1,22 @@
 //
-// Created by murray on 18/08/25.
+// Created by murray on 23/3/26.
 //
 
-#include "Radio.h"
+#include "RadioBackEnd.h"
+#include "receiver/IqReceiver.h"
+#include "transmitter/IqTransmitter.h"
+#include <io/control/RadioControl.h>
 
-#include <qcoreapplication.h>
-
-#include "core/config-settings/settings/RadioSettings.h"
-#include "../config-settings/settings/events/RadioSettingsEvent.h"
-#include <QDebug>
-
-#include "core/config-settings/settings/base/SettingUpdateHelpers.h"
-
-
-Radio::Radio(EventTarget *pEventTarget) :
+RadioBackEnd::RadioBackEnd(EventTarget *pEventTarget) :
   RadioBase(pEventTarget),
-
   m_pReceiver(nullptr),
   m_pTransmitter(nullptr),
   m_pControl(nullptr)
 {
-  m_pReceiver = new IqReceiver(pEventTarget);
-  m_pTransmitter = new IqTransmitter(pEventTarget);
+
 }
 
-Radio::~Radio()
+RadioBackEnd::~RadioBackEnd()
 {
   delete m_pReceiver;
   delete m_pTransmitter;
@@ -32,7 +24,7 @@ Radio::~Radio()
 }
 
 void
-Radio::configure(const RadioConfig* pConfig)
+RadioBackEnd::configure(const RadioConfig* pConfig)
 {
   const ControlConfig* pControlConfig = pConfig->getControl();
   if (pControlConfig != nullptr) {
@@ -53,7 +45,7 @@ Radio::configure(const RadioConfig* pConfig)
 }
 
 void
-Radio::start()
+RadioBackEnd::start()
 {
   if (m_pControl != nullptr) {
     m_pControl->connect(this);
@@ -64,11 +56,10 @@ Radio::start()
   if (m_pControl != nullptr) {
     m_pControl->start();
   }
-
 }
 
 void
-Radio::stop()
+RadioBackEnd::stop()
 {
   if (m_pControl != nullptr) {
     m_pControl->stop();
@@ -83,7 +74,7 @@ Radio::stop()
 }
 
 void
-Radio::applySettings(const RadioSettings& settings)
+RadioBackEnd::applySettings(const RadioSettings& settings)
 {
   if (&settings != &m_settings) {
     m_settings = settings;
@@ -127,34 +118,16 @@ Radio::applySettings(const RadioSettings& settings)
     EventDispatcher::postEvent(m_pEventTarget, rse);
   }
   m_settings.clearChanged();
-  // pBandSettings->clearChanged();
 }
 
 void
-Radio::applyBand(const std::string& bandName)
+RadioBackEnd::applySettingUpdate(SettingUpdate& update)
 {
-  SettingUpdate update = SettingUpdateHelpers::makeSetBand(bandName);
-  // qDebug() << "Radio::applyBand(): applying band " << bandName.c_str() << ". Existing band: " << m_settings.bandName.c_str() ;
-  applySettingUpdate(update);
+
 }
 
 void
-Radio::split(const std::string& bandA, const std::string& bandB)
-{
-  SettingUpdatePath splitPath({RadioSettings::BAND, ActiveBandSettings::SPLIT});
-  SettingUpdate splitSetting(splitPath, true, SettingUpdate::Meaning::VALUE);
-  applySettingUpdate(splitSetting);
-}
-
-void
-Radio::applyAgcSpeed(AgcSpeed speed)
-{
-  SettingUpdate update = SettingUpdateHelpers::makeSetAgcSpeedOnFocusPipeline(speed);
-  applySettingUpdate(update);
-}
-
-void
-Radio::ptt(bool on)
+RadioBackEnd::ptt(bool on)
 {
   if (on) {
     pttOn();
@@ -164,7 +137,7 @@ Radio::ptt(bool on)
 }
 
 void
-Radio::pttOn()
+RadioBackEnd::pttOn()
 {
   if (m_pReceiver != nullptr) {
     m_pReceiver->ptt(true);
@@ -178,7 +151,7 @@ Radio::pttOn()
 }
 
 void
-Radio::pttOff()
+RadioBackEnd::pttOff()
 {
   if (m_pTransmitter != nullptr) {
     m_pTransmitter->ptt(false);
@@ -190,4 +163,3 @@ Radio::pttOff()
     m_pReceiver->ptt(false);
   }
 }
-

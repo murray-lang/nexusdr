@@ -9,7 +9,7 @@
 
 #include "QtBandReadout.h"
 #include "VfoReadout/QtVfoReadout.h"
-#include "core/config-settings/settings/bands/BandSelector.h"
+#include "core/config-settings/settings/bands/ActiveBandSettings.h"
 #include "core/config-settings/settings/bands/SplitBandId.h"
 #include "core/config-settings/settings/base/SettingUpdateSink.h"
 #include "core/config-settings/settings/base/SettingUpdateSource.h"
@@ -58,11 +58,11 @@ private slots:
 
 private:
   void initialiseLayout();
-  void applyFrequencyChanges(BandSelector& bandSelector, bool onlyIfChanged = true);
-  void applyFrequencyAndPipelineChanges(BandSelector& bandSelector, bool onlyIfChanged = true);
-  void applyBandSelectorChange(BandSelector& bandSelector);
+  void applyFrequencyChanges(ActiveBandSettings& bandSelector, bool onlyIfChanged = true);
+  void applyFrequencyAndPipelineChanges(ActiveBandSettings& bandSelector, bool onlyIfChanged = true);
+  void applyBandSelectorChange(ActiveBandSettings& bandSelector);
 
-  bool hasChangesOtherThanVfo(BandSelector& bandSelector) const;
+  bool hasChangesOtherThanVfo(ActiveBandSettings& bandSelector) const;
 
   void setPttProperty(bool ptt, bool repolish = true);
   void setIsSplitProperty(bool isSplit, bool repolish = true);

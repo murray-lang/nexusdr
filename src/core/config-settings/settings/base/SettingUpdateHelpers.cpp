@@ -9,8 +9,8 @@
 uint32_t SettingUpdateHelpers::toWithBandFeature(SplitBandId whichBand)
 {
   switch (whichBand) {
-  case SplitBandId::One: return BandSelector::WITH_1;
-  case SplitBandId::Two: return BandSelector::WITH_2;
+  case SplitBandId::One: return ActiveBandSettings::WITH_1;
+  case SplitBandId::Two: return ActiveBandSettings::WITH_2;
   default: break;
   }
   throw SettingsException("Invalid SplitBandId for band-scoped update");
@@ -19,7 +19,7 @@ uint32_t SettingUpdateHelpers::toWithBandFeature(SplitBandId whichBand)
 SettingUpdate
 SettingUpdateHelpers::makeSetBand(const std::string& bandName)
 {
-  SettingUpdatePath path({RadioSettings::BAND, BandSelector::REPLACE_FOCUS});
+  SettingUpdatePath path({RadioSettings::BAND, ActiveBandSettings::REPLACE_FOCUS});
   return { path, bandName, SettingUpdate::Meaning::VALUE};
 }
 
@@ -78,7 +78,7 @@ SettingUpdate SettingUpdateHelpers::makeSetTxBand(SplitBandId whichBand)
 {
   SettingUpdatePath path({
     RadioSettings::BAND,
-    BandSelector::TX_BAND
+    ActiveBandSettings::TX_BAND
   });
   return {path, whichBand, SettingUpdate::Meaning::VALUE};
 }
@@ -98,7 +98,7 @@ SettingUpdate SettingUpdateHelpers::makeSetAgcSpeedOnFocusPipeline(AgcSpeed spee
 {
   SettingUpdatePath path({
     RadioSettings::BAND,
-    BandSelector::WITH_FOCUS,
+    ActiveBandSettings::WITH_FOCUS,
     BandSettings::WITH_FOCUS_PIPELINE,
     RxPipelineSettings::AGC
   });
