@@ -6,43 +6,46 @@
 
 #include "core/util/StringUtils.h"
 
-BandSelector RadioSettings::m_bandSelector;
-
-BandSettings*
-RadioSettings::getBandSettings(const std::string& bandName)
-{
-  return m_bandSelector.getBandSettings(bandName);
-}
 
 BandSettings*
 RadioSettings::getFocusBandSettings()
 {
-  BandSettings* pBandSettings = m_bandSelector.getFocusBandSettings();
+  BandSettings* pBandSettings = m_activeBandSettings.getFocusBandSettings();
   if (pBandSettings == nullptr) {
     throw SettingsException("No band selected");
   }
   return pBandSettings;
 }
 
-void
-RadioSettings::setCentreFrequencyDeltas(int32_t fine, int32_t coarse)
+const BandSettings*
+RadioSettings::getFocusBandSettings() const
 {
-  m_bandSelector.setCentreFrequencyDeltas(fine, coarse);
+ const BandSettings* pBandSettings = m_activeBandSettings.getFocusBandSettings();
+  if (pBandSettings == nullptr) {
+    throw SettingsException("No band selected");
+  }
+  return pBandSettings;
 }
 
-void
-RadioSettings::applyRfSettings(const RfSettings& settings, bool onlyChanged)
-{
-  m_bandSelector.applyRfSettings(settings, onlyChanged);
-  m_changed |= BAND;
-}
+// void
+// RadioSettings::setCentreFrequencyDeltas(int32_t fine, int32_t coarse)
+// {
+//   m_activeBandSettings.setCentreFrequencyDeltas(fine, coarse);
+// }
 
-void
-RadioSettings::applyIfSettings(const IfSettings& settings)
-{
-  m_bandSelector.applyIfSettings(settings);
-  m_changed |= BAND;
-}
+// void
+// RadioSettings::applyRfSettings(const RfSettings& settings, bool onlyChanged)
+// {
+//   m_activeBandSettings.applyRfSettings(settings, onlyChanged);
+//   m_changed |= BAND;
+// }
+//
+// void
+// RadioSettings::applyIfSettings(const IfSettings& settings)
+// {
+//   m_activeBandSettings.applyIfSettings(settings);
+//   m_changed |= BAND;
+// }
 
 RxPipelineSettings*
 RadioSettings::getFocusPipeline()
@@ -80,23 +83,32 @@ RadioSettings::getFocusRxPipelineMode() const
 }
 
 bool
-RadioSettings::applyUpdate(SettingUpdate& update)
+RadioSettings::applyUpdate(SettingUpdate& update, BandSelector& bandSelector)
 {
   if (update.isExhausted()) {
     throw SettingsException("Invalid setting path");
   }
+  uint32_t feature = update.getCurrentFeature();
+  if (feature == BAND) {
+    if (m_activeBandSettings.applyUpdate(update.stepNextFeature(), bandSelector)) {
+      m_changed |= BAND;
+      return true;
+    }
+    return false;
+
+  }
+  return applyUpdate(update);
+}
+
+bool
+RadioSettings::applyUpdate(SettingUpdate& update)
+{
   uint32_t feature = update.getCurrentFeature();
   const auto& val = update.getValue();
 
   switch (feature) {
   case PTT:
     return m_ptt.apply(val);
-  case BAND:
-    if (m_bandSelector.applyUpdate(update.stepNextFeature())) {
-      m_changed |= BAND;
-      return true;
-    }
-    return false;
   case TX:
     update.stepNextFeature();
     if (m_txSettings.applyUpdate(update)) {
@@ -146,7 +158,7 @@ RadioSettings::getFeaturePath(
   const std::string& key = featureStrings[startIndex];
   if (key == "band") {
     featuresOut.push_back(BAND);
-    return BandSelector::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
+    return ActiveBandSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
   }
   if (key == "rx") {
     featuresOut.push_back(RX);

@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "bands/BandSettings.h"
+#include "bands/ActiveBandSettings.h"
 #include "bands/BandSelector.h"
 #include "base/SettingsException.h"
 
@@ -30,17 +31,19 @@ public:
     ALL = static_cast<uint32_t>(~0U)
   };
 
-  RadioSettings() : m_ptt(this, "ptt", false)
+  RadioSettings() :
+    m_activeBandSettings(),
+    m_ptt(this, "ptt", false)
   {
     RadioSettings::markAllChanged();
   };
 
-  RadioSettings(const RadioSettings& rhs) : 
-  SettingsBase(rhs),
-  m_ptt(this, rhs.m_ptt),
-  // m_bandName(this, rhs.m_bandName),
-  m_rxSettings(rhs.m_rxSettings),
-  m_txSettings(rhs.m_txSettings)
+  RadioSettings(const RadioSettings& rhs) :
+    SettingsBase(rhs),
+    m_activeBandSettings(rhs.m_activeBandSettings),
+    m_ptt(this, rhs.m_ptt),
+    m_rxSettings(rhs.m_rxSettings),
+    m_txSettings(rhs.m_txSettings)
   {
   }
   ~RadioSettings() override = default;
@@ -49,31 +52,34 @@ public:
   {
     if (this != &rhs) {
       SettingsBase::operator=(rhs);
-      // m_bandName = rhs.m_bandName;
+      m_activeBandSettings = rhs.m_activeBandSettings;
       m_rxSettings = rhs.m_rxSettings;
       m_txSettings = rhs.m_txSettings;
     }
     return *this;
   }
 
-  BandSelector& getBandSelector() { return m_bandSelector; }
+  ActiveBandSettings& getActiveBandSettings() { return m_activeBandSettings; }
 
   [[nodiscard]] bool getPtt() const { return m_ptt(); }
-  // [[nodiscard]] const std::string& getBandName() const { return m_bandName(); }
   [[nodiscard]] const ReceiverSettings& getRxSettings() const { return m_rxSettings; }
   [[nodiscard]] const TransmitterSettings& getTxSettings() const { return m_txSettings; }
 
-  static void setCentreFrequencyDeltas(int32_t fine, int32_t coarse);
-  static BandSettings* getBandSettings(const std::string& bandName);
-  static BandSettings* getFocusBandSettings();
-  static const std::string& getFocusBandName() { return m_bandSelector.getFocusBandName(); }
+  // void setCentreFrequencyDeltas(int32_t fine, int32_t coarse);
+  BandSettings* getFocusBandSettings();
+  [[nodiscard]] const BandSettings* getFocusBandSettings() const;
+  [[nodiscard]] std::string getFocusBandName() const
+  {
+    const BandSettings* focusBandSettings = m_activeBandSettings.getFocusBandSettings();
 
-  static const Bands& getBands() { return m_bandSelector.getAllBands(); }
+    return focusBandSettings != nullptr ? focusBandSettings->getBandName() : "";
+  }
 
-  void applyRfSettings(const RfSettings& settings, bool onlyChanged = false);
-  void applyIfSettings(const IfSettings& settings);
+  // void applyRfSettings(const RfSettings& settings, bool onlyChanged = false);
+  // void applyIfSettings(const IfSettings& settings);
 
   bool applyUpdate(SettingUpdate& update) override;
+  bool applyUpdate(SettingUpdate& update, BandSelector& bandSelector);
 
   void clearChanged() override
   {
@@ -107,9 +113,9 @@ public:
     size_t startIndex = 0
     );
 protected:
+  ActiveBandSettings m_activeBandSettings;
   Setting<bool, PTT, RadioSettings> m_ptt;
   // Setting<std::string, BAND, RadioSettings> m_bandName;
   ReceiverSettings m_rxSettings;
   TransmitterSettings m_txSettings;
-  static BandSelector m_bandSelector;
 };

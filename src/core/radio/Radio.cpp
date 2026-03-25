@@ -1,28 +1,21 @@
 //
-// Created by murray on 18/08/25.
+// Created by murray on 23/3/26.
 //
 
 #include "Radio.h"
+#include "receiver/IqReceiver.h"
+#include "transmitter/IqTransmitter.h"
+#include <io/control/RadioControl.h>
 
-#include <qcoreapplication.h>
+#include "core/config-settings/settings/events/RadioSettingsEvent.h"
 
-#include "core/config-settings/settings/RadioSettings.h"
-#include "../config-settings/settings/events/RadioSettingsEvent.h"
-#include <QDebug>
-
-#include "core/config-settings/settings/base/SettingUpdateHelpers.h"
-
-
-Radio::Radio(QObject *pEventTarget) :
-  m_settings(),
+Radio::Radio(EventTarget *pEventTarget) :
+  RadioBase(pEventTarget),
   m_pReceiver(nullptr),
   m_pTransmitter(nullptr),
-  m_pControl(nullptr),
-  m_pEventTarget(pEventTarget),
-  m_updateSequence(0)
+  m_pControl(nullptr)
 {
-  m_pReceiver = new IqReceiver(pEventTarget);
-  m_pTransmitter = new IqTransmitter(pEventTarget);
+
 }
 
 Radio::~Radio()
@@ -65,7 +58,6 @@ Radio::start()
   if (m_pControl != nullptr) {
     m_pControl->start();
   }
-
 }
 
 void
@@ -95,10 +87,9 @@ Radio::applySettings(const RadioSettings& settings)
     return; // Don't try to do anything else concurrently with PTT.
   }
 
+  if (m_settings.hasSettingChanged(RadioSettings::BAND)) {
 
-  if (settings.hasSettingChanged(RadioSettings::BAND)) {
-
-    BandSettings* pBandSettings = settings.getFocusBandSettings();
+    BandSettings* pBandSettings = m_settings.getFocusBandSettings();
     // RxPipelineSettings* rxPipelineSettings = pBandSettings->getFocusPipeline();
     if (m_pReceiver != nullptr) {
       // m_pReceiver->adjustRfSettingsToLimits(rxPipelineSettings->getRfSettings());
@@ -125,61 +116,16 @@ Radio::applySettings(const RadioSettings& settings)
     }
   }
   if (m_pEventTarget != nullptr) {
-    auto* rse = new RadioSettingsEvent(settings, ++m_updateSequence);
+    auto* rse = new RadioSettingsEvent(m_settings, ++m_updateSequenceNo, SettingEventBase::BACK_END);
     EventDispatcher::postEvent(m_pEventTarget, rse);
   }
   m_settings.clearChanged();
-  // pBandSettings->clearChanged();
 }
 
 void
 Radio::applySettingUpdate(SettingUpdate& update)
 {
-  if (m_pEventTarget != nullptr) {
-    // EventDispatcher::postEvent(m_pEventTarget, new SingleSettingEvent(setting));
-  }
-  if (m_settings.applyUpdate(update)) {
-    applySettings(m_settings);
-  }
-}
-
-void Radio::applySettingUpdates(SettingUpdate* updates, std::size_t count)
-{
-  if (!updates) return;
-
-  bool anyChanged = false;
-
-  for (std::size_t i = 0; i < count; ++i) {
-    updates[i].resetCursor();
-    anyChanged |= m_settings.applyUpdate(updates[i]);
-  }
-
-  if (anyChanged) {
-    applySettings(m_settings);
-  }
-}
-
-void
-Radio::applyBand(const std::string& bandName)
-{
-  SettingUpdate update = SettingUpdateHelpers::makeSetBand(bandName);
-  // qDebug() << "Radio::applyBand(): applying band " << bandName.c_str() << ". Existing band: " << m_settings.bandName.c_str() ;
-  applySettingUpdate(update);
-}
-
-void
-Radio::split(const std::string& bandA, const std::string& bandB)
-{
-  SettingUpdatePath splitPath({RadioSettings::BAND, BandSelector::SPLIT});
-  SettingUpdate splitSetting(splitPath, true, SettingUpdate::Meaning::VALUE);
-  applySettingUpdate(splitSetting);
-}
-
-void
-Radio::applyAgcSpeed(AgcSpeed speed)
-{
-  SettingUpdate update = SettingUpdateHelpers::makeSetAgcSpeedOnFocusPipeline(speed);
-  applySettingUpdate(update);
+  RadioBase::applySettingUpdate(update);
 }
 
 void
@@ -219,4 +165,3 @@ Radio::pttOff()
     m_pReceiver->ptt(false);
   }
 }
-

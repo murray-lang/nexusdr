@@ -46,10 +46,13 @@ public:
   // Controls whether the right readout area shows VFO B or a placeholder
   void setVfoBVisible(bool visible);
 
-  void applyBandSettings(const BandSettings* bandSettings,
-                         const std::string& txBandName,
-                         const std::string& rxBandName,
-                         const std::string& focusBandName);
+  void applyBandSettings(
+    const BandSettings* bandSettings,
+    SplitBandId thisBandId,
+    SplitBandId txBandId,
+    SplitBandId rxBandId,
+    SplitBandId focusBandId
+    );
 
   void applyFrequencyChanges(const BandSettings* bandSettings, bool onlyIfChanged = true);
   void applyPipelineChanges(const BandSettings* bandSettings, bool onlyIfChanged = true);

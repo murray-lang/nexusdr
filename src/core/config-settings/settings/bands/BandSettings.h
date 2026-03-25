@@ -66,7 +66,7 @@ public:
   void clearChanged() override;
   void markAllChanged() override;
 
-  [[nodiscard]] std::string getBandName() const;
+  [[nodiscard]] const std::string& getBandName() const;
 
   void applyBandDefaults(const Band& band);
   bool setMode(const Mode& mode);

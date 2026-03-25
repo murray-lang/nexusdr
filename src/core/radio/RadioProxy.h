@@ -4,16 +4,14 @@
 
 #pragma once
 #include "RadioBase.h"
+#include "core/config-settings/settings/bands/BandSelector.h"
 
-class RadioControl;
-class IqTransmitter;
-class IqReceiver;
 
-class Radio : public RadioBase
+class RadioProxy : public RadioBase
 {
 public:
-  Radio(EventTarget *pEventTarget = nullptr);
-  ~Radio() override;
+  explicit RadioProxy(EventTarget *pEventTarget = nullptr);
+  ~RadioProxy() override = default;
 
   void configure(const RadioConfig* pConfig) override;
   void start() override;
@@ -23,14 +21,8 @@ public:
 
   void applySettingUpdate(SettingUpdate& update) override;
 
-  void ptt(bool on) override;
-
 protected:
-  void pttOn();
-  void pttOff();
+  void notifyUpdate(const SettingUpdate& update);
 
-private:
-  IqReceiver* m_pReceiver;
-  IqTransmitter* m_pTransmitter;
-  RadioControl* m_pControl;
+
 };
