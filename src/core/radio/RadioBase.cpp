@@ -3,6 +3,7 @@
 //
 #include "RadioBase.h"
 
+#include "core/config-settings/settings/base/SettingUpdateHelpers.h"
 #include "core/config-settings/settings/events/SettingUpdateEvent.h"
 #include "core/events/EventDispatcher.h"
 
@@ -17,7 +18,7 @@ RadioBase::RadioBase(EventTarget *pEventTarget) :
 void
 RadioBase::applySettingUpdate(SettingUpdate& update)
 {
-  if (m_settings.applyUpdate(update)) {
+  if (m_settings.applyUpdate(update, m_bandSelector)) {
     applySettings(m_settings);
   }
 }
@@ -31,7 +32,7 @@ RadioBase::applySettingUpdates(SettingUpdate* updates, std::size_t count)
 
   for (std::size_t i = 0; i < count; ++i) {
     updates[i].resetCursor();
-    anyChanged |= m_settings.applyUpdate(updates[i]);
+    anyChanged |= m_settings.applyUpdate(updates[i], m_bandSelector);
   }
 
   if (anyChanged) {
@@ -40,9 +41,32 @@ RadioBase::applySettingUpdates(SettingUpdate* updates, std::size_t count)
 }
 
 void
-RadioBase::notifyUpdate(const SettingUpdate& update)
+RadioBase::notifyUpdate(const SettingUpdate& update, SettingEventBase::EventSource source)
 {
   if (m_pEventTarget != nullptr) {
-    EventDispatcher::postEvent(m_pEventTarget, new SettingUpdateEvent(update));
+    EventDispatcher::postEvent(m_pEventTarget, new SettingUpdateEvent(update, source));
   }
+}
+
+void
+RadioBase::applyBand(const std::string& bandName)
+{
+  SettingUpdate update = SettingUpdateHelpers::makeSetBand(bandName);
+  // qDebug() << "Radio::applyBand(): applying band " << bandName.c_str() << ". Existing band: " << m_settings.bandName.c_str() ;
+  applySettingUpdate(update);
+}
+
+void
+RadioBase::split(const std::string& bandA, const std::string& bandB)
+{
+  SettingUpdatePath splitPath({RadioSettings::BAND, ActiveBandSettings::SPLIT});
+  SettingUpdate splitSetting(splitPath, true, SettingUpdate::Meaning::VALUE);
+  applySettingUpdate(splitSetting);
+}
+
+void
+RadioBase::applyAgcSpeed(AgcSpeed speed)
+{
+  SettingUpdate update = SettingUpdateHelpers::makeSetAgcSpeedOnFocusPipeline(speed);
+  applySettingUpdate(update);
 }

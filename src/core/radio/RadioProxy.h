@@ -7,11 +7,11 @@
 #include "core/config-settings/settings/bands/BandSelector.h"
 
 
-class RadioFrontEnd : public RadioBase
+class RadioProxy : public RadioBase
 {
 public:
-  explicit RadioFrontEnd(EventTarget *pEventTarget = nullptr);
-  ~RadioFrontEnd() override = default;
+  explicit RadioProxy(EventTarget *pEventTarget = nullptr);
+  ~RadioProxy() override = default;
 
   void configure(const RadioConfig* pConfig) override;
   void start() override;
@@ -24,6 +24,5 @@ public:
 protected:
   void notifyUpdate(const SettingUpdate& update);
 
-private:
-  BandSelector m_bandSelector;
+
 };

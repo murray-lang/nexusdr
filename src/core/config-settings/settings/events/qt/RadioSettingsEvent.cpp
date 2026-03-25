@@ -6,8 +6,8 @@
 
 const EventType RadioSettingsEvent::RadioSettingsEventType = static_cast<EventType>(QEvent::registerEventType());
 
-RadioSettingsEvent::RadioSettingsEvent(const RadioSettings& radioSettings, uint64_t sequence) :
-    EventBase(RadioSettingsEventType),
+RadioSettingsEvent::RadioSettingsEvent(const RadioSettings& radioSettings, uint64_t sequence, EventSource source) :
+    SettingEventBase(RadioSettingsEventType, source),
     // m_pRadioSettings(new RadioSettings(radioSettings)),
     // m_pBandSettings(new BandSettings(bandSettings)),
     m_radioSettings(radioSettings),

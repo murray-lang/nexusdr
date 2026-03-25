@@ -91,18 +91,18 @@ QtFrequencyPanel::applyRadioSettings(RadioSettings* pRadioSettings, bool onlyIfC
   if (pRadioSettings == nullptr) return;
 
   if (pRadioSettings->hasSettingChanged(RadioSettings::BAND)) {
-    ActiveBandSettings& bandSelector = pRadioSettings->getActiveBandSettings();
-    if (bandSelector.isChanged()) {
-      if (hasChangesOtherThanVfo(bandSelector)) {
-        applyBandSelectorChange(bandSelector);
-        applyFrequencyAndPipelineChanges(bandSelector, onlyIfChanged);
+    ActiveBandSettings& activeBandSettings = pRadioSettings->getActiveBandSettings();
+    if (activeBandSettings.isChanged()) {
+      if (hasChangesOtherThanVfo(activeBandSettings)) {
+        applyBandSelectorChange(activeBandSettings);
+        applyFrequencyAndPipelineChanges(activeBandSettings, onlyIfChanged);
       } else {
-        applyFrequencyChanges(bandSelector, onlyIfChanged);
+        applyFrequencyChanges(activeBandSettings, onlyIfChanged);
       }
-      // BandSettings* focusBand = bandSelector.getFocusBandSettings();
+      // BandSettings* focusBand = activeBandSettings.getFocusBandSettings();
       // if (onlyIfChanged && focusBand != nullptr && focusBand->hasFocusVfoChanged()) {
       //   // Do the bare minimum for VFO changes otherwise Qt stuff bogs everything down.
-      //   applyFrequencyChanges(bandSelector, onlyIfChanged);
+      //   applyFrequencyChanges(activeBandSettings, onlyIfChanged);
       // } else {
       //
       // }
@@ -114,7 +114,7 @@ QtFrequencyPanel::applyRadioSettings(RadioSettings* pRadioSettings, bool onlyIfC
 }
 
 bool
-QtFrequencyPanel::hasChangesOtherThanVfo(ActiveBandSettings& bandSelector) const
+QtFrequencyPanel::hasChangesOtherThanVfo(ActiveBandSettings& activeBandSettings) const
 {
   uint32_t pipelineChanges = 
       BandSettings::MULTI_PIPELINE
@@ -122,12 +122,12 @@ QtFrequencyPanel::hasChangesOtherThanVfo(ActiveBandSettings& bandSelector) const
     | BandSettings::TX_PIPELINE
     // | BandSettings::WITH_TX_PIPELINE
     | BandSettings::CLOSE_PIPELINE;
-  const BandSettings* band1 = bandSelector.getBandSettings(SplitBandId::One);
+  const BandSettings* band1 = activeBandSettings.getBandSettings(SplitBandId::One);
   
   if (band1 && band1->hasSettingChanged(pipelineChanges)) {
     return true;
   } 
-  const BandSettings* band2 = bandSelector.getBandSettings(SplitBandId::Two);
+  const BandSettings* band2 = activeBandSettings.getBandSettings(SplitBandId::Two);
   if (band2 && band2->hasSettingChanged(pipelineChanges)) {
     return true;
   }
@@ -140,14 +140,14 @@ QtFrequencyPanel::hasChangesOtherThanVfo(ActiveBandSettings& bandSelector) const
   //   | BandSelector::SPLIT
   //   | BandSelector::TX_BAND
   //   | BandSelector::RX_BAND;
-  // if (bandSelector.hasSettingChanged(bandSelectorChanges)) {
+  // if (activeBandSettings.hasSettingChanged(bandSelectorChanges)) {
   //   return true;
   // }
   // bandSelectorChanges = BandSelector::WITH_1
   //   | BandSelector::WITH_2
   //   | BandSelector::WITH_FOCUS;
-  // if (bandSelector.hasSettingChanged(bandSelectorChanges)) {
-  //   BandSettings* bandSettings = bandSelector.getFocusBandSettings();
+  // if (activeBandSettings.hasSettingChanged(bandSelectorChanges)) {
+  //   BandSettings* bandSettings = activeBandSettings.getFocusBandSettings();
   //   uint32_t pipelineChanges = BandSettings::MULTI_PIPELINE
   //     | BandSettings::FOCUS_PIPELINE
   //     | BandSettings::TX_PIPELINE
@@ -162,19 +162,19 @@ QtFrequencyPanel::hasChangesOtherThanVfo(ActiveBandSettings& bandSelector) const
 }
 
 void
-QtFrequencyPanel::applyFrequencyChanges(ActiveBandSettings& bandSelector, bool onlyIfChanged)
+QtFrequencyPanel::applyFrequencyChanges(ActiveBandSettings& activeBandSettings, bool onlyIfChanged)
 {
   // Band 1
-  if (bandSelector.hasBand(SplitBandId::One)) {
-    const BandSettings* band1 = bandSelector.getBandSettings(SplitBandId::One);
+  if (activeBandSettings.hasBand(SplitBandId::One)) {
+    const BandSettings* band1 = activeBandSettings.getBandSettings(SplitBandId::One);
     if (band1 != nullptr) {
       m_band1Readout->applyFrequencyChanges(band1, onlyIfChanged);
     }
   }
 
   // Band 2 (may be absent when not split)
-  if (bandSelector.hasBand(SplitBandId::Two)) {
-    const BandSettings* band2 = bandSelector.getBandSettings(SplitBandId::Two);
+  if (activeBandSettings.hasBand(SplitBandId::Two)) {
+    const BandSettings* band2 = activeBandSettings.getBandSettings(SplitBandId::Two);
     if (band2 != nullptr) {
       m_band2Readout->applyFrequencyChanges(band2, onlyIfChanged);
     }
@@ -182,11 +182,11 @@ QtFrequencyPanel::applyFrequencyChanges(ActiveBandSettings& bandSelector, bool o
 }
 
 void
-QtFrequencyPanel::applyFrequencyAndPipelineChanges(ActiveBandSettings& bandSelector, bool onlyIfChanged)
+QtFrequencyPanel::applyFrequencyAndPipelineChanges(ActiveBandSettings& activeBandSettings, bool onlyIfChanged)
 {
   // Band 1
-  if (bandSelector.hasBand(SplitBandId::One)) {
-    const BandSettings* band1 = bandSelector.getBandSettings(SplitBandId::One);
+  if (activeBandSettings.hasBand(SplitBandId::One)) {
+    const BandSettings* band1 = activeBandSettings.getBandSettings(SplitBandId::One);
     if (band1 != nullptr) {
       m_band1Readout->applyFrequencyChanges(band1, onlyIfChanged);
       m_band1Readout->applyPipelineChanges(band1, onlyIfChanged);
@@ -194,8 +194,8 @@ QtFrequencyPanel::applyFrequencyAndPipelineChanges(ActiveBandSettings& bandSelec
   }
 
   // Band 2 (may be absent when not split)
-  if (bandSelector.hasBand(SplitBandId::Two)) {
-    const BandSettings* band2 = bandSelector.getBandSettings(SplitBandId::Two);
+  if (activeBandSettings.hasBand(SplitBandId::Two)) {
+    const BandSettings* band2 = activeBandSettings.getBandSettings(SplitBandId::Two);
     if (band2 != nullptr) {
       m_band2Readout->applyFrequencyChanges(band2, onlyIfChanged);
       m_band2Readout->applyPipelineChanges(band2, onlyIfChanged);
@@ -204,16 +204,16 @@ QtFrequencyPanel::applyFrequencyAndPipelineChanges(ActiveBandSettings& bandSelec
 }
 
 void
-QtFrequencyPanel::applyBandSelectorChange(ActiveBandSettings& bandSelector)
+QtFrequencyPanel::applyBandSelectorChange(ActiveBandSettings& activeBandSettings)
 {
   
-  const std::string& txBandName = bandSelector.getTxBandName();
-  const std::string& rxBandName = bandSelector.getRxBandName();
-  const std::string& focusBandName = bandSelector.getFocusBandName();
+  const SplitBandId txBandId = activeBandSettings.getTxBandId();
+  const SplitBandId rxBandId = activeBandSettings.getRxBandId();
+  const SplitBandId focusBandId = activeBandSettings.getFocusBandId();
 
-  const bool hasBand1 = bandSelector.hasBand(SplitBandId::One);
-  const bool hasBand2 = bandSelector.hasBand(SplitBandId::Two);
-  const bool isSplit = bandSelector.isSplit();
+  const bool hasBand1 = activeBandSettings.hasBand(SplitBandId::One);
+  const bool hasBand2 = activeBandSettings.hasBand(SplitBandId::Two);
+  const bool isSplit = activeBandSettings.isSplit();
 
 
 
@@ -222,14 +222,14 @@ QtFrequencyPanel::applyBandSelectorChange(ActiveBandSettings& bandSelector)
   m_band2Readout->setRowVisible(hasBand2);
 
   if (hasBand1) {
-    const BandSettings* band1 = bandSelector.getBandSettings(SplitBandId::One);
-    m_band1Readout->applyBandSettings(band1, txBandName, rxBandName, focusBandName);
+    const BandSettings* band1 = activeBandSettings.getBandSettings(SplitBandId::One);
+    m_band1Readout->applyBandSettings(band1, SplitBandId::One, txBandId, rxBandId, focusBandId);
     // m_band1Readout->setTxButtonVisible(isSplit);
   }
 
   if (hasBand2) {
-    const BandSettings* band2 = bandSelector.getBandSettings(SplitBandId::Two);
-    m_band2Readout->applyBandSettings(band2, txBandName, rxBandName, focusBandName);
+    const BandSettings* band2 = activeBandSettings.getBandSettings(SplitBandId::Two);
+    m_band2Readout->applyBandSettings(band2, SplitBandId::Two, txBandId, rxBandId, focusBandId);
     // m_band2Readout->setTxButtonVisible(isSplit);
   }
 

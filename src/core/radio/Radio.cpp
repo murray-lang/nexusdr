@@ -1,27 +1,21 @@
 //
-// Created by murray on 18/08/25.
+// Created by murray on 23/3/26.
 //
 
 #include "Radio.h"
+#include "receiver/IqReceiver.h"
+#include "transmitter/IqTransmitter.h"
+#include <io/control/RadioControl.h>
 
-#include <qcoreapplication.h>
-
-#include "core/config-settings/settings/RadioSettings.h"
-#include "../config-settings/settings/events/RadioSettingsEvent.h"
-#include <QDebug>
-
-#include "core/config-settings/settings/base/SettingUpdateHelpers.h"
-
+#include "core/config-settings/settings/events/RadioSettingsEvent.h"
 
 Radio::Radio(EventTarget *pEventTarget) :
   RadioBase(pEventTarget),
-
   m_pReceiver(nullptr),
   m_pTransmitter(nullptr),
   m_pControl(nullptr)
 {
-  m_pReceiver = new IqReceiver(pEventTarget);
-  m_pTransmitter = new IqTransmitter(pEventTarget);
+
 }
 
 Radio::~Radio()
@@ -64,7 +58,6 @@ Radio::start()
   if (m_pControl != nullptr) {
     m_pControl->start();
   }
-
 }
 
 void
@@ -123,34 +116,16 @@ Radio::applySettings(const RadioSettings& settings)
     }
   }
   if (m_pEventTarget != nullptr) {
-    auto* rse = new RadioSettingsEvent(m_settings, ++m_updateSequenceNo);
+    auto* rse = new RadioSettingsEvent(m_settings, ++m_updateSequenceNo, SettingEventBase::BACK_END);
     EventDispatcher::postEvent(m_pEventTarget, rse);
   }
   m_settings.clearChanged();
-  // pBandSettings->clearChanged();
 }
 
 void
-Radio::applyBand(const std::string& bandName)
+Radio::applySettingUpdate(SettingUpdate& update)
 {
-  SettingUpdate update = SettingUpdateHelpers::makeSetBand(bandName);
-  // qDebug() << "Radio::applyBand(): applying band " << bandName.c_str() << ". Existing band: " << m_settings.bandName.c_str() ;
-  applySettingUpdate(update);
-}
-
-void
-Radio::split(const std::string& bandA, const std::string& bandB)
-{
-  SettingUpdatePath splitPath({RadioSettings::BAND, ActiveBandSettings::SPLIT});
-  SettingUpdate splitSetting(splitPath, true, SettingUpdate::Meaning::VALUE);
-  applySettingUpdate(splitSetting);
-}
-
-void
-Radio::applyAgcSpeed(AgcSpeed speed)
-{
-  SettingUpdate update = SettingUpdateHelpers::makeSetAgcSpeedOnFocusPipeline(speed);
-  applySettingUpdate(update);
+  RadioBase::applySettingUpdate(update);
 }
 
 void
@@ -190,4 +165,3 @@ Radio::pttOff()
     m_pReceiver->ptt(false);
   }
 }
-

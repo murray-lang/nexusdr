@@ -5,15 +5,16 @@
 #pragma once
 
 #include <memory>
+
+#include "SettingEventBase.h"
 #include "../RadioSettings.h"
-#include "core/events/EventBase.h"
 #include "core/events/EventType.h"
 
-class RadioSettingsEvent : public EventBase
+class RadioSettingsEvent : public SettingEventBase
 {
 public:
   static const EventType RadioSettingsEventType;
-  explicit RadioSettingsEvent(const RadioSettings& radioSettings, uint64_t sequence);
+  explicit RadioSettingsEvent(const RadioSettings& radioSettings, uint64_t sequence, EventSource source);
   // [[nodiscard]] const RadioSettings* getRadioSettings() const { return m_pRadioSettings.get(); }
   // [[nodiscard]] const BandSettings* getBandSettings() const { return m_pBandSettings.get(); }
   [[nodiscard]] const RadioSettings& getRadioSettings() const { return m_radioSettings; }

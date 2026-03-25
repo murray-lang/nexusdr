@@ -7,6 +7,8 @@
 #include "core/config-settings/settings/RadioSettings.h"
 #include "core/config-settings/settings/RadioSettingsSink.h"
 #include "core/config-settings/config/RadioConfig.h"
+#include "core/config-settings/settings/bands/BandSelector.h"
+#include "core/config-settings/settings/events/SettingEventBase.h"
 #include "core/events/EventTarget.h"
 #include "io/control/PttSink.h"
 
@@ -38,11 +40,47 @@ public:
     applySettingUpdate(update);
   }
 
-protected:
-protected:
-  virtual void notifyUpdate(const SettingUpdate& update);
+  void applyRfSettings(const RfSettings& settings, bool onlyChanged = false)
+  {
+    m_bandSelector.applyRfSettings(settings, onlyChanged);
+  }
+  void applyIfSettings(const IfSettings& settings)
+  {
+    m_bandSelector.applyIfSettings(settings);
+  }
+
+  void applyBand(const std::string& bandName);
+
+  void split(const std::string& bandA, const std::string& bandB);
+
+  void applyAgcSpeed(AgcSpeed speed);
+
+  // void setCentreFrequencyDeltas(int32_t fine, int32_t coarse);
+
+
+  const BandSettings* getBandSettings(const std::string& bandName)
+  {
+    return m_bandSelector.getBandSettings(bandName);
+  }
+  const BandSettings* getFocusBandSettings()
+  {
+    return m_settings.getFocusBandSettings();
+  }
+  std::string getFocusBandName() const
+  {
+    return m_settings.getFocusBandName();
+  }
+
+  const Bands& getBands()
+  {
+    return m_bandSelector.getAllBands();
+  }
 
 protected:
+  virtual void notifyUpdate(const SettingUpdate& update, SettingEventBase::EventSource source);
+
+protected:
+  BandSelector m_bandSelector;
   EventTarget* m_pEventTarget;
   RadioSettings m_settings;
   uint64_t m_updateSequenceNo;

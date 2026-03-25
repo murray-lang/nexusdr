@@ -4,14 +4,14 @@
 
 #pragma once
 #include "RadioSettingsEvent.h"
-#include "core/events/EventBase.h"
+#include "SettingEventBase.h"
 
 
-class SettingUpdateEvent : public EventBase
+class SettingUpdateEvent : public SettingEventBase
 {
 public:
   static const EventType SettingUpdateEventType;
-  explicit SettingUpdateEvent(const SettingUpdate& setting);
+  explicit SettingUpdateEvent(const SettingUpdate& setting, EventSource source);
 
   const SettingUpdate m_setting;
 };

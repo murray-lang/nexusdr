@@ -260,17 +260,20 @@ void QtBandReadout::applyFrequencyChanges(const BandSettings* bandSettings, bool
   applyFrequencyChanges(m_vfoB, bandSettings->getRxPipeline(VfoId::B), onlyIfChanged);
 }
 
-void QtBandReadout::applyBandSettings(const BandSettings* bandSettings,
-                                     const std::string& txBandName,
-                                     const std::string& rxBandName,
-                                     const std::string& focusBandName)
+void QtBandReadout::applyBandSettings(
+  const BandSettings* bandSettings,
+  SplitBandId thisBandId,
+  SplitBandId txBandId,
+  SplitBandId rxBandId,
+  SplitBandId focusBandId
+)
 {
   if (!bandSettings) return;
 
-  const auto& bandName = bandSettings->getBandName();
-  const bool isFocusBand = bandName == focusBandName;
-  const bool isTxBand = bandName == txBandName;
-  const bool isRxBand = bandName == rxBandName;
+  // const auto& bandName = bandSettings->getBandName();
+  const bool isFocusBand = thisBandId == focusBandId;
+  const bool isTxBand = thisBandId == txBandId;
+  const bool isRxBand = thisBandId == rxBandId;
 
   setIsFocusBand(isFocusBand, false);
   setIsTxBand(isTxBand, false);

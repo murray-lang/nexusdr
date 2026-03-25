@@ -208,7 +208,7 @@ void BandSettings::markAllChanged()
   }
 }
 
-std::string BandSettings::getBandName() const
+const std::string& BandSettings::getBandName() const
 {
   return m_band.getName();
 }

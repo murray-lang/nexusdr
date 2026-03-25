@@ -109,11 +109,7 @@ set(EVENT_SOURCES
 )
 
 set (RADIO_SOURCES
-    ${RADIO_BASE_SOURCES}
-    ${RADIO_MASTER_SOURCES}
-    ${RADIO_ENGINE_SOURCES}
-    src/core/radio/Radio.cpp
-    src/core/radio/Radio.h
+    ${RADIO_CORE_SOURCES}
 )
 
 set (CORE_SOURCES

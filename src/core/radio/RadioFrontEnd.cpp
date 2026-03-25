@@ -2,45 +2,45 @@
 // Created by murray on 23/3/26.
 //
 
-#include "RadioFrontEnd.h"
+#include "RadioProxy.h"
 
-RadioFrontEnd::RadioFrontEnd(EventTarget *pEventTarget) :
+RadioProxy::RadioProxy(EventTarget *pEventTarget) :
   RadioBase(pEventTarget)
 {
 
 }
 
 void
-RadioFrontEnd::configure(const RadioConfig* pConfig)
+RadioProxy::configure(const RadioConfig* pConfig)
 {
 }
 
 void
-RadioFrontEnd::start()
-{
-
-}
-
-void
-RadioFrontEnd::stop()
+RadioProxy::start()
 {
 
 }
 
 void
-RadioFrontEnd::applySettings(const RadioSettings& settings)
+RadioProxy::stop()
 {
 
 }
 
 void
-RadioFrontEnd::applySettingUpdate(SettingUpdate& update)
+RadioProxy::applySettings(const RadioSettings& settings)
 {
 
 }
 
 void
-RadioFrontEnd::notifyUpdate(const SettingUpdate& update)
+RadioProxy::applySettingUpdate(SettingUpdate& update)
+{
+
+}
+
+void
+RadioProxy::notifyUpdate(const SettingUpdate& update)
 {
 
 }
