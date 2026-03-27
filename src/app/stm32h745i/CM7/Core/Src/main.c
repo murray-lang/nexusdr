@@ -17,6 +17,8 @@
  */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
+
+// extern "C" {
 #include "main.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -26,6 +28,14 @@
 #include "lvgl_port_lcd.h"
 #include "lvgl_port_touchpad.h"
 #include "lvgl/demos/lv_demos.h"
+// }
+#include <stdio.h>
+#include <stm32h745i_discovery_mmc.h>
+#include <string.h>
+
+#include "emmc_storage.h"
+#include "fatfs_storage.h"
+// #include "nlohmann/json.hpp"
 
 /* USER CODE END Includes */
 
@@ -87,8 +97,46 @@ static void MPU_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+// Redirect printf to ITM
+// int _write(int file, char *ptr, int len) {
+//   for(int i = 0; i < len; i++) {
+//     ITM_SendChar((*ptr++));
+//   }
+//   return len;
+// }
+
 /* USER CODE END 0 */
 
+int fatfsRc = 0;
+uint32_t format_attempt = 0;
+uint32_t emmc_error_code = 0;
+uint32_t emmc_timeout_count = 0;
+uint32_t diskio_writes = 0;
+uint32_t diskio_reads = 0;
+uint32_t diskio_write_errs = 0;
+uint32_t diskio_read_errs = 0;
+uint32_t diskio_last_ioctl = 0;
+uint32_t diskio_read_sector = 0;
+uint32_t diskio_read_not_initialized = 0;
+uint32_t diskio_read_emmc_err = 0;
+uint32_t diskio_last_read_res = 0;
+uint32_t diskio_first_err_sector = 0;
+uint32_t diskio_err_busy_count = 0;
+uint32_t ioctl_sector_count_res = 0;
+uint32_t ioctl_sector_size_res = 0;
+uint32_t card_block_count = 0;
+uint32_t card_block_size = 0;
+uint32_t card_blocknbr_raw = 0;
+uint32_t card_blocksize_raw = 0;
+uint32_t write_err_busy = 0;
+uint32_t write_first_err_sector = 0;
+uint32_t write_last_sector = 0;
+uint32_t write_emmc_status = 0;
+uint32_t write_err_buff_addr = 0;
+uint32_t write_last_buff_addr = 0;
+uint32_t mmc_state_before_write = 0;
+uint32_t mmc_state_at_busy = 0;
+uint32_t hal_error_code = 0;
 /**
   * @brief  The application entry point.
   * @retval int
@@ -166,11 +214,7 @@ int main(void)
 //  MX_TIM8_Init();
 //  MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
-	/* Configure LED1 and LED2 */
-	BSP_LED_Init(LED1);
-	BSP_LED_Init(LED2);
-
-	//Init QSPI Memory
+	//CRITICAL: Init QSPI Memory FIRST - application code is in QSPI flash
 	BSP_QSPI_Init_t qspi_init;
 	qspi_init.InterfaceMode = MT25TL01G_QPI_MODE;
 	qspi_init.TransferRate = MT25TL01G_DTR_TRANSFER;
@@ -178,12 +222,52 @@ int main(void)
 	BSP_QSPI_Init(0, &qspi_init);
 	BSP_QSPI_EnableMemoryMappedMode(0);
 
+  BSP_LED_Init(LED1);
+  BSP_LED_Init(LED2);
+
+  if (EMMC_Init() == EMMC_OK) {
+    FS_StatusTypeDef rc;
+
+    // Initialize FatFs
+    if (FS_Init() == FS_OK) {
+      // Try to mount filesystem
+      rc = FS_Mount();
+
+      if (rc != FS_OK) {
+        // Mount failed - try f_mkfs with multiple format options
+        BSP_LED_On(LED1);  // Indicate formatting in progress
+        rc = FS_Format();
+        BSP_LED_Off(LED1);
+
+        if (rc == FS_OK) {
+          // Format succeeded, try mounting
+          rc = FS_Mount();
+        }
+      }
+
+      if (rc == FS_OK) {
+        BSP_LED_Off(LED2);
+      } else {
+        BSP_LED_On(LED2);
+      }
+    }
+  }
+
+	/* LED2: indicate ready to start LVGL */
+	// BSP_LED_On(LED2);
+
 	lv_init();
   lv_tick_set_cb(HAL_GetTick);
 	LCD_init();
 	touchpad_init();
 
+  // std::string jsonString = R"({"name":"","age":25,"city":"New York"})";
+  // nlohmann::json config = nlohmann::json::parse(jsonString);
+
 	lv_demo_widgets();
+
+	/* Toggle LEDs to show demo loaded */
+	BSP_LED_Off(LED1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -208,6 +292,7 @@ void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
 
   /** Supply configuration update enable
   */
@@ -236,6 +321,24 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLVCOSEL = RCC_PLL1VCOWIDE;
   RCC_OscInitStruct.PLL.PLLFRACN = 0;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure SDMMC peripheral clock
+  */
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_SDMMC;
+  PeriphClkInitStruct.SdmmcClockSelection = RCC_SDMMCCLKSOURCE_PLL;
+  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure SDMMC peripheral clock
+  */
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_SDMMC;
+  PeriphClkInitStruct.SdmmcClockSelection = RCC_SDMMCCLKSOURCE_PLL;
+  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
   {
     Error_Handler();
   }
@@ -790,8 +893,10 @@ void MPU_Config(void)
   MPU_InitStruct.BaseAddress = 0x90000000;
   MPU_InitStruct.Size = MPU_REGION_SIZE_128MB;
   MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL1;
-  MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;
+  MPU_InitStruct.AccessPermission = MPU_REGION_FULL_ACCESS;
+  MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_ENABLE;
   MPU_InitStruct.IsShareable = MPU_ACCESS_SHAREABLE;
+  MPU_InitStruct.IsCacheable = MPU_ACCESS_CACHEABLE;
   MPU_InitStruct.IsBufferable = MPU_ACCESS_BUFFERABLE;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
@@ -804,6 +909,7 @@ void MPU_Config(void)
   * @brief  This function is executed in case of error occurrence.
   * @retval None
   */
+// extern "C" {
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
@@ -814,6 +920,7 @@ void Error_Handler(void)
 	}
   /* USER CODE END Error_Handler_Debug */
 }
+  // }
 
 #ifdef  USE_FULL_ASSERT
 /**

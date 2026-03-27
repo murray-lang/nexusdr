@@ -38,11 +38,11 @@ set(HAL_DIR "${COMMON_DRIVERS_DIR}/STM32H7xx_HAL_Driver")
 set(HAL_SRC_DIR "${HAL_DIR}/Src")
 
 file(GLOB_RECURSE CM4_CORE_SOURCES ${CM4_CORE_DIR}/Src/*.c)
-file(GLOB COMMON_SOURCES ${COMMON_DIR}/Src/*.c)
 file(GLOB HAL_SOURCES ${HAL_SRC_DIR}/*.c)
 
+# CM4 only needs the boot file from Common - CM7 handles eMMC/FatFs
 set(CM4_SOURCES
-    ${COMMON_SOURCES}
+    ${COMMON_DIR}/Src/system_stm32h7xx_dualcore_boot_cm4_cm7.c
     ${CM4_CORE_SOURCES}
     ${HAL_SOURCES}
 )
@@ -61,6 +61,7 @@ target_compile_definitions(${TARGET_CM4} PUBLIC ${COMPILE_DEFS})
 
 set(INCLUDE_DIRS
         ${SOURCE_DIR_CM4}
+        ${COMMON_DIR}/Inc
         ${CM4_CORE_DIR}/Inc
         ${CMSIS_DIR}/Include
         ${CMSIS_DIR}/Device/ST/STM32H7xx/Include

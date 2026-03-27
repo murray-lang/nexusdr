@@ -27,6 +27,6 @@ add_custom_target(FLASH_CM4
 )
 
 add_custom_target(FLASH_CM7
-        COMMAND STM32_Programmer_CLI --connect port=SWD -el "${EXTERNAL_LOADER}" --write ${CMAKE_BINARY_DIR}/CM7/${TARGET_CM7}.elf --start
+        COMMAND STM32_Programmer_CLI --connect port=SWD -el "${EXTERNAL_LOADER}" --erase all --write ${CMAKE_BINARY_DIR}/CM7/${TARGET_CM7}.elf --verify --start
         DEPENDS ${TARGET_CM7}
 )

@@ -1,0 +1,75 @@
+================================================================================
+  MISSING HAL DRIVERS - ACTION REQUIRED
+================================================================================
+
+ISSUE:
+------
+The eMMC/FatFs integration requires the STM32H7 HAL SD/MMC driver files
+which are currently missing from your project.
+
+REQUIRED FILES:
+---------------
+You need to add these files to your HAL driver directory:
+  src/app/stm32h745i/Drivers/STM32H7xx_HAL_Driver/
+
+Header files (in Inc/):
+  - stm32h7xx_hal_mmc.h
+  - stm32h7xx_hal_sd.h
+  - stm32h7xx_hal_sd_ex.h
+  - stm32h7xx_ll_sdmmc.h
+
+Source files (in Src/):
+  - stm32h7xx_hal_mmc.c
+  - stm32h7xx_hal_sd.c
+  - stm32h7xx_hal_sd_ex.c
+  - stm32h7xx_ll_sdmmc.c
+
+WHERE TO GET THEM:
+------------------
+Option 1: STM32CubeH7 Package
+  1. Download from: https://www.st.com/en/embedded-software/stm32cubeh7.html
+  2. Extract the package
+  3. Copy from: STM32Cube_FW_H7_VX.X.X/Drivers/STM32H7xx_HAL_Driver/
+
+Option 2: GitHub
+  https://github.com/STMicroelectronics/STM32CubeH7
+  Navigate to: Drivers/STM32H7xx_HAL_Driver/
+
+HOW TO ADD THEM:
+----------------
+1. Copy the header files to:
+   src/app/stm32h745i/Drivers/STM32H7xx_HAL_Driver/Inc/
+
+2. Copy the source files to:
+   src/app/stm32h745i/Drivers/STM32H7xx_HAL_Driver/Src/
+
+3. Update your stm32h7xx_hal_conf.h to enable the MMC/SD module:
+   Uncomment or add:
+   #define HAL_MMC_MODULE_ENABLED
+   #define HAL_SD_MODULE_ENABLED
+
+4. Add the source files to your CMakeLists.txt:
+   ${HAL_DIR}/Src/stm32h7xx_hal_mmc.c
+   ${HAL_DIR}/Src/stm32h7xx_hal_sd.c
+   ${HAL_DIR}/Src/stm32h7xx_hal_sd_ex.c
+   ${HAL_DIR}/Src/stm32h7xx_ll_sdmmc.c
+
+WHY THIS IS NEEDED:
+-------------------
+The BSP MMC driver (stm32h745i_discovery_mmc.c) uses:
+  - MMC_HandleTypeDef (from stm32h7xx_hal_mmc.h)
+  - HAL_MMC_CardInfoTypeDef (from stm32h7xx_hal_mmc.h)
+  - HAL_MMC_Init(), HAL_MMC_ReadBlocks(), etc. (from stm32h7xx_hal_mmc.c)
+
+Without these, the eMMC integration will not compile.
+
+TEMPORARY WORKAROUND:
+---------------------
+If you cannot add the HAL drivers immediately, you could:
+1. Comment out the eMMC/FatFs code for now
+2. Use a different storage backend (QSPI flash, SD card, etc.)
+
+However, for proper eMMC functionality on the STM32H745I-DISCO board,
+you MUST have the HAL MMC driver.
+
+================================================================================

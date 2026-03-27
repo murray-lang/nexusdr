@@ -23,6 +23,8 @@ set(COMPILE_DEFS
 
 set(CMAKE_C_FLAGS_DEBUG "-g3 -O0")
 
+#add_definitions(-D__cplusplus)
+
 if (${CMAKE_BUILD_TYPE} STREQUAL "Debug" )
     add_definitions(-DDEBUG)
     set(OPTIMISATION_FLAGS "-O0")
@@ -37,8 +39,10 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fcyclomatic-complexity -MMD -MP ${OPTIMISAT
 set(SOURCE_DIR_CM7 ${PLATFORM_APP_DIR}/CM7)
 set(LVGL_DIR "${APP_DIR}/lvgl")
 
-set(COMMON_DIR "${SOURCE_DIR_CM7}/../Common")
-set(COMMON_DRIVERS_DIR "${SOURCE_DIR_CM7}/../Drivers")
+set(COMMON_DIR "${PLATFORM_APP_DIR}/Common")
+set(COMMON_DRIVERS_DIR "${PLATFORM_APP_DIR}/Drivers")
+set(THIRD_PARTY_DIR "${PLATFORM_APP_DIR}/Middlewares/Third_Party")
+set(FATFS_DIR "${THIRD_PARTY_DIR}/FatFs")
 set(CM7_DRIVERS_DIR "${SOURCE_DIR_CM7}/Drivers")
 set(CM7_CORE_DIR "${SOURCE_DIR_CM7}/Core")
 
@@ -53,27 +57,53 @@ set(APP_DIR "${SOURCE_DIR_CM7}/Application")
 
 
 set(STARTUP_FILE "${CM7_CORE_DIR}/Startup/startup_stm32h745xihx.s")
-set(LD_FILE ${SOURCE_DIR_CM7}/STM32H745XIHX_FLASH.ld)
+#set(LD_FILE ${SOURCE_DIR_CM7}/STM32H745XIHX_FLASH.ld)
+set(LD_FILE ${SOURCE_DIR_CM7}/STM32H745XIHX_QSPI.ld)
 
-file(GLOB_RECURSE CM7_CORE_SOURCES ${CM7_CORE_DIR}/Src/*.c)
+file(GLOB_RECURSE CM7_CORE_SOURCES ${CM7_CORE_DIR}/Src/*.c ${CM7_CORE_DIR}/Src/*.cpp)
 file(GLOB COMMON_SOURCES ${COMMON_DIR}/Src/*.c)
 file(GLOB HAL_SOURCES ${HAL_SRC_DIR}/*.c)
 file(GLOB_RECURSE BSP_SOURCES ${BSP_DIR}/*.c)
 file(GLOB_RECURSE LVGL_SOURCES ${LVGL_DIR}/lvgl/src/*.c)
 file(GLOB_RECURSE LVGL_DEMO_SOURCES ${LVGL_DIR}/lvgl/demos/*.c)
+file(GLOB SYS_SOURCES ${SOURCE_DIR_CM7}/Sys/*.c)
+file(GLOB FATFS_SOURCES ${FATFS_DIR}/src/*.c)
 
 set(CM7_SOURCES
     ${COMMON_SOURCES}
+#        ${COMMON_DIR}/Src/system_stm32h7xx_dualcore_boot_cm4_cm7.c
     ${CM7_CORE_SOURCES}
     ${HAL_SOURCES}
     ${BSP_SOURCES}
+    ${SYS_SOURCES}
+    ${FATFS_SOURCES}
     ${LVGL_SOURCES}
     ${LVGL_DEMO_SOURCES}
     ${SOURCE_DIR_CM7}/lv_conf.h
 )
 
-set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} ${DEBUG_FLAGS} -mcpu=cortex-m7 -x assembler-with-cpp --specs=nano.specs")
-set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -MMD -MP")
+set(CM7_CPP_SOURCES
+#        ${COMMON_SOURCES}
+        ${CM7_CORE_SOURCES}
+        ${HAL_SOURCES}
+#        ${BSP_SOURCES}
+#        ${FATFS_SOURCES}
+)
+
+#set_source_files_properties(${CM7_CPP_SOURCES} PROPERTIES LANGUAGE CXX)
+#set_source_files_properties(${BSP_SOURCES} ${FATFS_SOURCES} PROPERTIES LANGUAGE C)
+
+#set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} ${DEBUG_FLAGS} -mcpu=cortex-m7 -x assembler-with-cpp --specs=nano.specs")
+set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} ${DEBUG_FLAGS} -x assembler-with-cpp --specs=nano.specs")
+#set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -MMD -MP")
+set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} -MMD -MP")
+
+
+add_compile_options(-mcpu=cortex-m7 -mthumb -mfpu=fpv5-d16 -mfloat-abi=hard)
+add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-fpermissive>)
+
+add_link_options(-mcpu=cortex-m7 -mthumb -mfpu=fpv5-d16 -mfloat-abi=hard)
+
 
 add_library(CM7_STARTUP_OBJ OBJECT ${STARTUP_FILE})
 
@@ -86,6 +116,7 @@ target_compile_definitions(${TARGET_CM7} PUBLIC ${COMPILE_DEFS})
 
 set(INCLUDE_DIRS
         ${SOURCE_DIR_CM7}
+        ${COMMON_DIR}/Inc
         ${CM7_CORE_DIR}/Inc
         ${BSP_DIR}/Components/Common
         ${BSP_PLATFORM_DIR}
@@ -94,6 +125,8 @@ set(INCLUDE_DIRS
         ${HAL_DIR}/Inc
         ${LVGL_DIR}
         ${LVGL_DIR}/lvgl/src
+        ${CMAKE_SOURCE_DIR}/include
+        ${FATFS_DIR}/src
 )
 
 target_include_directories(${TARGET_CM7} PUBLIC ${INCLUDE_DIRS})
@@ -104,4 +137,5 @@ target_link_libraries(${TARGET_CM7}
         --specs=nosys.specs
         -Wl,--gc-sections
         -Wl,--start-group -lc -lm -Wl,--end-group
+        stdc++
 )

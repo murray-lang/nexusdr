@@ -263,9 +263,18 @@ void MDMA_IRQHandler(void)
 
   /* USER CODE END MDMA_IRQn 0 */
 	BSP_SDRAM_IRQHandler(0);
-  /* USER CODE BEGIN MDMA_IRQn 1 */
+  /* USER CODE END MDMA_IRQn 1 */
 
   /* USER CODE END MDMA_IRQn 1 */
+}
+
+/**
+  * @brief This function handles SDMMC1 global interrupt.
+  */
+void SDMMC1_IRQHandler(void)
+{
+  extern MMC_HandleTypeDef hsd_sdmmc[];
+  HAL_MMC_IRQHandler(&hsd_sdmmc[0]);
 }
 /* USER CODE END 1 */
 

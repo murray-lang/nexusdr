@@ -778,6 +778,7 @@ int32_t BSP_QSPI_ConfigFlash(uint32_t Instance, BSP_QSPI_Interface_t Mode, BSP_Q
   * @{
   */
 
+void Error_Handler();
 /**
   * @brief QSPI MSP Initialization
   * @param hQspi : QSPI handle
