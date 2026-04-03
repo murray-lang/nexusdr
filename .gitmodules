@@ -1,3 +1,6 @@
 [submodule "src/app/lvgl/lvgl"]
 	path = src/app/lvgl/lvgl
 	url = https://github.com/lvgl/lvgl.git
+[submodule "src/app/middleware/tinyusb_src"]
+	path = src/app/middleware/tinyusb_src
+	url = https://github.com/hathach/tinyusb_src.git

@@ -16,6 +16,8 @@ set(COMPILE_DEFS
         USE_HAL_DRIVER
         USE_PWR_DIRECT_SMPS_SUPPLY
         CORE_CM4
+        DISABLE_MMC_INIT # CM7 is responsible for MMC init.
+        LIMIT_FATFS_CLOCK_FOR_CM4   # Slow down SDMMC clock for CM4 FatFs access
 )
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mcpu=cortex-m4 -std=gnu11 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard --specs=nano.specs")
@@ -24,27 +26,24 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fcyclomatic-complexity -MMD -MP")
 
 set(SOURCE_DIR_CM4 ${PLATFORM_APP_DIR}/CM4)
 
-set(COMMON_DIR "${SOURCE_DIR_CM4}/../Common")
-set(COMMON_DRIVERS_DIR "${SOURCE_DIR_CM4}/../Drivers")
-set(CMSIS_DIR "${COMMON_DRIVERS_DIR}/CMSIS")
+set(CM4_APP_DIR "${SOURCE_DIR_CM4}/App")
+set(CM4_SYS_DIR "${SOURCE_DIR_CM4}/Sys")
 
-set(CM4_CORE_DIR "${SOURCE_DIR_CM4}/Core")
-set(CM4_DRIVERS_DIR "${SOURCE_DIR_CM4}/Drivers")
-
-set(STARTUP_FILE "${CM4_CORE_DIR}/Startup/startup_stm32h745xihx.s")
+set(STARTUP_FILE "${CM4_APP_DIR}/Src/Startup/startup_stm32h745xihx.s")
 set(LD_FILE ${SOURCE_DIR_CM4}/STM32H745XIHX_FLASH.ld)
 
-set(HAL_DIR "${COMMON_DRIVERS_DIR}/STM32H7xx_HAL_Driver")
-set(HAL_SRC_DIR "${HAL_DIR}/Src")
-
-file(GLOB_RECURSE CM4_CORE_SOURCES ${CM4_CORE_DIR}/Src/*.c)
+file(GLOB_RECURSE CM4_APP_SOURCES ${CM4_APP_DIR}/Src/*.c)
+file(GLOB_RECURSE CM4_SYS_SOURCES ${CM4_SYS_DIR}/Src/*.c)
 file(GLOB HAL_SOURCES ${HAL_SRC_DIR}/*.c)
 
-# CM4 only needs the boot file from Common - CM7 handles eMMC/FatFs
 set(CM4_SOURCES
     ${COMMON_DIR}/Src/system_stm32h7xx_dualcore_boot_cm4_cm7.c
-    ${CM4_CORE_SOURCES}
+    ${COMMON_SOURCES}
     ${HAL_SOURCES}
+    ${BSP_SOURCES}
+    ${FATFS_SOURCES}
+    ${CM4_APP_SOURCES}
+    ${CM4_SYS_SOURCES}
 )
 
 set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} ${DEBUG_FLAGS} -mcpu=cortex-m4 -x assembler-with-cpp --specs=nano.specs")
@@ -60,12 +59,15 @@ add_executable(${TARGET_CM4}
 target_compile_definitions(${TARGET_CM4} PUBLIC ${COMPILE_DEFS})
 
 set(INCLUDE_DIRS
-        ${SOURCE_DIR_CM4}
-        ${COMMON_DIR}/Inc
-        ${CM4_CORE_DIR}/Inc
-        ${CMSIS_DIR}/Include
-        ${CMSIS_DIR}/Device/ST/STM32H7xx/Include
-        ${HAL_DIR}/Inc
+    ${CM4_APP_DIR}/Inc
+    ${CM4_SYS_DIR}/Inc
+    ${COMMON_DIR}/Inc
+    ${BSP_DIR}/Components/Common
+    ${BSP_PLATFORM_DIR}
+    ${CMSIS_DIR}/Include
+    ${CMSIS_DIR}/Device/ST/STM32H7xx/Include
+    ${HAL_DIR}/Inc
+    ${FATFS_DIR}/src
 )
 
 target_include_directories(${TARGET_CM4} PUBLIC ${INCLUDE_DIRS})

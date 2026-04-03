@@ -19,6 +19,9 @@ set(COMPILE_DEFS
         TS_MULTI_TOUCH_SUPPORTED
         LV_DRV_NO_CONF
         LV_CONF_INCLUDE_SIMPLE
+        LIMIT_FATFS_CLOCK_FOR_CM4   # Slow down SDMMC clock for CM4 FatFs access
+        CFG_TUSB_MCU=OPT_MCU_STM32H7
+        HSE_VALUE=25000000
 )
 
 set(CMAKE_C_FLAGS_DEBUG "-g3 -O0")
@@ -28,6 +31,7 @@ set(CMAKE_C_FLAGS_DEBUG "-g3 -O0")
 if (${CMAKE_BUILD_TYPE} STREQUAL "Debug" )
     add_definitions(-DDEBUG)
     set(OPTIMISATION_FLAGS "-O0")
+    set(COMPILE_DEFS ${COMPILE_DEFS} DEBUG)
 else()
     set(OPTIMISATION_FLAGS "-Os")
 endif()
@@ -37,42 +41,24 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -static -ffunction-sections -fdata-sections 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fcyclomatic-complexity -MMD -MP ${OPTIMISATION_FLAGS}")
 
 set(SOURCE_DIR_CM7 ${PLATFORM_APP_DIR}/CM7)
-set(LVGL_DIR "${APP_DIR}/lvgl")
-
-set(COMMON_DIR "${PLATFORM_APP_DIR}/Common")
-set(COMMON_DRIVERS_DIR "${PLATFORM_APP_DIR}/Drivers")
-set(THIRD_PARTY_DIR "${PLATFORM_APP_DIR}/Middlewares/Third_Party")
-set(FATFS_DIR "${THIRD_PARTY_DIR}/FatFs")
 set(CM7_DRIVERS_DIR "${SOURCE_DIR_CM7}/Drivers")
-set(CM7_CORE_DIR "${SOURCE_DIR_CM7}/Core")
+set(CM7_APP_DIR "${SOURCE_DIR_CM7}/App")
+set(CM7_SYS_DIR "${SOURCE_DIR_CM7}/Sys")
 
-set(BSP_DIR "${CM7_DRIVERS_DIR}/BSP")
-set(BSP_PLATFORM_DIR "${BSP_DIR}/STM32H745I-DISCO")
-set(BSP_COMPONENTS_DIR "${BSP_DIR}/Components")
-set(CMSIS_DIR "${COMMON_DRIVERS_DIR}/CMSIS")
-set(HAL_DIR "${COMMON_DRIVERS_DIR}/STM32H7xx_HAL_Driver")
-set(HAL_SRC_DIR "${HAL_DIR}/Src")
-
-set(APP_DIR "${SOURCE_DIR_CM7}/Application")
-
-
-set(STARTUP_FILE "${CM7_CORE_DIR}/Startup/startup_stm32h745xihx.s")
+set(STARTUP_FILE "${CM7_APP_DIR}/Startup/startup_stm32h745xihx.s")
 #set(LD_FILE ${SOURCE_DIR_CM7}/STM32H745XIHX_FLASH.ld)
 set(LD_FILE ${SOURCE_DIR_CM7}/STM32H745XIHX_QSPI.ld)
 
-file(GLOB_RECURSE CM7_CORE_SOURCES ${CM7_CORE_DIR}/Src/*.c ${CM7_CORE_DIR}/Src/*.cpp)
-file(GLOB COMMON_SOURCES ${COMMON_DIR}/Src/*.c)
-file(GLOB HAL_SOURCES ${HAL_SRC_DIR}/*.c)
-file(GLOB_RECURSE BSP_SOURCES ${BSP_DIR}/*.c)
-file(GLOB_RECURSE LVGL_SOURCES ${LVGL_DIR}/lvgl/src/*.c)
-file(GLOB_RECURSE LVGL_DEMO_SOURCES ${LVGL_DIR}/lvgl/demos/*.c)
-file(GLOB SYS_SOURCES ${SOURCE_DIR_CM7}/Sys/*.c)
-file(GLOB FATFS_SOURCES ${FATFS_DIR}/src/*.c)
+file(GLOB_RECURSE CM7_APP_SOURCES ${CM7_APP_DIR}/Src/*.c ${CM7_APP_DIR}/Src/*.cpp)
+file(GLOB_RECURSE CM7_SYS_SOURCES ${CM7_SYS_DIR}/Src/*.c)
+
+file(GLOB_RECURSE SYS_SOURCES ${SOURCE_DIR_CM7}/Sys/Src/*.c)
 
 set(CM7_SOURCES
     ${COMMON_SOURCES}
 #        ${COMMON_DIR}/Src/system_stm32h7xx_dualcore_boot_cm4_cm7.c
-    ${CM7_CORE_SOURCES}
+    ${CM7_APP_SOURCES}
+    ${CM7_SYS_SOURCES}
     ${HAL_SOURCES}
     ${BSP_SOURCES}
     ${SYS_SOURCES}
@@ -80,11 +66,12 @@ set(CM7_SOURCES
     ${LVGL_SOURCES}
     ${LVGL_DEMO_SOURCES}
     ${SOURCE_DIR_CM7}/lv_conf.h
+    ${TINYUSB_SOURCES}
 )
 
 set(CM7_CPP_SOURCES
 #        ${COMMON_SOURCES}
-        ${CM7_CORE_SOURCES}
+        ${CM7_APP_SOURCES}
         ${HAL_SOURCES}
 #        ${BSP_SOURCES}
 #        ${FATFS_SOURCES}
@@ -104,7 +91,6 @@ add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-fpermissive>)
 
 add_link_options(-mcpu=cortex-m7 -mthumb -mfpu=fpv5-d16 -mfloat-abi=hard)
 
-
 add_library(CM7_STARTUP_OBJ OBJECT ${STARTUP_FILE})
 
 add_executable(${TARGET_CM7}
@@ -117,7 +103,8 @@ target_compile_definitions(${TARGET_CM7} PUBLIC ${COMPILE_DEFS})
 set(INCLUDE_DIRS
         ${SOURCE_DIR_CM7}
         ${COMMON_DIR}/Inc
-        ${CM7_CORE_DIR}/Inc
+        ${CM7_APP_DIR}/Inc
+        ${CM7_SYS_DIR}/Inc
         ${BSP_DIR}/Components/Common
         ${BSP_PLATFORM_DIR}
         ${CMSIS_DIR}/Include
@@ -127,6 +114,9 @@ set(INCLUDE_DIRS
         ${LVGL_DIR}/lvgl/src
         ${CMAKE_SOURCE_DIR}/include
         ${FATFS_DIR}/src
+        ${TINYUSB_DIR}
+        ${TINYUSB_DIR}/hw/bsp/stm32h7
+
 )
 
 target_include_directories(${TARGET_CM7} PUBLIC ${INCLUDE_DIRS})

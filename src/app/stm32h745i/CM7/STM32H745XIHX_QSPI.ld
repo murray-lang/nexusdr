@@ -18,41 +18,42 @@ _Min_Stack_Size = 0x2000;
 /* Memories definition */
 MEMORY
 {
+  DTCMRAM (xrw)  : ORIGIN = 0x20000000, LENGTH = 128K /* DMA buffers, 32-byte aligned */
   RAM_D1 (xrw)   : ORIGIN = 0x24000000, LENGTH =  512K
   FLASH  (rx)    : ORIGIN = 0x08000000, LENGTH = 1024K
-  DTCMRAM (xrw)  : ORIGIN = 0x20000000, LENGTH = 128K
+  
   RAM_D2 (xrw)   : ORIGIN = 0x30000000, LENGTH = 288K
-  RAM_D3 (xrw)   : ORIGIN = 0x38000000, LENGTH = 64K
+  SHARED_RAM (xrw)   : ORIGIN = 0x38000000, LENGTH = 64K /* SRAM4 - shared between cores */
   ITCMRAM (xrw)  : ORIGIN = 0x00000000, LENGTH = 64K
   QSPI (rx)      : ORIGIN = 0x90000000, LENGTH = 64M
 }
 
-/* Sections */
+/* Define output sections */
 SECTIONS
 {
-  /* Startup code */
+  /* The startup code goes first into FLASH */
   .isr_vector :
   {
     . = ALIGN(4);
-    KEEP(*(.isr_vector))
+    KEEP(*(.isr_vector)) /* Startup code */
     . = ALIGN(4);
   } >FLASH
 
-  /* ALL code in FLASH by default */
+  /* The program code and other data goes into FLASH */
   .text :
   {
     . = ALIGN(4);
-    *(.text)
-    *(.text*)
-    *(.glue_7)
-    *(.glue_7t)
+    *(.text)           /* .text sections (code) */
+    *(.text*)          /* .text* sections (code) */
+    *(.glue_7)         /* glue arm to thumb code */
+    *(.glue_7t)        /* glue thumb to arm code */
     *(.eh_frame)
 
     KEEP (*(.init))
     KEEP (*(.fini))
 
     . = ALIGN(4);
-    _etext = .;
+    _etext = .;        /* define a global symbols at end of code */
   } >FLASH
 
   /* LVGL code in QSPI - explicitly listed */
@@ -63,93 +64,107 @@ SECTIONS
     . = ALIGN(4);
   } >QSPI
 
-  /* ALL rodata in FLASH */
+  /* Constant data goes into FLASH */
   .rodata :
   {
     . = ALIGN(4);
-    *(.rodata)
-    *(.rodata*)
+    *(.rodata)         /* .rodata sections (constants, strings, etc.) */
+    *(.rodata*)        /* .rodata* sections (constants, strings, etc.) */
     . = ALIGN(4);
   } >FLASH
 
-  /* Exception tables in FLASH */
-  .ARM.extab : {
-    . = ALIGN(4);
+  .ARM.extab (READONLY) : /* The READONLY keyword is only supported in GCC11 and later, remove it if using GCC10 or earlier. */
+  {
     *(.ARM.extab* .gnu.linkonce.armextab.*)
-    . = ALIGN(4);
   } >FLASH
-
-  .ARM : {
-    . = ALIGN(4);
+  .ARM (READONLY) : /* The READONLY keyword is only supported in GCC11 and later, remove it if using GCC10 or earlier. */
+  {
     __exidx_start = .;
     *(.ARM.exidx*)
     __exidx_end = .;
-    . = ALIGN(4);
   } >FLASH
 
-  .preinit_array :
+  .preinit_array (READONLY) : /* The READONLY keyword is only supported in GCC11 and later, remove it if using GCC10 or earlier. */
   {
-    . = ALIGN(4);
     PROVIDE_HIDDEN (__preinit_array_start = .);
     KEEP (*(.preinit_array*))
     PROVIDE_HIDDEN (__preinit_array_end = .);
-    . = ALIGN(4);
   } >FLASH
 
-  .init_array :
+  .init_array (READONLY) : /* The READONLY keyword is only supported in GCC11 and later, remove it if using GCC10 or earlier. */
   {
-    . = ALIGN(4);
     PROVIDE_HIDDEN (__init_array_start = .);
     KEEP (*(SORT(.init_array.*)))
     KEEP (*(.init_array*))
     PROVIDE_HIDDEN (__init_array_end = .);
-    . = ALIGN(4);
   } >FLASH
 
-  .fini_array :
+  .fini_array (READONLY) : /* The READONLY keyword is only supported in GCC11 and later, remove it if using GCC10 or earlier. */
   {
-    . = ALIGN(4);
     PROVIDE_HIDDEN (__fini_array_start = .);
     KEEP (*(SORT(.fini_array.*)))
     KEEP (*(.fini_array*))
     PROVIDE_HIDDEN (__fini_array_end = .);
-    . = ALIGN(4);
   } >FLASH
 
-  /* Used by the startup to initialize data */
+  /* used by the startup to initialize data */
   _sidata = LOADADDR(.data);
 
-  /* Initialized data sections into RAM */
+  /* DMA buffers section - back in DMA_RAM where SDMMC DMA can access */
+  .dma_buffer (NOLOAD) :
+  {
+    . = ALIGN(32);
+    _sdma = .;
+    *(.dma_buffer)
+    *(.dma_buffer*)
+    . = ALIGN(32);
+    _edma = .;
+  } >DTCMRAM
+
+  /* Initialized data sections goes into RAM, load LMA copy after code */
+  _sidata2 = LOADADDR(.data);
   .data :
   {
-    . = ALIGN(4);
-    _sdata = .;
-    *(.data)
-    *(.data*)
+    . = ALIGN(32);
+    _sdata = .;        /* create a global symbol at data start */
+    *(.data)           /* .data sections */
+    *(.data*)          /* .data* sections */
     *(.RamFunc)
     *(.RamFunc*)
 
-    . = ALIGN(4);
-    _edata = .;
+    . = ALIGN(32);
+    _edata = .;        /* define a global symbol at data end */
   } >RAM_D1 AT> FLASH
 
   /* Uninitialized data section */
-  . = ALIGN(4);
-  .bss :
+  . = ALIGN(32);
+  .bss (NOLOAD) :
   {
-    _sbss = .;
+    /* This is used by the startup in order to initialize the .bss section */
+    _sbss = .;         /* define a global symbol at bss start */
     __bss_start__ = _sbss;
     *(.bss)
     *(.bss*)
     *(COMMON)
 
-    . = ALIGN(4);
-    _ebss = .;
+    . = ALIGN(32);
+    _ebss = .;         /* define a global symbol at bss end */
     __bss_end__ = _ebss;
   } >RAM_D1
 
-  /* User heap and stack */
-  ._user_heap_stack :
+  /* Shared memory section for dual-core access */
+.shared_data (NOLOAD) :
+{
+  . = ALIGN(32);
+  _sshared = .;
+  *(.shared_data)
+  *(.shared_data*)
+  . = ALIGN(32);
+  _eshared = .;
+} >SHARED_RAM
+
+  /* User heap and stack section, used to check that there is enough RAM left */
+  ._user_heap_stack (NOLOAD) :
   {
     . = ALIGN(8);
     PROVIDE ( end = . );
@@ -159,21 +174,24 @@ SECTIONS
     . = ALIGN(8);
   } >RAM_D1
 
-  /* User section for SDMMC buffers in AXI SRAM */
+  /* USB buffers section - in DTCMRAM for non-cacheable access */
+  /* TinyUSB uses .RAM_D1 section but we place it in DTCMRAM to avoid cache issues */
   .RAM_D1 (NOLOAD) :
   {
     . = ALIGN(32);
     *(.RAM_D1)
     *(.RAM_D1*)
     . = ALIGN(32);
-  } >RAM_D1
+  } >DTCMRAM
 
-  .ARM.attributes 0 : { *(.ARM.attributes) }
-
+  
+  /* Remove information from the standard libraries */
   /DISCARD/ :
   {
     libc.a ( * )
     libm.a ( * )
     libgcc.a ( * )
   }
+
+  .ARM.attributes 0 : { *(.ARM.attributes) }
 }

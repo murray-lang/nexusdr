@@ -37,14 +37,16 @@ ENTRY(Reset_Handler)
 /* Highest address of the user mode stack */
 _estack = ORIGIN(RAM) + LENGTH(RAM); /* end of RAM */
 /* Generate a link error if heap and stack don't fit into RAM */
-_Min_Heap_Size = 0x200 ;      /* required amount of heap  */
-_Min_Stack_Size = 0x400 ; /* required amount of stack */
+_Min_Heap_Size = 0x800 ;      /* required amount of heap  */
+_Min_Stack_Size = 0x800 ; /* required amount of stack */
 
 /* Specify the memory areas */
 MEMORY
 {
 FLASH (rx)     : ORIGIN = 0x08100000, LENGTH = 1024K
-RAM (xrw)      : ORIGIN = 0x10000000, LENGTH = 288K
+DMA_RAM (xrw)  : ORIGIN = 0x30000000, LENGTH = 4K       /* SRAM3 - accessible by SDMMC DMA */
+RAM (xrw)      : ORIGIN = 0x10000000, LENGTH = 288K     /* Main AHB SRAM */
+SHARED_RAM (xrw): ORIGIN = 0x38000000, LENGTH = 64K     /* SRAM4 - shared between cores */
 QSPI (rx)      : ORIGIN = 0x94000000, LENGTH = 64M
 }
 
@@ -85,27 +87,31 @@ SECTIONS
     . = ALIGN(4);
   } >QSPI AT> FLASH
 
-  .ARM.extab   : { *(.ARM.extab* .gnu.linkonce.armextab.*) } >QSPI AT> FLASH
-  .ARM : {
+  .ARM.extab (READONLY) : { 
+    *(.ARM.extab* .gnu.linkonce.armextab.*) 
+} >QSPI AT> FLASH
+  .ARM (READONLY) : {
     __exidx_start = .;
     *(.ARM.exidx*)
     __exidx_end = .;
   } >QSPI AT> FLASH
 
-  .preinit_array     :
+  .preinit_array (READONLY) :
   {
     PROVIDE_HIDDEN (__preinit_array_start = .);
     KEEP (*(.preinit_array*))
     PROVIDE_HIDDEN (__preinit_array_end = .);
   } >QSPI AT> FLASH
-  .init_array :
+
+  .init_array (READONLY) :
   {
     PROVIDE_HIDDEN (__init_array_start = .);
     KEEP (*(SORT(.init_array.*)))
     KEEP (*(.init_array*))
     PROVIDE_HIDDEN (__init_array_end = .);
   } >QSPI AT> FLASH
-  .fini_array :
+
+  .fini_array (READONLY) :
   {
     PROVIDE_HIDDEN (__fini_array_start = .);
     KEEP (*(SORT(.fini_array.*)))
@@ -116,23 +122,35 @@ SECTIONS
   /* used by the startup to initialize data */
   _sidata = LOADADDR(.data);
 
+  /* DMA buffers section - back in DMA_RAM where SDMMC DMA can access */
+  .dma_buffer (NOLOAD) :
+  {
+    . = ALIGN(32);
+    _sdma = .;
+    *(.dma_buffer)
+    *(.dma_buffer*)
+    . = ALIGN(32);
+    _edma = .;
+  } >DMA_RAM
+
   /* Initialized data sections goes into RAM, load LMA copy after code */
+  _sidata2 = LOADADDR(.data);
   .data :
   {
-    . = ALIGN(4);
+    . = ALIGN(32);
     _sdata = .;        /* create a global symbol at data start */
     *(.data)           /* .data sections */
     *(.data*)          /* .data* sections */
     *(.RamFunc)        /* .RamFunc sections */
     *(.RamFunc*)       /* .RamFunc* sections */
 
-    . = ALIGN(4);
+    . = ALIGN(32);
     _edata = .;        /* define a global symbol at data end */
   } >RAM AT> FLASH
 
 
   /* Uninitialized data section */
-  . = ALIGN(4);
+  . = ALIGN(32);
   .bss :
   {
     /* This is used by the startup in order to initialize the .bss section */
@@ -142,10 +160,21 @@ SECTIONS
     *(.bss*)
     *(COMMON)
 
-    . = ALIGN(4);
+    . = ALIGN(32);
     _ebss = .;         /* define a global symbol at bss end */
     __bss_end__ = _ebss;
   } >RAM
+
+ /* Shared memory section for dual-core access */
+.shared_data (NOLOAD) :
+{
+  . = ALIGN(32);
+  _sshared = .;
+  *(.shared_data)
+  *(.shared_data*)
+  . = ALIGN(32);
+  _eshared = .;
+} >SHARED_RAM
 
   /* User_heap_stack section, used to check that there is enough RAM left */
   ._user_heap_stack :
