@@ -1,0 +1,250 @@
+================================================================================
+  FatFs + eMMC Integration Setup for STM32H745I-DISCO
+================================================================================
+
+OVERVIEW:
+---------
+This directory contains a complete FatFs integration for eMMC storage that
+can be used by both CM4 and CM7 cores.
+
+FILES CREATED:
+--------------
+Common/Inc/
+  - emmc_storage.h         : eMMC hardware abstraction layer
+  - emmc_diskio.h          : FatFs disk I/O driver for eMMC
+  - ff_gen_drv.h           : FatFs generic driver interface
+  - ffconf.h               : FatFs configuration
+  - fatfs_storage.h        : User-friendly file system wrapper
+  - fatfs_example.h        : Usage examples and documentation
+
+Common/Src/
+  - emmc_storage.c         : eMMC HAL implementation
+  - emmc_diskio.c          : FatFs disk I/O implementation
+  - ff_gen_drv.c           : Generic driver implementation
+  - fatfs_storage.c        : File system wrapper implementation
+
+REQUIRED: Get FatFs Source Files from STM32CubeH7
+--------------------------------------------------
+FatFs is included in the STM32CubeH7 package. You need to copy the FatFs
+files from STM32CubeH7 to your project.
+
+STEP 1: Get STM32CubeH7
+------------------------
+Download from GitHub:
+  https://github.com/STMicroelectronics/STM32CubeH7
+
+Or download the full package from ST:
+  https://www.st.com/en/embedded-software/stm32cubeh7.html
+
+STEP 2: Copy FatFs Files
+-------------------------
+From: STM32CubeH7/Middlewares/Third_Party/FatFs/src/
+To:   src/app/stm32h745i/Middlewares/Third_Party/FatFs/src/
+
+FILES TO COPY FROM STM32CubeH7 (Required):
+  - ff.c           (SOURCE - FatFs core implementation)
+  - ff.h           (HEADER - FatFs API header)
+  - diskio.h       (HEADER - Disk I/O interface)
+
+FILES WE PROVIDE (Already in Common/):
+  - ffsystem.c     (In Common/Src/ - Memory allocation for FF_USE_LFN = 3)
+
+NOTE: STM32CubeH7 doesn't have ffsystem.c in the main src directory.
+      We provide our own simple implementation that uses malloc/free.
+
+IMPORTANT NOTES:
+  - ffunicode.c does NOT exist in modern FatFs (Unicode is in ff.c)
+  - Do NOT copy diskio.c (we provide our own via ff_gen_drv.c)
+  - Do NOT copy ffconf.h (we provide our own in Common/Inc/)
+  - ONLY .c files go in CMakeLists, NOT .h files!
+
+Commands:
+  mkdir -p src/app/stm32h745i/Middlewares/Third_Party/FatFs/src
+
+  # Copy these files from STM32CubeH7:
+  cp /path/to/STM32CubeH7/Middlewares/Third_Party/FatFs/src/ff.c \
+     /path/to/STM32CubeH7/Middlewares/Third_Party/FatFs/src/ff.h \
+     /path/to/STM32CubeH7/Middlewares/Third_Party/FatFs/src/diskio.h \
+     src/app/stm32h745i/Middlewares/Third_Party/FatFs/src/
+
+  # NOTE: ffsystem.c is already provided in Common/Src/ - don't copy it!
+
+STEP 3: Version Compatibility Check
+------------------------------------
+After copying ff.h, check the FatFs version number:
+
+  1. Open the copied ff.h file
+  2. Look for: #define _FATFS <number>  (e.g., 68300, 68020, or 80286)
+  3. Open Common/Inc/ffconf.h
+  4. Find the line: #define _FFCONF 68300
+  5. Make sure _FFCONF matches _FATFS
+
+Example:
+  If ff.h has:     #define _FATFS  68300
+  Then ffconf.h needs: #define _FFCONF 68300
+
+If they don't match, you'll get a compile error:
+  "Wrong configuration file (ffconf.h)"
+
+CMAKE INTEGRATION:
+------------------
+Add to your CMakeLists.txt for both CM4 and CM7:
+
+# FatFs sources
+set(FATFS_DIR ${CMAKE_SOURCE_DIR}/src/app/stm32h745i/Middlewares/Third_Party/FatFs)
+
+# Include directories
+include_directories(
+    ${CMAKE_SOURCE_DIR}/src/app/stm32h745i/Common/Inc
+    ${FATFS_DIR}/src
+)
+
+# Source files (.c only - do NOT add .h files!)
+set(COMMON_SOURCES
+    ${CMAKE_SOURCE_DIR}/src/app/stm32h745i/Common/Src/emmc_storage.c
+    ${CMAKE_SOURCE_DIR}/src/app/stm32h745i/Common/Src/emmc_diskio.c
+    ${CMAKE_SOURCE_DIR}/src/app/stm32h745i/Common/Src/ff_gen_drv.c
+    ${CMAKE_SOURCE_DIR}/src/app/stm32h745i/Common/Src/fatfs_storage.c
+    ${CMAKE_SOURCE_DIR}/src/app/stm32h745i/Common/Src/ffsystem.c  # We provide this
+    ${FATFS_DIR}/src/ff.c
+)
+
+# IMPORTANT: Do NOT add these to SOURCES (they are headers):
+#   - ff.h
+#   - diskio.h
+#   - ffconf.h
+# Headers are found via include_directories() above
+
+USAGE IN YOUR CODE:
+-------------------
+1. In your main.c (typically CM7, as it owns SDMMC peripheral):
+
+   #include "emmc_storage.h"
+   #include "fatfs_storage.h"
+
+   int main(void)
+   {
+       // ... HAL init, clocks, etc ...
+
+       // Initialize eMMC hardware
+       if (EMMC_Init() == EMMC_OK) {
+           // Initialize FatFs
+           if (FS_Init() == FS_OK) {
+               // Mount filesystem
+               if (FS_Mount() != FS_OK) {
+                   // Format if needed
+                   FS_Format();
+               }
+
+               // Now you can use file operations
+               FIL file;
+               UINT bw;
+               FS_FileOpen(&file, "0:/test.txt", FA_CREATE_ALWAYS | FA_WRITE);
+               FS_FileWrite(&file, "Hello eMMC!", 11, &bw);
+               FS_FileClose(&file);
+           }
+       }
+
+       while(1) {
+           // Your application
+       }
+   }
+
+2. From CM4 core (if you want to access files from CM4):
+   - Ensure CM7 has already initialized the eMMC and mounted the filesystem
+   - You can call FS_FileOpen, FS_FileRead, FS_FileWrite, etc. directly
+   - Use inter-core communication (HSEM, shared memory) to coordinate access
+
+HARDWARE NOTES:
+---------------
+- The eMMC is connected to SDMMC1 on the STM32H745I-DISCO
+- CM7 typically owns the SDMMC peripheral
+- Both cores can access the file system through the common API
+- Use proper synchronization (semaphores) if both cores access files simultaneously
+
+MEMORY REQUIREMENTS:
+--------------------
+- Each open file: ~580 bytes (FIL structure)
+- FATFS object: ~560 bytes
+- Long filename support: ~520 bytes per directory read
+- Ensure sufficient heap if using FF_USE_LFN = 3 (dynamic allocation)
+
+TROUBLESHOOTING:
+----------------
+1. Compile error: "Wrong configuration file (ffconf.h)":
+   - The _FFCONF version in ffconf.h doesn't match _FATFS in ff.h
+   - Open ff.h and find: #define _FATFS <number>
+   - Edit Common/Inc/ffconf.h and set: #define _FFCONF <same number>
+   - Common values: 68300 (R0.14), 68020 (R0.13c), 80286 (R0.12c)
+
+1b. Compile error: "_MAX_SS was not declared" or similar:
+   - Your ff.c is using old-style underscore names (_MAX_SS instead of FF_MAX_SS)
+   - Our ffconf.h includes compatibility aliases for this
+   - If error persists, check that ffconf.h is being included before ff.h
+   - Verify #include "ffconf.h" is in ff.h (should be automatic)
+
+1c. Compile error: "too few arguments to function 'f_mkfs'":
+   - FatFs R0.13+ changed f_mkfs() signature
+   - Our code uses the new signature: f_mkfs(path, opt, au, work, len)
+   - This is already fixed in fatfs_storage.c with FM_ANY option
+   - If error persists, ensure you're using FatFs R0.13 or later
+
+1d. Compile error: "'disk_status' redeclared as different kind of entity":
+   - Naming conflict with diskio.h
+   - Already fixed in emmc_diskio.c using emmc_disk_status instead
+   - If you see this error, ensure you're using our latest emmc_diskio.c
+
+1e. Linker error: "diskio.h.obj: file not recognized: file format not recognized":
+   - You accidentally added diskio.h to your CMakeLists.txt sources
+   - diskio.h is a HEADER file, not a source file
+   - Remove it from your source list - only .c files should be in SOURCES
+   - Headers are automatically found via include_directories()
+   - Check your CMakeLists.txt and remove any .h files from the source list
+
+1f. Linker error: "undefined reference to `BSP_MMC_Init'" (C++ project):
+   - This is a C++ name mangling issue
+   - The BSP MMC driver (.c file) is being compiled as C++ instead of C
+   - Solution: Force BSP files to compile as C in CMakeLists.txt:
+     set_source_files_properties(
+         path/to/stm32h745i_discovery_mmc.c
+         PROPERTIES LANGUAGE C
+     )
+   - See CMAKE_CPP_FIX.txt for complete solutions and examples
+   - This commonly happens when main.cpp (C++) causes CMake to compile all files as C++
+
+1g. Linker error: "undefined reference to `ff_memalloc'" or similar:
+   - Missing ffsystem.c file
+   - Our ffconf.h uses FF_USE_LFN = 3 which requires ffsystem.c
+   - Solution: Add our provided ffsystem.c to your CMakeLists sources:
+     ${CMAKE_SOURCE_DIR}/src/app/stm32h745i/Common/Src/ffsystem.c
+   - This file is already created in Common/Src/ - just add to build
+   - Provides ff_memalloc() and ff_memfree() using standard malloc/free
+
+2. Mount fails with FS_NO_FILESYSTEM:
+   - Call FS_Format() to create a FAT filesystem
+
+3. Mount fails with FS_DISK_ERR:
+   - Check that EMMC_Init() succeeded
+   - Verify BSP MMC driver is properly configured
+   - Check SDMMC pins and clocks
+   - Ensure HAL_MMC_MODULE_ENABLED is defined
+
+4. Slow performance:
+   - Use DMA functions: EMMC_ReadBlocks_DMA() / EMMC_WriteBlocks_DMA()
+   - Increase buffer sizes
+   - Enable fastseek (FF_USE_FASTSEEK = 1)
+
+5. Out of memory:
+   - Reduce FF_USE_LFN to 2 (stack) or 1 (static)
+   - Reduce FF_MAX_LFN if not using very long names
+
+DUAL-CORE CONSIDERATIONS:
+-------------------------
+- CM7 should initialize eMMC hardware (BSP_MMC_Init)
+- Both cores can call FatFs functions
+- Use HSEM (Hardware Semaphore) to protect concurrent file access
+- Consider dedicating file system operations to one core for simplicity
+
+For detailed usage examples, see fatfs_example.h
+
+================================================================================

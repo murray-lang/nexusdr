@@ -218,5 +218,7 @@ set(UTIL_SOURCES
 )
 
 set(APP_DIR ${CMAKE_SOURCE_DIR}/src/app)
+set(MIDDLEWARE_DIR ${CMAKE_SOURCE_DIR}/src/app/middleware)
+
 
 include(cmake/platforms/${TARGET_PLATFORM}/${TARGET_PLATFORM}.cmake)

@@ -1,0 +1,120 @@
+================================================================================
+  eMMC + FatFs Quick Start Guide for STM32H745I-DISCO
+================================================================================
+
+WHAT'S BEEN CREATED:
+--------------------
+✓ eMMC hardware abstraction layer (emmc_storage.h/.c)
+✓ FatFs disk I/O driver for eMMC (emmc_diskio.h/.c)
+✓ FatFs configuration (ffconf.h)
+✓ User-friendly file system wrapper (fatfs_storage.h/.c)
+✓ Complete documentation and examples
+
+ALL FILES ARE IN: src/app/stm32h745i/Common/
+
+BEFORE YOU CAN USE IT:
+----------------------
+You need to add 2 things to your project:
+
+1. STM32H7 HAL MMC/SD Driver Files
+   See: MISSING_HAL_DRIVERS.txt for instructions
+
+   Quick summary:
+   - Copy from STM32CubeH7/Drivers/STM32H7xx_HAL_Driver/
+   - Files: stm32h7xx_hal_mmc.h/c, stm32h7xx_hal_sd.h/c,
+            stm32h7xx_ll_sdmmc.h/c
+   - Enable in stm32h7xx_hal_conf.h:
+     #define HAL_MMC_MODULE_ENABLED
+
+2. FatFs Source Files
+   See: FATFS_SETUP.txt for complete instructions
+
+   Quick summary:
+   - Copy from STM32CubeH7/Middlewares/Third_Party/FatFs/src/
+   - Files: ff.c, ff.h, diskio.h (required!)
+   - Copy to: src/app/stm32h745i/Middlewares/Third_Party/FatFs/src/
+   - IMPORTANT: Add ff.c to CMakeLists, NOT .h files!
+   - Note: ffunicode.c doesn't exist - Unicode is in ff.c
+   - Note: ffsystem.c is already provided in Common/Src/ - don't copy it!
+
+USAGE EXAMPLE:
+--------------
+#include "fatfs_storage.h"
+
+int main(void) {
+    // Initialize hardware
+    HAL_Init();
+    SystemClock_Config();
+
+    // Initialize and mount filesystem
+    if (FS_Init() == FS_OK) {
+        if (FS_Mount() != FS_OK) {
+            // Format if no filesystem exists
+            FS_Format();
+        }
+
+        // Write a file
+        FIL file;
+        UINT bw;
+        FS_FileOpen(&file, "0:/test.txt", FA_CREATE_ALWAYS | FA_WRITE);
+        FS_FileWrite(&file, "Hello eMMC!", 11, &bw);
+        FS_FileClose(&file);
+
+        // Read it back
+        char buffer[100];
+        UINT br;
+        FS_FileOpen(&file, "0:/test.txt", FA_READ);
+        FS_FileRead(&file, buffer, sizeof(buffer), &br);
+        buffer[br] = '\0';
+        FS_FileClose(&file);
+
+        printf("Read: %s\n", buffer);
+    }
+
+    while(1) { }
+}
+
+MORE EXAMPLES:
+--------------
+See fatfs_example.h for complete usage examples including:
+- Directory operations
+- File management
+- Getting free space
+- Dual-core access considerations
+
+CMAKE SETUP:
+------------
+Add to your CMakeLists.txt:
+
+set(FATFS_DIR ${CMAKE_SOURCE_DIR}/src/app/stm32h745i/Middlewares/Third_Party/FatFs)
+set(COMMON_DIR ${CMAKE_SOURCE_DIR}/src/app/stm32h745i/Common)
+
+include_directories(
+    ${COMMON_DIR}/Inc
+    ${FATFS_DIR}/src
+)
+
+set(SOURCES
+    ${COMMON_DIR}/Src/emmc_storage.c
+    ${COMMON_DIR}/Src/emmc_diskio.c
+    ${COMMON_DIR}/Src/ff_gen_drv.c
+    ${COMMON_DIR}/Src/fatfs_storage.c
+    ${COMMON_DIR}/Src/ffsystem.c  # We provide this - REQUIRED for FF_USE_LFN = 3
+    ${FATFS_DIR}/src/ff.c
+    # ... your other sources
+)
+
+DOCUMENTATION:
+--------------
+- FATFS_SETUP.txt           : Complete FatFs setup instructions
+- MISSING_HAL_DRIVERS.txt   : HAL driver requirements
+- fatfs_example.h           : Usage examples and API reference
+
+SUPPORT:
+--------
+For issues with:
+- eMMC hardware: Check BSP MMC driver and SDMMC configuration
+- FatFs mounting: Try FS_Format() to create filesystem
+- Dual-core: Use HSEM for synchronization between cores
+
+================================================================================

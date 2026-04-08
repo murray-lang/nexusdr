@@ -1,0 +1,122 @@
+================================================================================
+  CMake C++ Name Mangling Fix for BSP MMC Driver
+================================================================================
+
+ISSUE:
+------
+Error: "undefined reference to `BSP_MMC_Init'"
+
+This occurs when:
+1. Your main.c was renamed to main.cpp (C++ file)
+2. CMake compiles ALL files in the same directory as C++
+3. The BSP MMC driver (stm32h745i_discovery_mmc.c) gets compiled as C++
+4. C++ name mangling breaks the linkage even though extern "C" is present
+
+SOLUTION 1: Force BSP Files to Compile as C
+--------------------------------------------
+In your CMakeLists.txt, explicitly set the language for BSP files:
+
+set_source_files_properties(
+    ${BSP_DIR}/BSP/STM32H745I-DISCO/stm32h745i_discovery_mmc.c
+    PROPERTIES LANGUAGE C
+)
+
+Full example:
+
+set(BSP_DIR ${CMAKE_SOURCE_DIR}/src/app/stm32h745i/CM7/Drivers)
+
+# BSP source files
+set(BSP_SOURCES
+    ${BSP_DIR}/BSP/STM32H745I-DISCO/stm32h745i_discovery.c
+    ${BSP_DIR}/BSP/STM32H745I-DISCO/stm32h745i_discovery_mmc.c
+    # ... other BSP files
+)
+
+# Force BSP files to compile as C (not C++)
+set_source_files_properties(
+    ${BSP_SOURCES}
+    PROPERTIES LANGUAGE C
+)
+
+SOLUTION 2: Wrap BSP Include in extern "C"
+-------------------------------------------
+If Solution 1 doesn't work, wrap the include in your C++ file:
+
+In main.cpp or wherever you include the BSP:
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "stm32h745i_discovery_mmc.h"
+#ifdef __cplusplus
+}
+#endif
+
+SOLUTION 3: Compile ALL Common/BSP Files as C
+----------------------------------------------
+For a more comprehensive fix:
+
+# Common eMMC/FatFs sources (compile as C)
+set(EMMC_FATFS_SOURCES
+    ${CMAKE_SOURCE_DIR}/src/app/stm32h745i/Common/Src/emmc_storage.c
+    ${CMAKE_SOURCE_DIR}/src/app/stm32h745i/Common/Src/emmc_diskio.c
+    ${CMAKE_SOURCE_DIR}/src/app/stm32h745i/Common/Src/ff_gen_drv.c
+    ${CMAKE_SOURCE_DIR}/src/app/stm32h745i/Common/Src/fatfs_storage.c
+    ${FATFS_DIR}/src/ff.c
+)
+
+# BSP sources (compile as C)
+set(BSP_SOURCES
+    ${BSP_DIR}/BSP/STM32H745I-DISCO/stm32h745i_discovery.c
+    ${BSP_DIR}/BSP/STM32H745I-DISCO/stm32h745i_discovery_mmc.c
+    ${BSP_DIR}/BSP/STM32H745I-DISCO/stm32h745i_discovery_lcd.c
+    ${BSP_DIR}/BSP/STM32H745I-DISCO/stm32h745i_discovery_sdram.c
+    ${BSP_DIR}/BSP/STM32H745I-DISCO/stm32h745i_discovery_qspi.c
+)
+
+# Force all BSP and eMMC/FatFs files to compile as C
+set_source_files_properties(
+    ${EMMC_FATFS_SOURCES}
+    ${BSP_SOURCES}
+    PROPERTIES LANGUAGE C
+)
+
+# Add to your target
+target_sources(your_target PRIVATE
+    ${EMMC_FATFS_SOURCES}
+    ${BSP_SOURCES}
+    # ... your C++ sources
+)
+
+VERIFICATION:
+-------------
+After making changes, verify the compilation:
+
+1. Clean build:
+   rm -rf build/
+   mkdir build && cd build
+   cmake ..
+
+2. Check compilation output - you should see:
+   [ XX%] Building C object ... stm32h745i_discovery_mmc.c.obj
+   (Note: "Building C", not "Building CXX")
+
+3. If you see "Building CXX" for .c files, the fix didn't work
+
+RECOMMENDED APPROACH:
+---------------------
+Use Solution 1 (set_source_files_properties) as it's the most explicit and
+reliable. CMake will compile those specific files as C regardless of your
+project's default language or file location.
+
+WHY THIS HAPPENS:
+-----------------
+When you have main.cpp (C++), CMake may default to compiling nearby files
+as C++ as well. The BSP driver is written in C and expects C linkage, even
+though it has extern "C" guards. The guards tell the C++ compiler how to
+link, but don't prevent C++ compilation of the .c file itself.
+
+By forcing LANGUAGE C, you ensure the file is compiled with a C compiler
+(gcc) rather than C++ compiler (g++), avoiding all name mangling issues.
+
+================================================================================

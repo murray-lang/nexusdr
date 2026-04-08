@@ -1,0 +1,196 @@
+================================================================================
+  FatFs Files in STM32CubeH7 - What to Copy and Why
+================================================================================
+
+LOCATION IN STM32CubeH7:
+------------------------
+STM32CubeH7/Middlewares/Third_Party/FatFs/src/
+
+FILES IN THIS DIRECTORY:
+------------------------
+
+1. ff.c (REQUIRED)
+   - Core FatFs implementation
+   - Contains all the main functions: f_mount(), f_open(), f_read(), f_write(),
+     f_close(), f_mkdir(), f_unlink(), f_mkfs(), etc.
+   - Also includes Unicode conversion tables (no separate ffunicode.c needed)
+   - Size: ~90-100 KB
+   - YOU MUST COPY THIS FILE
+
+2. ff.h (REQUIRED)
+   - FatFs API header file
+   - Contains function prototypes, data structures (FIL, DIR, FILINFO, FATFS)
+   - Defines constants (FA_READ, FA_WRITE, FA_OPEN_EXISTING, etc.)
+   - Includes ffconf.h for configuration
+   - Size: ~10-15 KB
+   - YOU MUST COPY THIS FILE
+
+3. diskio.h (REQUIRED)
+   - Low-level disk I/O interface header
+   - Defines the interface between FatFs and disk drivers
+   - Contains DSTATUS, DRESULT enums and disk_* function prototypes
+   - Size: ~5 KB
+   - YOU MUST COPY THIS FILE
+
+4. diskio.c (DO NOT COPY)
+   - Template/skeleton implementation of disk I/O functions
+   - We provide our own implementation via ff_gen_drv.c and emmc_diskio.c
+   - If you copy this, you'll get link errors (duplicate symbols)
+   - DO NOT COPY THIS FILE
+
+5. ffsystem.c (DO NOT COPY - WE PROVIDE OUR OWN)
+   - Memory allocation functions for FatFs
+   - Only needed if FF_USE_LFN = 3 (heap allocation for long filenames)
+   - Contains ff_memalloc() and ff_memfree() which wrap malloc()/free()
+   - NOTE: STM32CubeH7 doesn't have this file in the main src/ directory
+   - We provide our own simple implementation in Common/Src/ffsystem.c
+   - Our ffconf.h uses FF_USE_LFN = 3, so ffsystem.c is REQUIRED
+   - DO NOT COPY THIS FILE - use our provided version
+
+6. ffconf.h (DO NOT COPY)
+   - FatFs configuration template
+   - We provide our own customized version in Common/Inc/ffconf.h
+   - Our version is configured for:
+     - Long filename support (FF_USE_LFN = 3)
+     - Read/write enabled (FF_FS_READONLY = 0)
+     - Format support (FF_USE_MKFS = 1)
+     - Code page 437 (US)
+     - 512-byte sectors
+   - DO NOT COPY THIS FILE (use ours instead)
+
+7. ffunicode.c (DOES NOT EXIST)
+   - This file existed in older FatFs versions (pre-R0.13)
+   - In modern FatFs (R0.13+), Unicode tables are compiled into ff.c
+   - If you see references to this file, they're outdated
+   - THIS FILE NO LONGER EXISTS - DON'T LOOK FOR IT
+
+OTHER FILES/FOLDERS YOU MAY SEE:
+--------------------------------
+
+drivers/ subdirectory:
+   - Contains template disk I/O drivers
+   - Files like sd_diskio_template.c, usbh_diskio_template.c, etc.
+   - These are examples/templates - we created our own emmc_diskio.c
+   - You don't need these
+
+option/ subdirectory:
+   - Contains optional add-on modules
+   - syscall.c: Provides reentrant functions for RTOS
+   - cc932.c, cc936.c, etc.: Additional code page tables
+   - You typically don't need these
+
+st_readme.txt:
+   - Documentation file from ST
+   - Explains what ST modified in FatFs
+   - Informational only
+
+SUMMARY - WHAT TO COPY:
+-----------------------
+Required files from STM32CubeH7:
+   ✓ ff.c
+   ✓ ff.h
+   ✓ diskio.h
+
+Do NOT copy (we provide our own):
+   ✗ diskio.c (we provide our own via ff_gen_drv.c and emmc_diskio.c)
+   ✗ ffconf.h (we provide our own in Common/Inc/)
+   ✗ ffsystem.c (we provide our own in Common/Src/)
+
+Do NOT copy (doesn't exist or not needed):
+   ✗ ffunicode.c (doesn't exist in modern FatFs)
+   ✗ drivers/* (templates only)
+   ✗ option/* (optional modules)
+
+WHY NO ffunicode.c?
+-------------------
+Older FatFs versions (before R0.13, circa 2016) had Unicode conversion
+tables in a separate file called ffunicode.c. This was needed for long
+filename support.
+
+Starting with FatFs R0.13 (May 2017), the Unicode tables were integrated
+directly into ff.c to simplify the build process. The file ffunicode.c
+no longer exists in modern FatFs releases.
+
+STM32CubeH7 uses FatFs R0.12c or R0.15 (depending on version), which both
+have Unicode support built into ff.c.
+
+If you see examples or tutorials mentioning ffunicode.c, they are based
+on old FatFs versions (pre-2017).
+
+VERSION COMPATIBILITY:
+----------------------
+The ff.h file contains a version check that ensures ffconf.h is compatible:
+
+In ff.h:
+   #define _FATFS  68300    /* FatFs version (e.g., R0.14) */
+   #if _FATFS != _FFCONF
+   #error Wrong configuration file (ffconf.h).
+   #endif
+
+In ffconf.h you MUST define _FFCONF to match:
+   #define _FFCONF 68300    /* Must match _FATFS in ff.h */
+
+Common version numbers:
+   68300 = FatFs R0.14  (Nov 2019)
+   68020 = FatFs R0.13c (Mar 2018)
+   80286 = FatFs R0.12c (Nov 2017)
+
+AFTER COPYING ff.h:
+1. Open the file and find #define _FATFS <number>
+2. Edit Common/Inc/ffconf.h
+3. Update #define _FFCONF to match the same number
+4. If you don't do this, you'll get: "Wrong configuration file (ffconf.h)"
+
+Our provided ffconf.h is pre-configured for _FFCONF 68300 (R0.14), which
+should work with most STM32CubeH7 releases.
+
+NAMING CONVENTION CHANGES:
+---------------------------
+FatFs changed configuration naming between versions:
+
+Old style (pre-R0.12):    New style (R0.12+):
+_MAX_SS                   FF_MAX_SS
+_MIN_SS                   FF_MIN_SS
+_FS_READONLY              FF_FS_READONLY
+_FS_MINIMIZE              FF_FS_MINIMIZE
+_USE_LFN                  FF_USE_LFN
+_MAX_LFN                  FF_MAX_LFN
+_CODE_PAGE                FF_CODE_PAGE
+_VOLUMES                  FF_VOLUMES
+_FS_EXFAT                 FF_FS_EXFAT
+_FS_NORTC                 FF_FS_NORTC
+_FS_TINY                  FF_FS_TINY
+_FS_LOCK                  FF_FS_LOCK
+_USE_MKFS                 FF_USE_MKFS
+_USE_STRFUNC              FF_USE_STRFUNC
+... and 10+ more options
+
+Our ffconf.h uses the NEW style (FF_*) but includes COMPLETE compatibility
+aliases for ALL OLD style (_*) options to work with any FatFs version from
+R0.09 to R0.15.
+
+If you get errors like "_MAX_SS was not declared", it means your ff.c is
+using old-style names. Our ffconf.h automatically provides backward
+compatibility, so this should not happen if ffconf.h is properly included.
+
+API CHANGES BETWEEN VERSIONS:
+------------------------------
+Some FatFs functions changed signatures between versions:
+
+1. f_mkfs() - Format filesystem
+   Old (R0.12):  f_mkfs(path, sfd, au)
+   New (R0.13+): f_mkfs(path, opt, au, work, len)
+
+   Our code uses the NEW signature with FM_ANY option for auto-detection.
+
+2. f_mount() - Mount filesystem
+   Old (R0.09):  f_mount(vol, fs)
+   New (R0.10+): f_mount(fs, path, opt)
+
+   Our code uses the NEW signature.
+
+If you encounter "too few arguments" or "too many arguments" errors for
+these functions, you have a version mismatch between our code and your
+ff.c file. Our code is designed for FatFs R0.13 or later.
+
+================================================================================

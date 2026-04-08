@@ -62,7 +62,6 @@
   #define HSI_VALUE    ((uint32_t)64000000) /*!< Value of the Internal oscillator in Hz*/
 #endif /* HSI_VALUE */
 
-
 /**
   * @}
   */
@@ -80,6 +79,10 @@
   */
 
 /************************* Miscellaneous Configuration ************************/
+/*!< Uncomment the following line if you need to use external SDRAM mounted
+     on DISCO board as data memory  */
+/*#define DATA_IN_ExtSDRAM*/
+
 /*!< Uncomment the following line if you need to relocate your vector Table in
      Internal SRAM. */
 /* #define VECT_TAB_SRAM */
@@ -121,6 +124,9 @@
 /** @addtogroup STM32H7xx_System_Private_FunctionPrototypes
   * @{
   */
+#if defined (DATA_IN_ExtSDRAM)
+  static void SystemInit_ExtMemCtl(void);
+#endif /* DATA_IN_ExtSDRAM */
 
 /**
   * @}
@@ -132,7 +138,7 @@
 
 /**
   * @brief  Setup the microcontroller system
-  *         Initialize the FPU setting and  vector table location
+  *         Initialize the FPU setting, vector table location and External memory
   *         configuration.
   * @param  None
   * @retval None
@@ -213,13 +219,35 @@ void SystemInit (void)
   /* Enable CortexM7 HSEM EXTI line (line 78)*/
   EXTI_D2->EMR3 |= 0x4000UL;
 
-
+  /* Change  the switch matrix read issuing capability to 1 for the AXI SRAM target (Target 7) */
   if((DBGMCU->IDCODE & 0xFFFF0000U) < 0x20000000U)
   {
     /* if stm32h7 revY*/
     /* Change  the switch matrix read issuing capability to 1 for the AXI SRAM target (Target 7) */
-    *((__IO uint32_t*)0x51008108) = 0x000000001U;
+    *((__IO uint32_t*)0x51008108) = 0x00000001U;
   }
+
+
+  if(READ_BIT(RCC->AHB3ENR, RCC_AHB3ENR_FMCEN) == 0U)
+  {
+    /* Enable the FMC interface clock */
+    SET_BIT(RCC->AHB3ENR, RCC_AHB3ENR_FMCEN);
+
+    /*
+     * Disable the FMC bank1 (enabled after reset).
+     * This, prevents CPU speculation access on this bank which blocks the use of FMC during
+     * 24us. During this time the others FMC master (such as LTDC) cannot use it!
+     */
+    FMC_Bank1_R->BTCR[0] = 0x000030D2;
+
+    /* Disable the FMC interface clock */
+    CLEAR_BIT(RCC->AHB3ENR, RCC_AHB3ENR_FMCEN);
+  }
+
+
+#if defined (DATA_IN_ExtSDRAM)
+  SystemInit_ExtMemCtl();
+#endif /* DATA_IN_ExtSDRAM */
 
 #endif /* CORE_CM7*/
 
@@ -234,13 +262,6 @@ void SystemInit (void)
 
 #else
 #ifdef CORE_CM7
-
-  /*
-   * Disable the FMC bank1 (enabled after reset).
-   * This, prevents CPU speculation access on this bank which blocks the use of FMC during
-   * 24us. During this time the others FMC master (such as LTDC) cannot use it!
-   */
-  FMC_Bank1_R->BTCR[0] = 0x000030D2;
 
   /* Configure the Vector Table location add offset address ------------------*/
 #ifdef VECT_TAB_SRAM
@@ -378,7 +399,255 @@ void SystemCoreClockUpdate (void)
   SystemCoreClock = common_system_clock;
 #endif /* DUAL_CORE && CORE_CM4 */
 }
+#if defined (DATA_IN_ExtSDRAM)
+/**
+  * @brief  Setup the external memory controller.
+  *         Called in startup_stm32h7xx.s before jump to main.
+  *         This function configures the external memories SDRAM
+  *         This SDRAM will be used as program data memory (including heap and stack).
+  * @param  None
+  * @retval None
+  */
+void SystemInit_ExtMemCtl(void)
+{
+  __IO uint32_t tmp = 0;
+  register uint32_t tmpreg = 0, timeout = 0xFFFF;
+  register __IO uint32_t index;
 
+  /* Enable GPIOD, GPIOE, GPIOF, GPIOG, GPIOH and GPIOI interface
+      clock */
+  RCC->AHB4ENR |= 0x000001F8;
+
+  /* Delay after an RCC peripheral clock enabling */
+  tmp = READ_BIT(RCC->AHB4ENR, RCC_AHB4ENR_GPIOEEN);
+
+  /* Connect PDx pins to FMC Alternate function */
+  GPIOD->AFR[0]  = 0x000000CC;
+  GPIOD->AFR[1]  = 0xCC000CCC;
+  /* Configure PDx pins in Alternate function mode */
+  GPIOD->MODER   = 0xAFEAFFFA;
+  /* Configure PDx pins speed to 100 MHz */
+  GPIOD->OSPEEDR = 0xF03F000F;
+  /* Configure PDx pins Output type to push-pull */
+  GPIOD->OTYPER  = 0x00000000;
+  /* Configure PDx pins in Pull-up */
+  GPIOD->PUPDR   = 0x50150005;
+
+  /* Connect PEx pins to FMC Alternate function */
+  GPIOE->AFR[0]  = 0xC00000CC;
+  GPIOE->AFR[1]  = 0xCCCCCCCC;
+  /* Configure PEx pins in Alternate function mode */
+  GPIOE->MODER   = 0xAAAABFFA;
+  /* Configure PEx pins speed to 100 MHz */
+  GPIOE->OSPEEDR = 0xFFFFC00F;
+  /* Configure PEx pins Output type to push-pull */
+  GPIOE->OTYPER  = 0x00000000;
+  /* Configure PEx pins in Pull-up */
+  GPIOE->PUPDR   = 0x55554005;
+
+  /* Connect PFx pins to FMC Alternate function */
+  GPIOF->AFR[0]  = 0x00CCCCCC;
+  GPIOF->AFR[1]  = 0xCCCCC000;
+  /* Configure PFx pins in Alternate function mode */
+  GPIOF->MODER   = 0xAABFFAAA;
+  /* Configure PFx pins speed to 100 MHz */
+  GPIOF->OSPEEDR = 0xFFC00FFF;
+  /* Configure PFx pins Output type to push-pull */
+  GPIOF->OTYPER  = 0x00000000;
+  /* Configure PFx pins in Pull-up */
+  GPIOF->PUPDR   = 0x55400555;
+
+  /* Connect PGx pins to FMC Alternate function */
+  GPIOG->AFR[0]  = 0x00CC00CC;
+  GPIOG->AFR[1]  = 0xC000000C;
+  /* Configure PGx pins in Alternate function mode */
+  GPIOG->MODER   = 0xBFFEFAFA;
+ /* Configure PGx pins speed to 100 MHz */
+  GPIOG->OSPEEDR = 0xC0030F0F;
+  /* Configure PGx pins Output type to push-pull */
+  GPIOG->OTYPER  = 0x00000000;
+  /* Configure PGx pins in Pull-up */
+  GPIOG->PUPDR   = 0x40010505;
+
+  /* Connect PHx pins to FMC Alternate function */
+  GPIOH->AFR[0]  = 0xCCC00000;
+  GPIOH->AFR[1]  = 0xCCCCCCCC;
+  /* Configure PHx pins in Alternate function mode */
+  GPIOH->MODER   = 0xAAAAABFF;
+  /* Configure PHx pins speed to 100 MHz */
+  GPIOH->OSPEEDR = 0xFFFFFC00;
+  /* Configure PHx pins Output type to push-pull */
+  GPIOH->OTYPER  = 0x00000000;
+  /* Configure PHx pins in Pull-up */
+  GPIOH->PUPDR   = 0x55555400;
+
+/*-- FMC Configuration ------------------------------------------------------*/
+  /* Enable the FMC interface clock */
+  (RCC->AHB3ENR |= (RCC_AHB3ENR_FMCEN));
+  /*SDRAM Timing and access interface configuration*/
+  /*LoadToActiveDelay  = 2
+    ExitSelfRefreshDelay = 6
+    SelfRefreshTime      = 4
+    RowCycleDelay        = 6
+    WriteRecoveryTime    = 2
+    RPDelay              = 2
+    RCDDelay             = 2
+    SDBank             = FMC_SDRAM_BANK2
+    ColumnBitsNumber   = FMC_SDRAM_COLUMN_BITS_NUM_8
+    RowBitsNumber      = FMC_SDRAM_ROW_BITS_NUM_12
+    MemoryDataWidth    = FMC_SDRAM_MEM_BUS_WIDTH_16
+    InternalBankNumber = FMC_SDRAM_INTERN_BANKS_NUM_4
+    CASLatency         = FMC_SDRAM_CAS_LATENCY_2
+    WriteProtection    = FMC_SDRAM_WRITE_PROTECTION_DISABLE
+    SDClockPeriod      = FMC_SDRAM_CLOCK_PERIOD_2
+    ReadBurst          = FMC_SDRAM_RBURST_ENABLE
+    ReadPipeDelay      = FMC_SDRAM_RPIPE_DELAY_0*/
+
+  FMC_Bank5_6_R->SDCR[0] = 0x00001800;
+  FMC_Bank5_6_R->SDCR[1] = 0x00000154;
+  FMC_Bank5_6_R->SDTR[0] = 0x00105000;
+  FMC_Bank5_6_R->SDTR[1] = 0x01010351;
+
+  /* SDRAM initialization sequence */
+  /* Clock enable command */
+  FMC_Bank5_6_R->SDCMR = 0x00000009;
+  tmpreg = FMC_Bank5_6_R->SDSR & 0x00000020;
+  while((tmpreg != 0) && (timeout-- > 0))
+  {
+    tmpreg = FMC_Bank5_6_R->SDSR & 0x00000020;
+  }
+
+  /* Delay */
+  for (index = 0; index<1000; index++);
+
+  /* PALL command */
+  FMC_Bank5_6_R->SDCMR = 0x0000000A;
+  timeout = 0xFFFF;
+  while((tmpreg != 0) && (timeout-- > 0))
+  {
+    tmpreg = FMC_Bank5_6_R->SDSR & 0x00000020;
+  }
+
+  FMC_Bank5_6_R->SDCMR = 0x000000EB;
+  timeout = 0xFFFF;
+  while((tmpreg != 0) && (timeout-- > 0))
+  {
+    tmpreg = FMC_Bank5_6_R->SDSR & 0x00000020;
+  }
+
+  FMC_Bank5_6_R->SDCMR = 0x0004400C;
+  timeout = 0xFFFF;
+  while((tmpreg != 0) && (timeout-- > 0))
+  {
+    tmpreg = FMC_Bank5_6_R->SDSR & 0x00000020;
+  }
+  /* Set refresh count */
+  tmpreg = FMC_Bank5_6_R->SDRTR;
+  FMC_Bank5_6_R->SDRTR = (tmpreg | (0x00000603<<1));
+
+  /* Disable write protection */
+  tmpreg = FMC_Bank5_6_R->SDCR[1];
+  FMC_Bank5_6_R->SDCR[1] = (tmpreg & 0xFFFFFDFF);
+
+   /*FMC controller Enable*/
+  FMC_Bank1_R->BTCR[0]  |= 0x80000000;
+
+  (void)(tmp);
+}
+#endif /* DATA_IN_ExtSDRAM */
+
+/**
+  * @brief  Exit Run* mode and Configure the system Power Supply
+  *
+  * @note   This function exits the Run* mode and configures the system power supply
+  *         according to the definition to be used at compilation preprocessing level.
+  *         The application shall set one of the following configuration option:
+  *           - PWR_LDO_SUPPLY
+  *           - PWR_DIRECT_SMPS_SUPPLY
+  *           - PWR_EXTERNAL_SOURCE_SUPPLY
+  *           - PWR_SMPS_1V8_SUPPLIES_LDO
+  *           - PWR_SMPS_2V5_SUPPLIES_LDO
+  *           - PWR_SMPS_1V8_SUPPLIES_EXT_AND_LDO
+  *           - PWR_SMPS_2V5_SUPPLIES_EXT_AND_LDO
+  *           - PWR_SMPS_1V8_SUPPLIES_EXT
+  *           - PWR_SMPS_2V5_SUPPLIES_EXT
+  *
+  * @note   The function modifies the PWR->CR3 register to enable or disable specific
+  *         power supply modes and waits until the voltage level flag is set, indicating
+  *         that the power supply configuration is stable.
+  *
+  * @param  None
+  * @retval None
+  */
+void ExitRun0Mode(void)
+{
+#if defined(USE_PWR_LDO_SUPPLY)
+  #if defined(SMPS)
+    /* Exit Run* mode by disabling SMPS and enabling LDO */
+    PWR->CR3 = (PWR->CR3 & ~PWR_CR3_SMPSEN) | PWR_CR3_LDOEN;
+  #else
+    /* Enable LDO mode */
+    PWR->CR3 |= PWR_CR3_LDOEN;
+  #endif /* SMPS */
+  /* Wait till voltage level flag is set */
+  while ((PWR->CSR1 & PWR_CSR1_ACTVOSRDY) == 0U)
+  {}
+#elif defined(USE_PWR_EXTERNAL_SOURCE_SUPPLY)
+  #if defined(SMPS)
+    /* Exit Run* mode */
+    PWR->CR3 = (PWR->CR3 & ~(PWR_CR3_SMPSEN | PWR_CR3_LDOEN)) | PWR_CR3_BYPASS;
+  #else
+    PWR->CR3 = (PWR->CR3 & ~(PWR_CR3_LDOEN)) | PWR_CR3_BYPASS;
+  #endif /* SMPS */
+  /* Wait till voltage level flag is set */
+  while ((PWR->CSR1 & PWR_CSR1_ACTVOSRDY) == 0U)
+  {}
+#elif defined(USE_PWR_DIRECT_SMPS_SUPPLY) && defined(SMPS)
+  /* Exit Run* mode */
+  PWR->CR3 &= ~(PWR_CR3_LDOEN);
+  /* Wait till voltage level flag is set */
+  while ((PWR->CSR1 & PWR_CSR1_ACTVOSRDY) == 0U)
+  {}
+#elif defined(USE_PWR_SMPS_1V8_SUPPLIES_LDO) && defined(SMPS)
+  /* Exit Run* mode */
+  PWR->CR3 |= PWR_CR3_SMPSLEVEL_0 | PWR_CR3_SMPSEN | PWR_CR3_LDOEN;
+  /* Wait till voltage level flag is set */
+  while ((PWR->CSR1 & PWR_CSR1_ACTVOSRDY) == 0U)
+  {}
+#elif defined(USE_PWR_SMPS_2V5_SUPPLIES_LDO) && defined(SMPS)
+  /* Exit Run* mode */
+  PWR->CR3 |= PWR_CR3_SMPSLEVEL_1 | PWR_CR3_SMPSEN | PWR_CR3_LDOEN;
+  /* Wait till voltage level flag is set */
+  while ((PWR->CSR1 & PWR_CSR1_ACTVOSRDY) == 0U)
+  {}
+#elif defined(USE_PWR_SMPS_1V8_SUPPLIES_EXT_AND_LDO) && defined(SMPS)
+  /* Exit Run* mode */
+  PWR->CR3 |= PWR_CR3_SMPSLEVEL_0 | PWR_CR3_SMPSEXTHP | PWR_CR3_SMPSEN | PWR_CR3_LDOEN;
+  /* Wait till voltage level flag is set */
+  while ((PWR->CSR1 & PWR_CSR1_ACTVOSRDY) == 0U)
+  {}
+#elif defined(USE_PWR_SMPS_2V5_SUPPLIES_EXT_AND_LDO) && defined(SMPS)
+  /* Exit Run* mode */
+  PWR->CR3 |= PWR_CR3_SMPSLEVEL_1 | PWR_CR3_SMPSEXTHP | PWR_CR3_SMPSEN | PWR_CR3_LDOEN;
+  /* Wait till voltage level flag is set */
+  while ((PWR->CSR1 & PWR_CSR1_ACTVOSRDY) == 0U)
+  {}
+#elif defined(USE_PWR_SMPS_1V8_SUPPLIES_EXT) && defined(SMPS)
+  /* Exit Run* mode */
+  PWR->CR3 = (PWR->CR3 & ~(PWR_CR3_LDOEN)) | PWR_CR3_SMPSLEVEL_0 | PWR_CR3_SMPSEXTHP | PWR_CR3_SMPSEN | PWR_CR3_BYPASS;
+  /* Wait till voltage level flag is set */
+  while ((PWR->CSR1 & PWR_CSR1_ACTVOSRDY) == 0U)
+  {}
+#elif defined(USE_PWR_SMPS_2V5_SUPPLIES_EXT) && defined(SMPS)
+  /* Exit Run* mode */
+  PWR->CR3 = (PWR->CR3 & ~(PWR_CR3_LDOEN)) | PWR_CR3_SMPSLEVEL_1 | PWR_CR3_SMPSEXTHP | PWR_CR3_SMPSEN | PWR_CR3_BYPASS;
+  /* Wait till voltage level flag is set */
+  while ((PWR->CSR1 & PWR_CSR1_ACTVOSRDY) == 0U)
+  {}
+#else
+  /* No system power supply configuration is selected at exit Run* mode */
+#endif /* USE_PWR_LDO_SUPPLY */
+}
 
 /**
   * @}
