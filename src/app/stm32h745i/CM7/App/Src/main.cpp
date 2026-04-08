@@ -221,8 +221,8 @@ int main(void)
       SAFE_PRINTF("[CM7]:\tError opening config file: %u\r\n", res);
       Error_Handler();
     }
+    USB_Manager_ReleaseFatFsAccess();
   }
-
 
 	lv_demo_widgets();
 
