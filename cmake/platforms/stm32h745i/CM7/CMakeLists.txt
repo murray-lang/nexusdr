@@ -50,7 +50,6 @@ set(STARTUP_FILE "${CM7_APP_DIR}/Startup/startup_stm32h745xihx.s")
 set(LD_FILE ${SOURCE_DIR_CM7}/STM32H745XIHX_QSPI.ld)
 
 file(GLOB_RECURSE CM7_APP_SOURCES ${CM7_APP_DIR}/Src/*.c ${CM7_APP_DIR}/Src/*.cpp)
-file(GLOB_RECURSE CM7_SYS_SOURCES ${CM7_SYS_DIR}/Src/*.c)
 
 file(GLOB_RECURSE SYS_SOURCES ${SOURCE_DIR_CM7}/Sys/Src/*.c)
 
@@ -58,7 +57,6 @@ set(CM7_SOURCES
     ${COMMON_SOURCES}
 #        ${COMMON_DIR}/Src/system_stm32h7xx_dualcore_boot_cm4_cm7.c
     ${CM7_APP_SOURCES}
-    ${CM7_SYS_SOURCES}
     ${HAL_SOURCES}
     ${BSP_SOURCES}
     ${SYS_SOURCES}
