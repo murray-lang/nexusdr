@@ -23,6 +23,19 @@
 #include <stdio.h>
 #include "mpu_config.h"
 
+#ifdef USE_FREERTOS
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
+#include "FreeRTOS.h"
+#include "task.h"
+
+#ifdef __cplusplus
+ }
+#endif
+#endif // USE_FREERTOS
+
 /** @addtogroup STM32H7xx_HAL_Examples
   * @{
   */
@@ -60,15 +73,12 @@ __attribute__((section(".dma_buffer"), aligned(32))) struct {
 #define MMCFatFs (dma_buffers.MMCFatFs)
 #define CM4_File (dma_buffers.CM4_File)
 
-#ifdef __cplusplus
-extern "C" {
-  char MMCPath[4]; /* SD card logical drive path */
-}
-#endif
+char MMCPath[4]; /* SD card logical drive path */
 
 /* Private function prototypes -----------------------------------------------*/
 static void FS_FileOperations(void);
 
+static void prvBlinkTask( void *pvParameters );
 /* Private functions ---------------------------------------------------------*/
 
 
@@ -82,6 +92,7 @@ int main(void)
   BSP_LED_Init(LED_GREEN);
   BSP_LED_Init(LED_RED);
 
+
   HAL_StatusTypeDef halRc = HAL_Init();
   if (halRc != HAL_OK) {
     Error_Handler();
@@ -94,12 +105,14 @@ int main(void)
   /* Activate HSEM notification for Cortex-M4*/
   HAL_HSEM_ActivateNotification(__HAL_HSEM_SEMID_TO_MASK(HSEM_ID_0));
 
-  /* 
+  /*
     Domain D2 goes to STOP mode (Cortex-M4 in deep-sleep) waiting for Cortex-M7 to
     perform system initialization (system clock config, external memory configuration.. )   
-  */ // Actually, commented out the next two lines to try to make USART6 available (Domain 2)
+  */
   HAL_PWREx_ClearPendingEvent();
   HAL_PWREx_EnterSTOPMode(PWR_MAINREGULATOR_ON, PWR_STOPENTRY_WFE, PWR_D2_DOMAIN);
+  BSP_LED_On(LED_RED);
+
   // Do this instead:
   // while(HAL_HSEM_IsSemTaken(HSEM_ID_0)) {
   //   // Busy wait instead of STOP mode
@@ -109,22 +122,43 @@ int main(void)
   __HAL_HSEM_CLEAR_FLAG(__HAL_HSEM_SEMID_TO_MASK(HSEM_ID_0));
   SystemCoreClockUpdate();
 
-  // UART_Config();  /* USART3 on PB10/PB11 - no conflict with USB on PA11/PA12 */
+  UART_Config();  /* USART3 on PB10/PB11 - no conflict with USB on PA11/PA12 */
 
   // BSP_LED_On(LED_GREEN);
 
   /*-1- Link the micro SD disk I/O driver */
-  if(FATFS_LinkDriver(&MMC_Driver, MMCPath) == 0)
-  {
-    SAFE_PRINTF("[CM4]:\tstarting FatFs operation....\r\n");
-    /* -2- Start the FatFs operation concurrently with CM7 */
-    // BSP_LED_On(LED_GREEN);
-    FS_FileOperations();
-    while(1)
-    {
-      BSP_LED_Toggle(LED_GREEN);
-      HAL_Delay(250);
-    }
+  // if(FATFS_LinkDriver(&MMC_Driver, MMCPath) == 0)
+  // {
+  //   SAFE_PRINTF("[CM4]:\tstarting FatFs operation....\r\n");
+  //   /* -2- Start the FatFs operation concurrently with CM7 */
+  //   // BSP_LED_On(LED_GREEN);
+  //   FS_FileOperations();
+  //   while(1)
+  //   {
+  //     BSP_LED_Toggle(LED_GREEN);
+  //     HAL_Delay(250);
+  //   }
+  // }
+#ifdef USE_FREERTOS
+  BaseType_t rc = xTaskCreate( prvBlinkTask, "Blink", configMINIMAL_STACK_SIZE*5, NULL, tskIDLE_PRIORITY, NULL );
+  if (rc == pdPASS) {
+    SAFE_PRINTF("[CM4]\txTaskCreate() succeeded\r\n");
+  } else {
+    SAFE_PRINTF("[CM4]\txTaskCreate() returned: %d", rc);
+  }
+  vTaskStartScheduler();
+#endif
+
+  for (;;) {
+
+  }
+}
+
+static void prvBlinkTask( void *pvParameters )
+{
+  for (;;) {
+    vTaskDelay(pdMS_TO_TICKS( 200 ));
+    BSP_LED_Toggle(LED_RED);
   }
 }
 

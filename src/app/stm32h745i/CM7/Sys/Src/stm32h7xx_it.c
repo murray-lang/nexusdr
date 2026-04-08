@@ -23,6 +23,10 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stm32h745i_discovery_sdram.h>
+#ifdef USE_FREERTOS
+#include <FreeRTOS.h>
+#include <task.h>
+#endif
 #include <tusb.h>
 
 #include "lvgl/lvgl.h"
@@ -146,6 +150,7 @@ void UsageFault_Handler(void)
 /**
   * @brief This function handles System service call via SWI instruction.
   */
+#ifndef USE_FREERTOS
 void SVC_Handler(void)
 {
   /* USER CODE BEGIN SVCall_IRQn 0 */
@@ -155,6 +160,7 @@ void SVC_Handler(void)
 
   /* USER CODE END SVCall_IRQn 1 */
 }
+#endif
 
 /**
   * @brief This function handles Debug monitor.
@@ -172,6 +178,7 @@ void DebugMon_Handler(void)
 /**
   * @brief This function handles Pendable request for system service.
   */
+#ifndef USE_FREERTOS
 void PendSV_Handler(void)
 {
   /* USER CODE BEGIN PendSV_IRQn 0 */
@@ -181,14 +188,27 @@ void PendSV_Handler(void)
 
   /* USER CODE END PendSV_IRQn 1 */
 }
+#endif
 
 /**
   * @brief This function handles System tick timer.
   */
+/* SysTick_Handler() is implemented by the FreeRTOS port.
+ */
+#ifdef USE_FREERTOS
+extern void xPortSysTickHandler(void);
+#endif
+
 void SysTick_Handler(void)
 {
   /* USER CODE BEGIN SysTick_IRQn 0 */
   /* USER CODE END SysTick_IRQn 0 */
+#ifdef USE_FREERTOS
+  if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
+    /* Call tick handler */
+    xPortSysTickHandler();
+  }
+#endif
   HAL_IncTick();
   /* USER CODE BEGIN SysTick_IRQn 1 */
   lv_tick_inc(1);

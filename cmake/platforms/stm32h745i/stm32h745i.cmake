@@ -6,6 +6,9 @@ project(nexusdr_stm32h745i_disco C ASM)
 set(IS_STM32 ON)
 add_definitions(-DIS_STM32)
 
+set(USE_FREERTOS ON)
+add_definitions(-DUSE_FREERTOS)
+
 # These are required to prevent build platform-specific libraries from being automagically added
 # to the ld command line.
 set(CMAKE_C_STANDARD_LIBRARIES "")
@@ -21,9 +24,13 @@ set(CMSIS_DIR "${DRIVERS_DIR}/CMSIS")
 set(HAL_DIR "${DRIVERS_DIR}/STM32H7xx_HAL_Driver")
 set(THIRD_PARTY_DIR "${PLATFORM_APP_DIR}/Middlewares/Third_Party")
 set(FATFS_DIR "${THIRD_PARTY_DIR}/FatFs")
+set(CMSIS_RTOS_DIR "${THIRD_PARTY_DIR}/FreeRTOS/Source/CMSIS_RTOS_V2")
+set(CMSIS_RTOS2_DIR "${CMSIS_DIR}/RTOS2")
 set(HAL_SRC_DIR "${HAL_DIR}/Src")
 set(LVGL_DIR "${MIDDLEWARE_DIR}/lvgl")
 set(TINYUSB_DIR "${MIDDLEWARE_DIR}/tinyusb_src/src")
+set(FREERTOS_DIR "${MIDDLEWARE_DIR}/FreeRTOS-Kernel")
+set(FREERTOS_MEMMANG_DIR "${FREERTOS_DIR}/portable/MemMang")
 
 file(GLOB COMMON_SOURCES ${COMMON_DIR}/Src/*.c)
 file(GLOB HAL_SOURCES ${HAL_SRC_DIR}/*.c)
@@ -35,6 +42,12 @@ file(GLOB TINYUSB_COMMON_SOURCES ${TINYUSB_DIR}/common/*.c)
 file(GLOB TINYUSB_DEVICE_SOURCES ${TINYUSB_DIR}/device/*.c)
 file(GLOB TINYUSB_CLASS_MSC_SOURCES ${TINYUSB_DIR}/class/msc/*.c)
 file(GLOB TINYUSB_PORTABLE_SOURCES ${TINYUSB_DIR}/portable/synopsys/dwc2/*.c)
+file(GLOB FREERTOS_COMMON_SOURCES ${FREERTOS_DIR}/*.c) # Not recursive. Just grab the common kernel stuff from the root.
+file(GLOB CMSIS_RTOS_SOURCES ${CMSIS_RTOS_DIR}/*.c)
+file(GLOB CMSIS_RTOS2_SOURCES ${CMSIS_RTOS2_DIR}/Source/*.c)
+
+# FreeRTOS headers dont include extern "C" guards, so force C language
+set_source_files_properties(${FREERTOS_COMMON_SOURCES} PROPERTIES LANGUAGE C)
 
 set(TINYUSB_SOURCES
         ${TINYUSB_ROOT_SOURCES}

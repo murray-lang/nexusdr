@@ -28,6 +28,7 @@ set(SOURCE_DIR_CM4 ${PLATFORM_APP_DIR}/CM4)
 
 set(CM4_APP_DIR "${SOURCE_DIR_CM4}/App")
 set(CM4_SYS_DIR "${SOURCE_DIR_CM4}/Sys")
+set(CM4_FREERTOS_DIR "${FREERTOS_DIR}/portable/GCC/ARM_CM4F")
 
 set(STARTUP_FILE "${CM4_APP_DIR}/Src/Startup/startup_stm32h745xihx.s")
 set(LD_FILE ${SOURCE_DIR_CM4}/STM32H745XIHX_FLASH.ld)
@@ -35,6 +36,13 @@ set(LD_FILE ${SOURCE_DIR_CM4}/STM32H745XIHX_FLASH.ld)
 file(GLOB_RECURSE CM4_APP_SOURCES ${CM4_APP_DIR}/Src/*.c)
 file(GLOB_RECURSE CM4_SYS_SOURCES ${CM4_SYS_DIR}/Src/*.c)
 file(GLOB HAL_SOURCES ${HAL_SRC_DIR}/*.c)
+
+set(FREERTOS_SOURCES
+    ${FREERTOS_COMMON_SOURCES}
+    ${CMSIS_RTOS_SOURCES}
+    ${CM4_FREERTOS_DIR}/port.c
+    ${FREERTOS_MEMMANG_DIR}/heap_4.c
+)
 
 set(CM4_SOURCES
     ${COMMON_DIR}/Src/system_stm32h7xx_dualcore_boot_cm4_cm7.c
@@ -46,8 +54,21 @@ set(CM4_SOURCES
     ${CM4_SYS_SOURCES}
 )
 
-set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} ${DEBUG_FLAGS} -mcpu=cortex-m4 -x assembler-with-cpp --specs=nano.specs")
-set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -MMD -MP")
+if(USE_FREERTOS)
+    set(CM4_SOURCES
+        ${CM4_SOURCES}
+        ${FREERTOS_SOURCES}
+        ${CMSIS_RTOS_SOURCES}
+    )
+endif()
+
+set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} ${DEBUG_FLAGS} -x assembler-with-cpp --specs=nano.specs")
+set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} -MMD -MP")
+
+add_compile_options(-mcpu=cortex-m4 -mthumb -mfpu=fpv5-d16 -mfloat-abi=hard)
+add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-fpermissive>)
+
+add_link_options(-mcpu=cortex-m4 -mthumb -mfpu=fpv5-d16 -mfloat-abi=hard)
 
 add_library(CM4_STARTUP_OBJ OBJECT ${STARTUP_FILE})
 
@@ -69,6 +90,17 @@ set(INCLUDE_DIRS
     ${HAL_DIR}/Inc
     ${FATFS_DIR}/src
 )
+
+if(USE_FREERTOS)
+    set(INCLUDE_DIRS
+        ${INCLUDE_DIRS}
+        ${FREERTOS_DIR}/include
+        ${CM4_FREERTOS_DIR}
+        ${CMSIS_DIR}/Include
+        ${CMSIS_RTOS_DIR}
+        ${CMSIS_RTOS2_DIR}/Include
+    )
+endif()
 
 target_include_directories(${TARGET_CM4} PUBLIC ${INCLUDE_DIRS})
 
