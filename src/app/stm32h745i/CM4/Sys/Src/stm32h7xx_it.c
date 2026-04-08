@@ -21,6 +21,10 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32h7xx_it.h"
 #include "main.h"
+#ifdef USE_FREERTOS
+#include <FreeRTOS.h>
+#include <task.h>
+#endif
 
 /** @addtogroup STM32H7xx_HAL_Examples
   * @{
@@ -107,9 +111,11 @@ void UsageFault_Handler(void)
   * @param  None
   * @retval None
   */
+#ifndef USE_FREERTOS
 void SVC_Handler(void)
 {
 }
+#endif
 
 /**
   * @brief  This function handles Debug Monitor exception.
@@ -125,18 +131,33 @@ void DebugMon_Handler(void)
   * @param  None
   * @retval None
   */
+#ifndef USE_FREERTOS
 void PendSV_Handler(void)
 {
 }
-
+#endif
 /**
   * @brief  This function handles SysTick Handler.
   * @param  None
   * @retval None
   */
+#ifdef USE_FREERTOS
+extern void xPortSysTickHandler(void);
+#endif
+
 void SysTick_Handler(void)
 {
+  /* USER CODE BEGIN SysTick_IRQn 0 */
+  /* USER CODE END SysTick_IRQn 0 */
+#ifdef USE_FREERTOS
+  if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
+    /* Call tick handler */
+    xPortSysTickHandler();
+  }
+#endif
   HAL_IncTick();
+  /* USER CODE BEGIN SysTick_IRQn 1 */
+  /* USER CODE END SysTick_IRQn 1 */
 }
 
 /******************************************************************************/

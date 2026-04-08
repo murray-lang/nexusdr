@@ -9,6 +9,9 @@
 /*********************
  *      INCLUDES
  *********************/
+#include <config.h>
+#include <misc_utils.h>
+
 #include "stm32h745i_discovery.h"
 #include "stm32h745i_discovery_lcd.h"
 #include "lvgl/lvgl.h"
@@ -64,12 +67,12 @@ static lv_display_t *display = NULL;
 void LCD_init(void)
 {
     /* There is only one display on STM32 */
-    if (display != NULL)
-        abort();
-
+    if (display != NULL) {
+      abort();
+    }
     /* Initialize SDRAM for LCD frame buffers */
     BSP_SDRAM_Init(0);
-
+    SAFE_PRINTF("[CM7]:\tLCD_init(): BSP_SDRAM_Init() returned.\r\n");
     /* Initialize LCD hardware (LTDC, DMA2D, I2C4 for touchscreen) */
     BSP_LCD_Init(LCD_INSTANCE, LCD_ORIENTATION_LANDSCAPE);
     BSP_LCD_SetBrightness(LCD_INSTANCE, 100);

@@ -44,6 +44,7 @@ set(SOURCE_DIR_CM7 ${PLATFORM_APP_DIR}/CM7)
 set(CM7_DRIVERS_DIR "${SOURCE_DIR_CM7}/Drivers")
 set(CM7_APP_DIR "${SOURCE_DIR_CM7}/App")
 set(CM7_SYS_DIR "${SOURCE_DIR_CM7}/Sys")
+set(CM7_FREERTOS_DIR "${FREERTOS_DIR}/portable/GCC/ARM_CM7/r0p1")
 
 set(STARTUP_FILE "${CM7_APP_DIR}/Startup/startup_stm32h745xihx.s")
 #set(LD_FILE ${SOURCE_DIR_CM7}/STM32H745XIHX_FLASH.ld)
@@ -52,6 +53,13 @@ set(LD_FILE ${SOURCE_DIR_CM7}/STM32H745XIHX_QSPI.ld)
 file(GLOB_RECURSE CM7_APP_SOURCES ${CM7_APP_DIR}/Src/*.c ${CM7_APP_DIR}/Src/*.cpp)
 
 file(GLOB_RECURSE SYS_SOURCES ${SOURCE_DIR_CM7}/Sys/Src/*.c)
+
+set(FREERTOS_SOURCES
+    ${FREERTOS_COMMON_SOURCES}
+    ${CMSIS_RTOS_SOURCES}
+    ${CM7_FREERTOS_DIR}/port.c
+    ${FREERTOS_MEMMANG_DIR}/heap_4.c
+)
 
 set(CM7_SOURCES
     ${COMMON_SOURCES}
@@ -67,22 +75,22 @@ set(CM7_SOURCES
     ${TINYUSB_SOURCES}
 )
 
-set(CM7_CPP_SOURCES
-#        ${COMMON_SOURCES}
-        ${CM7_APP_SOURCES}
-        ${HAL_SOURCES}
-#        ${BSP_SOURCES}
-#        ${FATFS_SOURCES}
-)
+if(USE_FREERTOS)
+    set(CM7_SOURCES
+        ${CM7_SOURCES}
+        ${FREERTOS_SOURCES}
+        ${CMSIS_RTOS_SOURCES}
+#        ${CMSIS_RTOS2_SOURCES}
+    )
+endif()
 
-#set_source_files_properties(${CM7_CPP_SOURCES} PROPERTIES LANGUAGE CXX)
-#set_source_files_properties(${BSP_SOURCES} ${FATFS_SOURCES} PROPERTIES LANGUAGE C)
+#set(CM7_CPP_SOURCES
+#    ${CM7_APP_SOURCES}
+#    ${HAL_SOURCES}
+#)
 
-#set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} ${DEBUG_FLAGS} -mcpu=cortex-m7 -x assembler-with-cpp --specs=nano.specs")
 set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} ${DEBUG_FLAGS} -x assembler-with-cpp --specs=nano.specs")
-#set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -MMD -MP")
 set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} -MMD -MP")
-
 
 add_compile_options(-mcpu=cortex-m7 -mthumb -mfpu=fpv5-d16 -mfloat-abi=hard)
 add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-fpermissive>)
@@ -114,8 +122,18 @@ set(INCLUDE_DIRS
         ${FATFS_DIR}/src
         ${TINYUSB_DIR}
         ${TINYUSB_DIR}/hw/bsp/stm32h7
-
 )
+
+if(USE_FREERTOS)
+    set(INCLUDE_DIRS
+        ${INCLUDE_DIRS}
+        ${FREERTOS_DIR}/include
+        ${CM7_FREERTOS_DIR}
+        ${CMSIS_DIR}/Include
+        ${CMSIS_RTOS_DIR}
+        ${CMSIS_RTOS2_DIR}/Include
+    )
+endif()
 
 target_include_directories(${TARGET_CM7} PUBLIC ${INCLUDE_DIRS})
 
