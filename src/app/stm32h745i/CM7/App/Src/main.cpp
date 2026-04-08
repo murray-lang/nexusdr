@@ -39,7 +39,7 @@
 #include <device/usbd.h>
 
 #include "integer.h"
-// #include "nlohmann/json.hpp"
+#include "nlohmann/json.hpp"
 
 /* USER CODE END Includes */
 
@@ -108,6 +108,9 @@
 // }
 
 /* USER CODE END 0 */
+
+
+char MMCPath[4]; /* SD card logical drive path */
 
 /**
   * @brief  The application entry point.
@@ -182,8 +185,44 @@ int main(void)
 
 	touchpad_init();
 
-  // std::string jsonString = R"({"name":"","age":25,"city":"New York"})";
-  // nlohmann::json config = nlohmann::json::parse(jsonString);
+  if(FATFS_LinkDriver(&MMC_Driver, MMCPath) == 0) {
+    SAFE_PRINTF("[CM4]:\tstarting FatFs operation....\r\n");
+    /* Request FatFs access (will block if USB is connected) */
+    if (USB_Manager_RequestFatFsAccess() != 0)
+    {
+      SAFE_PRINTF("[CM7]:\tFailed to mount FatFs\r\n");
+      Error_Handler();
+    }
+    SAFE_PRINTF("[CM7]:\tMounted FatFs\r\n");
+    FIL configFile;
+    FRESULT res = f_open(&configFile, "nexusdr.json", FA_READ);
+    SAFE_PRINTF("[CM7]:\tReturned from f_open()\r\n");
+    if(res == FR_OK)
+    {
+      UINT bytesRead;
+      uint8_t configJson[1024];
+      res = f_read(&configFile, configJson, sizeof(configJson), &bytesRead);
+      if((bytesRead > 0) || (res == FR_OK))
+      {
+        std::string jsonString(reinterpret_cast<const char*>(configJson));
+        nlohmann::json config = nlohmann::json::parse(jsonString);
+        if (config.contains("testMessage")) {
+          SAFE_PRINTF("[CM7]:\tTest message: %s\r\n", config["testMessage"].get<std::string>().c_str());
+        } else {
+          SAFE_PRINTF("[CM7]:\tNo test message found in config file\r\n");
+        }
+      } else {
+        SAFE_PRINTF("[CM7]:\tError reading config file: %u\r\n", res);
+        Error_Handler();
+      }
+
+      f_close(&configFile);
+    } else {
+      SAFE_PRINTF("[CM7]:\tError opening config file: %u\r\n", res);
+      Error_Handler();
+    }
+  }
+
 
 	lv_demo_widgets();
 

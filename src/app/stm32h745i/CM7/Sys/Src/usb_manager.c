@@ -18,6 +18,9 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "../../../Common/Inc/usb_manager.h"
+
+#include <misc_utils.h>
+
 #include "main.h"
 #include "ff.h"
 #include <stdio.h>
@@ -119,7 +122,6 @@ int8_t USB_Manager_RequestFatFsAccess(void)
       return -1;
     }
   }
-
   return 0;  /* Already mounted */
 }
 

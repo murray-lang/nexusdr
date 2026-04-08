@@ -1,6 +1,10 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
 /* Includes ------------------------------------------------------------------*/
 #include <stdbool.h>
 
@@ -101,4 +105,9 @@ extern void tud_suspend_cb(bool remote_wakeup_en);
 
 // Invoked when usb bus is resumed
 extern void tud_resume_cb(void);
+
+#ifdef __cplusplus
+ }
+#endif
+
 #endif // __CONFIG_H__

@@ -60,8 +60,11 @@ __attribute__((section(".dma_buffer"), aligned(32))) struct {
 #define MMCFatFs (dma_buffers.MMCFatFs)
 #define CM4_File (dma_buffers.CM4_File)
 
-char MMCPath[4]; /* SD card logical drive path */
-
+#ifdef __cplusplus
+extern "C" {
+  char MMCPath[4]; /* SD card logical drive path */
+}
+#endif
 
 /* Private function prototypes -----------------------------------------------*/
 static void FS_FileOperations(void);

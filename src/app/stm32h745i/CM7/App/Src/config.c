@@ -128,15 +128,6 @@ void SystemClock_Config(void)
     Error_Handler();
   }
 
-  /** Configure SDMMC peripheral clock
-  */
-  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_SDMMC;
-  PeriphClkInitStruct.SdmmcClockSelection = RCC_SDMMCCLKSOURCE_PLL;
-  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
   /* Configure PLL3 for USB 48MHz clock */
   /* IMPORTANT: PLL3 is shared with LCD (LTDC) which is configured later */
   /* PLL3 configuration must be compatible with both USB and LCD: */
@@ -151,7 +142,7 @@ void SystemClock_Config(void)
   UsbClkInitStruct.PLL3.PLL3N = 96;     /* 5MHz * 96 = 480MHz VCO output */
   UsbClkInitStruct.PLL3.PLL3P = 2;
   UsbClkInitStruct.PLL3.PLL3Q = 10;     /* 480MHz / 10 = 48MHz for USB FS */
-  UsbClkInitStruct.PLL3.PLL3R = 2;      /* Will be overridden by LTDC config */
+  UsbClkInitStruct.PLL3.PLL3R = 50;      /* 480MHz / 50 = 9.6MHz for LTDC */
   UsbClkInitStruct.PLL3.PLL3RGE = RCC_PLL3VCIRANGE_2;   /* VCO input 2-4 MHz */
   UsbClkInitStruct.PLL3.PLL3VCOSEL = RCC_PLL3VCOWIDE;   /* Wide VCO range (192-960 MHz) */
   UsbClkInitStruct.PLL3.PLL3FRACN = 0;
@@ -184,9 +175,9 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.SYSCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_HCLK_DIV2;
-  RCC_ClkInitStruct.APB3CLKDivider = RCC_APB3_DIV2;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_APB1_DIV2;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_APB2_DIV2;
+  RCC_ClkInitStruct.APB3CLKDivider = RCC_APB3_DIV2;
   RCC_ClkInitStruct.APB4CLKDivider = RCC_APB4_DIV2;
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK)
