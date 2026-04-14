@@ -19,8 +19,9 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
-#include <misc_utils.h>
 #include <stdio.h>
+#include <misc_utils.h>
+
 #include "mpu_config.h"
 
 #ifdef USE_FREERTOS
@@ -99,6 +100,7 @@ int main(void)
   }
   MPU_Config_Shared();
 
+
   /*HW semaphore Clock enable*/
   __HAL_RCC_HSEM_CLK_ENABLE();
 
@@ -111,7 +113,7 @@ int main(void)
   */
   HAL_PWREx_ClearPendingEvent();
   HAL_PWREx_EnterSTOPMode(PWR_MAINREGULATOR_ON, PWR_STOPENTRY_WFE, PWR_D2_DOMAIN);
-  BSP_LED_On(LED_RED);
+  //BSP_LED_On(LED_RED);
 
   // Do this instead:
   // while(HAL_HSEM_IsSemTaken(HSEM_ID_0)) {
@@ -123,6 +125,20 @@ int main(void)
   SystemCoreClockUpdate();
 
   UART_Config();  /* USART3 on PB10/PB11 - no conflict with USB on PA11/PA12 */
+
+  MX_GPIO_Init();
+
+  MX_TIM6_Init();
+  MX_DMA_Init();
+  MX_FMC_Init();
+  MX_SAI2_Init();
+  MX_I2C4_Init();
+  // MX_USART3_UART_Init();
+  // // MX_USB_OTG_FS_PCD_Init();
+  MX_DAC1_Init();
+  MX_ADC1_Init();
+  MX_ADC2_Init();
+  // MX_USART6_UART_Init();
 
   // BSP_LED_On(LED_GREEN);
 

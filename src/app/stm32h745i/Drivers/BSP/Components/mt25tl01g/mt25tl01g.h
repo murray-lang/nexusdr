@@ -26,7 +26,7 @@
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "../../../../Common/Inc/mt25tl01g_conf.h"
+#include "mt25tl01g_conf.h"
 /** @addtogroup BSP
   * @{
   */

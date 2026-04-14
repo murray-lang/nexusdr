@@ -160,82 +160,86 @@ int main(void)
   HAL_Init();
 
   /* Configure the system clock */
-  SystemClock_Config();
+  SystemClock_Config_Working();
+  PeriphCommonClock_Config_Working();
   SystemCoreClockUpdate();
 
   __HAL_RCC_HSEM_CLK_ENABLE();
 
+  MX_QUADSPI_Init();
+
 	//CRITICAL: Init QSPI Memory FIRST - application code is in QSPI flash
-	BSP_QSPI_Init_t qspi_init;
-	qspi_init.InterfaceMode = MT25TL01G_QPI_MODE;
-	qspi_init.TransferRate = MT25TL01G_DTR_TRANSFER;
-	qspi_init.DualFlashMode = MT25TL01G_DUALFLASH_ENABLE;
-	BSP_QSPI_Init(0, &qspi_init);
-	BSP_QSPI_EnableMemoryMappedMode(0);
+	// BSP_QSPI_Init_t qspi_init;
+	// qspi_init.InterfaceMode = MT25TL01G_QPI_MODE;
+	// qspi_init.TransferRate = MT25TL01G_DTR_TRANSFER;
+	// qspi_init.DualFlashMode = MT25TL01G_DUALFLASH_ENABLE;
+	// BSP_QSPI_Init(0, &qspi_init);
+	// BSP_QSPI_EnableMemoryMappedMode(0);
 
   UART_Config();
   SAFE_PRINTF("[CM7]\tCPU2 timeout: %x\r\n", timeout);
   USB_Manager_Init();
+  // MX_SDMMC1_MMC_Init();
 
   LOCK_HSEM(HSEM_ID_0);
   UNLOCK_HSEM(HSEM_ID_0);// This signals the CM4 to wake up
 
   /* Initialize MMC hardware for USB MSC access */
-  // SAFE_PRINTF("[CM7]:\tInitializing eMMC...\r\n");
-  // if (BSP_MMC_Init(0) != BSP_ERROR_NONE) {
-  //   SAFE_PRINTF("[CM7]:\tERROR: eMMC initialization failed!\r\n");
-  //   Error_Handler();
-  // }
-  // SAFE_PRINTF("[CM7]:\teMMC initialized successfully\r\n");
-  //
-  // SAFE_PRINTF("[CM7]:\tInitializing USB Device...\r\n");
-  // USB_Device_Init();
-  //
-  // /* Wait for USB enumeration */
-  // uint32_t enum_start = HAL_GetTick();
-  // while (HAL_GetTick() - enum_start < 2000) {
-  //   tud_task();
-  // }
-  // SAFE_PRINTF("[CM7]:\tUSB enumeration complete\r\n");
+  SAFE_PRINTF("[CM7]:\tInitializing eMMC...\r\n");
+  if (BSP_MMC_Init(0) != BSP_ERROR_NONE) {
+    SAFE_PRINTF("[CM7]:\tERROR: eMMC initialization failed!\r\n");
+    Error_Handler();
+  }
+  SAFE_PRINTF("[CM7]:\teMMC initialized successfully\r\n");
 
-  // if(FATFS_LinkDriver(&MMC_Driver, MMCPath) == 0) {
-  //   SAFE_PRINTF("[CM4]:\tstarting FatFs operation....\r\n");
-  //   /* Request FatFs access (will block if USB is connected) */
-  //   if (USB_Manager_RequestFatFsAccess() != 0)
-  //   {
-  //     SAFE_PRINTF("[CM7]:\tFailed to mount FatFs\r\n");
-  //     Error_Handler();
-  //   }
-  //   SAFE_PRINTF("[CM7]:\tMounted FatFs\r\n");
-  //   FIL configFile;
-  //   FRESULT res = f_open(&configFile, "nexusdr.json", FA_READ);
-  //   SAFE_PRINTF("[CM7]:\tReturned from f_open()\r\n");
-  //   if(res == FR_OK)
-  //   {
-  //     UINT bytesRead;
-  //     uint8_t configJson[1024];
-  //     res = f_read(&configFile, configJson, sizeof(configJson), &bytesRead);
-  //     if((bytesRead > 0) || (res == FR_OK))
-  //     {
-  //       std::string jsonString(reinterpret_cast<const char*>(configJson));
-  //       nlohmann::json config = nlohmann::json::parse(jsonString);
-  //       if (config.contains("testMessage")) {
-  //         SAFE_PRINTF("[CM7]:\tTest message: %s\r\n", config["testMessage"].get<std::string>().c_str());
-  //       } else {
-  //         SAFE_PRINTF("[CM7]:\tNo test message found in config file\r\n");
-  //       }
-  //     } else {
-  //       SAFE_PRINTF("[CM7]:\tError reading config file: %u\r\n", res);
-  //       Error_Handler();
-  //     }
-  //
-  //     f_close(&configFile);
-  //   } else {
-  //     SAFE_PRINTF("[CM7]:\tError opening config file: %u\r\n", res);
-  //     Error_Handler();
-  //   }
-  //   USB_Manager_ReleaseFatFsAccess();
-  // }
+  SAFE_PRINTF("[CM7]:\tInitializing USB Device...\r\n");
+  USB_Device_Init();
+
+  /* Wait for USB enumeration */
+  uint32_t enum_start = HAL_GetTick();
+  while (HAL_GetTick() - enum_start < 2000) {
+    tud_task();
+  }
+  SAFE_PRINTF("[CM7]:\tUSB enumeration complete\r\n");
+
+  if(FATFS_LinkDriver(&MMC_Driver, MMCPath) == 0) {
+    SAFE_PRINTF("[CM7]:\tstarting FatFs operation....\r\n");
+    /* Request FatFs access (will block if USB is connected) */
+    if (USB_Manager_RequestFatFsAccess() != 0)
+    {
+      SAFE_PRINTF("[CM7]:\tFailed to mount FatFs\r\n");
+      Error_Handler();
+    }
+    SAFE_PRINTF("[CM7]:\tMounted FatFs\r\n");
+    // FIL configFile;
+    // FRESULT res = f_open(&configFile, "nexusdr.json", FA_READ);
+    // SAFE_PRINTF("[CM7]:\tReturned from f_open()\r\n");
+    // if(res == FR_OK)
+    // {
+    //   UINT bytesRead;
+    //   uint8_t configJson[1024];
+    //   res = f_read(&configFile, configJson, sizeof(configJson), &bytesRead);
+    //   if((bytesRead > 0) || (res == FR_OK))
+    //   {
+    //     std::string jsonString(reinterpret_cast<const char*>(configJson));
+    //     nlohmann::json config = nlohmann::json::parse(jsonString);
+    //     if (config.contains("testMessage")) {
+    //       SAFE_PRINTF("[CM7]:\tTest message: %s\r\n", config["testMessage"].get<std::string>().c_str());
+    //     } else {
+    //       SAFE_PRINTF("[CM7]:\tNo test message found in config file\r\n");
+    //     }
+    //   } else {
+    //     SAFE_PRINTF("[CM7]:\tError reading config file: %u\r\n", res);
+    //     Error_Handler();
+    //   }
+    //
+    //   f_close(&configFile);
+    // } else {
+    //   SAFE_PRINTF("[CM7]:\tError opening config file: %u\r\n", res);
+    //   Error_Handler();
+    // }
+    USB_Manager_ReleaseFatFsAccess();
+  }
 
 	/* Toggle LEDs to show demo loaded */
 	BSP_LED_Off(LED1);
@@ -291,9 +295,9 @@ static void prvLvglTask( void *pvParameters )
 
   lv_demo_widgets();
   for (;;) {
-    // tud_task();  // Here just for now
+    tud_task();  // Here just for now
     lv_timer_handler();
-    lv_sleep_ms(10);
+    // lv_sleep_ms(10);
     // BSP_LED_Toggle(LED2);
   }
 }

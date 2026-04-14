@@ -86,10 +86,16 @@ set to 'Yes') calls __io_putchar() */
 /* Exported functions ------------------------------------------------------- */
 extern void MPU_Config(void);
 extern void CPU_CACHE_Enable(void);
-extern void SystemClock_Config(void);
+extern void SystemClock_Config_New(void);
+extern void PeriphCommonClock_Config_New(void);
+extern void SystemClock_Config_Working(void);
+extern void PeriphCommonClock_Config_Working(void);
 extern void Error_Handler(void);
 extern void UART_Config(void);
 extern void USB_Device_Init(void);
+
+extern void MX_QUADSPI_Init(void);
+extern void MX_SDMMC1_MMC_Init(void);
 
 //--------------------------------------------------------------------+
 // TinyUSB Device Callbacks
