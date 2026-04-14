@@ -166,15 +166,15 @@ int main(void)
 
   __HAL_RCC_HSEM_CLK_ENABLE();
 
-  // MX_QUADSPI_Init();
+  MX_QUADSPI_Init();
 
 	//CRITICAL: Init QSPI Memory FIRST - application code is in QSPI flash
-	BSP_QSPI_Init_t qspi_init;
-	qspi_init.InterfaceMode = MT25TL01G_QPI_MODE;
-	qspi_init.TransferRate = MT25TL01G_DTR_TRANSFER;
-	qspi_init.DualFlashMode = MT25TL01G_DUALFLASH_ENABLE;
-	BSP_QSPI_Init(0, &qspi_init);
-	BSP_QSPI_EnableMemoryMappedMode(0);
+	// BSP_QSPI_Init_t qspi_init;
+	// qspi_init.InterfaceMode = MT25TL01G_QPI_MODE;
+	// qspi_init.TransferRate = MT25TL01G_DTR_TRANSFER;
+	// qspi_init.DualFlashMode = MT25TL01G_DUALFLASH_ENABLE;
+	// BSP_QSPI_Init(0, &qspi_init);
+	// BSP_QSPI_EnableMemoryMappedMode(0);
 
   UART_Config();
   SAFE_PRINTF("[CM7]\tCPU2 timeout: %x\r\n", timeout);
@@ -203,7 +203,7 @@ int main(void)
   SAFE_PRINTF("[CM7]:\tUSB enumeration complete\r\n");
 
   if(FATFS_LinkDriver(&MMC_Driver, MMCPath) == 0) {
-    SAFE_PRINTF("[CM4]:\tstarting FatFs operation....\r\n");
+    SAFE_PRINTF("[CM7]:\tstarting FatFs operation....\r\n");
     /* Request FatFs access (will block if USB is connected) */
     if (USB_Manager_RequestFatFsAccess() != 0)
     {
@@ -295,9 +295,9 @@ static void prvLvglTask( void *pvParameters )
 
   lv_demo_widgets();
   for (;;) {
-    // tud_task();  // Here just for now
+    tud_task();  // Here just for now
     lv_timer_handler();
-    lv_sleep_ms(10);
+    // lv_sleep_ms(10);
     // BSP_LED_Toggle(LED2);
   }
 }
