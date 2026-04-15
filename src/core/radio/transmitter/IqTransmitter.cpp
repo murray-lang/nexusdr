@@ -97,7 +97,7 @@ IqTransmitter::setMode(const Mode& mode)
 }
 
 uint32_t
-IqTransmitter::sinkIq(const vsdrcomplex& samples, uint32_t length)
+IqTransmitter::sinkIq(const ComplexSamplesMax& samples, uint32_t length)
 {
   // EventDispatcher::postEvent(m_eventTarget, new TransmitterIqEvent(samples, length, m_iqIo.getInputSampleRate() ));
 
@@ -105,7 +105,7 @@ IqTransmitter::sinkIq(const vsdrcomplex& samples, uint32_t length)
 }
 
 uint32_t
-IqTransmitter::sinkAudio(const vsdrreal& samples, uint32_t length, uint32_t numChannels)
+IqTransmitter::sinkAudio(const RealSamplesMax& samples, uint32_t length, uint32_t numChannels)
 {
   // EventDispatcher::postEvent(m_eventTarget, new TransmitterAudioEvent(samples, length));
   return m_iqIo.sinkAudio(samples, length, numChannels);

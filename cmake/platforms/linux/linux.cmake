@@ -209,6 +209,7 @@ set(INCLUDE_DIRS
         ${AUDIO_DRIVER_INCLUDE_DIRS}
         ${LIQUID_INCLUDE_DIR}
         /usr/include/hidapi/
+        ${ETL_DIR}
 )
 
 target_include_directories(nexusdr PUBLIC ${INCLUDE_DIRS} )
@@ -222,6 +223,7 @@ set(PROJECT_LIBRARIES
         usb-1.0
         hidapi-libusb
         Qt${QT_VERSION_MAJOR}::Core
+        etl::etl
 )
 
 if(USE_GUI)

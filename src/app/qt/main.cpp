@@ -9,6 +9,8 @@
 #include <nlohmann/json.hpp>
 #include <iostream>
 
+#include <etl/string.h>
+
 #include "io/control/device/gpio/Gpio.h"
 #include "io/control/device/gpio/GpioException.h"
 #include "io/control/device/gpio/digital/DigitalInputLinesRequest.h"
@@ -16,6 +18,8 @@ using json = nlohmann::json;
 
 int main(int argc, char *argv[])
 {
+  etl::string<10> etlString;
+
   // std::this_thread::sleep_for(std::chrono::seconds(5));
   RadioConfig radioConfig;
   bool dumpConfig = false;

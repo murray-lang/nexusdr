@@ -49,7 +49,7 @@ public:
 
   [[nodiscard]] uint32_t getSampleRate() const override { return m_audioInput.getSampleRate(); }
 
-  uint32_t sinkAudio(const vsdrreal& audioSamples, uint32_t length, uint32_t numChannels) override
+  uint32_t sinkAudio(const RealSamplesMax& audioSamples, uint32_t length, uint32_t numChannels) override
   {
     // auto now = std::chrono::steady_clock::now();
     // auto duration = std::chrono::duration_cast<std::chrono::microseconds>(now - m_lastTime).count();
@@ -79,7 +79,7 @@ public:
 protected:
   AudioInput m_audioInput;
   HilbertTransform m_hilbert;
-  vsdrcomplex m_iqOutputBuffer;
+  ComplexSamplesMax m_iqOutputBuffer;
   // std::chrono::steady_clock::time_point m_lastTime;
 };
 

@@ -17,6 +17,7 @@ class TwoToneSignalStage : public IqPipelineStage
   TwoToneSignalStage() : m_enabled(false), m_gain(0.1) {}
   TwoToneSignalStage(uint32_t sampleRate) :
     m_enabled(false),
+    m_gain(0.1),
     m_tone1(sampleRate, TONE1_FREQUENCY),
     m_tone2(sampleRate, TONE2_FREQUENCY)//,
     // m_tone3(sampleRate, TONE3_FREQUENCY)
@@ -45,7 +46,7 @@ class TwoToneSignalStage : public IqPipelineStage
     return processSamples(buffers.input(), buffers.output(), inputLength);
   }
 
-  uint32_t processSamples(const vsdrcomplex& input, vsdrcomplex& output, uint32_t inputLength)
+  uint32_t processSamples(const ComplexSamplesMax& input, ComplexSamplesMax& output, uint32_t inputLength)
   {
     for (uint32_t i = 0; i < inputLength; i++) {
       output.at(i) = (m_tone1.getState() + m_tone2.getState() /*+ m_tone3.getState()*/) * m_gain;

@@ -11,9 +11,9 @@ BandSettings*
 RadioSettings::getFocusBandSettings()
 {
   BandSettings* pBandSettings = m_activeBandSettings.getFocusBandSettings();
-  if (pBandSettings == nullptr) {
-    throw SettingsException("No band selected");
-  }
+  // if (pBandSettings == nullptr) {
+  //   throw SettingsException("No band selected");
+  // }
   return pBandSettings;
 }
 
@@ -21,9 +21,9 @@ const BandSettings*
 RadioSettings::getFocusBandSettings() const
 {
  const BandSettings* pBandSettings = m_activeBandSettings.getFocusBandSettings();
-  if (pBandSettings == nullptr) {
-    throw SettingsException("No band selected");
-  }
+  // if (pBandSettings == nullptr) {
+  //   throw SettingsException("No band selected");
+  // }
   return pBandSettings;
 }
 
@@ -51,35 +51,50 @@ RxPipelineSettings*
 RadioSettings::getFocusPipeline()
 {
   BandSettings* pBandSettings = getFocusBandSettings();
-  return pBandSettings->getFocusPipeline();
+  if (pBandSettings != nullptr) {
+    return pBandSettings->getFocusPipeline();
+  }
+  return nullptr;
 }
 
 const RxPipelineSettings*
 RadioSettings::getFocusPipeline() const
 {
   const BandSettings* pBandSettings = getFocusBandSettings();
-  return pBandSettings->getFocusPipeline();
+  if (pBandSettings != nullptr) {
+    return pBandSettings->getFocusPipeline();
+  }
+  return nullptr;
 }
 
 TxPipelineSettings*
 RadioSettings::getTxPipelineSettings()
 {
   BandSettings* pBandSettings = getFocusBandSettings();
-  return pBandSettings->getTxPipeline();
+  if (pBandSettings != nullptr) {
+    return pBandSettings->getTxPipeline();
+  }
+  return nullptr;
 }
 
 const TxPipelineSettings*
 RadioSettings::getTxPipelineSettings() const
 {
   const BandSettings* pBandSettings = getFocusBandSettings();
-  return pBandSettings->getTxPipeline();
+  if (pBandSettings != nullptr) {
+    return pBandSettings->getTxPipeline();
+  }
+  return nullptr;
 }
 
 const Mode*
 RadioSettings::getFocusRxPipelineMode() const
 {
   const BandSettings* pBandSettings = getFocusBandSettings();
-  return pBandSettings->getFocusRxMode();
+  if (pBandSettings != nullptr) {
+    return pBandSettings->getFocusRxMode();
+  }
+  return nullptr;
 }
 
 bool

@@ -13,6 +13,7 @@
 #include "io/iq/IqIo.h"
 #include "io/control/PttSink.h"
 #include "core/config-settings/settings/TransmitterSettingsSink.h"
+#include "core/config-settings/settings/pipeline/TxPipelineSettings.h"
 
 class ModeSettings;
 
@@ -31,8 +32,8 @@ public:
   void ptt(bool on) override;
   void setMode(const Mode& mode);
 
-  uint32_t sinkIq(const vsdrcomplex& samples, uint32_t length) override; // IqSink
-  uint32_t sinkAudio(const vsdrreal& samples, uint32_t length, uint32_t numChannels) override; // AudioSink
+  uint32_t sinkIq(const ComplexSamplesMax& samples, uint32_t length) override; // IqSink
+  uint32_t sinkAudio(const RealSamplesMax& samples, uint32_t length, uint32_t numChannels) override; // AudioSink
 
   bool adjustRfSettingsToLimits(RfSettings& rfSettings, bool onlyIfChanged = true) const;
 

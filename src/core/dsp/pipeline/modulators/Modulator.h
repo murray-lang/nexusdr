@@ -16,7 +16,7 @@ public:
   Modulator(const Mode& mode, uint32_t sampleRate) : m_mode(mode), m_sampleRate(sampleRate), m_inputGain(1.0) {}
   virtual ~Modulator() = default;
 
-  virtual uint32_t processSamples(const vsdrcomplex& audio, vsdrcomplex& output, uint32_t inputLength) = 0;
+  virtual uint32_t processSamples(const ComplexSamplesMax& audio, ComplexSamplesMax& output, uint32_t inputLength) = 0;
 
   virtual void setSampleRate(uint32_t sampleRate) {
     m_sampleRate = sampleRate;

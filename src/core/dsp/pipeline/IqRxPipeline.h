@@ -33,7 +33,7 @@ public:
   void initialise(IqIo* pIo, AudioSink* pAudioSink) override;
   void setOutputSampleRate(uint32_t outputSampleRate) override;
 
-  uint32_t sinkIq(const vsdrcomplex& samples, uint32_t length) override;
+  uint32_t sinkIq(const ComplexSamplesMax& samples, uint32_t length) override;
 
   void ptt(bool on) override {};
 
@@ -68,7 +68,7 @@ protected:
   SsbDemodulator m_ssbDemodulator;
   CwDemodulator m_cwDemodulator;
   Demodulator* m_pDemodulator;
-  vsdrreal m_audioBuffer;
+  RealSamplesMax m_audioBuffer;
   MonitoringStage* m_pMonitoringStage;
   bool m_monitoring;
 };

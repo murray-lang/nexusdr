@@ -9,19 +9,17 @@
 
 class BandStopFirKernel : public FirKernel {
 public:
-  BandStopFirKernel(uint32_t firSize, uint32_t fftSize) : FirKernel(firSize, fftSize)
-  {
-  }
+  BandStopFirKernel() = default;
 
   void configure(int32_t freqLoPass, int32_t freqHiPass, int32_t offset, uint32_t sampleRate)
   {
-    const vsdrcomplex& complex = configureComplex(freqLoPass, freqHiPass, offset, sampleRate);
+    const ComplexSamplesFft& complex = configureComplex(freqLoPass, freqHiPass, offset, sampleRate);
     complexToReal(complex, m_realCoefficients);
   }
 
 protected:
-  const vsdrcomplex& configureComplex(int32_t freqLoPass, int32_t freqHiPass, int32_t offset, uint32_t sampleRate);
-  void clampCoefficientsToZero(vsdrcomplex& coefficients);
+  const ComplexSamplesFft& configureComplex(int32_t freqLoPass, int32_t freqHiPass, int32_t offset, uint32_t sampleRate);
+  void clampCoefficientsToZero(ComplexSamplesFft& coefficients);
 
 };
 

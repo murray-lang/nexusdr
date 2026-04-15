@@ -4,8 +4,6 @@
 #include "IqPipeline.h"
 #include "core/config-settings/settings/pipeline/PipelineSettings.h"
 
-#define DEFAULT_PING_PONG_LENGTH 8192
-
 class RfSettings;
 class ModeSettings;
 
@@ -13,7 +11,6 @@ IqPipeline::IqPipeline(QObject* eventTarget) :
   // m_modeSettings(modeSettings),
   m_eventTarget(eventTarget),
   m_mode(),
-  m_buffers(DEFAULT_PING_PONG_LENGTH),
   m_inputSampleRate(0),
   m_outputSampleRate(0),
   m_pAudioOutSink(nullptr)

@@ -3,7 +3,7 @@
 //
 #include "LowPassFirKernel.h"
 
-const vsdrcomplex&
+const ComplexSamplesFft&
 LowPassFirKernel::configureComplex(int32_t freqHiCut, int32_t offset, uint32_t sampleRate)
 {
   auto sampleRateReal = static_cast<sdrreal>(sampleRate);
@@ -11,13 +11,13 @@ LowPassFirKernel::configureComplex(int32_t freqHiCut, int32_t offset, uint32_t s
   sdrreal hiCutRate = static_cast<sdrreal>(freqHiCut + offset) / sampleRateReal;
   sdrreal signal = (hiCutRate - loCutRate) / 2.0f;
   sdrreal localOsc = K_2PI * (hiCutRate + loCutRate) / 2.0;
-  int32_t centreIndex = static_cast<int32_t>(m_firSize-1)/2;
+  int32_t centreIndex = static_cast<int32_t>(FIR_SIZE-1)/2;
 
   for (auto& item : m_complexSincPulse) {
     item = sdrcomplex(0.0, 0.0);
   }
 
-  for(int32_t i = 0; i < m_firSize; i++) {
+  for(int32_t i = 0; i < FIR_SIZE; i++) {
     auto x = static_cast<sdrreal>(i - centreIndex);
     sdrreal z;
     if (i == centreIndex) //deal with odd size filter singularity where sin(0)/0==1
@@ -36,7 +36,7 @@ LowPassFirKernel::configureComplex(int32_t freqHiCut, int32_t offset, uint32_t s
 //    );
   }
   normaliseCoefficients(m_realSincPulse);
-  for (int32_t i = 0; i < m_firSize; i++) {
+  for (int32_t i = 0; i < FIR_SIZE; i++) {
     auto x = static_cast<sdrreal>(i - centreIndex);
     sdrreal z = m_realSincPulse.at(i);
     m_complexSincPulse.at(i) = sdrcomplex(
@@ -52,7 +52,7 @@ LowPassFirKernel::configureComplex(int32_t freqHiCut, int32_t offset, uint32_t s
       pocketfft::FORWARD,
       m_complexSincPulse.data(),
       m_complexCoefficients.data(),
-      static_cast<sdrreal>(1.0) / static_cast<sdrreal>(m_fftSize)
+      static_cast<sdrreal>(1.0) / static_cast<sdrreal>(FFT_SIZE)
   );
   return m_complexCoefficients;
 }

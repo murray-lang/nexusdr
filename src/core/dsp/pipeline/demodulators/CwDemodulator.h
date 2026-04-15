@@ -13,8 +13,8 @@ public:
   {}
 
   uint32_t processSamples(
-      const std::vector<sdrcomplex>& in,
-      std::vector<sdrreal>& out,
+      const ComplexSamplesMax& in,
+      RealSamplesMax& out,
       uint32_t inputLength
   ) override;
 };

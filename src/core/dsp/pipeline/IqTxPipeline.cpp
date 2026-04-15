@@ -21,7 +21,6 @@ IqTxPipeline::IqTxPipeline(QObject* eventTarget) :
   m_fmModulator(ModeSettings::getModeByType(Mode::FMN), DEFAULT_SAMPLE_RATE),
   m_pModulator(nullptr),
   m_resampler(),
-  m_ifFilter(FFT_SIZE),
   m_inputSampleRate(0),
   m_outputSampleRate(0),
   m_pMonitoringStage(nullptr),
@@ -183,7 +182,7 @@ IqTxPipeline::setModulator(const Mode& mode)
 
 
 uint32_t
-IqTxPipeline::sinkIq(const vsdrcomplex& samples, uint32_t length)
+IqTxPipeline::sinkIq(const ComplexSamplesMax& samples, uint32_t length)
 {
   // auto now = std::chrono::steady_clock::now();
   // auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(now - m_lastTime).count();
@@ -218,7 +217,7 @@ IqTxPipeline::sinkIq(const vsdrcomplex& samples, uint32_t length)
 }
 
 uint32_t
-IqTxPipeline::interleaveComplexToReal(const vsdrcomplex& vcomplex, vsdrreal& vreal, uint32_t numComplexes)
+IqTxPipeline::interleaveComplexToReal(const ComplexSamplesMax& vcomplex, RealSamplesMax& vreal, uint32_t numComplexes)
 {
   vreal.resize(numComplexes * 2);
 

@@ -29,7 +29,7 @@ public:
   void initialise(IqIo* pIo, AudioSink* pAudioSink) override;
   void setOutputSampleRate(uint32_t outputSampleRate) override;
 
-  uint32_t sinkIq(const vsdrcomplex& samples, uint32_t length) override;
+  uint32_t sinkIq(const ComplexSamplesMax& samples, uint32_t length) override;
 
   void ptt(bool on) override;
 
@@ -44,7 +44,7 @@ public:
 protected:
   void setModulatorSampleRate(uint32_t sampleRate);
   void setModulator(const Mode& mode);
-  static uint32_t interleaveComplexToReal(const vsdrcomplex& vcomplex, vsdrreal& vreal, uint32_t numComplexes);
+  static uint32_t interleaveComplexToReal(const ComplexSamplesMax& vcomplex, RealSamplesMax& vreal, uint32_t numComplexes);
 
 protected:
   IqCorrection m_iqCorrection;
@@ -55,7 +55,7 @@ protected:
   Resampler m_resampler;
   // OscillatorMixer m_oscillatorMixer;
   BandPassFilter m_ifFilter;
-  vsdrreal m_audioBuffer;
+  RealSamplesMax m_audioBuffer;
   uint32_t m_inputSampleRate;
   uint32_t m_outputSampleRate;
   MonitoringStage* m_pMonitoringStage;

@@ -137,7 +137,6 @@ set (DSP_SOURCES
         src/core/dsp/pipeline/SMeter/SMeterStage.h
         src/core/dsp/pipeline/agc/IqAgcStage.h
         src/core/dsp/utils/window.h
-        src/core/dsp/utils/OverlapBuffers.h
         src/core/dsp/utils/FilterCoefficients.h
         src/core/dsp/utils/FftData.h
         src/core/dsp/utils/constants.h
@@ -218,7 +217,10 @@ set(UTIL_SOURCES
 )
 
 set(APP_DIR ${CMAKE_SOURCE_DIR}/src/app)
-set(MIDDLEWARE_DIR ${CMAKE_SOURCE_DIR}/src/app/middleware)
+set(THIRD_PARTY_DIR ${CMAKE_SOURCE_DIR}/src/third-party)
+set(ETL_DIR ${THIRD_PARTY_DIR}/etl)
 
+set(GIT_DIR_LOOKUP_POLICY ALLOW_LOOKING_ABOVE_CMAKE_SOURCE_DIR)
+add_subdirectory(${ETL_DIR})
 
 include(cmake/platforms/${TARGET_PLATFORM}/${TARGET_PLATFORM}.cmake)

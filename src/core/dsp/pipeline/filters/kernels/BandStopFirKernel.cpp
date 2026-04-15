@@ -4,7 +4,7 @@
 
 #include "BandStopFirKernel.h"
 
-const vsdrcomplex&
+const ComplexSamplesFft&
 BandStopFirKernel::configureComplex(int32_t freqLoPass, int32_t freqHiPass, int32_t offset, uint32_t sampleRate)
 {
   auto sampleRateReal = static_cast<sdrreal>(sampleRate);
@@ -12,13 +12,13 @@ BandStopFirKernel::configureComplex(int32_t freqLoPass, int32_t freqHiPass, int3
   sdrreal hiPassRate = static_cast<sdrreal>(freqHiPass + offset) / sampleRateReal;
   sdrreal signal = (hiPassRate - loPassRate) / 2.0f;
   sdrreal localOsc = K_2PI * (hiPassRate + loPassRate) / 2.0;
-  int32_t centreIndex = static_cast<int32_t>(m_firSize-1)/2;
+  int32_t centreIndex = static_cast<int32_t>(FIR_SIZE-1)/2;
 
   for (auto& item : m_complexSincPulse) {
     item = sdrcomplex(0.0f, 0.0f);
   }
 
-  for(int32_t i = 0; i < m_firSize; i++) {
+  for(int32_t i = 0; i < FIR_SIZE; i++) {
     auto x = static_cast<sdrreal>(i - centreIndex);
     sdrreal z;
     if (i == centreIndex) //deal with odd size filter singularity where sin(0)/0==1
@@ -45,16 +45,16 @@ BandStopFirKernel::configureComplex(int32_t freqLoPass, int32_t freqHiPass, int3
       pocketfft::FORWARD,
       m_complexSincPulse.data(),
       m_complexCoefficients.data(),
-      static_cast<sdrreal>(1.0) / static_cast<sdrreal>(m_fftSize)
+      static_cast<sdrreal>(1.0) / static_cast<sdrreal>(FFT_SIZE)
   );
   clampCoefficientsToZero(m_complexCoefficients);
   return m_complexCoefficients;
 }
 
 void
-BandStopFirKernel::clampCoefficientsToZero(vsdrcomplex& coefficients)
+BandStopFirKernel::clampCoefficientsToZero(ComplexSamplesFft& coefficients)
 {
-  sdrreal shift = static_cast<sdrreal>(1.0)/static_cast<sdrreal>(m_fftSize);
+  sdrreal shift = static_cast<sdrreal>(1.0)/static_cast<sdrreal>(FFT_SIZE);
   for (auto& item : coefficients) {
     sdrreal mag = std::hypot(item.real(), item.imag());
     double phase = std::arg(item);

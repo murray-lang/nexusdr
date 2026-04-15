@@ -3,8 +3,6 @@
 //
 #include "IqRxPipeline.h"
 
-#define FFT_SIZE 2048
-#define PING_PONG_LENGTH 8192
 #define DEFAULT_SAMPLE_RATE 48000
 
 #include "core/config-settings/settings/ModeSettings.h"
@@ -12,7 +10,6 @@
 
 IqRxPipeline::IqRxPipeline(QObject* eventTarget) :
   IqPipeline(eventTarget),
-  m_ifFilter(FFT_SIZE),
   m_sMeterStage(eventTarget,
     [this]() { return this->m_outputSampleRate; },
     [this]() -> std::optional<float> { return this->m_iqAgcStage.getGainDb(); }
@@ -24,7 +21,7 @@ IqRxPipeline::IqRxPipeline(QObject* eventTarget) :
   m_ssbDemodulator(ModeSettings::getModeByType(Mode::USB),DEFAULT_SAMPLE_RATE),
   m_cwDemodulator(ModeSettings::getModeByType(Mode::CWU),DEFAULT_SAMPLE_RATE),
   m_pDemodulator(nullptr),
-  m_audioBuffer(PING_PONG_LENGTH),
+  m_audioBuffer(),
   m_pMonitoringStage(nullptr),
   m_monitoring(false)
 {
@@ -32,7 +29,7 @@ IqRxPipeline::IqRxPipeline(QObject* eventTarget) :
 
   // appendStage(m_pMonitoringStage);
   appendStage(&m_iqCorrection);
-  // addStage(m_pMonitoringStage);
+  appendStage(m_pMonitoringStage);
   appendStage(&m_oscillatorMixer);
   appendStage(&m_ifFilter);
   appendStage(&m_decimator);
@@ -166,19 +163,20 @@ IqRxPipeline::setDemodulator(const Mode& mode)
 }
 
 uint32_t
-IqRxPipeline::sinkIq(const vsdrcomplex& samples, uint32_t length)
+IqRxPipeline::sinkIq(const ComplexSamplesMax& samples, uint32_t length)
 {
   uint32_t outputLength = length;
 
-  vsdrcomplex& input = m_buffers.input();
-  std::copy(samples.begin(), samples.end(), input.begin());
+  ComplexSamplesMax& input = m_buffers.input();
+  std::copy_n(samples.begin(), length, input.begin());
   std::lock_guard<std::mutex> lock(m_settingsMutex);
   for (auto stage : m_stages) {
     outputLength = stage->processSamples(m_buffers, outputLength);
     m_buffers.flip();
   }
   if (m_pDemodulator != nullptr) {
-      outputLength = m_pDemodulator->processSamples(m_buffers.input(), m_audioBuffer, outputLength);
+    outputLength = m_pDemodulator->processSamples(m_buffers.input(), m_audioBuffer, outputLength);
+    m_audioBuffer.resize(outputLength);
   } else {
     outputLength = 0;
   }

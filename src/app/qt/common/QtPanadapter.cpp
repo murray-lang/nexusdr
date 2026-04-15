@@ -232,7 +232,7 @@ QtPanadapter::updatePassbandOverlayB(int64_t loCut, int64_t hiCut)
 }
 
 void
-QtPanadapter::plot(const vsdrcomplex* timeSeriesData,
+QtPanadapter::plot(const ComplexSamplesMax* timeSeriesData,
     uint32_t length,
     uint32_t sampleRate,
     int64_t centreFrequency,
@@ -241,14 +241,14 @@ QtPanadapter::plot(const vsdrcomplex* timeSeriesData,
   if (centreFrequency != 14190000) {
     bool pb = true;
   }
-  vsdrreal spectrum(length);
+  RealSamplesMax spectrum(length);
   powerSpectrum(*timeSeriesData, length, spectrum);
   plot(&spectrum, sampleRate, centreFrequency, shuffle);
 }
 
 void
 QtPanadapter::plot(
-    const vsdrreal* spectrumData,
+    const RealSamplesMax* spectrumData,
     uint32_t sampleRate,
     int64_t centreFrequency,
     bool shuffle
@@ -280,9 +280,9 @@ QtPanadapter::plot(
 }
 
 void
-QtPanadapter::powerSpectrum(const vsdrcomplex& timeSeries, uint32_t timeSeriesLength, vsdrreal& spectrumOut)
+QtPanadapter::powerSpectrum(const ComplexSamplesMax& timeSeries, uint32_t timeSeriesLength, RealSamplesMax& spectrumOut)
 {
-  vsdrcomplex windowed(timeSeriesLength);
+  ComplexSamplesMax windowed(timeSeriesLength);
   for (uint32_t i = 0; i < timeSeriesLength; i++)
   {
     windowed.at(i) = timeSeries.at(i) * static_cast<sdrreal>(hanning(i, timeSeriesLength));

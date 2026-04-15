@@ -7,11 +7,11 @@
 #include <QMutex>
 #include <QWaitCondition>
 #include <qdebug.h>
+#include <etl/deque.h>
 
 #include "io/audio/drivers/AudioInputDriver.h"
 
 
-#define DEFAULT_BUFFER_SIZE 8192
 
 // template<typename T>
 class RtAudioInputDriver : public AudioInputDriver, public RtAudioDriver, public QThread
@@ -24,7 +24,6 @@ public:
     m_running(false),
     // m_sampleCursor(format),
     m_pSink(pSink),
-    m_outputBuffer(DEFAULT_BUFFER_SIZE),
     m_maxPacketFrames(0),
     m_numCurrentFrames(0)
   {
@@ -90,7 +89,8 @@ public:
       auto* in = static_cast<float*>(inputBuffer);
       // std::lock_guard<std::mutex> lock(m_mutex);
       QMutexLocker locker(&m_mutex);
-      if (m_queue.size() / m_format.channelCount + nframes > DEFAULT_BUFFER_SIZE) {
+      size_t queueSize = m_queue.size();
+      if (queueSize / m_format.channelCount + nframes > PIPELINE_BUFFER_LENGTH) {
         // Option 1: Drop new data (simplest)
         // qDebug() << "RtAudioInputDriver: Queue overflow, dropping samples";
         return 0;
@@ -103,6 +103,7 @@ public:
       }
       // Append nframes * m_channels samples
       m_queue.insert(m_queue.end(), in, in + nframes * m_format.channelCount);
+      queueSize = m_queue.size();
       m_dataAvailable.wakeOne();
     }
     return 0;
@@ -141,8 +142,7 @@ public:
     }
   }
 
-  template<typename S>
-  void getSamplesFromBuffer(size_t numFrames, uint32_t channelCount, std::vector<S>& input)
+  void getSamplesFromBuffer(size_t numFrames, uint32_t channelCount, RealSamplesMax& input)
   {
     for (size_t i = 0; i < numFrames; i++) {
       for (size_t j = 0; j < channelCount; j++) {
@@ -154,11 +154,11 @@ public:
 private:
   std::atomic<bool> m_running;
   // std::mutex m_mutex;
-  std::deque<float> m_queue;
+  etl::deque<float, PIPELINE_BUFFER_LENGTH*2> m_queue;
   RtAudio::StreamParameters m_params;
 
   AudioSink* m_pSink;
-  vsdrreal m_outputBuffer;
+  RealSamplesMax m_outputBuffer;
   uint32_t m_maxPacketFrames;
   uint32_t m_numCurrentFrames;
   QMutex m_mutex;

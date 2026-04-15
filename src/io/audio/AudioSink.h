@@ -11,5 +11,5 @@ class AudioSink
 {
 public:
   virtual ~AudioSink() = default;
-  virtual uint32_t sinkAudio(const vsdrreal& samples, uint32_t length, uint32_t numChannels) = 0;
+  virtual uint32_t sinkAudio(const RealSamplesMax& samples, uint32_t length, uint32_t numChannels) = 0;
 };

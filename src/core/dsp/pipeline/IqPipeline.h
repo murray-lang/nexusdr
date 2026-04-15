@@ -15,6 +15,9 @@
 
 #include "core/config-settings/settings/RfSettings.h"
 
+#define MAX_PIPELINE_STAGES 8
+
+using PipelineStages = etl::vector<IqPipelineStage*, MAX_PIPELINE_STAGES>;
 
 class PipelineSettings;
 class ModeSettings;
@@ -75,7 +78,7 @@ protected:
   std::mutex m_settingsMutex;
   // IqPipelineIo* m_pIo;
   // IqSource* m_pInput;
-  std::vector<IqPipelineStage*> m_stages;
+  PipelineStages m_stages;
   ComplexPingPongBuffers m_buffers;
   uint32_t m_inputSampleRate;
   uint32_t m_outputSampleRate;

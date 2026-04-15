@@ -13,7 +13,7 @@ class RxPipelineAudioRouter
 public:
   virtual ~RxPipelineAudioRouter() = default;
   virtual uint32_t sinkPipelineAudio(PipelineId pipelineId,
-                                     const vsdrreal& samples,
+                                     const RealSamplesMax& samples,
                                      uint32_t length,
                                      uint32_t numChannels) = 0;
 };
@@ -24,7 +24,7 @@ public:
   RxPipelineAudioTap(RxPipelineAudioRouter& router, PipelineId pipelineId)
     : m_router(router), m_pipelineId(pipelineId) {}
 
-  uint32_t sinkAudio(const vsdrreal& samples, uint32_t length, uint32_t numChannels) override;
+  uint32_t sinkAudio(const RealSamplesMax& samples, uint32_t length, uint32_t numChannels) override;
 
 private:
   RxPipelineAudioRouter& m_router;

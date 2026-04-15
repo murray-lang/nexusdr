@@ -34,18 +34,18 @@ public:
 
   void handleReceiverIq(
     RadioSettings* pRadioSettings,
-    const vsdrcomplex* data,
+    const ComplexSamplesMax* data,
     uint32_t length,
     uint32_t sampleRate) override;
-  void handleReceiverAudio(const vsdrreal* data, uint32_t length) override;
+  void handleReceiverAudio(const RealSamplesMax* data, uint32_t length) override;
   void handleReceiverMeter(float rssiDbFs, uint32_t sampleRate, std::optional<float> agcGainDb) override;
 
   void handleTransmitterIq(
     RadioSettings* pRadioSettings,
-    const vsdrcomplex* data,
+    const ComplexSamplesMax* data,
     uint32_t length,
     uint32_t sampleRate) override;
-  void handleTransmitterAudio(const vsdrreal* data, uint32_t length) override;
+  void handleTransmitterAudio(const RealSamplesMax* data, uint32_t length) override;
 
 protected:
 

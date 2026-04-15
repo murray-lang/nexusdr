@@ -14,9 +14,9 @@ class ReceiverAudioEvent : public EventBase
 {
 public:
   static const EventType RxAudioEvent;
-  ReceiverAudioEvent(const vsdrreal& audio, uint32_t len);
+  ReceiverAudioEvent(const RealSamplesMax& audio, uint32_t len);
 
-  std::shared_ptr<vsdrreal> buffer;
+  std::shared_ptr<RealSamplesMax> buffer;
   uint32_t dataLength;
 
 };

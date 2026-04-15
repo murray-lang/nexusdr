@@ -55,8 +55,8 @@ public:
 
   uint32_t processSamples(ComplexPingPongBuffers& buffers, uint32_t inputLength) override
   {
-    vsdrcomplex& input = buffers.input();
-    vsdrcomplex& output = buffers.output();
+    ComplexSamplesMax& input = buffers.input();
+    ComplexSamplesMax& output = buffers.output();
     uint32_t numWritten = 0;
 
     for (uint32_t i = 0; i < inputLength; ++i)

@@ -1,27 +1,22 @@
 #pragma once
 
 #include "../../SampleTypes.h"
-#include <vector>
+#include <etl/vector.h>
 #include <cstdint>
 
-template<typename T> class PingPongBuffers
+template<typename SamplesType> class PingPongBuffers
 {
 public:
-  explicit PingPongBuffers(uint32_t length) :
-    m_ping(length, static_cast<T>(0)),
-    m_pong(length, static_cast<T>(0)),
-    m_flip(false)
-  {
-  }
+  explicit PingPongBuffers() : m_flip(false) {}
 
-  std::vector<T>& input()
+  SamplesType& input()
   {
     return m_flip ? m_pong : m_ping;
   }
-  std::vector<T>& output() { return m_flip ? m_ping : m_pong; }
+  SamplesType& output() { return m_flip ? m_ping : m_pong; }
 
-  std::vector<T>& current() { return m_flip ? m_pong : m_ping; }
-  std::vector<T>& next() { return m_flip ? m_ping : m_pong; }
+  SamplesType& current() { return m_flip ? m_pong : m_ping; }
+  SamplesType& next() { return m_flip ? m_ping : m_pong; }
 
   PingPongBuffers& flip()
   {
@@ -36,13 +31,13 @@ public:
     return *this;
   }
 
-  [[nodiscard]] uint32_t getSize() const { return m_ping.size(); }
+  [[nodiscard]] uint32_t getSize() const { return m_ping.max_size(); }
 
 private:
-  std::vector<T> m_ping;
-  std::vector<T> m_pong;
+  SamplesType m_ping;
+  SamplesType m_pong;
   bool m_flip;
 };
 
-using ComplexPingPongBuffers = PingPongBuffers<sdrcomplex>;
-using RealPingPongBuffers = PingPongBuffers<sdrreal>;
+using ComplexPingPongBuffers = PingPongBuffers<ComplexSamplesMax>;
+using RealPingPongBuffers = PingPongBuffers<RealSamplesMax>;

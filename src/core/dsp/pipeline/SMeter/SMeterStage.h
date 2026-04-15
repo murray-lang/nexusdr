@@ -37,7 +37,7 @@ public:
     if (m_eventTarget == nullptr || inputLength == 0) {
       return inputLength;
     }
-    const vsdrcomplex& in = buffers.input();
+    const ComplexSamplesMax& in = buffers.input();
 
     const uint32_t fs = m_sampleRateProvider ? m_sampleRateProvider() : 0;
     if (fs == 0) {

@@ -9,8 +9,8 @@
 
 uint32_t
 AmDemodulator::processSamples(
-    const std::vector<sdrcomplex>& in,
-    std::vector<sdrreal>& out,
+    const ComplexSamplesMax& in,
+    RealSamplesMax& out,
     uint32_t inputLength)
 {
   if (inputLength == 0)

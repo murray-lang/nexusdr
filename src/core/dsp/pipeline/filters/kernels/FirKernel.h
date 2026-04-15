@@ -16,12 +16,10 @@
 class FirKernel
 {
 public:
-  FirKernel(uint32_t firSize, uint32_t fftSize) :
-      m_firSize(firSize),
-      m_fftSize(fftSize),
-      m_complexSincPulse(fftSize, sdrcomplex(0.0, 0.0)),
-      m_realSincPulse(fftSize, 0.0),
-      m_shape{fftSize},
+  FirKernel() :
+      m_complexSincPulse(FFT_SIZE, sdrcomplex(0.0, 0.0)),
+      m_realSincPulse(FFT_SIZE, 0.0),
+      m_shape{FFT_SIZE},
       m_complex_stride{
           static_cast<ptrdiff_t>(sizeof(sdrcomplex))//,
           //static_cast<ptrdiff_t>(sizeof(sdrcomplex) * m_fftSize)
@@ -32,39 +30,39 @@ public:
       },
       m_axes{0}
   {
-    initialise(fftSize, firSize);
+    initialise();
   }
-  void initialise(uint32_t fftSize, uint32_t firSize)
+  void initialise()
   {
-    m_complexCoefficients.assign(fftSize, sdrcomplex(0, 0));
-    m_realCoefficients.assign(fftSize, static_cast<sdrreal>(0.0));
-    calculateWindow(firSize);
+    m_complexCoefficients.assign(FFT_SIZE, sdrcomplex(0, 0));
+    m_realCoefficients.assign(FFT_SIZE, static_cast<sdrreal>(0.0));
+    calculateWindow();
   }
 
-  const vsdrcomplex& getComplexCoefficients() { return m_complexCoefficients; }
-  const vsdrreal& getRealCoefficients() { return m_realCoefficients; }
-  const vsdrcomplex& getComplexSincPulse() { return m_complexSincPulse; }
-  const vsdrreal& getRealSincPulse() { return m_realSincPulse; }
+  const ComplexSamplesFft& getComplexCoefficients() { return m_complexCoefficients; }
+  const RealSamplesFft& getRealCoefficients() { return m_realCoefficients; }
+  const ComplexSamplesFft& getComplexSincPulse() { return m_complexSincPulse; }
+  const RealSamplesFft& getRealSincPulse() { return m_realSincPulse; }
   sdrreal getWindowAt(uint32_t i) { return m_window.at(i); }
 
 protected:
-  void calculateWindow(uint32_t size)
+  void calculateWindow()
   {
-    m_window.resize(size);
+    m_window.resize(FIR_SIZE);
     //create Blackman-Nuttall window function for windowed sinc low pass filter design
-    for(vsdrreal::size_type i = 0; i < size; i++)
+    for(RealSamplesFir::size_type i = 0; i < FIR_SIZE; i++)
     {
       m_window.at(i) = (
           static_cast<sdrreal>(0.3635819)
-          - static_cast<sdrreal>(0.4891775) * static_cast<sdrreal>(cos( (K_2PI*(sdrreal)i)/(sdrreal)(size-1) ))
-          + static_cast<sdrreal>(0.1365995) * static_cast<sdrreal>(cos( (2.0*K_2PI*(sdrreal)i)/(sdrreal)(size-1) ))
-          - static_cast<sdrreal>(0.0106411) * static_cast<sdrreal>(cos( (3.0*K_2PI*(sdrreal)i)/(sdrreal)(size-1) ))
+          - static_cast<sdrreal>(0.4891775) * static_cast<sdrreal>(cos( (K_2PI*(sdrreal)i)/(sdrreal)(FIR_SIZE-1) ))
+          + static_cast<sdrreal>(0.1365995) * static_cast<sdrreal>(cos( (2.0*K_2PI*(sdrreal)i)/(sdrreal)(FIR_SIZE-1) ))
+          - static_cast<sdrreal>(0.0106411) * static_cast<sdrreal>(cos( (3.0*K_2PI*(sdrreal)i)/(sdrreal)(FIR_SIZE-1) ))
       );
     }
     //testSymetry(m_window, m_firSize, (m_firSize - 1)/2);
   }
 
-  static const vsdrreal& complexToReal(const vsdrcomplex& complex, vsdrreal& real)
+  static const RealSamplesFft& complexToReal(const ComplexSamplesFft& complex, RealSamplesFft& real)
   {
     for (int i = 0; i < complex.size(); i++) {
       //m_realCoefficients.at(i) /= static_cast<sdrreal>(m_fftSize);
@@ -74,7 +72,7 @@ protected:
     return real;
   }
 
-  static void normaliseCoefficients(vsdrcomplex& coefficients)
+  static void normaliseCoefficients(ComplexSamplesFft& coefficients)
   {
     sdrreal sum = 0.0;
     for (auto coeff : coefficients) {
@@ -85,7 +83,7 @@ protected:
     }
   }
 
-  static void normaliseCoefficients(vsdrreal& coefficients)
+  static void normaliseCoefficients(RealSamplesFft& coefficients)
   {
     sdrreal sum = 0.0;
     for (auto coeff : coefficients) {
@@ -96,7 +94,7 @@ protected:
     }
   }
 
-  static void _normaliseCoefficients(vsdrcomplex& coefficients)
+  static void _normaliseCoefficients(ComplexSamplesFft& coefficients)
   {
     sdrreal maxMagnitude = 0.0;
     for (const auto& coeff : coefficients) {
@@ -113,7 +111,7 @@ protected:
     }
   }
 
-  static void _normaliseCoefficients(vsdrreal& coefficients)
+  static void _normaliseCoefficients(RealSamplesFft& coefficients)
   {
     sdrreal maxMagnitude = 0.0;
     for (const auto& coeff : coefficients) {
@@ -130,35 +128,33 @@ protected:
 
   }
 
-  static bool testSymetry(const vsdrreal& values, uint32_t length, uint32_t centreIndex)
-  {
-    const uint32_t maxDistance = (length-1)/2;
-    if ( centreIndex != maxDistance)
-    {
-      return false;
-    }
-    uint32_t distanceFromCentre = 1;
-    while (distanceFromCentre < maxDistance)
-    {
-      const sdrreal below = values.at(centreIndex - distanceFromCentre);
-      const sdrreal above = values.at(centreIndex + distanceFromCentre);
-      if (below != above)
-      {
-        return false;
-      }
-      distanceFromCentre++;
-    }
-    return true;
-  }
+  // static bool testSymetry(const vsdrreal& values, uint32_t length, uint32_t centreIndex)
+  // {
+  //   const uint32_t maxDistance = (length-1)/2;
+  //   if ( centreIndex != maxDistance)
+  //   {
+  //     return false;
+  //   }
+  //   uint32_t distanceFromCentre = 1;
+  //   while (distanceFromCentre < maxDistance)
+  //   {
+  //     const sdrreal below = values.at(centreIndex - distanceFromCentre);
+  //     const sdrreal above = values.at(centreIndex + distanceFromCentre);
+  //     if (below != above)
+  //     {
+  //       return false;
+  //     }
+  //     distanceFromCentre++;
+  //   }
+  //   return true;
+  // }
 
 protected:
-  uint32_t m_firSize;
-  uint32_t m_fftSize;
-  vsdrcomplex m_complexSincPulse;
-  vsdrreal m_realSincPulse;
-  vsdrcomplex m_complexCoefficients;
-  vsdrreal m_realCoefficients;
-  vsdrreal m_window;
+  ComplexSamplesFft m_complexSincPulse;
+  RealSamplesFft m_realSincPulse;
+  ComplexSamplesFft m_complexCoefficients;
+  RealSamplesFft m_realCoefficients;
+  RealSamplesFir m_window;
   pocketfft::shape_t m_shape;
   pocketfft::stride_t m_complex_stride;
   pocketfft::stride_t m_real_stride;

@@ -41,7 +41,7 @@ public:
 
   [[nodiscard]] uint32_t getSampleRate() const override { return m_audioInput.getSampleRate(); }
 
-  uint32_t sinkAudio(const vsdrreal& audioSamples, uint32_t length, uint32_t numChannels) override
+  uint32_t sinkAudio(const RealSamplesMax& audioSamples, uint32_t length, uint32_t numChannels) override
   {
     uint32_t numFrames = length/2; // Assume numChannels == 2
     if (m_pIqSink != nullptr) {
@@ -64,7 +64,7 @@ public:
 
 protected:
   AudioInput m_audioInput;
-  vsdrcomplex m_iqOutputBuffer;
+  ComplexSamplesMax m_iqOutputBuffer;
   bool m_reverse;
 
 };

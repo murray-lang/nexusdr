@@ -14,9 +14,9 @@ class ReceiverIqEvent : public EventBase
 {
 public:
   static const EventType RxIqEvent;
-  ReceiverIqEvent(const vsdrcomplex& iq, uint32_t len, uint32_t _sampleRate);
+  ReceiverIqEvent(const ComplexSamplesMax& iq, uint32_t len, uint32_t _sampleRate);
 
-  std::shared_ptr<vsdrcomplex> buffer;
+  std::shared_ptr<ComplexSamplesMax> buffer;
   uint32_t dataLength;
   uint32_t sampleRate;
 };

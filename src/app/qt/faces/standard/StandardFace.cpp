@@ -163,7 +163,7 @@ StandardFace::updateCursorB(RxPipelineSettings* rxPipelineSettings)
 void
 StandardFace::handleReceiverIq(
   RadioSettings* pRadioSettings,
-  const vsdrcomplex* data,
+  const ComplexSamplesMax* data,
   uint32_t length,
   uint32_t sampleRate)
 {
@@ -182,7 +182,7 @@ StandardFace::handleReceiverIq(
 }
 
 void
-StandardFace::handleReceiverAudio(const vsdrreal* data, uint32_t length)
+StandardFace::handleReceiverAudio(const RealSamplesMax* data, uint32_t length)
 {
   m_pTimeSeriesChart->plot(*data, length);
 }
@@ -190,7 +190,7 @@ StandardFace::handleReceiverAudio(const vsdrreal* data, uint32_t length)
 void
 StandardFace::handleTransmitterIq(
   RadioSettings* pRadioSettings,
-  const vsdrcomplex* data,
+  const ComplexSamplesMax* data,
   uint32_t length,
   uint32_t sampleRate)
 {
@@ -210,7 +210,7 @@ StandardFace::handleTransmitterIq(
 }
 
 void
-StandardFace::handleTransmitterAudio(const vsdrreal* data, uint32_t length)
+StandardFace::handleTransmitterAudio(const RealSamplesMax* data, uint32_t length)
 {
   m_pTimeSeriesChart->plot(*data, length);
 }

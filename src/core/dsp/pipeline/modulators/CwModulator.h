@@ -22,7 +22,7 @@ public:
     m_oscillator.setFrequency(mode.getOffset());
   }
 
-  uint32_t processSamples(const vsdrcomplex& audio, vsdrcomplex& output, uint32_t inputLength) override
+  uint32_t processSamples(const ComplexSamplesMax& audio, ComplexSamplesMax& output, uint32_t inputLength) override
   {
     // The input signal provides nothing more than a clock for the CW oscillator
     for (uint32_t i = 0; i < inputLength; i++) {
