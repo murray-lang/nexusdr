@@ -29,7 +29,7 @@ IqIo::setIqSink(IqSink* pIqSink)
 }
 
 uint32_t
-IqIo::sinkAudio(const vsdrreal& samples, uint32_t length, uint32_t numChannels)
+IqIo::sinkAudio(const RealSamplesMax& samples, uint32_t length, uint32_t numChannels)
 {
   if (m_pAudioOutput != nullptr) {
     return m_pAudioOutput->sinkAudio(samples, length, numChannels);

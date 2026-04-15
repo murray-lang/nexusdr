@@ -23,7 +23,7 @@ public:
     RtAudioDriver(deviceInfo)
   {}
   ~RtAudioOutputDriver() override = default;
-  uint32_t addAudioData(const vsdrreal& data, uint32_t length, uint32_t numChannels) override = 0;
+  uint32_t addAudioData(const RealSamplesMax& data, uint32_t length, uint32_t numChannels) override = 0;
 };
 
 template <typename T>
@@ -113,7 +113,7 @@ public:
     return 0; // 0: continue, nonzero: stop
   }
 
-  uint32_t addAudioData(const vsdrreal& data, uint32_t length, uint32_t numChannels) override
+  uint32_t addAudioData(const RealSamplesMax& data, uint32_t length, uint32_t numChannels) override
   {
     std::lock_guard<std::mutex> lock(m_mutex);
     if (!m_running) return 0;

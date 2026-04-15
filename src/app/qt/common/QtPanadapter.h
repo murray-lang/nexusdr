@@ -25,7 +25,7 @@ public:
   void updatePassbandOverlayB(int64_t loCut, int64_t hiCut);
 
   void plot(
-    const vsdrcomplex* timeSeriesData,
+    const ComplexSamplesMax* timeSeriesData,
     uint32_t length,
     uint32_t sampleRate,
     int64_t centreFrequency,
@@ -33,7 +33,7 @@ public:
   );
 
   void plot(
-    const vsdrreal* spectrumData,
+    const RealSamplesMax* spectrumData,
     uint32_t sampleRate,
     int64_t centreFrequency,
     bool shuffle = true
@@ -43,7 +43,7 @@ public:
   void updateCursorPositionB(int64_t frequency, int32_t loCut, int32_t hiCut);
 
 protected:
-  static void powerSpectrum(const std::vector<sdrcomplex>& timeSeries, uint32_t timeSeriesLength, vsdrreal& spectrumOut);
+  static void powerSpectrum(const ComplexSamplesMax& timeSeries, uint32_t timeSeriesLength, RealSamplesMax& spectrumOut);
 
   void refreshOverlays();
 

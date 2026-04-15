@@ -27,6 +27,6 @@
 //};
 
 //typedef QSharedPointer<vcomplex> SharedFftData;
-typedef QSharedPointer<vsdrreal> SharedRealSeriesData;
-typedef QSharedPointer<vsdrcomplex> SharedComplexSeriesData;
+typedef QSharedPointer<RealSamplesFft> SharedRealSeriesData;
+typedef QSharedPointer<ComplexSamplesFft> SharedComplexSeriesData;
 

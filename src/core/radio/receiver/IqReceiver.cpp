@@ -144,7 +144,7 @@ void IqReceiver::ptt(bool on)
 }
 
 uint32_t
-IqReceiver::sinkIq(const vsdrcomplex& samples, uint32_t length)
+IqReceiver::sinkIq(const ComplexSamplesMax& samples, uint32_t length)
 {
   // EventDispatcher::postEvent(m_eventTarget, new ReceiverIqEvent(samples, length, m_iqIo.getInputSampleRate() ));
 
@@ -160,10 +160,10 @@ IqReceiver::sinkIq(const vsdrcomplex& samples, uint32_t length)
 }
 
 uint32_t
-IqReceiver::downmixToMono(const vsdrreal& in,
+IqReceiver::downmixToMono(const RealSamplesMax& in,
                           uint32_t length,
                           uint32_t numChannels,
-                          vsdrreal& outMono)
+                          RealSamplesMax& outMono)
 {
   if (length == 0 || numChannels == 0) {
     outMono.clear();
@@ -194,8 +194,8 @@ IqReceiver::downmixToMono(const vsdrreal& in,
 }
 
 void
-IqReceiver::outputStereoFromMono(const vsdrreal& leftMono,
-                                 const vsdrreal& rightMono,
+IqReceiver::outputStereoFromMono(const RealSamplesMax& leftMono,
+                                 const RealSamplesMax& rightMono,
                                  uint32_t frames)
 {
   if (frames == 0) {
@@ -214,7 +214,7 @@ IqReceiver::outputStereoFromMono(const vsdrreal& leftMono,
 }
 
 void
-IqReceiver::outputStereoDuplicate(const vsdrreal& mono, uint32_t frames)
+IqReceiver::outputStereoDuplicate(const RealSamplesMax& mono, uint32_t frames)
 {
   if (frames == 0) {
     return;
@@ -234,11 +234,11 @@ IqReceiver::outputStereoDuplicate(const vsdrreal& mono, uint32_t frames)
 
 uint32_t
 IqReceiver::sinkPipelineAudio(PipelineId pipelineId,
-                              const vsdrreal& samples,
+                              const RealSamplesMax& samples,
                               uint32_t length,
                               uint32_t numChannels)
 {
-  vsdrreal mono;
+  RealSamplesMax mono;
   const uint32_t frames = downmixToMono(samples, length, numChannels, mono);
   if (frames == 0) {
     return 0;

@@ -54,7 +54,7 @@ class AudioOutput : public AudioIo, public AudioSink
     return m_pDriver->getSampleRate();
   }
 
-  uint32_t sinkAudio(const vsdrreal& data, uint32_t length, uint32_t numChannels) override
+  uint32_t sinkAudio(const RealSamplesMax& data, uint32_t length, uint32_t numChannels) override
   {
     if (m_pDriver == nullptr)
     {

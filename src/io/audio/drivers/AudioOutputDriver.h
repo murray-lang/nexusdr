@@ -9,5 +9,5 @@ class AudioOutputDriver : public AudioDriver
 {
 public:
   AudioOutputDriver(const Format& format) : AudioDriver(format) {}
-  virtual uint32_t addAudioData(const vsdrreal& data, uint32_t length, uint32_t numChannels) = 0;
+  virtual uint32_t addAudioData(const RealSamplesMax& data, uint32_t length, uint32_t numChannels) = 0;
 };

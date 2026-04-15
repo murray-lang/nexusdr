@@ -9,5 +9,5 @@ class IqSink
 {
 public:
   virtual ~IqSink() = default;
-  virtual uint32_t sinkIq(const vsdrcomplex& samples, uint32_t length) = 0;
+  virtual uint32_t sinkIq(const ComplexSamplesMax& samples, uint32_t length) = 0;
 };

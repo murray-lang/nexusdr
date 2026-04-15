@@ -74,7 +74,7 @@ QtChartBase::applyTheme()
 }
 
 void
-QtChartBase::plot(const vsdrreal& data, uint32_t length)
+QtChartBase::plot(const RealSamplesMax& data, uint32_t length)
 {
   setSeriesXMinMax(0, length);
   QList<QPointF> seriesPoints;
@@ -86,7 +86,7 @@ QtChartBase::plot(const vsdrreal& data, uint32_t length)
 }
 
 void
-QtChartBase::plot(const vsdrcomplex data, uint32_t length)
+QtChartBase::plot(const ComplexSamplesMax& data, uint32_t length)
 {
   setSeriesXMinMax(0, length);
   QList<QPointF> seriesPoints;

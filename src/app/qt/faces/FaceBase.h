@@ -38,11 +38,11 @@ public:
 
   virtual void handleReceiverIq(
     RadioSettings* pRadioSettings,
-    const vsdrcomplex* data,
+    const ComplexSamplesMax* data,
     uint32_t length,
     uint32_t sampleRate) = 0;
 
-  virtual void handleReceiverAudio(const vsdrreal* data, uint32_t length) = 0;
+  virtual void handleReceiverAudio(const RealSamplesMax* data, uint32_t length) = 0;
 
   virtual void handleReceiverMeter(float rssiDbFs, uint32_t sampleRate, std::optional<float> agcGainDb)
   {
@@ -53,10 +53,10 @@ public:
 
   virtual void handleTransmitterIq(
     RadioSettings* pRadioSettings,
-    const vsdrcomplex* data,
+    const ComplexSamplesMax* data,
     uint32_t length,
     uint32_t sampleRate) = 0;
-  virtual void handleTransmitterAudio(const vsdrreal* data, uint32_t length) = 0;
+  virtual void handleTransmitterAudio(const RealSamplesMax* data, uint32_t length) = 0;
 
 
 protected:

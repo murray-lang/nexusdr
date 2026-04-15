@@ -23,8 +23,8 @@ public:
   }
 
   uint32_t processSamples(
-      const vsdrcomplex& in,
-      vsdrcomplex& out,
+      const ComplexSamplesMax& in,
+      ComplexSamplesMax& out,
       uint32_t inputLength
   ) override
   {

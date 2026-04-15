@@ -1,9 +1,12 @@
-[submodule "src/app/lvgl/lvgl"]
-	path = src/app/lvgl/lvgl
+[submodule "src/third-party/lvgl/lvgl"]
+	path = src/third-party/lvgl/lvgl
 	url = https://github.com/lvgl/lvgl.git
-[submodule "src/app/middleware/tinyusb_src"]
-	path = src/app/middleware/tinyusb_src
-	url = https://github.com/hathach/tinyusb_src.git
-[submodule "src/app/middleware/FreeRTOS-Kernel"]
-	path = src/app/middleware/FreeRTOS-Kernel
+[submodule "src/third-party/FreeRTOS-Kernel"]
+	path = src/third-party/FreeRTOS-Kernel
 	url = https://github.com/FreeRTOS/FreeRTOS-Kernel
+[submodule "src/third-party/tinyusb_src"]
+	path = src/third-party/tinyusb_src
+	url = https://github.com/hathach/tinyusb_src.git
+[submodule "src/third-party/etl"]
+	path = src/third-party/etl
+	url = https://github.com/ETLCPP/etl.git

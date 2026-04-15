@@ -15,9 +15,9 @@ class TransmitterAudioEvent : public EventBase
 {
 public:
   static const EventType TxAudioEvent;
-  TransmitterAudioEvent(const vsdrreal& audio, uint32_t len);
+  TransmitterAudioEvent(const RealSamplesMax& audio, uint32_t len);
 
-  std::shared_ptr<vsdrreal> buffer;
+  std::shared_ptr<RealSamplesMax> buffer;
   uint32_t dataLength;
 
 };

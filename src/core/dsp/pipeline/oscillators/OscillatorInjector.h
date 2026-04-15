@@ -12,8 +12,8 @@ public:
 
   uint32_t processSamples(ComplexPingPongBuffers& buffers, uint32_t inputLength) override
   {
-    const vsdrcomplex& input = buffers.input();
-    vsdrcomplex& output = buffers.output();
+    const ComplexSamplesMax& input = buffers.input();
+    ComplexSamplesMax& output = buffers.output();
     for (uint32_t i = 0; i < inputLength; i++) {
         output[i] = m_oscillator + input[i];
         ++m_oscillator;

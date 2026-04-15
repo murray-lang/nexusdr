@@ -6,8 +6,8 @@
 
 uint32_t
 FmDemodulator::processSamples(
-    const std::vector<sdrcomplex>& in,
-    std::vector<sdrreal>& out,
+    const ComplexSamplesMax& in,
+    RealSamplesMax& out,
     uint32_t inputLength)
 {
   for(uint32_t i=0; i<inputLength; i++) {

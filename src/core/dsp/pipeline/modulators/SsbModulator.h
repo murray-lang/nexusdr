@@ -14,7 +14,7 @@ public:
   {}
   ~SsbModulator() override = default;
 
-  uint32_t processSamples(const vsdrcomplex& audio, vsdrcomplex& output, uint32_t inputLength) override
+  uint32_t processSamples(const ComplexSamplesMax& audio, ComplexSamplesMax& output, uint32_t inputLength) override
   {
     if (m_mode.getType() == Mode::LSB) {
       for (uint32_t i = 0; i < inputLength; ++i) {

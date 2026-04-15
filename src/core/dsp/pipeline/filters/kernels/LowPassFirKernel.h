@@ -9,19 +9,16 @@
 
 class LowPassFirKernel : public FirKernel {
 public:
-  LowPassFirKernel(uint32_t firSize, uint32_t fftSize) :
-      FirKernel(firSize, fftSize)
-  {
-  }
+  LowPassFirKernel() = default;
 
   void configure(int32_t freqHiCut, int32_t offset, uint32_t sampleRate)
   {
-    const vsdrcomplex& complex = configureComplex(freqHiCut, offset, sampleRate);
+    const ComplexSamplesFft& complex = configureComplex(freqHiCut, offset, sampleRate);
     complexToReal(complex, m_realCoefficients);
   }
 
 protected:
-  const vsdrcomplex& configureComplex(int32_t freqHiCut, int32_t offset, uint32_t sampleRate);
+  const ComplexSamplesFft& configureComplex(int32_t freqHiCut, int32_t offset, uint32_t sampleRate);
 
 };
 

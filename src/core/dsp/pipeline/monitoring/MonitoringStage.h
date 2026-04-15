@@ -24,7 +24,7 @@ public:
   }
   uint32_t processSamples(ComplexPingPongBuffers& buffers, uint32_t inputLength) override
   {
-    vsdrcomplex& samples = buffers.input();
+    ComplexSamplesMax& samples = buffers.input();
     if (m_type == ReceiverIqEvent::RxIqEvent) {
       EventDispatcher::postEvent(m_eventTarget, new ReceiverIqEvent(samples, inputLength, m_sampleRateProvider()));
     } else if (m_type == TransmitterIqEvent::TxIqEvent) {

@@ -48,8 +48,8 @@ public:
   }
 
   uint32_t processSamples(
-    const vsdrreal& in,
-    vsdrreal& out,
+    const RealSamplesMax& in,
+    RealSamplesMax& out,
     uint32_t inputLength
     ) const
   {
@@ -67,8 +67,8 @@ public:
     uint32_t inputLength
     ) override
   {
-    vsdrcomplex& in = buffers.input();
-    vsdrcomplex& out = buffers.output();
+    ComplexSamplesMax& in = buffers.input();
+    ComplexSamplesMax& out = buffers.output();
     unsigned int numWritten = 0;
     for (uint32_t i = 0; i < inputLength; ++i) {
       unsigned int n;

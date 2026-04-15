@@ -10,18 +10,16 @@
 class BandPassFirKernel : public FirKernel
 {
 public:
-  BandPassFirKernel(uint32_t firSize, uint32_t fftSize) : FirKernel(firSize, fftSize)
-  {
-  }
+  BandPassFirKernel() = default;
 
   void configure(int32_t freqLoCut, int32_t freqHiCut, int32_t offset, uint32_t sampleRate)
   {
-    const vsdrcomplex& complex = configureComplex(freqLoCut, freqHiCut, offset, sampleRate);
+    const ComplexSamplesFft& complex = configureComplex(freqLoCut, freqHiCut, offset, sampleRate);
     complexToReal(complex, m_realCoefficients);
   }
 
 protected:
-  const vsdrcomplex& configureComplex(int32_t freqLoCut, int32_t freqHiCut, int32_t offset, uint32_t sampleRate);
+  const ComplexSamplesFft& configureComplex(int32_t freqLoCut, int32_t freqHiCut, int32_t offset, uint32_t sampleRate);
 
 
 };

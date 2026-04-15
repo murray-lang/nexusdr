@@ -5,7 +5,7 @@
 #include "RxPipelineAudioTap.h"
 
 uint32_t
-RxPipelineAudioTap::sinkAudio(const vsdrreal& samples, uint32_t length, uint32_t numChannels)
+RxPipelineAudioTap::sinkAudio(const RealSamplesMax& samples, uint32_t length, uint32_t numChannels)
 {
   return m_router.sinkPipelineAudio(m_pipelineId, samples, length, numChannels);
 }

@@ -25,11 +25,11 @@ public:
 
   void configure(const ReceiverConfig* pConfig);
 
-  uint32_t sinkIq(const vsdrcomplex& samples, uint32_t length) override; // IqSink
+  uint32_t sinkIq(const ComplexSamplesMax& samples, uint32_t length) override; // IqSink
 
   // Called by RxPipelineAudioTap (router interface)
   uint32_t sinkPipelineAudio(PipelineId pipelineId,
-                             const vsdrreal& samples,
+                             const RealSamplesMax& samples,
                              uint32_t length,
                              uint32_t numChannels) override;
 
@@ -47,16 +47,16 @@ public:
   bool adjustRfSettingsToLimits(RxPipelineSettings* rxPipelineSettings, IqRxPipeline& pipeline, bool onlyIfChanged = true) const;
 
 protected:
-  static uint32_t downmixToMono(const vsdrreal& in,
+  static uint32_t downmixToMono(const RealSamplesMax& in,
                                uint32_t length,
                                uint32_t numChannels,
-                               vsdrreal& outMono);
+                               RealSamplesMax& outMono);
 
-  void outputStereoFromMono(const vsdrreal& leftMono,
-                            const vsdrreal& rightMono,
+  void outputStereoFromMono(const RealSamplesMax& leftMono,
+                            const RealSamplesMax& rightMono,
                             uint32_t frames);
 
-  void outputStereoDuplicate(const vsdrreal& mono, uint32_t frames);
+  void outputStereoDuplicate(const RealSamplesMax& mono, uint32_t frames);
 
 protected:
   // const ModeSettings& m_modeSettings;
@@ -74,9 +74,9 @@ protected:
 
   bool m_havePendingA;
   bool m_havePendingB;
-  vsdrreal m_pendingA;
-  vsdrreal m_pendingB;
+  RealSamplesMax m_pendingA;
+  RealSamplesMax m_pendingB;
 
-  vsdrreal m_stereoOutInterleaved;
+  RealSamplesMax m_stereoOutInterleaved;
 };
 

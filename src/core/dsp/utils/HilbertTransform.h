@@ -38,7 +38,7 @@ public:
   }
   
 
-  uint32_t transform(const vsdrreal& input, uint32_t numSamples, uint32_t numChannels, vsdrcomplex& output)
+  uint32_t transform(const RealSamplesMax& input, uint32_t numSamples, uint32_t numChannels, ComplexSamplesMax& output)
   {
     // qDebug() << "HilbertTransform::transform(): numSamples =" << numSamples << ", numChannels =" << numChannels;
     auto N = static_cast<size_t>(numSamples/numChannels);

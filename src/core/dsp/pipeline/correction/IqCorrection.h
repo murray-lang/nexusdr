@@ -37,7 +37,7 @@ class IqCorrection : public IqPipelineStage
     auto& output = buffers.output();
     return processSamples(input, output, inputLength);
   }
-  uint32_t processSamples(const vsdrcomplex& input, vsdrcomplex& output, uint32_t inputLength) const
+  uint32_t processSamples(const ComplexSamplesMax& input, ComplexSamplesMax& output, uint32_t inputLength) const
   {
     const sdrreal gain = static_cast<sdrreal>(1.0) + m_amplitudeCorrection;
 

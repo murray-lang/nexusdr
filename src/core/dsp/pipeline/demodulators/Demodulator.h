@@ -15,8 +15,8 @@ public:
   virtual ~Demodulator() = default;
 
   virtual uint32_t processSamples(
-    const vsdrcomplex& in,
-    vsdrreal& out,
+    const ComplexSamplesMax& in,
+    RealSamplesMax& out,
     uint32_t inputLength
     ) = 0;
 
