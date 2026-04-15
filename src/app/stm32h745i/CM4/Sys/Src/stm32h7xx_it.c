@@ -21,6 +21,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32h7xx_it.h"
 #include "main.h"
+
 #ifdef USE_FREERTOS
 #include <FreeRTOS.h>
 #include <task.h>
@@ -175,13 +176,3 @@ void SysTick_Handler(void)
 /*void PPP_IRQHandler(void)
 {
 }*/
-
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-

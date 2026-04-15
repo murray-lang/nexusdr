@@ -119,12 +119,13 @@ extern void MX_DMA_Init(void);
 extern void MX_FMC_Init(void);
 extern void MX_SAI2_Init(void);
 extern void MX_USART3_UART_Init(void);
-extern void MX_USB_OTG_FS_PCD_Init(void);
 extern void MX_DAC1_Init(void);
 extern void MX_ADC1_Init(void);
 extern void MX_ADC2_Init(void);
 extern void MX_TIM6_Init(void);
 extern void MX_I2C4_Init(void);
 extern void MX_USART6_UART_Init(void);
+
+// extern void USB_Device_Init(void);
 
 #endif // __CONFIG_H__
