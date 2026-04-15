@@ -100,7 +100,6 @@ int main(void)
   }
   MPU_Config_Shared();
 
-
   /*HW semaphore Clock enable*/
   __HAL_RCC_HSEM_CLK_ENABLE();
 
@@ -108,18 +107,12 @@ int main(void)
   HAL_HSEM_ActivateNotification(__HAL_HSEM_SEMID_TO_MASK(HSEM_ID_0));
 
   /*
-    Domain D2 goes to STOP mode (Cortex-M4 in deep-sleep) waiting for Cortex-M7 to
-    perform system initialization (system clock config, external memory configuration.. )   
+    Domain D2 goes to STOP mode (Cortex-M4 in deep-sleep)
   */
   HAL_PWREx_ClearPendingEvent();
   HAL_PWREx_EnterSTOPMode(PWR_MAINREGULATOR_ON, PWR_STOPENTRY_WFE, PWR_D2_DOMAIN);
   //BSP_LED_On(LED_RED);
 
-  // Do this instead:
-  // while(HAL_HSEM_IsSemTaken(HSEM_ID_0)) {
-  //   // Busy wait instead of STOP mode
-  // }
-  // BSP_LED_On(LED_GREEN);
   /* Clear HSEM flag */
   __HAL_HSEM_CLEAR_FLAG(__HAL_HSEM_SEMID_TO_MASK(HSEM_ID_0));
   SystemCoreClockUpdate();
@@ -134,7 +127,6 @@ int main(void)
   MX_SAI2_Init();
   MX_I2C4_Init();
   // MX_USART3_UART_Init();
-  // // MX_USB_OTG_FS_PCD_Init();
   MX_DAC1_Init();
   MX_ADC1_Init();
   MX_ADC2_Init();

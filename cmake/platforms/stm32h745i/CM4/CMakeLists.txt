@@ -18,6 +18,8 @@ set(COMPILE_DEFS
         CORE_CM4
         DISABLE_MMC_INIT # CM7 is responsible for MMC init.
         LIMIT_FATFS_CLOCK_FOR_CM4   # Slow down SDMMC clock for CM4 FatFs access
+        CFG_TUSB_MCU=OPT_MCU_STM32H7
+        HSE_VALUE=25000000
 )
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mcpu=cortex-m4 -std=gnu11 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard --specs=nano.specs")
@@ -52,6 +54,7 @@ set(CM4_SOURCES
     ${FATFS_SOURCES}
     ${CM4_APP_SOURCES}
     ${CM4_SYS_SOURCES}
+#    ${TINYUSB_SOURCES}
 )
 
 if(USE_FREERTOS)
@@ -89,6 +92,8 @@ set(INCLUDE_DIRS
     ${CMSIS_DIR}/Device/ST/STM32H7xx/Include
     ${HAL_DIR}/Inc
     ${FATFS_DIR}/src
+#    ${TINYUSB_DIR}
+#    ${TINYUSB_DIR}/hw/bsp/stm32h7
 )
 
 if(USE_FREERTOS)

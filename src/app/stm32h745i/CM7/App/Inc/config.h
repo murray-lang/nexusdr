@@ -7,7 +7,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include <stdbool.h>
-
+#include "stm32h7xx_hal.h"
 #include "stm32h745i_discovery.h"
 #include "ff_gen_drv.h"
 #include "mmc_diskio.h"
@@ -65,6 +65,43 @@
 // #define USARTx_PERIPHCLK                 RCC_PERIPHCLK_USART6
 // #define USARTx_CLKSOURCE                 RCC_USART234578CLKSOURCE_HSI
 
+#define SDIO1_D2_Pin GPIO_PIN_10
+#define SDIO1_D2_GPIO_Port GPIOC
+#define LCD_DISP_Pin GPIO_PIN_15
+#define LCD_DISP_GPIO_Port GPIOJ
+#define SDIO1_D3_Pin GPIO_PIN_11
+#define SDIO1_D3_GPIO_Port GPIOC
+#define OSC32_OUT_Pin GPIO_PIN_15
+#define OSC32_OUT_GPIO_Port GPIOC
+#define OSC32_IN_Pin GPIO_PIN_14
+#define OSC32_IN_GPIO_Port GPIOC
+#define SDIO1_CK_Pin GPIO_PIN_12
+#define SDIO1_CK_GPIO_Port GPIOC
+#define SDIO1_D5_Pin GPIO_PIN_9
+#define SDIO1_D5_GPIO_Port GPIOB
+#define SDIO1_D4_Pin GPIO_PIN_8
+#define SDIO1_D4_GPIO_Port GPIOB
+#define SDIO1_CMD_Pin GPIO_PIN_2
+#define SDIO1_CMD_GPIO_Port GPIOD
+#define VBUS_FS2_Pin GPIO_PIN_9
+#define VBUS_FS2_GPIO_Port GPIOA
+#define SDIO1_D0_Pin GPIO_PIN_8
+#define SDIO1_D0_GPIO_Port GPIOC
+#define SDIO1_D1_Pin GPIO_PIN_9
+#define SDIO1_D1_GPIO_Port GPIOC
+#define USB_OTG_FS2_P_Pin GPIO_PIN_12
+#define USB_OTG_FS2_P_GPIO_Port GPIOA
+#define USB_OTG_FS2_N_Pin GPIO_PIN_11
+#define USB_OTG_FS2_N_GPIO_Port GPIOA
+#define SDIO1_D7_Pin GPIO_PIN_7
+#define SDIO1_D7_GPIO_Port GPIOC
+#define SDIO1_D6_Pin GPIO_PIN_6
+#define SDIO1_D6_GPIO_Port GPIOC
+#define OSC_OUT_Pin GPIO_PIN_1
+#define OSC_OUT_GPIO_Port GPIOH
+#define OSC_IN_Pin GPIO_PIN_0
+#define OSC_IN_GPIO_Port GPIOH
+
 extern UART_HandleTypeDef     UartHandle;
 
 /* Exported macro ------------------------------------------------------------*/
@@ -86,16 +123,22 @@ set to 'Yes') calls __io_putchar() */
 /* Exported functions ------------------------------------------------------- */
 extern void MPU_Config(void);
 extern void CPU_CACHE_Enable(void);
-extern void SystemClock_Config_New(void);
-extern void PeriphCommonClock_Config_New(void);
-extern void SystemClock_Config_Working(void);
-extern void PeriphCommonClock_Config_Working(void);
+extern void SystemClock_Config(void);
+extern void PeriphCommonClock_Config(void);
 extern void Error_Handler(void);
 extern void UART_Config(void);
 extern void USB_Device_Init(void);
 
+
+extern void MX_GPIO_Init(void);
+extern void MX_DMA_Init(void);
+// extern void MX_DMA2D_Init(void);
+extern void MX_FMC_Init(void);
+// extern void MX_LTDC_Init(void);
+
 extern void MX_QUADSPI_Init(void);
 extern void MX_SDMMC1_MMC_Init(void);
+extern void MX_USB_OTG_FS_USB_Init(void);
 
 //--------------------------------------------------------------------+
 // TinyUSB Device Callbacks
