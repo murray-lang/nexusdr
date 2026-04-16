@@ -122,6 +122,8 @@ set(INCLUDE_DIRS
         ${FATFS_DIR}/src
         ${TINYUSB_DIR}
         ${TINYUSB_DIR}/hw/bsp/stm32h7
+        ${ARDUINO_JSON_DIR}
+        ${ETL_DIR}
 )
 
 if(USE_FREERTOS)

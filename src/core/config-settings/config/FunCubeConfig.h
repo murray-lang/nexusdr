@@ -13,6 +13,6 @@ public:
   FunCubeConfig() : ConfigBase(type) {}
   ~FunCubeConfig() override = default;
 
-  void fromJson(const nlohmann::json& json) override {}
+  void fromJson(JsonVariantConst json) override {}
 
 };

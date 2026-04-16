@@ -45,17 +45,17 @@ public:
   //   return *this;
   // }
 
-  void fromJson(const nlohmann::json& json) override
+  void fromJson(JsonVariantConst json) override
   {
-    if (json.contains("sinks")) {
-      for (auto& sinkConfig : json["sinks"]) {
+    if (json["sinks"]) {
+      for (JsonVariantConst sinkConfig : json["sinks"].as<JsonArrayConst>()) {
         VariantConfig variantConfig(sinkConfig);
         ConfigBase* config = ConfigFactory::create(variantConfig);
         m_sinks.push_back(config);
       }
     }
-    if (json.contains("sources")) {
-      for (auto& sourceConfig : json["sources"]) {
+    if (json["sources"]) {
+      for (JsonVariantConst sourceConfig : json["sources"].as<JsonArrayConst>()) {
         VariantConfig variantConfig(sourceConfig);
         ConfigBase* config = ConfigFactory::create(variantConfig);
         m_sources.push_back(config);
@@ -63,34 +63,26 @@ public:
     }
   }
 
-  // Convenience helpers to work with the plain struct form
-  void setFields(const ControlConfigFields& f)
+  void toJson(JsonObject& json) const override
   {
-    static_cast<ControlConfigFields&>(*this) = f;
-    for (auto* p : m_sinks) delete p; m_sinks.clear();
-    for (auto* p : m_sources) delete p; m_sources.clear();
-    for (const auto& vc : f.sinks) m_sinks.push_back(ConfigFactory::create(vc));
-    for (const auto& vc : f.sources) m_sources.push_back(ConfigFactory::create(vc));
-  }
-
-  [[nodiscard]] ControlConfigFields getFields() const
-  {
-    ControlConfigFields f;
-    for (const auto* s : m_sinks) if (s) f.sinks.emplace_back(nlohmann::json{{"type", s->getType()}, {"config", s->toJson()}});
-    for (const auto* s : m_sources) if (s) f.sources.emplace_back(nlohmann::json{{"type", s->getType()}, {"config", s->toJson()}});
-    return f;
-  }
-  [[nodiscard]] nlohmann::json toJson() const override
-  {
-    nlohmann::json sinks = nlohmann::json::array();
+    JsonArray sinks = json["sinks"].to<JsonArray>();
     for (const auto* s : m_sinks) {
-      if (s) sinks.push_back(nlohmann::json{{"type", s->getType()}, {"config", s->toJson()}});
+      if (s) {
+        JsonObject sinkObj = sinks.add<JsonObject>();
+        sinkObj["type"] = s->getType();
+        JsonObject config = sinkObj["config"].to<JsonObject>();
+        s->toJson(config);
+      }
     }
-    nlohmann::json sources = nlohmann::json::array();
+    JsonArray sources = json["sources"].to<JsonArray>();
     for (const auto* s : m_sources) {
-      if (s) sources.push_back(nlohmann::json{{"type", s->getType()}, {"config", s->toJson()}});
+      if (s) {
+        JsonObject sourceObj = sources.add<JsonObject>();
+        sourceObj["type"] = s->getType();
+        JsonObject config = sourceObj["config"].to<JsonObject>();
+        s->toJson(config);
+      }
     }
-    return nlohmann::json{{"sinks", sinks}, {"sources", sources}};
   }
 
   [[nodiscard]] const std::vector<ConfigBase*>& getSinks() const { return m_sinks; }

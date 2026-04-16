@@ -24,19 +24,19 @@ public:
   BandSelectorLookupItemConfig(const BandSelectorLookupItemConfig& rhs) = default;
   BandSelectorLookupItemConfig& operator=(const BandSelectorLookupItemConfig& rhs) = default;
 
-  void fromJson(const nlohmann::json& json) override
+  void fromJson(JsonVariantConst json) override
   {
-    if (json.contains("fromFrequency")) {
+    if (json["fromFrequency"]) {
       fromFrequency = json["fromFrequency"];
     } else {
       throw ConfigException("BandSelectorLookupItemConfig: fromFrequency empty");
     }
-    if (json.contains("toFrequency")) {
+    if (json["toFrequency"]) {
       toFrequency = json["toFrequency"];
     } else {
       throw ConfigException("BandSelectorLookupItemConfig: toFrequency empty");
     }
-    if (json.contains("out")) {
+    if (json["out"]) {
       out = json["out"];
     } else {
       throw ConfigException("BandSelectorLookupItemConfig: out empty");

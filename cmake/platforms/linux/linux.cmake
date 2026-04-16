@@ -22,7 +22,6 @@ find_package(PkgConfig)
 
 find_path(LIQUID_INCLUDE_DIR NAMES liquid/liquid.h) # TODO modify this per TARGET_PLATFORM
 find_library(LIQUID_LIBRARY NAMES liquid)
-find_package(nlohmann_json 3.11.2 REQUIRED)
 
 if(LIQUID_INCLUDE_DIR AND LIQUID_LIBRARY)
     message(STATUS "Found liquid-dsp: ${LIQUID_LIBRARY}")
@@ -210,13 +209,13 @@ set(INCLUDE_DIRS
         ${LIQUID_INCLUDE_DIR}
         /usr/include/hidapi/
         ${ETL_DIR}
+        ${ARDUINO_JSON_DIR}
 )
 
 target_include_directories(nexusdr PUBLIC ${INCLUDE_DIRS} )
 #target_link_directories(nexusdr PRIVATE ${DSPL_DIR})
 
 set(PROJECT_LIBRARIES
-        nlohmann_json::nlohmann_json
         ${LIQUID_LIBRARY}
         ${AUDIO_DRIVER_LIBS}
         ${AUDIO_LINK_LIBS}

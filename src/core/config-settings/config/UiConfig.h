@@ -17,16 +17,16 @@ class UiConfig : public ConfigBase, public UiConfigFields
 
   UiConfig() : ConfigBase(type) {}
   ~UiConfig() override = default;
-  void fromJson(const nlohmann::json& json) override
+  void fromJson(JsonVariantConst json) override
   {
-    if (json.contains("face")) {
-      face = json["face"];
+    if (json["face"]) {
+      face = json["face"].as<const char *>();
     }
   }
 
-  [[nodiscard]] nlohmann::json toJson() const override
+  void toJson(JsonObject& json) const override
   {
-    return nlohmann::json{{"face", face}};
+    json["face"] = face;
   }
 
 };

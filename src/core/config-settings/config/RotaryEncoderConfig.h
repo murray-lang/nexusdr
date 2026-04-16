@@ -14,7 +14,7 @@ public:
   RotaryEncoderConfig() : DigitalInputConfig(type) {}
   ~RotaryEncoderConfig() override = default;
 
-  void fromJson(const nlohmann::json& json) override
+  void fromJson(JsonVariantConst json) override
   {
     DigitalInputConfig::fromJson(json);
   }

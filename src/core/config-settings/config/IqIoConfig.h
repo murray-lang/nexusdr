@@ -25,15 +25,15 @@ public:
     delete m_pAudioOutput;
   };
 
-  void fromJson(const nlohmann::json& json) override
+  void fromJson(JsonVariantConst json) override
   {
-    if (json.contains("iqSource")) {
+    if (json["iqSource"]) {
       VariantConfig variantConfig(json["iqSource"]);
       m_pIqSource = ConfigFactory::create(variantConfig);
     } else {
       throw ConfigException("IqIoConfig: iqSource empty");
     }
-    if (json.contains("audioOutput")) {
+    if (json["audioOutput"]) {
       VariantConfig variantConfig(json["audioOutput"]);
       m_pAudioOutput = ConfigFactory::create(variantConfig);
     } else {
@@ -54,22 +54,33 @@ public:
   [[nodiscard]] IqIoConfigFields getFields() const
   {
     IqIoConfigFields f;
-    if (m_pIqSource) f.iqSource = nlohmann::json{{"type", m_pIqSource->getType()}, {"config", m_pIqSource->toJson()}};
-    if (m_pAudioOutput) f.audioOutput = nlohmann::json{{"type", m_pAudioOutput->getType()}, {"config", m_pAudioOutput->toJson()}};
+    // Note: getFields() needs proper serialization implementation
+    // TODO: Need to serialize ConfigBase objects to VariantConfig's internal JsonVariant storage
+    if (m_pIqSource) {
+      f.iqSource.setType(m_pIqSource->getType());
+      // TODO: Serialize m_pIqSource to f.iqSource's JsonVariant
+    }
+    if (m_pAudioOutput) {
+      f.audioOutput.setType(m_pAudioOutput->getType());
+      // TODO: Serialize m_pAudioOutput to f.audioOutput's JsonVariant
+    }
     return f;
   }
 
-  [[nodiscard]] nlohmann::json toJson() const override
+  void toJson(JsonObject& json) const override
   {
-    nlohmann::json input;
     if (m_pIqSource) {
-      input = nlohmann::json{{"type", m_pIqSource->getType()}, {"config", m_pIqSource->toJson()}};
+      JsonObject input = json["input"].to<JsonObject>();
+      input["type"] = m_pIqSource->getType();
+      JsonObject config = input["config"].to<JsonObject>();
+      m_pIqSource->toJson(config);
     }
-    nlohmann::json output;
     if (m_pAudioOutput) {
-      output = nlohmann::json{{"type", m_pAudioOutput->getType()}, {"config", m_pAudioOutput->toJson()}};
+      JsonObject output = json["output"].to<JsonObject>();
+      output["type"] = m_pAudioOutput->getType();
+      JsonObject config = output["config"].to<JsonObject>();
+      m_pAudioOutput->toJson(config);
     }
-    return nlohmann::json{{"input", input}, {"output", output}};
   }
 
 

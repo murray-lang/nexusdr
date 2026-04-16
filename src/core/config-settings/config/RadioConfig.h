@@ -44,39 +44,38 @@ public:
 //     return *this;
 //   }
 
-  void fromJson(const nlohmann::json& json) override
+  void fromJson(JsonVariantConst json) override
   {
-    if(json.contains(ReceiverConfig::type)) {
+    if(json[ReceiverConfig::type]) {
       m_pReceiver =
         dynamic_cast<ReceiverConfig *>(ConfigFactory::create(ReceiverConfig::type, json[ReceiverConfig::type]));
     }
-    if(json.contains(TransmitterConfig::type)) {
+    if(json[TransmitterConfig::type]) {
      m_pTransmitter =
        dynamic_cast<TransmitterConfig *>(ConfigFactory::create(TransmitterConfig::type, json[TransmitterConfig::type]));
     }
-    if (json.contains(ControlConfig::type)) {
+    if (json[ControlConfig::type]) {
       m_pControl = dynamic_cast<ControlConfig *>(ConfigFactory::create(ControlConfig::type, json[ControlConfig::type]));
     }
-    if (json.contains(UiConfig::type)) {
+    if (json[UiConfig::type]) {
       m_pUiConfig = dynamic_cast<UiConfig *>(ConfigFactory::create(UiConfig::type, json[UiConfig::type]));
     }
   }
 
-  [[nodiscard]] nlohmann::json toJson() const override
+  void toJson(JsonObject& json) const override
   {
-    nlohmann::json receiver;
     if (m_pReceiver) {
-      receiver = m_pReceiver->toJson();
+      JsonObject receiver = json["receiver"].to<JsonObject>();
+      m_pReceiver->toJson(receiver);
     }
-    nlohmann::json transmitter;
     if (m_pTransmitter) {
-      transmitter = m_pTransmitter->toJson();
+      JsonObject transmitter = json["transmitter"].to<JsonObject>();
+      m_pTransmitter->toJson(transmitter);
     }
-    nlohmann::json control;
     if (m_pControl) {
-      control = m_pControl->toJson();
+      JsonObject control = json["control"].to<JsonObject>();
+      m_pControl->toJson(control);
     }
-    return nlohmann::json{{"receiver", receiver}, {"transmitter", transmitter}, {"control", control}};
   }
 
 

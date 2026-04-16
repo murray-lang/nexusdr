@@ -17,14 +17,14 @@ public:
   DigitalOutputConfig(const char* typeName) : GpioLinesConfig(typeName) {}
   ~DigitalOutputConfig() override  = default;
 
-  void fromJson(const nlohmann::json& json) override
+  void fromJson(JsonVariantConst json) override
   {
     GpioLinesConfig::fromJson(json);
     if (lines.empty()) {
       throw ConfigException("DigitalOutputConfig: lines empty");
     }
-    if (json.contains("settingPath")) {
-      m_settingPath = json["settingPath"];
+    if (json["settingPath"]) {
+      m_settingPath = json["settingPath"].as<const char *>();
     } else {
       throw ConfigException("DigitalOutputConfig: settingPath empty");
     }

@@ -17,16 +17,16 @@ public:
   explicit DigitalInputConfig(const char * subtype) : GpioLinesConfig(subtype), m_activeHigh(true), m_debounce(true) {}
   ~DigitalInputConfig() override  = default;
 
-  void fromJson(const nlohmann::json& json) override
+  void fromJson(JsonVariantConst json) override
   {
     GpioLinesConfig::fromJson(json);
-    if (json.contains("activeHigh")) {
+    if (json["activeHigh"]) {
       m_activeHigh = json["activeHigh"];
     } else {
       m_activeHigh = true; 
     }
 
-    if (json.contains("debounce")) {
+    if (json["debounce"]) {
       m_debounce = json["debounce"];
     } else {
       m_debounce = false;
@@ -34,8 +34,8 @@ public:
     if (lines.empty()) {
       throw ConfigException("DigitalInputConfig: lines empty");
     }
-    if (json.contains("settingPath")) {
-      m_settingPath = json["settingPath"];
+    if (json["settingPath"]) {
+      m_settingPath = json["settingPath"].as<const char*>();
     } else {
       throw ConfigException("DigitalInputConfig: settingPath empty");
     }

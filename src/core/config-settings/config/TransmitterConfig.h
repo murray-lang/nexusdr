@@ -21,9 +21,9 @@ public:
   static constexpr auto type = "transmitter";
   explicit TransmitterConfig() : ConfigBase(type) {}
 
-  void fromJson(const nlohmann::json& json) override
+  void fromJson(JsonVariantConst json) override
   {
-    if (json.contains("iqIo")) {
+    if (json["iqIo"]) {
       iqIo.fromJson(json["iqIo"]);
     } else {
       throw ConfigException("TransmitterConfig: no iqIo configuration");
@@ -43,8 +43,9 @@ public:
     return f;
   }
 
-  [[nodiscard]] nlohmann::json toJson() const override
+  void toJson(JsonObject& json) const override
   {
-    return nlohmann::json{{"iqIo", iqIo.toJson()}};
+    JsonObject iqIoObj = json["iqIo"].to<JsonObject>();
+    iqIo.toJson(iqIoObj);
   }
 };

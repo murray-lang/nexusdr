@@ -51,42 +51,40 @@ public:
   {
     return static_cast<const AudioConfigFields&>(*this);
   }
-  void fromJson(const nlohmann::json& json) override
+  void fromJson(JsonVariantConst json) override
   {
-    if (json.contains("soundApi")) {
-      soundApi = json["soundApi"].get<std::string>();
+    if (json["soundApi"]) {
+      soundApi = json["soundApi"].as<const char*>();
     }
-    if (json.contains("isInput")) {
-      isInput = json["isInput"].get<bool>();
+    if (json["isInput"]) {
+      isInput = json["isInput"].as<bool>();
     }
-    if (json.contains("isIq")) {
-      isIq = json["isIq"].get<bool>();
+    if (json["isIq"]) {
+      isIq = json["isIq"].as<bool>();
     }
-    if (json.contains("searchExpression")) {
-      searchExpression = json["searchExpression"].get<std::string>();
+    if (json["searchExpression"]) {
+      searchExpression = json["searchExpression"].as<const char*>();
     }
-    if (json.contains("sampleRate")) {
-      sampleRate = json["sampleRate"].get<uint32_t>();
+    if (json["sampleRate"]) {
+      sampleRate = json["sampleRate"].as<uint32_t>();
     }
-    if (json.contains("channelCount")) {
-      channelCount = std::min(json["channelCount"].get<uint32_t>(), 2u);
+    if (json["channelCount"]) {
+      channelCount = std::min(json["channelCount"].as<uint32_t>(), 2u);
     }
-    if (json.contains("format")) {
-      format = json["format"].get<std::string>();
+    if (json["format"]) {
+      format = json["format"].as<const char*>();
     }
   }
 
-  [[nodiscard]] nlohmann::json toJson() const override
+  void toJson(JsonObject& json) const override
   {
-    return nlohmann::json{
-      {"isInput", isInput},
-      {"isIq", isIq},
-      {"soundApi", soundApi},
-      {"searchExpression", searchExpression},
-      {"sampleRate", sampleRate},
-      {"channelCount", channelCount},
-      {"format", format}
-    };
+    json["isInput"] = isInput;
+    json["isIq"] = isIq;
+    json["soundApi"] = soundApi;
+    json["searchExpression"] = searchExpression;
+    json["sampleRate"] = sampleRate;
+    json["channelCount"] = channelCount;
+    json["format"] = format;
   }
 
 

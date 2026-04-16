@@ -26,13 +26,13 @@ ConfigBase*
 ConfigFactory::create(const VariantConfig& item)
 {
   const std::string& type = item.getType();
-  const nlohmann::json& config = item.getConfig();
+  JsonVariantConst config = item.getConfig();
 
   return create(type, config);
 }
 
 ConfigBase*
-ConfigFactory::create(const std::string& type, const nlohmann::json& config)
+ConfigFactory::create(const std::string& type, JsonVariantConst config)
 {
   ConfigBase* result = create(type);
   if (result == nullptr) {

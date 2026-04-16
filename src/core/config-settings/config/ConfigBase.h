@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include <nlohmann/json.hpp>
+#include <ArduinoJson.h>
 #include <string>
 
 class ConfigBase
@@ -17,11 +17,11 @@ public:
 
   // Load this configuration from JSON (symmetrical with toJson()).
   // All derived classes must implement this.
-  virtual void fromJson(const nlohmann::json& json) = 0;
+  virtual void fromJson(JsonVariantConst json) = 0;
 
   // Serialize this configuration back to JSON. Default: empty object
   // Derived classes should override to include their fields.
-  [[nodiscard]] virtual nlohmann::json toJson() const { return nlohmann::json::object(); }
+  virtual void toJson(JsonObject& json) const { }
 
   [[nodiscard]] const std::string& getType() const { return m_type; }
 protected:

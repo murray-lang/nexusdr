@@ -39,21 +39,21 @@ public:
     return static_cast<const GpioLinesConfigFields&>(*this);
   }
 
-  void fromJson(const nlohmann::json& json) override
+  void fromJson(JsonVariantConst json) override
   {
-    if (json.contains("lines")) {
-      for (auto& line : json["lines"]) {
-        lines.push_back(line);
+    if (json["lines"]) {
+      for (JsonVariantConst line : json["lines"].as<JsonArrayConst>()) {
+        lines.push_back(line.as<uint32_t>());
       }
     }
-    if (json.contains("direction")) {
-      direction = json["direction"];
+    if (json["direction"]) {
+      direction = json["direction"].as<const char *>();
     }
-    if (json.contains("bias")) {
-      bias = json["bias"];
+    if (json["bias"]) {
+      bias = json["bias"].as<const char *>();
     }
-    if (json.contains("edge")) {
-      edge = json["edge"];
+    if (json["edge"]) {
+      edge = json["edge"].as<const char *>();
     }
   }
 };
