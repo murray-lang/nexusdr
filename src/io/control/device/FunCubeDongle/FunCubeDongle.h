@@ -27,7 +27,7 @@ public:
 
   void ptt(bool on) override;
 
-  // void initialise(const nlohmann::json& json) override;
+  // void initialise(JsonVariantConst json) override;
   void configure(const ConfigBase* pConfig) override;
   bool discover() override;
   void open() override;

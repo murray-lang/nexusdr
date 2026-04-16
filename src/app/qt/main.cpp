@@ -6,7 +6,7 @@
 #include "core/dsp/utils/FftData.h"
 
 #include <fstream>
-#include <nlohmann/json.hpp>
+#include <ArduinoJson.h>
 #include <iostream>
 
 #include <etl/string.h>
@@ -14,7 +14,6 @@
 #include "io/control/device/gpio/Gpio.h"
 #include "io/control/device/gpio/GpioException.h"
 #include "io/control/device/gpio/digital/DigitalInputLinesRequest.h"
-using json = nlohmann::json;
 
 int main(int argc, char *argv[])
 {
@@ -35,23 +34,30 @@ int main(int argc, char *argv[])
   if (QFile::exists(configPath)) {
     try {
       std::ifstream f(configPath.toStdString());
-      json config = json::parse(f);
-      if (config.contains("radio")) {
+      JsonDocument doc;
+      DeserializationError error = deserializeJson(doc, f);
+      if (error) {
+        qDebug() << "Failed to parse config at" << configPath << ":" << error.c_str();
+      } else if (doc["radio"]) {
         // Prefer fromJson for symmetry with toJson()
-        radioConfig.fromJson(config["radio"]);
+        radioConfig.fromJson(doc["radio"].as<JsonVariantConst>());
       } else {
         qDebug() << "Config file present but no 'radio' section found:" << configPath;
       }
     } catch (const std::exception& ex) {
-      qDebug() << "Failed to parse config at" << configPath << ":" << ex.what();
+      qDebug() << "Failed to read config at" << configPath << ":" << ex.what();
     }
   } else {
     qDebug() << "No config file found at" << configPath << "; using defaults.";
   }
 
   if (dumpConfig) {
-    nlohmann::json out = nlohmann::json{{"radio", radioConfig.toJson()}};
-    std::cout << out.dump(2) << std::endl;
+    JsonDocument doc;
+    JsonObject root = doc.to<JsonObject>();
+    JsonObject radio = root["radio"].to<JsonObject>();
+    radioConfig.toJson(radio);
+    serializeJsonPretty(doc, std::cout);
+    std::cout << std::endl;
     return 0;
   }
 #ifdef USE_GPIO

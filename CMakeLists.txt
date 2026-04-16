@@ -9,6 +9,12 @@ if(POLICY CMP0167)
     cmake_policy(SET CMP0167 NEW)
 endif()
 
+set(APP_DIR ${CMAKE_SOURCE_DIR}/src/app)
+set(THIRD_PARTY_DIR ${CMAKE_SOURCE_DIR}/src/third-party)
+set(ETL_DIR ${THIRD_PARTY_DIR}/etl)
+set(ARDUINO_JSON_DIR ${THIRD_PARTY_DIR}/ArduinoJson/src)
+
+
 set (CONFIG_SOURCES
         src/core/config-settings/config/RadioConfig.h
         src/core/config-settings/config/ReceiverConfig.h
@@ -215,10 +221,6 @@ set(UTIL_SOURCES
         src/core/util/StringUtils.cpp
         src/core/util/StringUtils.h
 )
-
-set(APP_DIR ${CMAKE_SOURCE_DIR}/src/app)
-set(THIRD_PARTY_DIR ${CMAKE_SOURCE_DIR}/src/third-party)
-set(ETL_DIR ${THIRD_PARTY_DIR}/etl)
 
 set(GIT_DIR_LOOKUP_POLICY ALLOW_LOOKING_ABOVE_CMAKE_SOURCE_DIR)
 add_subdirectory(${ETL_DIR})

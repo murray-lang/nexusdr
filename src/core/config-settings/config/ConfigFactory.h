@@ -5,7 +5,6 @@
 #pragma once
 #include "ConfigBase.h"
 #include "VariantConfig.h"
-#include <nlohmann/json.hpp>
 
 
 class ConfigFactory
@@ -13,5 +12,5 @@ class ConfigFactory
 public:
   static ConfigBase* create(const VariantConfig& item);
   static ConfigBase* create(const std::string& type);
-  static ConfigBase* create(const std::string& type, const nlohmann::json& config);
+  static ConfigBase* create(const std::string& type, JsonVariantConst config);
 };

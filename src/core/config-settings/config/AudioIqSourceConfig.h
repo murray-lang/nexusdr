@@ -21,9 +21,9 @@ public:
   AudioIqSourceConfig& operator=(const AudioIqSourceConfig& rhs) = default;
   [[nodiscard]] const AudioConfig& getAudioInput() const { return audioInput; }
 
-  void fromJson(const nlohmann::json& json) override
+  void fromJson(JsonVariantConst json) override
   {
-    if (json.contains("audioInput")) {
+    if (json["audioInput"]) {
       audioInput.fromJson(json["audioInput"]);
     }
   }
@@ -33,10 +33,9 @@ public:
     return static_cast<const AudioIqSourceConfigFields&>(*this);
   }
 
-  [[nodiscard]] nlohmann::json toJson() const override
+  void toJson(JsonObject& json) const override
   {
-    return nlohmann::json{
-      {"audioInput", audioInput.toJson()}
-    };
+    JsonObject audioInputObj = json["audioInput"].to<JsonObject>();
+    audioInput.toJson(audioInputObj);
   }
 };

@@ -5,35 +5,49 @@
 #pragma once
 
 #include <string>
-#include <nlohmann/json.hpp>
+#include <ArduinoJson.h>
 
 class VariantConfig
 {
 public:
   VariantConfig() = default;
-  VariantConfig(const VariantConfig& rhs) = default;
-  explicit VariantConfig(const nlohmann::json& json)
+  VariantConfig(const VariantConfig& rhs) : m_type(rhs.m_type) {
+    m_config.set(rhs.m_config.as<JsonVariantConst>());
+  }
+  explicit VariantConfig(JsonVariantConst json)
   {
     fromJson(json);
   }
   ~VariantConfig() = default;
 
-  VariantConfig& operator=(const VariantConfig& rhs) = default;
-  VariantConfig& operator=(const nlohmann::json& json)
+  VariantConfig& operator=(const VariantConfig& rhs)
+  {
+    if (this != &rhs) {
+      m_type = rhs.m_type;
+      m_config.set(rhs.m_config.as<JsonVariantConst>());
+    }
+    return *this;
+  }
+
+  VariantConfig& operator=(JsonVariantConst json)
   {
     fromJson(json);
     return *this;
   }
 
-
-  void fromJson(const nlohmann::json& json)
+  void fromJson(JsonVariantConst json)
   {
-    if (json.contains("type")) {
-      m_type = json["type"];
+    if (json["type"]) {
+      m_type = json["type"].as<const char *>();
     }
-    if (json.contains("config")) {
-      m_config = json["config"];
+    if (json["config"]) {
+      m_config.set(json["config"]);  // Deep copy into document
     }
+  }
+
+  void setType(const std::string& type)
+  {
+    m_type = type;
   }
 
   [[nodiscard]] const std::string& getType() const
@@ -41,12 +55,18 @@ public:
     return m_type;
   }
 
-  [[nodiscard]] const nlohmann::json& getConfig() const
+  [[nodiscard]] JsonVariantConst getConfig() const
   {
-    return m_config;
+    return m_config.as<JsonVariantConst>();
+  }
+
+  void toJson(JsonObject& json) const
+  {
+    json["type"] = m_type;
+    json["config"] = m_config;
   }
 
 protected:
   std::string m_type;
-  nlohmann::json m_config;
+  JsonDocument m_config;  // Uses stack allocation by default in v7
 };

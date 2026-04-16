@@ -2,7 +2,9 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/src/app/middleware/FreeRTOS-Kernel" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/src/app/middleware/tinyusb_src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/third-party/FreeRTOS-Kernel" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/third-party/etl" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/third-party/lvgl/lvgl" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/third-party/tinyusb_src" vcs="Git" />
   </component>
 </project>

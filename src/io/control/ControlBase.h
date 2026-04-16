@@ -6,8 +6,6 @@
 
 
 #include <string>
-#include <nlohmann/json.hpp>
-
 #include "core/config-settings/config/ConfigBase.h"
 
 class ControlBase {

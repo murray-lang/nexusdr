@@ -25,12 +25,12 @@ public:
   [[nodiscard]] const AudioConfig& getAudioInput() const { return audioInput; }
   [[nodiscard]] bool getReverse() const { return reverse; }
 
-  void fromJson(const nlohmann::json& json) override
+  void fromJson(JsonVariantConst json) override
   {
-    if (json.contains("audioInput")) {
+    if (json["audioInput"]) {
       audioInput.fromJson(json["audioInput"]);
     }
-    if (json.contains("reverse")) {
+    if (json["reverse"]) {
       reverse = json["reverse"];
     }
   }
@@ -40,12 +40,11 @@ public:
     return static_cast<const AudioSignalIqSourceConfig&>(*this);
   }
 
-  [[nodiscard]] nlohmann::json toJson() const override
+  void toJson(JsonObject& json) const override
   {
-    return nlohmann::json{
-  {"audioInput", audioInput.toJson()},
-  {"reverse", reverse }
-    };
+    JsonObject audioInputObj = json["audioInput"].to<JsonObject>();
+    audioInput.toJson(audioInputObj);
+    json["reverse"] = reverse;
   }
 
 

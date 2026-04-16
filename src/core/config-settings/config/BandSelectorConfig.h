@@ -23,21 +23,21 @@ public:
   BandSelectorConfig() : DigitalOutputConfig(type) {}
   ~BandSelectorConfig() override  = default;
 
-  void fromJson(const nlohmann::json& json) override
+  void fromJson(JsonVariantConst json) override
   {
     DigitalOutputConfig::fromJson(json);
     if (lines.empty()) {
       throw ConfigException("BandSelectorConfig: lines empty");
     }
 
-    if (json.contains("defaultOut")) {
+    if (json["defaultOut"]) {
       defaultOut = json["defaultOut"];
     } else {
       throw ConfigException("BandSelectorConfig: defaultOut empty");
     }
 
-    if (json.contains("bands")) {
-      for (auto& lookup : json["bands"]) {
+    if (json["bands"]) {
+      for (JsonVariantConst lookup : json["bands"].as<JsonArrayConst>()) {
         BandSelectorLookupItemConfig item;
         item.fromJson(lookup);
         bands.emplace_back(item);

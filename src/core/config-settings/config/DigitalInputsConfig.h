@@ -23,10 +23,10 @@ public:
     }
   }
 
-  void fromJson(const nlohmann::json& json) override
+  void fromJson(JsonVariantConst json) override
   {
-    if (json.contains("inputs")) {
-      for (auto& inputConfig : json["inputs"]) {
+    if (json["inputs"]) {
+      for (JsonVariantConst inputConfig : json["inputs"].as<JsonArrayConst>()) {
         VariantConfig variantConfig(inputConfig);
         auto* config = dynamic_cast<DigitalInputConfig*>(ConfigFactory::create(variantConfig));
         m_inputs.push_back(config);

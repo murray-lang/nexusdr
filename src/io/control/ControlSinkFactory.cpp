@@ -2,7 +2,6 @@
 // Created by murray on 6/08/25.
 //
 #include "ControlSinkFactory.h"
-#include <nlohmann/json.hpp>
 
 #include "core/config-settings/config/BandSelectorConfig.h"
 #include "core/config-settings/config/FunCubeConfig.h"
