@@ -4,7 +4,7 @@
 
 #pragma once
 #include "DigitalOutput.h"
-#include "core/config-settings/config/BandSelectorLookupItemConfig.h"
+#include "../../../../../core/config-settings/config/control/BandSelectorBandsConfig.h"
 #include "io/control/ControlSink.h"
 #include "io/control/device/gpio/GpioLines.h"
 

@@ -9,7 +9,7 @@
 #include "../Gpio.h"
 #include "DigitalInputLinesRequest.h"
 #include <QThread>
-#include "core/config-settings/config/DigitalInputsConfig.h"
+#include "../../../../../core/config-settings/config/control/DigitalInputsConfig.h"
 #include "io/control/ControlException.h"
 
 class DigitalInputs : public ControlSource, public DigitalInputLinesRequest::Callback

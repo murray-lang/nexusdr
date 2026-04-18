@@ -208,7 +208,7 @@ set(INCLUDE_DIRS
         ${AUDIO_DRIVER_INCLUDE_DIRS}
         ${LIQUID_INCLUDE_DIR}
         /usr/include/hidapi/
-        ${ETL_DIR}
+        ${ETL_DIR}/include
         ${ARDUINO_JSON_DIR}
 )
 

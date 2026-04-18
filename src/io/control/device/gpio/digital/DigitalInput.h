@@ -6,11 +6,16 @@
 
 #include <cstdint>
 #include <vector>
-#include "core/config-settings/config/DigitalInputConfig.h"
+#include "../../../../../core/config-settings/config/control/DigitalInputConfig.h"
 #include "core/config-settings/settings/base/SettingUpdatePath.h"
 #include "DigitalInputLinesRequest.h"
 #include "core/config-settings/settings/base/SettingUpdateSource.h"
 #include "io/control/ControlException.h"
+
+#ifdef MAX_DIGITAL_INPUTS
+#undef MAX_DIGITAL_INPUTS
+#endif
+#define MAX_DIGITAL_INPUTS 16
 
 
 class DigitalInput : public GpioLines, public SettingUpdateSource

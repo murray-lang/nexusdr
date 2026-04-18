@@ -6,7 +6,7 @@
 #include <QObject>
 
 #include "core/SampleTypes.h"
-#include "core/config-settings/config/TransmitterConfig.h"
+#include "../../config-settings/config/transmitter/TransmitterConfig.h"
 #include "io/audio/AudioInput.h"
 #include "io/audio/AudioOutput.h"
 #include "core/dsp/pipeline/IqTxPipeline.h"

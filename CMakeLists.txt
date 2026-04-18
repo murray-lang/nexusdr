@@ -9,6 +9,16 @@ if(POLICY CMP0167)
     cmake_policy(SET CMP0167 NEW)
 endif()
 
+#if (TARGET_PLATFORM STREQUAL "stm32h745i" )
+    add_definitions(
+            -DUSE_ETL_COLLECTIONS
+            -DMAX_DIGITAL_INPUTS=8
+            -DMAX_CONTROL_SINKS=4
+            -DMAX_CONTROL_SOURCES=4
+            -DMAX_SETTING_PATH_LENGTH=96
+    )
+#endif()
+
 set(APP_DIR ${CMAKE_SOURCE_DIR}/src/app)
 set(THIRD_PARTY_DIR ${CMAKE_SOURCE_DIR}/src/third-party)
 set(ETL_DIR ${THIRD_PARTY_DIR}/etl)
@@ -17,27 +27,23 @@ set(ARDUINO_JSON_DIR ${THIRD_PARTY_DIR}/ArduinoJson/src)
 
 set (CONFIG_SOURCES
         src/core/config-settings/config/RadioConfig.h
-        src/core/config-settings/config/ReceiverConfig.h
-        src/core/config-settings/config/TransmitterConfig.h
-        src/core/config-settings/config/AudioConfig.h
-        src/core/config-settings/config/ConfigBase.h
-        src/core/config-settings/config/ConfigException.h
-        src/core/config-settings/config/ControlConfig.h
-        src/core/config-settings/config/VariantConfig.h
-        src/core/config-settings/config/ConfigFactory.cpp
-        src/core/config-settings/config/ConfigFactory.h
-        src/core/config-settings/config/DigitalInputsConfig.h
-        src/core/config-settings/config/RotaryEncoderConfig.h
-        src/core/config-settings/config/DigitalInputConfig.h
-        src/core/config-settings/config/FunCubeConfig.h
-        src/core/config-settings/config/GpioLinesConfig.h
-        src/core/config-settings/config/AudioIqSourceConfig.h
-        src/core/config-settings/config/AudioSignalIqSourceConfig.h
-        src/core/config-settings/config/IqIoConfig.h
-        src/core/config-settings/config/DigitalOutputConfig.h
-        src/core/config-settings/config/BandSelectorConfig.h
-        src/core/config-settings/config/BandSelectorLookupItemConfig.h
-        src/core/config-settings/config/UiConfig.h
+        src/core/config-settings/config/receiver/ReceiverConfig.h
+        src/core/config-settings/config/transmitter/TransmitterConfig.h
+        src/core/config-settings/config/audio/AudioConfig.h
+        src/core/config-settings/config/base/ConfigBase.h
+        src/core/config-settings/config/control/ControlConfig.h
+        src/core/config-settings/config/control/DigitalInputsConfig.h
+        src/core/config-settings/config/control/RotaryEncoderConfig.h
+        src/core/config-settings/config/control/DigitalInputConfig.h
+        src/core/config-settings/config/control/FunCubeConfig.h
+        src/core/config-settings/config/control/GpioLinesConfig.h
+        src/core/config-settings/config/audio/AudioIqSourceConfig.h
+        src/core/config-settings/config/audio/AudioSignalIqSourceConfig.h
+        src/core/config-settings/config/audio/IqIoConfig.h
+        src/core/config-settings/config/control/DigitalOutputConfig.h
+        src/core/config-settings/config/control/BandSelectorConfig.h
+        src/core/config-settings/config/control/BandSelectorBandsConfig.h
+        src/core/config-settings/config/ui/UiConfig.h
 )
 
 set(SETTINGS_SOURCES

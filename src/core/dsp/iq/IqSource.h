@@ -4,7 +4,7 @@
 
 #pragma once
 #include "IqSink.h"
-#include "core/config-settings/config/ConfigBase.h"
+#include "../../config-settings/config/base/ConfigBase.h"
 
 class IqSource
 {

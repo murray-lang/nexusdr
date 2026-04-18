@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "core/config-settings/config/DigitalOutputConfig.h"
+#include "../../../../../core/config-settings/config/control/DigitalOutputConfig.h"
 #include "io/control/ControlSink.h"
 #include "io/control/device/gpio/GpioLines.h"
 #include "core/config-settings/settings/RadioSettingsSink.h"

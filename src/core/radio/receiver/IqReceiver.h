@@ -1,7 +1,7 @@
 #pragma once
 
 // #include "../../SignalEmitter.h"
-#include "core/config-settings/config/ReceiverConfig.h"
+#include "../../config-settings/config/receiver/ReceiverConfig.h"
 #include "core/config-settings/settings/ReceiverSettingsSink.h"
 #include "core/dsp/pipeline/IqRxPipeline.h"
 #include "core/dsp/pipeline/RxPipelineAudioTap.h"

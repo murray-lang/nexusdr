@@ -3,8 +3,8 @@
 //
 #include "ControlSinkFactory.h"
 
-#include "core/config-settings/config/BandSelectorConfig.h"
-#include "core/config-settings/config/FunCubeConfig.h"
+#include "../../core/config-settings/config/control/BandSelectorConfig.h"
+#include "../../core/config-settings/config/control/FunCubeConfig.h"
 #include "device/FunCubeDongle/FunCubeDongle.h"
 #include "device/gpio/digital/GpioBandSelector.h"
 #include "device/gpio/digital/DigitalOutput.h"

@@ -5,7 +5,7 @@
 #pragma once
 
 #include "ControlSource.h"
-#include "core/config-settings/config/ConfigBase.h"
+#include "../../core/config-settings/config/base/ConfigBase.h"
 
 
 class ControlSourceFactory

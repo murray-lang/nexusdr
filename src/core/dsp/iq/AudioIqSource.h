@@ -5,7 +5,7 @@
 #pragma once
 #include "IqSource.h"
 #include "../../SampleTypes.h"
-#include "core/config-settings/config/AudioIqSourceConfig.h"
+#include "../../config-settings/config/audio/AudioIqSourceConfig.h"
 #include "core/dsp/utils/HilbertTransform.h"
 #include "io/audio/AudioInput.h"
 #include "qdebug.h"

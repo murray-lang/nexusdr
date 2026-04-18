@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "core/config-settings/config/IqIoConfig.h"
+#include "../../core/config-settings/config/audio/IqIoConfig.h"
 #include "core/dsp/iq/IqSource.h"
 #include "io/audio/AudioOutput.h"
 

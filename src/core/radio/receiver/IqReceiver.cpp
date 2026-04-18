@@ -7,7 +7,7 @@
 
 #include "events/ReceiverAudioEvent.h"
 #include "events/ReceiverIqEvent.h"
-#include "core/config-settings/config/ReceiverConfig.h"
+#include "../../config-settings/config/receiver/ReceiverConfig.h"
 
 #include "core/config-settings/settings/bands/BandSettings.h"
 

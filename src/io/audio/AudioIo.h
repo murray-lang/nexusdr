@@ -5,7 +5,7 @@
 #pragma once
 
 #include "drivers/RtAudio/RtAudioDriver.h"
-#include "core/config-settings/config/AudioConfig.h"
+#include "../../core/config-settings/config/audio/AudioConfig.h"
 
 class AudioIo
 {
