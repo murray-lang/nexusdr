@@ -121,6 +121,7 @@ set (CORE_SOURCES
         ${UTIL_SOURCES}
         ${USB_API_SOURCES}
         src/core/SampleTypes.h
+        ${INCLUDE_DIR}/ResultCode.h
 )
 if(USE_GUI)
     set(QT_GUI_SOURCES
@@ -177,10 +178,34 @@ if(USE_GUI)
 endif()
 set(APP_SOURCES ${QT_GUI_SOURCES} ${QT_APP_SOURCES})
 
+set(TEMP_DEVICE_SOURCES
+        src/io/control/device/gpio/Gpio.cpp
+        src/io/control/device/gpio/Gpio.h
+        src/io/control/device/gpio/digital/DigitalInputLinesRequest.cpp
+        src/io/control/device/gpio/digital/DigitalInputLinesRequest.h
+        src/io/control/device/gpio/digital/GpioRotaryEncoder.cpp
+        src/io/control/device/gpio/digital/GpioRotaryEncoder.h
+        src/io/control/device/gpio/digital/DigitalInputs.cpp
+        src/io/control/device/gpio/digital/DigitalInputs.h
+        src/io/control/device/gpio/digital/DigitalInput.h
+        src/io/control/device/gpio/digital/DigitalInput.cpp
+        src/io/control/device/gpio/digital/DigitalInputFactory.cpp
+        src/io/control/device/gpio/digital/DigitalInputFactory.h
+        src/io/control/device/gpio/digital/DigitalInputFactory.cpp
+        src/io/control/device/gpio/GpioLines.cpp
+        src/io/control/device/gpio/GpioLines.h
+        src/io/control/device/gpio/digital/DigitalOutput.cpp
+        src/io/control/device/gpio/digital/DigitalOutput.h
+        src/io/control/device/gpio/digital/DigitalOutputLinesRequest.h
+        src/io/control/device/gpio/digital/DigitalOutputLinesRequest.cpp
+        src/io/control/device/gpio/digital/GpioBandSelector.cpp
+        src/io/control/device/gpio/digital/GpioBandSelector.h
+)
+
 set(PROJECT_SOURCES
         ${CORE_SOURCES}
         ${APP_SOURCES}
-
+        ${TEMP_DEVICE_SOURCES}
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -203,6 +228,7 @@ else()
 endif()
 
 set(INCLUDE_DIRS
+        ${INCLUDE_DIR}
         ${CMAKE_SOURCE_DIR}
         ${CMAKE_SOURCE_DIR}/src
         ${AUDIO_DRIVER_INCLUDE_DIRS}

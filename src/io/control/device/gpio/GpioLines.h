@@ -6,7 +6,8 @@
 
 #include <cstdint>
 
-#include "../../../../core/config-settings/config/control/GpioLinesConfig.h"
+#include "core/config-settings/config/control/GpioLinesConfig.h"
+#include "ResultCode.h"
 
 
 class GpioLines
@@ -38,11 +39,14 @@ public:
   GpioLines();
   explicit GpioLines(Direction direction);
   explicit GpioLines(const std::vector<uint32_t>& lines);
-  explicit GpioLines(const GpioLinesConfig* pConfig);
-  GpioLines(const std::vector<uint32_t>& lines, const GpioLinesConfig* pConfig);
+  explicit GpioLines(const Config::GpioLines::Fields& config);
+  GpioLines(const std::vector<uint32_t>& lines, const Config::GpioLines::Fields& config);
   GpioLines(const std::vector<uint32_t>& lines, Direction direction, Bias bias, Edge edge);
   GpioLines(const GpioLines& other) = default;
   virtual ~GpioLines() = default;
+
+  GpioLines(GpioLines&&) = default;
+  GpioLines& operator=(GpioLines&&) = default;
 
   GpioLines& operator=(const GpioLines& other);
 
@@ -51,12 +55,12 @@ public:
   [[nodiscard]] Bias getBias() const { return m_bias; }
   [[nodiscard]] Edge getEdge() const { return m_edge; }
 
-  void setLineNo(std::vector<uint32_t> lines) { m_lines = lines; }
+  // void setLineNo(std::vector<uint32_t> lines) { m_lines = lines; }
   void setDirection(Direction direction) { m_direction = direction; }
   void setBias(Bias bias) { m_bias = bias; }
   void setEdge(Edge edge) { m_edge = edge; }
 
-  void configure(const GpioLinesConfig* pConfig);
+  ResultCode configureLines(const Config::GpioLines::Fields& config);
 
 protected:
   std::vector<uint32_t> m_lines;

@@ -26,11 +26,10 @@ DigitalInputs::~DigitalInputs()
 
 }
 
-void
-DigitalInputs::configure(const ConfigBase* pConfig)
+ResultCode
+DigitalInputs::configure(const Config::DigitalInputs::Fields& config)
 {
-  const auto* config = dynamic_cast<const DigitalInputsConfig*>(pConfig);
-  createInputs(config);
+  return createInputs(config);
 }
 
 bool
@@ -39,7 +38,7 @@ DigitalInputs::discover()
     return Gpio::isPresent();
 }
 
-void
+ResultCode
 DigitalInputs::open()
 {
   if (m_pLines != nullptr) {
@@ -69,14 +68,14 @@ DigitalInputs::exit()
 
 }
 
-void
-DigitalInputs::createInputs(const DigitalInputsConfig* pConfig)
+ResultCode
+DigitalInputs::createInputs(const Config::DigitalInputs::Fields& config)
 {
   deleteInputs();
-  for (const auto& pInputConfig : pConfig->getInputs()) {
+  for (const auto& pInputConfig : config.inputs) {
     DigitalInput* input = DigitalInputFactory::create(pInputConfig);
     if (input == nullptr) {
-      throw ConfigException("digitalInputs input has unknown input type: " + pConfig->getType());
+      return ResultCode::ERR_DIGITAL_INPUT_UNKNOWN_TYPE;
     }
     input->connectSettingUpdateSink(&m_internalSink);
     m_inputs.push_back(input);

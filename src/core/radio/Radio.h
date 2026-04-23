@@ -15,7 +15,7 @@ public:
   Radio(EventTarget *pEventTarget = nullptr);
   ~Radio() override;
 
-  void configure(const RadioConfig* pConfig) override;
+  ResultCode configure(const RadioConfig* pConfig) override;
   void start() override;
   void stop() override;
 

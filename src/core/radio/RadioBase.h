@@ -11,6 +11,7 @@
 #include "core/config-settings/settings/events/SettingEventBase.h"
 #include "core/events/EventTarget.h"
 #include "io/control/PttSink.h"
+#include "ResultCode.h"
 
 class RadioBase : public RadioSettingsSink, PttSink
 {
@@ -18,7 +19,7 @@ public:
   explicit RadioBase(EventTarget *pEventTarget = nullptr);
   ~RadioBase() override = default;
 
-  virtual void configure(const RadioConfig* pConfig) = 0;
+  virtual ResultCode configure(const RadioConfig* pConfig) = 0;
   virtual void start() = 0;
   virtual void stop() = 0;
 

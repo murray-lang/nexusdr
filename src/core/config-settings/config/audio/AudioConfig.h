@@ -38,56 +38,9 @@ namespace Config::Audio
     ShortString format; // "sint8", "sint16", "sint24", "sint32", "float32", "float64"
   };
 
-  static Result fromJson(JsonVariantConst json, Fields& fields)
-  {
-    fields.type = type;
-    if (json["soundApi"]) {
-      fields.soundApi = json["soundApi"].as<const char*>();
-    } else {
-      return Result::AUDIO_MISSING_API;
-    }
-    if (json["isInput"]) {
-      fields.isInput = json["isInput"].as<bool>();
-    } else {
-      return Result::AUDIO_MISSING_IS_INPUT;
-    }
-    if (json["isIq"]) {
-      fields.isIq = json["isIq"].as<bool>();
-    } else {
-      return Result::AUDIO_MISSING_IS_IQ;
-    }
-    if (json["searchExpression"]) {
-      fields.searchExpression = json["searchExpression"].as<const char*>();
-    } else {
-      return Result::AUDIO_MISSING_SEARCH_EXPRESSION;
-    }
-    if (json["sampleRate"]) {
-      fields.sampleRate = json["sampleRate"].as<uint32_t>();
-    } else {
-      return Result::AUDIO_MISSING_SAMPLE_RATE;
-    }
-    if (json["channelCount"]) {
-      fields.channelCount = std::min(json["channelCount"].as<uint32_t>(), 2u);
-    } else {
-      return Result::AUDIO_MISSING_CHANNELS;
-    }
-    if (json["format"]) {
-      fields.format = json["format"].as<const char*>();
-    } else {
-      return Result::AUDIO_MISSING_FORMAT;
-    }
-    return Result::OK;
-  }
+  extern Result fromJson(JsonVariantConst json, Fields& fields);
 
-  static void toJson(const Fields& fields, JsonObject& json)
-  {
-    json["type"] = type;
-    json["isInput"] = fields.isInput;
-    json["isIq"] = fields.isIq;
-    json["soundApi"] = fields.soundApi;
-    json["searchExpression"] = fields.searchExpression;
-    json["sampleRate"] = fields.sampleRate;
-    json["channelCount"] = fields.channelCount;
-    json["format"] = fields.format;
-  }
+  extern void toJson(const Fields& fields, JsonObject& json);
 }
+
+using AudioConfig = Config::Audio::Fields;

@@ -12,11 +12,8 @@ namespace Config::RotaryEncoder
 
   struct Fields : DigitalInput::Fields {};
 
-  inline Result fromJson(JsonVariantConst json, Fields& fields)
-  {
-    Result result = DigitalInput::fromJson(json, fields);
-    fields.type = type;
-    return result;
-  }
+  extern Result fromJson(JsonVariantConst json, Fields& fields);
 }
+
+// using RotaryEncoderConfig = Config::RotaryEncoder::Fields;
 

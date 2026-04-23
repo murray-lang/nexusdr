@@ -25,17 +25,7 @@ namespace Config::DigitalOutput
     SettingPathString settingPath;
   };
 
-  static Result fromJson(JsonVariantConst json, Fields& fields)
-  {
-    fields.type = type;
-    Result result = GpioLines::fromJson(json, fields);
-    if (result != Result::OK) return result;
-
-    if (json["settingPath"]) {
-      fields.settingPath = json["settingPath"].as<const char *>();
-    } else {
-      return Result::MISSING_SETTING_PATH;
-    }
-    return Result::OK;
-  }
+  extern Result fromJson(JsonVariantConst json, Fields& fields);
 }
+
+// using DigitalOutputConfig = Config::DigitalOutput::Fields;

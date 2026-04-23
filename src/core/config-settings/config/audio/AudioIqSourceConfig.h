@@ -15,9 +15,7 @@ namespace Config::AudioIqSource
     Audio::Fields audioInput;
   };
 
-  static Result fromJson(const JsonVariantConst& json, Fields& fields)
-  {
-    fields.type = type;
-    return Audio::fromJson(json, fields.audioInput);
-  }
+  extern Result fromJson(const JsonVariantConst& json, Fields& fields);
 }
+
+using AudioIqSourceConfig = Config::AudioIqSource::Fields;

@@ -4,7 +4,6 @@
 
 #pragma once
 #include "base/SettingUpdateSink.h"
-#include "io/control/ControlException.h"
 
 // #include "RadioSettings.h"
 
@@ -16,7 +15,7 @@ class RadioSettingsSink : public SettingUpdateSink
 {
 public:
   ~RadioSettingsSink() override = default;
-  virtual void applySettings(const RadioSettings& settings) = 0;
+  virtual ResultCode applySettings(const RadioSettings& settings) = 0;
   // {
   //   throw ControlException("RadioSettingsSink::applySettings() not implemented.");
   // }

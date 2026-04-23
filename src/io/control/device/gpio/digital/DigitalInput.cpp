@@ -16,16 +16,18 @@ DigitalInput::DigitalInput() :
 {
 }
 
-void
-DigitalInput::configure(const DigitalInputConfig* pConfig)
+ResultCode
+DigitalInput::configure(const Config::DigitalInput::Fields& config)
 {
-  GpioLines::configure(pConfig);
-  m_activeHigh = pConfig->getActiveHigh();
-  m_debounce = pConfig->getDebounce();
-  const std::string& strSettingPath = pConfig->getSettingPath();
+  ResultCode rc = GpioLines::configureLines(config);
+  if (rc != ResultCode::OK) return rc;
+
+  m_activeHigh = config.activeHigh;
+  m_debounce = config.debounce;
+  const SettingPathString& strSettingPath = config.settingPath;
   m_id = strSettingPath;
-  m_settingPath = RadioSettings::getSettingUpdatePath(strSettingPath);
   setEdge(GpioLines::Edge::BOTH);
+  return RadioSettings::getSettingUpdatePath(strSettingPath, m_settingPath);
 }
 
 void
@@ -33,12 +35,13 @@ DigitalInput::connectSettingUpdateSink(SettingUpdateSink* pSink)
 {
   m_pSink = pSink;
 }
-void
+ResultCode
 DigitalInput::notifySettingUpdate(SettingUpdate& settingDelta)
 {
   if (m_pSink) {
     m_pSink->applySettingUpdate(settingDelta);
   }
+  return ResultCode::OK;
 }
 
 bool 

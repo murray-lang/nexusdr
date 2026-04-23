@@ -7,8 +7,6 @@
 #include "core/config-settings/settings/RadioSettings.h"
 #include "GpioBandSelector.h"
 
-#include "core/config-settings/config/BandSelectorConfig.h"
-#include "core/config-settings/config/DigitalInputConfig.h"
 
 GpioBandSelector::GpioBandSelector() :
   m_defaultOut(0),
@@ -18,20 +16,22 @@ GpioBandSelector::GpioBandSelector() :
   // m_offsetSettingPath = RadioSettings::getSettingPath("tx.rf.offset");
 }
 
-void
-GpioBandSelector::configure(const ConfigBase* pConfig)
+ResultCode
+GpioBandSelector::configure(const Config::DigitalOutput::BandSelector::Fields& config)
 {
-  DigitalOutput::configure(pConfig);
-  auto* config = dynamic_cast<const BandSelectorConfig*>(pConfig);
-  m_defaultOut = config->defaultOut;
-  m_bands = config->bands;
+  ResultCode rc = DigitalOutput::configure(config);
+  if (rc == ResultCode::OK) {
+    m_defaultOut = config.defaultOut;
+    m_bands = config.bands;
+  }
+  return rc;
 }
 
 void
 GpioBandSelector::applySettings(const RadioSettings& settings)
 {
   if (settings.hasSettingChanged(RadioSettings::BAND)) {
-    BandSettings* pBandSettings = settings.getFocusBandSettings();
+    const BandSettings* pBandSettings = settings.getFocusBandSettings();
     const RfSettings& rfSettings = pBandSettings->getTxRfSettings();
     if (rfSettings.hasSettingChanged( RfSettings::VFO)) {
       uint32_t frequency = rfSettings.getVfo();
@@ -59,7 +59,7 @@ GpioBandSelector::getBandOutput(uint32_t frequency) const
   // Lookup the output for the given frequency
   for ( auto& band : m_bands) {
     if (frequency >= band.fromFrequency && frequency <= band.toFrequency) {
-      return band.out;
+      return band.outValue;
     }
   }
   return m_defaultOut;

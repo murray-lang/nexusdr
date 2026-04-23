@@ -14,5 +14,5 @@ public:
   ~RadioSettingsSource() override = default;
   virtual void connect(RadioSettingsSink* pSink) = 0;
 protected:
-  virtual void notifySettings(const RadioSettings& radioSettings) = 0;
+  virtual ResultCode notifySettings(const RadioSettings& radioSettings) = 0;
 };

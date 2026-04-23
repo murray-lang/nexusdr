@@ -12,8 +12,7 @@ namespace Config::Transmitter
     IqIo::Fields iqIo;
   };
 
-  static Result fromJson(JsonVariantConst json, Fields& fields)
-  {
-    return IqIo::fromJson(json, fields.iqIo);
-  }
+  extern Result fromJson(JsonVariantConst json, Fields& fields);
 }
+
+using TransmitterConfig = Config::Transmitter::Fields;

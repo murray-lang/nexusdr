@@ -3,8 +3,7 @@
 //
 
 #pragma once
-
-#include "core/dsp/iq/AudioIqSource.h"
+#include "AudioIqSourceConfig.h"
 
 namespace Config::AudioSignalIqSource
 {
@@ -15,12 +14,7 @@ namespace Config::AudioSignalIqSource
     bool reverse = false;
   };
 
-  static Result fromJson(const JsonVariantConst& json, Fields& fields)
-  {
-    Result result = AudioIqSource::fromJson(json, fields);
-    fields.type = type; // Override what was set above
-    if (result != Result::OK) return result;
-    fields.reverse = json["reverse"] ? json["reverse"].as<bool>() : false;
-    return Result::OK;
-  }
+  extern Result fromJson(const JsonVariantConst& json, Fields& fields);
 }
+
+using AudioSignalIqSourceConfig = Config::AudioSignalIqSource::Fields;

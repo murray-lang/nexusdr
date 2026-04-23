@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "../base/ConfigBase.h"
 #include "../audio/IqIoConfig.h"
 
 namespace Config::Receiver
@@ -16,8 +15,7 @@ namespace Config::Receiver
     IqIo::Fields iqIo;
   };
 
-  static Result fromJson(JsonVariantConst json, Fields& fields)
-  {
-    return IqIo::fromJson(json, fields.iqIo);
-  }
+  extern Result fromJson(JsonVariantConst json, Fields& fields);
 }
+
+using ReceiverConfig = Config::Receiver::Fields;

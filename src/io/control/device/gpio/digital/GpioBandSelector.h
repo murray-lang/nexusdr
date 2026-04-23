@@ -4,7 +4,8 @@
 
 #pragma once
 #include "DigitalOutput.h"
-#include "../../../../../core/config-settings/config/control/BandSelectorBandsConfig.h"
+#include "core/config-settings/config/control/BandSelectorBandsConfig.h"
+#include "core/config-settings/config/control/BandSelectorConfig.h"
 #include "io/control/ControlSink.h"
 #include "io/control/device/gpio/GpioLines.h"
 
@@ -15,7 +16,11 @@ class GpioBandSelector : public DigitalOutput
 public:
   GpioBandSelector();
   ~GpioBandSelector() override = default;
-  void configure(const ConfigBase* pConfig) override;
+
+  GpioBandSelector(GpioBandSelector&&) = default;
+  GpioBandSelector& operator=(GpioBandSelector&&) = default;
+
+  ResultCode configure(const Config::DigitalOutput::BandSelector::Fields& config);
 
   void applySettings(const RadioSettings& settings) override;
   void applySettingUpdate(SettingUpdate& setting) override;
@@ -28,7 +33,7 @@ protected:
   // SettingPath m_frequencySettingPath;
   // SettingPath m_offsetSettingPath;
   uint32_t m_defaultOut;
-  std::vector<BandSelectorLookupItemConfigFields> m_bands;
+  std::vector<Config::DigitalOutput::BandSelector::Band::Fields> m_bands;
   uint32_t m_currentOut;
 
 };

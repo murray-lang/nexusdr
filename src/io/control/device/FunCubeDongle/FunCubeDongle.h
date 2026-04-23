@@ -8,8 +8,8 @@
 #include "../../ControlSink.h"
 #include "../usb/HidUsbControl.h"
 #include "core/config-settings/settings/RadioSettings.h"
+#include "core/config-settings/config/control/FunCubeConfig.h"
 #include "FCDHidCmd.h"
-#include "io/control/ControlException.h"
 
 class FunCubeDongle : public ControlSink {
 public:
@@ -28,9 +28,9 @@ public:
   void ptt(bool on) override;
 
   // void initialise(JsonVariantConst json) override;
-  void configure(const ConfigBase* pConfig) override;
+  ResultCode configure(const Config::FunCube::Fields& config);
   bool discover() override;
-  void open() override;
+  ResultCode open() override;
   void close() override;
   void exit() override;
 

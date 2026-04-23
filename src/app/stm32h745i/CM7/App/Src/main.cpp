@@ -53,6 +53,8 @@
 #endif
 #endif // USE_FREERTOS
 
+#include "config/RadioConfig.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -123,6 +125,7 @@
 
 /* USER CODE END 0 */
 
+Config::Radio::Fields radioConfig;
 
 char MMCPath[4]; /* SD card logical drive path */
 

@@ -4,14 +4,27 @@
 
 #pragma once
 
-#include <vector>
+
 
 #include "ControlSink.h"
 #include "ControlSource.h"
-#include "../../core/config-settings/config/control/ControlConfig.h"
+#include "ControlSinkFactory.h"
+#include "ControlSourceFactory.h"
+#include "core/config-settings/config/control/ControlConfig.h"
+#include "ResultCode.h"
+#include "etl/vector.h"
 
-#include "ControlException.h"
+#ifdef USE_ETL_COLLECTIONS
+#include <etl/vector.h>
 
+using SinkVector = etl::vector<ControlSinkVariant, MAX_CONTROL_SINKS>; //
+using SourceVector = etl::vector<ControlSourceVariant, MAX_CONTROL_SOURCES>;
+#else
+#include <vector>
+
+using SinkVector = std::vector<ControlSinkVariant>;
+using SourceVector = std::vector<ControlSourceVariant>;
+#endif
 
 class RadioControl :
   public RadioSettingsSource,
@@ -22,7 +35,7 @@ public:
   RadioControl();
   ~RadioControl() override = default;
 
-  void configure(const ControlConfig* pConfig);
+  ResultCode configure(const Config::Control::Fields& pConfig);
   void start();
   void stop();
 
@@ -68,6 +81,6 @@ protected:
   };
   InternalSink m_internalSink;
   RadioSettingsSink* m_pExternalSettingsSink;
-  std::vector<ControlSink*> m_controlSinks;
-  std::vector<ControlSource*> m_controlSources;
+  SinkVector m_controlSinks;
+  SourceVector m_controlSources;
 };

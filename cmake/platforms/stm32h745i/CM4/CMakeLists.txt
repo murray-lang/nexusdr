@@ -92,7 +92,7 @@ set(INCLUDE_DIRS
     ${CMSIS_DIR}/Device/ST/STM32H7xx/Include
     ${HAL_DIR}/Inc
     ${FATFS_DIR}/src
-#    ${TINYUSB_DIR}
+    ${TINYUSB_DIR}
 #    ${TINYUSB_DIR}/hw/bsp/stm32h7
 )
 

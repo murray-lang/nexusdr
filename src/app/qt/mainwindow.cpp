@@ -213,7 +213,7 @@ void MainWindow::initializeWindow()
   m_pFaceLayout->setContentsMargins(0, 0, 0, 0);
   m_pFaceLayout->setSpacing(0);
 
-  setFaceByName(m_radioConfig.getUiFaceName());
+  setFaceByName(m_radioConfig.ui.face);
 
 
 

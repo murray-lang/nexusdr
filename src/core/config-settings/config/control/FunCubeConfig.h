@@ -14,9 +14,7 @@ namespace Config::FunCube
     // TODO!!
   };
 
-  static Result fromJson(JsonVariantConst json, Fields& fields)
-  {
-    fields.type = type;
-    return Result::OK;
-  }
+  extern Result fromJson(JsonVariantConst json, Fields& fields);
 }
+
+// using FunCubeConfig = Config::FunCube::Fields;

@@ -5,20 +5,32 @@
 #pragma once
 
 #include <cstdint>
-#include <string>
+
+#include "etl/vector.h"
+
+
+#ifdef USE_ETL_COLLECTIONS
+#include "etl/vector.h"
+
+using FeatureVector = etl::vector<uint32_t, MAX_SETTING_DEPTH>;
+#else
 #include <vector>
+
+using FeatureVector = std::vector<uint32_t>;
+#endif
 
 class SettingUpdatePath
 {
 public:
   SettingUpdatePath() = default;
   SettingUpdatePath(const SettingUpdatePath& rhs) = default;
-  explicit SettingUpdatePath(const std::vector<uint32_t>& features) : m_features(features) {}
+  explicit SettingUpdatePath(const FeatureVector& features) : m_features(features) {}
   virtual ~SettingUpdatePath() = default;
 
   SettingUpdatePath& operator=(const SettingUpdatePath& rhs) = default;
   // bool operator==(const SettingPath& rhs) const;
-  [[nodiscard]] const std::vector<uint32_t>& getFeatures() const { return m_features; }
+  [[nodiscard]] const FeatureVector& getFeatures() const { return m_features; }
+  void setFeatures(const FeatureVector& features) { m_features = features; }
 
   bool operator==(const SettingUpdatePath& rhs) const
   {
@@ -32,5 +44,5 @@ public:
   // }
 
 protected:
-  std::vector<uint32_t> m_features;
+  FeatureVector m_features;
 };

@@ -3,14 +3,16 @@
 //
 
 #pragma once
-#include "../../../../../core/config-settings/config/control/DigitalOutputConfig.h"
+#include <memory>
+
+#include "core/config-settings/config/control/DigitalOutputConfig.h"
 #include "io/control/ControlSink.h"
 #include "io/control/device/gpio/GpioLines.h"
 #include "core/config-settings/settings/RadioSettingsSink.h"
 #include "core/config-settings/settings/base/SettingUpdatePath.h"
+#include "DigitalOutputLinesRequest.h"
 
-
-class DigitalOutputLinesRequest;
+// class DigitalOutputLinesRequest;
 
 class DigitalOutput : public GpioLines, public ControlSink
 {
@@ -18,10 +20,12 @@ public:
   DigitalOutput();
   ~DigitalOutput() override = default;
 
-  // GpioLines overrides
-  void configure(const ConfigBase* pConfig) override;
+  DigitalOutput(DigitalOutput&&) = default;
+  DigitalOutput& operator=(DigitalOutput&&) = default;
+
+  virtual ResultCode configure(const Config::DigitalOutput::Fields& config);
   bool discover() override;
-  void open() override;
+  ResultCode open() override;
   void close() override;
   void exit() override;
 

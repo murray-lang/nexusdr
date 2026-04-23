@@ -81,8 +81,8 @@ void FunCubeDongle::ptt(bool on)
 //
 // }
 
-void
-FunCubeDongle::configure(const ConfigBase* pConfig)
+ResultCode
+FunCubeDongle::configure(const Config::FunCube::Fields& config)
 {
     m_control.initialise();
 }
@@ -93,10 +93,10 @@ FunCubeDongle::discover()
     return m_control.discover();
 }
 
-void
+ResultCode
 FunCubeDongle::open()
 {
-    m_control.open();
+    return m_control.open();
 }
 
 void

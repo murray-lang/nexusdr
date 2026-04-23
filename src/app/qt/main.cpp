@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
         qDebug() << "Failed to parse config at" << configPath << ":" << error.c_str();
       } else if (doc["radio"]) {
         // Prefer fromJson for symmetry with toJson()
-        radioConfig.fromJson(doc["radio"].as<JsonVariantConst>());
+        Config::Radio::fromJson(doc["radio"].as<JsonVariantConst>(), radioConfig);
       } else {
         qDebug() << "Config file present but no 'radio' section found:" << configPath;
       }
@@ -51,15 +51,15 @@ int main(int argc, char *argv[])
     qDebug() << "No config file found at" << configPath << "; using defaults.";
   }
 
-  if (dumpConfig) {
-    JsonDocument doc;
-    JsonObject root = doc.to<JsonObject>();
-    JsonObject radio = root["radio"].to<JsonObject>();
-    radioConfig.toJson(radio);
-    serializeJsonPretty(doc, std::cout);
-    std::cout << std::endl;
-    return 0;
-  }
+  // if (dumpConfig) {
+  //   JsonDocument doc;
+  //   JsonObject root = doc.to<JsonObject>();
+  //   JsonObject radio = root["radio"].to<JsonObject>();
+  //   radioConfig.toJson(radio);
+  //   serializeJsonPretty(doc, std::cout);
+  //   std::cout << std::endl;
+  //   return 0;
+  // }
 #ifdef USE_GPIO
   try {
     Gpio::getInstance().open();

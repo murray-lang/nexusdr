@@ -4,9 +4,7 @@
 
 #include "DigitalOutput.h"
 
-#include "io/control/ControlException.h"
 #include "io/control/device/gpio/Gpio.h"
-#include "io/control/device/gpio/GpioException.h"
 #include "core/config-settings/settings/RadioSettings.h"
 
 DigitalOutput::DigitalOutput() :
@@ -14,14 +12,13 @@ DigitalOutput::DigitalOutput() :
 {
 }
 
-void
-DigitalOutput::configure(const ConfigBase* pConfig)
+ResultCode
+DigitalOutput::configure(const Config::DigitalOutput::Fields& config)
 {
-  auto* config = dynamic_cast<const DigitalOutputConfig*>(pConfig);
-  GpioLines::configure(config);
-  const std::string& strSettingPath = config->getSettingPath();
+  ResultCode rc = GpioLines::configureLines(config);
+  const std::string& strSettingPath = config.settingPath;
   m_settingPath = RadioSettings::getSettingUpdatePath(strSettingPath);
-  setId(strSettingPath);
+  return rc;
 }
 
 void
@@ -39,25 +36,28 @@ DigitalOutput::discover()
   return Gpio::isPresent();
 }
 
-void
+ResultCode
 DigitalOutput::open()
 {
   if (m_pLines != nullptr) {
-    throw GpioException("DigitalOutput already open");
+    return ResultCode::OK;
   }
   Gpio& gpio = Gpio::getInstance();
   DigitalOutputLinesRequest* pLines = gpio.requestDigitalOutputs("digitalOutputs", { this });
   m_pLines.reset(pLines);
+  if (m_pLines == nullptr) {
+    return ResultCode::ERR_DIGITAL_OUTPUT_LINES;
+  }
+  return ResultCode::OK;
 }
 
 void
 DigitalOutput::close()
 {
-  if (m_pLines == nullptr) {
-    throw GpioException("DigitalOutput not open");
+  if (m_pLines != nullptr) {
+    m_pLines->release();
+    m_pLines.reset();
   }
-  m_pLines->release();
-  m_pLines.reset();
 }
 
 void

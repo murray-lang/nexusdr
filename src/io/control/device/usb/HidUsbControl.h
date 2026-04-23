@@ -15,9 +15,9 @@ public:
     HidUsbControl(uint16_t vendorId, uint16_t productId);
     ~HidUsbControl() override;
 
-    void initialise() override;
+    ResultCode initialise() override;
     bool discover() override;
-    void open() override;
+    ResultCode open() override;
     void close() override;
     void exit() override;
 

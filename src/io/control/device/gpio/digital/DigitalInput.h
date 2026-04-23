@@ -6,11 +6,19 @@
 
 #include <cstdint>
 #include <vector>
-#include "../../../../../core/config-settings/config/control/DigitalInputConfig.h"
+#include "core/config-settings/config/control/DigitalInputConfig.h"
 #include "core/config-settings/settings/base/SettingUpdatePath.h"
 #include "DigitalInputLinesRequest.h"
 #include "core/config-settings/settings/base/SettingUpdateSource.h"
-#include "io/control/ControlException.h"
+
+#ifdef USE_ETL_COLLECTIONS
+#include "etl/string.h"
+using IdString =etl::string<MAX_ID_LENGTH>;
+#else
+#include <string>
+
+using IdString = std::string;
+#endif
 
 #ifdef MAX_DIGITAL_INPUTS
 #undef MAX_DIGITAL_INPUTS
@@ -25,9 +33,9 @@ public:
   explicit DigitalInput();
   ~DigitalInput() override = default;
 
-  virtual void configure(const DigitalInputConfig* pConfig);
+  virtual ResultCode configure(const Config::DigitalInput::Fields& config);
   // void setId(const std::string& id) { m_id = id; }
-  [[nodiscard]] const std::string& getId() const { return m_id; }
+  [[nodiscard]] const IdString& getId() const { return m_id; }
   [[nodiscard]] bool getDebounce() const { return m_debounce; }
   [[nodiscard]] bool getDetectEdge() const { return m_detectEdge; }
   // [[nodiscard]] const GpioLines& getLines() const { return m_lines; }
@@ -38,9 +46,9 @@ public:
   void connectSettingUpdateSink(SettingUpdateSink* pSink) override;
 protected:
   void notifyChange(const DigitalInputLinesRequest::LineState& lineState);
-  void notifySettingUpdate(SettingUpdate& settingDelta) override;
+  ResultCode notifySettingUpdate(SettingUpdate& settingDelta) override;
 
-  std::string m_id;
+  IdString m_id;
   bool m_activeHigh;
   bool m_debounce;
   bool m_detectEdge;

@@ -11,7 +11,16 @@
 #include "SettingValue.h"
 #include "SettingRegistry.h"
 #include "Setting.h"
-#include "SettingsException.h"
+
+
+#ifdef USE_ETL_COLLECTIONS
+#include "etl/string.h"
+using SettingPathString = etl::string<MAX_SETTING_PATH_LENGTH>;
+#else
+#include <string>
+
+using SettingPathString = std::string;
+#endif
 
 class SettingsBase
 {

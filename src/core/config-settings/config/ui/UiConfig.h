@@ -23,13 +23,7 @@ namespace Config::Ui
     FaceString face;
   };
 
-  static Result fromJson(JsonVariantConst json, Fields& fields)
-  {
-    if (json["face"]) {
-      fields.face = json["face"].as<const char *>();
-    } else {
-      fields.face = "default";
-    }
-    return Result::OK;
-  }
+  extern Result fromJson(JsonVariantConst json, Fields& fields);
 }
+
+using UiConfig = Config::Ui::Fields;

@@ -10,13 +10,20 @@
 #include "TransmitterSettings.h"
 #include "base/SettingUpdatePath.h"
 #include <cstdint>
-#include <string>
-#include <vector>
 
+
+#include "ResultCode.h"
 #include "bands/BandSettings.h"
 #include "bands/ActiveBandSettings.h"
 #include "bands/BandSelector.h"
-#include "base/SettingsException.h"
+
+#ifdef USE_ETL_COLLECTIONS
+#include <etl/string.h>
+#include <etl/vector.h>
+#else
+#include <string>
+#include <vector>
+#endif
 
 
 class RadioSettings : public SettingsBase {
@@ -103,9 +110,7 @@ public:
   [[nodiscard]] const TxPipelineSettings* getTxPipelineSettings() const;
   [[nodiscard]] const Mode* getFocusRxPipelineMode() const;
 
-  static SettingUpdatePath getSettingUpdatePath(const std::string& strDottedFeatures);
-
-
+  static ResultCode getSettingUpdatePath(const SettingPathString& strDottedFeatures, SettingUpdatePath& path);
 
   static bool getFeaturePath(
     const std::vector<std::string>& featureStrings,

@@ -143,16 +143,17 @@ RadioSettings::applyUpdate(SettingUpdate& update)
   }
 }
 
-SettingUpdatePath
-RadioSettings::getSettingUpdatePath(const std::string& strDottedFeatures)
+ResultCode
+RadioSettings::getSettingUpdatePath(const SettingPathString& strDottedFeatures, SettingUpdatePath& path)
 {
-  std::string featuresLower = StringUtils::toLowerCase(strDottedFeatures);
+  SettingPathString featuresLower = StringUtils::toLowerCase(strDottedFeatures);
   std::vector<std::string> featureStrings = StringUtils::split(featuresLower, '.');
-  std::vector<uint32_t> features;
+  FeatureVector features;
   if (!getFeaturePath(featureStrings, features)) {
-    throw SettingsException("Unknown RadioSettings setting: " + strDottedFeatures);
+    return ResultCode::ERR_UNKNOWN_SETTING_PATH;
   }
-  return SettingUpdatePath(features);
+  path.setFeatures(features);
+  return ResultCode::OK;
 }
 
 bool

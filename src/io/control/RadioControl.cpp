@@ -4,12 +4,17 @@
 
 #include "RadioControl.h"
 
-#include "ControlException.h"
 #include "ControlSinkFactory.h"
 #include "ControlSourceFactory.h"
-#include "core/config-settings/config/ConfigException.h"
 #include "core/config-settings/settings/RadioSettings.h"
 #include "core/config-settings/settings/base/SettingUpdatePath.h"
+
+// #ifdef USE_ETL_COLLECTIONS
+// #include "etl/visitor.h"
+// #else
+#include <variant>
+#include <type_traits>
+// #endif
 
 RadioControl::RadioControl() :
   m_internalSink(this),
@@ -17,33 +22,40 @@ RadioControl::RadioControl() :
 {
 }
 
-void
-RadioControl::configure(const ControlConfig* pConfig)
+ResultCode
+RadioControl::configure(const Config::Control::Fields& config)
 {
-  const std::vector<ConfigBase*>& controlSinkConfigs = pConfig->getSinks();
-  for (auto& controllerConfig : controlSinkConfigs) {
-    ControlSink* next = ControlSinkFactory::create(controllerConfig);
-    if (next != nullptr) {
-      m_controlSinks.push_back(next);
+  ResultCode rc = ResultCode::OK;
+  for (auto& controllerConfig : config.sinks) {
+    ControlSinkVariant sink;
+    rc = ControlSinkFactory::create(controllerConfig, sink);
+    if (rc == ResultCode::OK) {
+      m_controlSinks.emplace_back(sink);
     } else {
-      std::ostringstream oss;
-      oss << "Failed to create control sink of type '" << controllerConfig->getType() << "'";
-      throw ConfigException(oss.str());
+      return rc;
     }
   }
 
-  const std::vector<ConfigBase*>& controlSourceConfigs = pConfig->getSources();
-  for (auto& controllerConfig : controlSourceConfigs) {
-    ControlSource* next = ControlSourceFactory::create(controllerConfig);
-    if (next != nullptr) {
-      next->connect(&m_internalSink);
-      m_controlSources.push_back(next);
+  for (auto& controllerConfig : config.sources) {
+    ControlSourceVariant source;
+    rc = ControlSourceFactory::create(controllerConfig, source);
+    if (rc == ResultCode::OK) {
+      std::visit([this, rc](auto&& s) {
+        using T = std::decay_t<decltype(s)>;
+        if constexpr (!std::is_same_v<T, std::monostate>) {
+          s.connect(&m_internalSink);
+        }
+      }, source);
+      if (!std::holds_alternative<std::monostate>(source)) {
+        m_controlSources.emplace_back(source);
+      } else {
+        return ResultCode::ERR_NO_CONTROL_SOURCES_DEFINED;
+      }
     } else {
-      std::ostringstream oss;
-      oss << "Failed to create control source of type '" << controllerConfig->getType() << "'";
-      throw ConfigException(oss.str());
+      return ResultCode::ERR_CONFIG_CONTROL_SOURCE;
     }
   }
+  return rc;
 }
 
 void

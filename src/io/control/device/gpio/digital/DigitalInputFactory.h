@@ -1,15 +1,22 @@
-//
-// Created by murray on 2025-09-04.
-//
-
 #pragma once
 
-#include "core/config-settings/config/DigitalInputConfig.h"
+#include "core/config-settings/config/control/DigitalInputConfig.h"
 #include "DigitalInput.h"
+#include "GpioRotaryEncoder.h"
+#include "core/config-settings/config/control/DigitalInputsConfig.h"
+
+#ifdef USE_ETL_COLLECTIONS
+#include "etl/variant"
+
+using DigitalInputVariant = etl::variant<DigitalInput, GpioRotaryEncoder>;
+#else
+#include <variant>
+
+using DigitalInputVariant = std::variant<DigitalInput, GpioRotaryEncoder>;
+#endif
 
 class DigitalInputFactory
 {
 public:
-  static DigitalInput* create(const DigitalInputConfig* pConfig);
-  static DigitalInput* create(const std::string& type);
+  static ResultCode create(const Config::DigitalInputs::DigitalInputVariant& config, DigitalInputVariant& input);
 };

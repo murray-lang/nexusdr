@@ -9,6 +9,10 @@
 
 #include "core/config-settings/settings/events/RadioSettingsEvent.h"
 
+
+
+using RadioConfig = Config::Radio::Fields;
+
 Radio::Radio(EventTarget *pEventTarget) :
   RadioBase(pEventTarget),
   m_pReceiver(nullptr),
@@ -25,25 +29,27 @@ Radio::~Radio()
   delete m_pControl;
 }
 
-void
+ResultCode
 Radio::configure(const RadioConfig* pConfig)
 {
-  const ControlConfig* pControlConfig = pConfig->getControl();
+  ResultCode rc = ResultCode::OK;
+  const ControlConfig* pControlConfig = &pConfig->control;
   if (pControlConfig != nullptr) {
     m_pControl = new RadioControl();
-    m_pControl->configure(pControlConfig);
+    rc = m_pControl->configure(pControlConfig);
   }
-  const ReceiverConfig* pRxConfig = pConfig->getReceiver();
+  const ReceiverConfig* pRxConfig = &pConfig->receiver;
   if (pRxConfig != nullptr) {
     m_pReceiver = new IqReceiver(m_pEventTarget);
     m_pReceiver->configure(pRxConfig);
   }
 
-  const TransmitterConfig* pTxConfig = pConfig->getTransmitter();
+  const TransmitterConfig* pTxConfig = &pConfig->transmitter;
   if (pTxConfig != nullptr) {
     m_pTransmitter = new IqTransmitter(m_pEventTarget);
     m_pTransmitter->configure(pTxConfig);
   }
+  return rc;
 }
 
 void
