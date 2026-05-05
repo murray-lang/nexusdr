@@ -16,10 +16,5 @@ class RadioSettingsSink : public SettingUpdateSink
 public:
   ~RadioSettingsSink() override = default;
   virtual ResultCode applySettings(const RadioSettings& settings) = 0;
-  // {
-  //   throw ControlException("RadioSettingsSink::applySettings() not implemented.");
-  // }
-  // virtual void applySettings(const RadioSettings& settings, PerBandSettings* pBandSettings) = 0;
-
 
 };

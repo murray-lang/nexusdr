@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#ifdef USE_ETL_COLLECTIONS
+#ifdef USE_ETL
 #include <etl/vector.h>
 #include <etl/variant.h>
 #include <etl/optional.h>
@@ -17,7 +17,7 @@
 #include <memory>
 #endif
 
-#ifdef USE_ETL_COLLECTIONS
+#ifdef USE_ETL
 using etl::variant;
 using etl::optional;
 using etl::unique_ptr;
@@ -45,5 +45,5 @@ using ControlSinkVariant = variant<FunCubeDongle>;
 class ControlSinkFactory
 {
 public:
-  static ResultCode create(const Config::Control::SinkVariant& config, ControlSinkVariant& sink);
+  static ResultCode create(const Config::Control::SinkConfigVariant& config, ControlSinkVariant& sink);
 };

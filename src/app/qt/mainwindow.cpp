@@ -8,7 +8,6 @@
 #include <QActionGroup>
 #include <QVBoxLayout>
 #include <cmath>
-#include "io/control/device/usb/UsbException.h"
 #include "io/control/device/FunCubeDongle/FunCubeDongle.h"
 #include <volk/volk.h>
 
@@ -30,7 +29,7 @@
 
 constexpr const char * toolbarPopupPropertyName = "isToolbarPopup";
 
-MainWindow::MainWindow(RadioConfig& radioConfig, QWidget *parent)
+MainWindow::MainWindow(Config::Radio::Fields& radioConfig, QWidget *parent)
   : QMainWindow(parent)
   , m_radioConfig(radioConfig)
   , m_pRadio(nullptr)
@@ -213,8 +212,11 @@ void MainWindow::initializeWindow()
   m_pFaceLayout->setContentsMargins(0, 0, 0, 0);
   m_pFaceLayout->setSpacing(0);
 
-  setFaceByName(m_radioConfig.ui.face);
-
+  if (m_radioConfig.ui && !m_radioConfig.ui->face.empty()) {
+    setFaceByName(m_radioConfig.ui->face);
+  } else {
+    setFaceByName(FaceFactory::defaultName);
+  }
 
 
   // qDebug() << "Current Icon Theme:" << QIcon::themeName();
@@ -232,22 +234,22 @@ void MainWindow::initializeWindow()
 }
 
 void
-MainWindow::setFaceByName(const std::string& faceName)
+MainWindow::setFaceByName(const Config::Ui::FaceString& faceName)
 {
-  const std::string name = faceName.empty() ? FaceFactory::defaultName : faceName;
-
-  auto newFace = FaceFactory::instance().create(name, this->centralWidget());
-  if (!newFace) {
-    // last-resort: keep current face, or show an error widget
-    return;
-  }
+  const Config::Ui::FaceString name = faceName.empty() ? FaceFactory::defaultName : faceName;
 
   if (m_pFace) {
     m_pFaceLayout->removeWidget(m_pFace.get());
     m_pFace.reset();
   }
 
-  m_pFace = std::move(newFace);
+  m_pFace = FaceFactory::instance().create(name, this->centralWidget());
+  if (!m_pFace) {
+    // last-resort: keep current face, or show an error widget
+    return;
+  }
+
+  // m_pFace = move(newFace);
   m_pFaceLayout->addWidget(m_pFace.get());
   m_pFace->setRadio(m_pRadio);
   m_pFace->initialise(&m_radioSettingsCopy);
@@ -262,9 +264,9 @@ MainWindow::addModeButton()
   RadioSettings& radioSettings = m_pRadio->getRadioSettings();
   const BandSettings* bandSettings = m_pRadio->getFocusBandSettings();
   const RxPipelineSettings* rxPipelineSettings = bandSettings->getFocusPipeline();
-  if (rxPipelineSettings == nullptr) {
-    throw SettingsException("Radio pipeline settings not found for selected band");
-  }
+  // if (rxPipelineSettings == nullptr) {
+  //   throw SettingsException("Radio pipeline settings not found for selected band");
+  // }
 
   delete m_modeButton;
   m_modeButton = new QToolButton();
@@ -293,7 +295,7 @@ MainWindow::addModeButton()
 
     const Mode* currMode = m_radioSettingsCopy.getFocusRxPipelineMode();
     for (QAction *action : modeMenu->actions()) {
-      action->setChecked(currMode->getName() == action->text().toStdString());
+      action->setChecked(action->text().toStdString() == currMode->getName().c_str());
     }
     modeMenu->exec(pos);
   });
@@ -309,7 +311,7 @@ MainWindow::createModeMenu(const Mode& currentMode)
   auto* actionGroup = new QActionGroup(this);
   actionGroup->setExclusive(true); // Only one can be checked at a time
 
-  const std::vector<Mode>& allModes = ModeSettings::getAll();
+  const ModeVector& allModes = ModeSettings::getAll();
 
   SettingUpdatePath settingPath({
     RadioSettings::Features::BAND,
@@ -346,7 +348,7 @@ void
 MainWindow::updateBandButton(const Band& band)
 {
   if (m_bandButton != nullptr) {
-    m_bandButton->setText(QString::fromStdString(band.getLabel()));
+    m_bandButton->setText(QString::fromStdString(band.getLabel().c_str()));
   }
 }
 
@@ -443,35 +445,33 @@ MainWindow::initialiseRadio()
     delete m_pRadio;
     m_pRadio = nullptr;
   }
-  try
-  {
-    m_pRadio = new Radio(this);
-    m_pRadio->configure(&m_radioConfig);
-    m_pRadio->start();
 
-    m_pRadio->applyBand("20m");
-    m_pRadio->applyAgcSpeed(AgcSpeed::FAST);
-    //m_pRadio->split("40m", "20m");
-    // m_pRadio->addPipeline();
-
-    RfSettings rfSettings;
-    rfSettings.setGain(30.0);
-    rfSettings.setGainCoarseStep(1.0);
-    rfSettings.setGainFineStep(0.1);
-    m_pRadio->applyRfSettings(rfSettings, true);
-
-    // int32_t centreFreqStepCoarse = 50000;
-    // m_pRadio->applySetting("pipeline.rx-pipeline.rf.centre-frequency.coarse-step", centreFreqStepCoarse);
-
-    IfSettings ifSettings;
-    ifSettings.setGain(0.0);
-    ifSettings.setBandwidth(200000);
-    m_pRadio->applyIfSettings(ifSettings);
+  m_pRadio = new Radio(this);
+  ResultCode rc = m_pRadio->configure(m_radioConfig);
+  if (rc != ResultCode::OK) {
+    qDebug() << "Error configuring radio: " << (uint32_t)rc;
+    return;
   }
-  catch (std::runtime_error& error)
-  {
-    qDebug() << "Error initialising radio: " << error.what();
-  }
+  m_pRadio->start();
+
+  m_pRadio->applyBand("20m");
+  m_pRadio->applyAgcSpeed(AgcSpeed::FAST);
+  //m_pRadio->split("40m", "20m");
+  // m_pRadio->addPipeline();
+
+  RfSettings rfSettings;
+  rfSettings.setGain(30.0);
+  rfSettings.setGainCoarseStep(1.0);
+  rfSettings.setGainFineStep(0.1);
+  m_pRadio->applyRfSettings(rfSettings, true);
+
+  // int32_t centreFreqStepCoarse = 50000;
+  // m_pRadio->applySetting("pipeline.rx-pipeline.rf.centre-frequency.coarse-step", centreFreqStepCoarse);
+
+  IfSettings ifSettings;
+  ifSettings.setGain(0.0);
+  ifSettings.setBandwidth(200000);
+  m_pRadio->applyIfSettings(ifSettings);
 }
 
 //#include "moc_mainwindow.cpp"

@@ -321,7 +321,7 @@ void QtBandReadout::applyPipelineChanges(const BandSettings* bandSettings, bool 
       return;
     }
 
-    readout->setModeText(QString::fromStdString(p->getMode().getName()));
+    readout->setModeText(QString::fromStdString(p->getMode().getName().c_str()));
   };
 
   applyMode(m_vfoA, bandSettings->getRxPipeline(PipelineId::A));

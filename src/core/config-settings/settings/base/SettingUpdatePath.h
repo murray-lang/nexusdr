@@ -9,7 +9,7 @@
 #include "etl/vector.h"
 
 
-#ifdef USE_ETL_COLLECTIONS
+#ifdef USE_ETL
 #include "etl/vector.h"
 
 using FeatureVector = etl::vector<uint32_t, MAX_SETTING_DEPTH>;

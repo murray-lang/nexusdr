@@ -7,6 +7,19 @@
 #include <vector>
 #include "BandCategory.h"
 
+#ifdef USE_ETL
+#include <etl/vector.h>
+#include <etl/string.h>
+
+using BandCategoriesVector = etl::vector<BandCategory, MAX_BAND_CATEGORIES>;
+
+#else
+#include <vector>
+#include <string>
+
+using BandCategoriesVector = std::vector<BandCategory>;
+#endif
+
 class Bands
 {
 public:
@@ -21,9 +34,9 @@ public:
     return *this;
   }
 
-  const std::vector<BandCategory>& getCategories() const { return m_categories; }
+  const BandCategoriesVector& getCategories() const { return m_categories; }
 
-  const BandCategory* findCategory(const std::string& categoryName) const
+  const BandCategory* findCategory(const BandCategoryNameString& categoryName) const
   {
     for (const auto& cat : m_categories) {
       if (cat.getName() == categoryName) {
@@ -33,7 +46,7 @@ public:
     return nullptr;
   }
 
-  int32_t findCategoryIndex(const std::string& categoryName) const
+  int32_t findCategoryIndex(const BandCategoryNameString& categoryName) const
   {
     for (int i = 0; i < m_categories.size(); i++) {
       if (m_categories[i].getName() == categoryName) {
@@ -43,7 +56,7 @@ public:
     return -1;
   }
 
-  const BandCategory* findCategoryOfBand(const std::string& bandName) const
+  const BandCategory* findCategoryOfBand(const BandNameString& bandName) const
   {
     for (const auto& cat : m_categories) {
       if (cat.findBand(bandName)) {
@@ -64,7 +77,7 @@ public:
     return nullptr;
   }
 
-  const Band* findBand(const std::string& bandName) const
+  const Band* findBand(const BandNameString& bandName) const
   {
     for (const auto& cat : m_categories) {
       const Band* band = cat.findBand(bandName);
@@ -75,7 +88,7 @@ public:
     return nullptr;
   }
 
-  const Band* nextBandInOwnCategory(const std::string& bandName) const
+  const Band* nextBandInOwnCategory(const BandNameString& bandName) const
   {
     const auto& category = findCategoryOfBand(bandName);
     if (category == nullptr) {
@@ -84,7 +97,7 @@ public:
     return category->nextBand(bandName);
   }
 
-  const Band* prevBandInOwnCategory(const std::string& bandName) const
+  const Band* prevBandInOwnCategory(const BandNameString& bandName) const
   {
     const auto& category = findCategoryOfBand(bandName);
     if (category == nullptr) {
@@ -94,5 +107,5 @@ public:
   }
 
 protected:
-  std::vector<BandCategory> m_categories;
+  BandCategoriesVector m_categories;
 };

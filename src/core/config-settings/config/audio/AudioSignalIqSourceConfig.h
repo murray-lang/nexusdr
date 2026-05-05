@@ -14,7 +14,7 @@ namespace Config::AudioSignalIqSource
     bool reverse = false;
   };
 
-  extern Result fromJson(const JsonVariantConst& json, Fields& fields);
+  extern ResultCode fromJson(const JsonVariantConst& json, Fields& fields);
 }
 
-using AudioSignalIqSourceConfig = Config::AudioSignalIqSource::Fields;
+// using AudioSignalIqSourceConfig = Config::AudioSignalIqSource::Fields;

@@ -2,9 +2,12 @@
 
 namespace Config::AudioIqSource
 {
-  Result fromJson(const JsonVariantConst& json, Fields& fields)
+  ResultCode fromJson(const JsonVariantConst& json, Fields& fields)
   {
     fields.type = type;
-    return Audio::fromJson(json, fields.audioInput);
+    if (json["audioInput"].is<JsonVariantConst>()) {
+      return Audio::fromJson(json["audioInput"], fields.audioInput);
+    }
+    return ResultCode::ERR_CONFIG_IQ_AUDIO_INPUT_MISSING;
   }
 }

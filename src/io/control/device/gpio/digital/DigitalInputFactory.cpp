@@ -1,29 +1,23 @@
-//
-// Created by murray on 2025-09-04.
-//
-
 #include "DigitalInputFactory.h"
 
-#include "DigitalInputs.h"
-#include "core/util/StringUtils.h"
 
-DigitalInput*
-DigitalInputFactory::create(const  Config::DigitalInputs::DigitalInputVariant& config, DigitalInputVariant& input)
+ResultCode
+DigitalInputFactory::create(const Config::DigitalInputs::DigitalInputConfigVariant& config, DigitalInputVariant& input)
 {
   ResultCode result = ResultCode::OK;
-  if (std::holds_alternative<Config::DigitalInput::Fields>(config)) {
+  if (holds_alternative<Config::DigitalInput::Fields>(config)) {
     DigitalInput di;
-    result = di.configure(std::get<Config::DigitalInput::Fields>(config));
+    result = di.configure(get<Config::DigitalInput::Fields>(config));
     if (result == ResultCode::OK) {
-      input.emplace<DigitalInput>(di);
+      input.emplace<DigitalInput>(std::move(di));
     }
     return result;
   }
-  if (std::holds_alternative<Config::RotaryEncoder::Fields>(config)) {
+  if (holds_alternative<Config::RotaryEncoder::Fields>(config)) {
     GpioRotaryEncoder encoder;
-    result = encoder.configure(std::get<Config::RotaryEncoder::Fields>(config));
+    result = encoder.configure(get<Config::RotaryEncoder::Fields>(config));
     if (result == ResultCode::OK) {
-      input.emplace<GpioRotaryEncoder>(encoder);
+      input.emplace<GpioRotaryEncoder>(std::move(encoder));
     }
     return result;
   }

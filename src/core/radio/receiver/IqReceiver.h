@@ -1,6 +1,7 @@
 #pragma once
 
 // #include "../../SignalEmitter.h"
+#include "ResultCode.h"
 #include "../../config-settings/config/receiver/ReceiverConfig.h"
 #include "core/config-settings/settings/ReceiverSettingsSink.h"
 #include "core/dsp/pipeline/IqRxPipeline.h"
@@ -23,7 +24,7 @@ public:
 
   ~IqReceiver() override = default;
 
-  void configure(const ReceiverConfig* pConfig);
+  ResultCode configure(const Config::Receiver::Fields& config);
 
   uint32_t sinkIq(const ComplexSamplesMax& samples, uint32_t length) override; // IqSink
 
@@ -33,10 +34,10 @@ public:
                              uint32_t length,
                              uint32_t numChannels) override;
 
-  void start();
+  ResultCode start();
   void stop();
 
-  void apply(const ReceiverSettings& settings) override;
+  ResultCode apply(const ReceiverSettings& settings) override;
   // void apply(const RxPipelineSettings* settings);
   void apply(BandSettings* settings);
 

@@ -15,7 +15,7 @@ namespace Config::AudioIqSource
     Audio::Fields audioInput;
   };
 
-  extern Result fromJson(const JsonVariantConst& json, Fields& fields);
+  extern ResultCode fromJson(const JsonVariantConst& json, Fields& fields);
 }
 
-using AudioIqSourceConfig = Config::AudioIqSource::Fields;
+// using AudioIqSourceConfig = Config::AudioIqSource::Fields;

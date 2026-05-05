@@ -1,26 +1,10 @@
-//
-// Created by murray on 2025-08-24.
-//
-
 #pragma once
-
-#include <functional>
-#include <map>
-
-#include "SettingUpdate.h"
+#include "../SettingsCrossPlatformTypes.h"
 #include "SettingValue.h"
+#include "SettingUpdate.h"
 #include "SettingRegistry.h"
 #include "Setting.h"
 
-
-#ifdef USE_ETL_COLLECTIONS
-#include "etl/string.h"
-using SettingPathString = etl::string<MAX_SETTING_PATH_LENGTH>;
-#else
-#include <string>
-
-using SettingPathString = std::string;
-#endif
 
 class SettingsBase
 {
@@ -45,7 +29,7 @@ public:
   virtual bool applyUpdate(SettingUpdate& setting) = 0;
 
   template<uint32_t FeatureValue>
-  static bool addFeatureToPath(const std::vector<std::string>&, std::vector<uint32_t>& featuresOut, size_t) {
+  static bool addFeatureToPath(const FeatureStringVector&, FeatureNumVector& featuresOut, size_t) {
     featuresOut.push_back(FeatureValue);
     return true;
   }
@@ -54,7 +38,7 @@ protected:
   template<typename T>
   bool update(T& member, const SettingValue& variantValue, uint32_t featureBit)
   {
-    if (const T* pVal = std::get_if<T>(&variantValue)) {
+    if (const T* pVal = get_if<T>(&variantValue)) {
       if (member != *pVal) {
         member = *pVal;
         m_changed |= featureBit;
@@ -65,8 +49,8 @@ protected:
   }
 
   template<typename DerivedSettingsClass>
-  static bool resolvePathForRegisteredSetting(const std::vector<std::string>& path,
-                          std::vector<uint32_t>& out,
+  static bool resolvePathForRegisteredSetting(const FeatureStringVector& path,
+                          FeatureNumVector& out,
                           size_t idx)
   {
     if (idx >= path.size()) return false;
@@ -98,7 +82,7 @@ Setting<T, FeatureBit, DerivedSettingsClass, TStep>::operator()(const T& newValu
 template<typename T, uint32_t FeatureBit, typename DerivedSettingsClass, typename TStep>
 bool
 Setting<T, FeatureBit, DerivedSettingsClass, TStep>::apply(const SettingValue& variantValue) {
-  if (const T* pVal = std::get_if<T>(&variantValue)) {
+  if (const T* pVal = get_if<T>(&variantValue)) {
       if (m_value != *pVal) {
         m_value = *pVal;
         m_parent->m_changed |= FeatureBit;
@@ -126,8 +110,8 @@ bool
 Setting<T, FeatureBit, DerivedSettingsClass, TStep>::applyDelta(const SettingValue& deltaVariant, bool isDeltaCoarse) {
   // Using visitor pattern to handle different types of delta values
   auto visitor = [&]<typename T0>(T0&& deltaFactor) -> bool {
-    using V = std::decay_t<decltype(deltaFactor)>;
-    if constexpr (std::is_arithmetic_v<V>) {
+    using V = decay_t<decltype(deltaFactor)>;
+    if constexpr (is_arithmetic_v<V>) {
       if (deltaFactor != 0) {
         // Use the linked step (of type TStep) or default to 1
         TStep step = 1;
@@ -150,5 +134,5 @@ Setting<T, FeatureBit, DerivedSettingsClass, TStep>::applyDelta(const SettingVal
     return false;
   };
 
-  return std::visit(visitor, deltaVariant);
+  return visit(visitor, deltaVariant);
 }

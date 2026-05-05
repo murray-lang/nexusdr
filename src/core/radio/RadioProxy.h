@@ -17,9 +17,9 @@ public:
   void start() override;
   void stop() override;
 
-  void applySettings(const RadioSettings& settings) override;
+  ResultCode applySettings(const RadioSettings& settings) override;
 
-  void applySettingUpdate(SettingUpdate& update) override;
+  ResultCode applySettingUpdate(SettingUpdate& update) override;
 
 protected:
   void notifyUpdate(const SettingUpdate& update);

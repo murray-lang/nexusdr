@@ -1,7 +1,3 @@
-//
-// Created by murray on 2025-08-24.
-//
-
 #include "DigitalInput.h"
 #include "core/config-settings/settings/RadioSettings.h"
 
@@ -11,8 +7,7 @@ DigitalInput::DigitalInput() :
   GpioLines(Direction::INPUT),
   m_activeHigh(true),
   m_debounce(false),
-  m_detectEdge(false),
-  m_pSink(nullptr)
+  m_detectEdge(false)
 {
 }
 
@@ -31,21 +26,21 @@ DigitalInput::configure(const Config::DigitalInput::Fields& config)
 }
 
 void
-DigitalInput::connectSettingUpdateSink(SettingUpdateSink* pSink)
+DigitalInput::connectSettingUpdateSink(SettingUpdateSink& pSink)
 {
-  m_pSink = pSink;
+  m_pSink.emplace(pSink);
 }
 ResultCode
 DigitalInput::notifySettingUpdate(SettingUpdate& settingDelta)
 {
   if (m_pSink) {
-    m_pSink->applySettingUpdate(settingDelta);
+    m_pSink->get().applySettingUpdate(settingDelta);
   }
   return ResultCode::OK;
 }
 
 bool 
-DigitalInput::handleLineChange(DigitalInputLinesRequest::LineStates& changedLines)
+DigitalInput::handleLineChange(DigitalInputLinesRequest::LineStateVector& changedLines)
 {
   DigitalInputLinesRequest::LineState& line = changedLines.at(m_lines[0]);
   if (!line.changed) {

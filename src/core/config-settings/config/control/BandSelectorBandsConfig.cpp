@@ -1,24 +1,24 @@
 #include "BandSelectorBandsConfig.h"
 
-namespace Config::DigitalOutput::BandSelector::Band
+namespace Config::BandSelector::Band
 {
-  Result fromJson(JsonVariantConst json, Fields& fields)
+  ResultCode fromJson(JsonVariantConst json, Fields& fields)
   {
-    if (json["fromFrequency"]) {
+    if (json["fromFrequency"].is<JsonVariantConst>()) {
       fields.fromFrequency = json["fromFrequency"];
     } else {
-      return Result::BAND_MISSING_FROM_FREQUENCY;
+      return ResultCode::ERR_CONFIG_BAND_MISSING_FROM_FREQUENCY;
     }
-    if (json["toFrequency"]) {
+    if (json["toFrequency"].is<JsonVariantConst>()) {
       fields.toFrequency = json["toFrequency"];
     } else {
-      return Result::BAND_MISSING_TO_FREQUENCY;
+      return ResultCode::ERR_CONFIG_BAND_MISSING_TO_FREQUENCY;
     }
-    if (json["outValue"]) {
+    if (json["outValue"].is<JsonVariantConst>()) {
       fields.outValue = json["outValue"];
     } else {
-      return Result::BAND_MISSING_OUT_VALUE;
+      return ResultCode::ERR_CONFIG_BAND_MISSING_OUT_VALUE;
     }
-    return Result::OK;
+    return ResultCode::OK;
   }
 }

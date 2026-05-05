@@ -84,7 +84,7 @@ StandardFace::initialise(RadioSettings* pRadioSettings)
     slotLayout->addWidget(m_pFrequencyPanel);
 
     m_pFrequencyPanel->initialise(pRadioSettings);
-    m_pFrequencyPanel->connectSettingUpdateSink(&m_internalSettingsSink);
+    m_pFrequencyPanel->connectSettingUpdateSink(m_internalSettingsSink);
   }
 }
 

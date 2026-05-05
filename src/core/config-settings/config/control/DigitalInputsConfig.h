@@ -5,45 +5,31 @@
 #pragma once
 
 #include "../base/ConfigBase.h"
-#include <etl/optional.h>
-#include <etl/variant.h>
 
 #include "DigitalInputConfig.h"
 #include "RotaryEncoderConfig.h"
 #include "../base/TypedJson.h"
+#include "CrossPlatformTypes.h"
 
-#ifdef USE_ETL_COLLECTIONS
-#include <etl/vector.h>
-#include <etl/variant.h>
-#include <etl/optional.h>
-
-using etl::variant;
-#else
-#include <vector>
-#include <variant>
-#include <optional>
-
-using std::variant;
-#endif
 
 namespace Config::DigitalInputs
 {
   static constexpr auto type = "digitalinputs";
 
-  using DigitalInputVariant = variant<DigitalInput::Fields, RotaryEncoder::Fields>;
+  using DigitalInputConfigVariant = variant<DigitalInput::Fields, RotaryEncoder::Fields>;
 
-#ifdef USE_ETL_COLLECTIONS
-  using DigitalInputVector  = etl::vector<DigitalInputVariant, MAX_DIGITAL_INPUTS>;
+#ifdef USE_ETL
+  using DigitalInputConfigVector  = etl::vector<DigitalInputConfigVariant, MAX_DIGITAL_INPUTS>;
 #else
-  using DigitalInputVector  = std::vector<DigitalInputVariant>;
+  using DigitalInputConfigVector  = std::vector<DigitalInputConfigVariant>;
 #endif
 
   struct Fields : Alternative
   {
-    DigitalInputVector inputs;
+    DigitalInputConfigVector inputs;
   };
 
-  extern Result fromJson(const TypedJson& json, Fields& fields);
+  extern ResultCode fromJson(const TypedJson& json, Fields& fields);
 }
 
 // using DigitalInputsConfig = Config::DigitalInputs::Fields;

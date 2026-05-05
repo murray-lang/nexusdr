@@ -1,17 +1,17 @@
 #pragma once
 
-#include <variant>
-#include <string>
 #include <cstdint>
+#include "CrossPlatformTypes.h"
 #include "../Mode.h"
 #include "core/config-settings/settings/bands/SplitBandId.h"
 #include "core/config-settings/settings/pipeline/PipelineId.h"
 #include "core/config-settings/settings/AgcSpeed.h"
+#include "core/config-settings/settings/SettingsCrossPlatformTypes.h"
 
 /**
  * The unified variant type for all setting data in the system.
  */
-using SettingValue = std::variant<
+using SettingValue = variant<
   uint64_t,
   int64_t,
   uint32_t,
@@ -19,7 +19,8 @@ using SettingValue = std::variant<
   Mode::Type,
   float,
   double,
-  std::string,
+  BandNameString,
+  ModeNameString,
   bool,
   SplitBandId,
   PipelineId,

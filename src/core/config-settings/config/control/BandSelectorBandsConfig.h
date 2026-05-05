@@ -2,7 +2,7 @@
 
 #include "../base/ConfigBase.h"
 
-namespace Config::DigitalOutput::BandSelector::Band
+namespace Config::BandSelector::Band
 {
   // static constexpr auto tag = "bandSelectorBand";
 
@@ -13,7 +13,7 @@ namespace Config::DigitalOutput::BandSelector::Band
     uint32_t outValue;
   };
 
-  extern Result fromJson(JsonVariantConst json, Fields& fields);
+  extern ResultCode fromJson(JsonVariantConst json, Fields& fields);
 }
 
-// using BandSelectorBandsConfig = Config::DigitalOutput::BandSelector::Band::Fields;
+// using BandSelectorBandsConfig = Config::BandSelector::Band::Fields;

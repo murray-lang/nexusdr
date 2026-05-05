@@ -6,7 +6,7 @@
 #include "../base/ConfigBase.h"
 #include <cstdint>
 
-#ifdef USE_ETL_COLLECTIONS
+#ifdef USE_ETL
 #include <etl/string.h>
 #else
 #include <string>
@@ -19,7 +19,7 @@ namespace Config::Audio
 {
   static constexpr auto type = "audio";
 
-#ifdef USE_ETL_COLLECTIONS
+#ifdef USE_ETL
   using ShortString = etl::string<TYPE_LENGTH_INCL_0>;
   using LongString = etl::string<LONG_STRING_LENGTH_INCL_0>;
 #else
@@ -38,9 +38,9 @@ namespace Config::Audio
     ShortString format; // "sint8", "sint16", "sint24", "sint32", "float32", "float64"
   };
 
-  extern Result fromJson(JsonVariantConst json, Fields& fields);
+  extern ResultCode fromJson(JsonVariantConst json, Fields& fields);
 
   extern void toJson(const Fields& fields, JsonObject& json);
 }
 
-using AudioConfig = Config::Audio::Fields;
+// using AudioConfig = Config::Audio::Fields;

@@ -17,15 +17,6 @@
 #include "bands/ActiveBandSettings.h"
 #include "bands/BandSelector.h"
 
-#ifdef USE_ETL_COLLECTIONS
-#include <etl/string.h>
-#include <etl/vector.h>
-#else
-#include <string>
-#include <vector>
-#endif
-
-
 class RadioSettings : public SettingsBase {
 public:
   enum Features
@@ -75,7 +66,8 @@ public:
   // void setCentreFrequencyDeltas(int32_t fine, int32_t coarse);
   BandSettings* getFocusBandSettings();
   [[nodiscard]] const BandSettings* getFocusBandSettings() const;
-  [[nodiscard]] std::string getFocusBandName() const
+
+  [[nodiscard]] BandNameString getFocusBandName() const
   {
     const BandSettings* focusBandSettings = m_activeBandSettings.getFocusBandSettings();
 
@@ -113,8 +105,8 @@ public:
   static ResultCode getSettingUpdatePath(const SettingPathString& strDottedFeatures, SettingUpdatePath& path);
 
   static bool getFeaturePath(
-    const std::vector<std::string>& featureStrings,
-    std::vector<uint32_t>& featuresOut,
+    const FeatureStringVector& featureStrings,
+    FeatureNumVector& featuresOut,
     size_t startIndex = 0
     );
 protected:

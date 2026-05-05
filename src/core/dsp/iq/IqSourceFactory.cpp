@@ -9,24 +9,25 @@
 #include "../../config-settings/config/audio/AudioIqSourceConfig.h"
 #include "../../config-settings/config/audio/AudioSignalIqSourceConfig.h"
 
-IqSource*
-IqSourceFactory::create(const ConfigBase* pConfig)
+ResultCode
+IqSourceFactory::create(const Config::IqIo::IqSourceConfigVariant& config, IqSourceVariant& source)
 {
-  IqSource* result = create(pConfig->getType());
-  if (result != nullptr) {
-    result->configure(pConfig);
+  ResultCode rc = ResultCode::OK;
+  if (holds_alternative<Config::AudioSignalIqSource::Fields>(config)) {
+    source.emplace<AudioSignalIqSource>();
+    rc = get<AudioSignalIqSource>(source).configure(get<Config::AudioSignalIqSource::Fields>(config));
+    if (rc != ResultCode::OK) {
+      source.emplace<monostate>();
+    }
+    return rc;
   }
-  return result;
-}
-
-IqSource*
-IqSourceFactory::create(const std::string& type)
-{
-  if (type == AudioIqSourceConfig::type) {
-    return new AudioIqSource();
+  if (holds_alternative<Config::AudioIqSource::Fields>(config)) {
+    source.emplace<AudioIqSource>();
+    rc = get<AudioIqSource>(source).configure(get<Config::AudioIqSource::Fields>(config));
+    if (rc != ResultCode::OK) {
+      source.emplace<monostate>();
+    }
+    return rc;
   }
-  if (type == AudioSignalIqSourceConfig::type) {
-    return new AudioSignalIqSource();
-  }
-  return nullptr;
+  return ResultCode::ERR_IQ_SOURCE_UNKNOWN_TYPE;
 }

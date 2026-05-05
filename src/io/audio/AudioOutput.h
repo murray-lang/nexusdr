@@ -5,7 +5,6 @@
 #pragma once
 
 
-#include "AudioException.h"
 #include "AudioIo.h"
 #include "drivers/RtAudio/RtAudioOutputDriver.h"
 #include <AudioDriverFactory.h>
@@ -13,42 +12,43 @@
 class AudioOutput : public AudioIo, public AudioSink
 {
   public:
-  AudioOutput() : AudioIo(), m_pDriver(nullptr)
+  AudioOutput() : AudioIo()
   {
   }
 
-  ~AudioOutput() override
-  {
-    delete m_pDriver;
-  }
+  ~AudioOutput() override = default;
 
-  void configure(const AudioConfig* pConfig) override
+  ResultCode configure(const Config::Audio::Fields& config)
   {
-    delete m_pDriver;
-    m_pDriver = AudioDriverFactory::createOutputDriver(pConfig);
-  }
-
-  void start(uint32_t maxPacketFrames) const override
-  {
-    if (m_pDriver == nullptr)
-    {
-      throw AudioException("AudioOutput not initialised");
+    m_config = config;
+    AudioOutputDriver* pDriver = nullptr;
+    ResultCode rc = AudioDriverFactory::createOutputDriver(config , &pDriver);
+    if (rc == ResultCode::OK) {
+      m_pDriver.reset(pDriver);
     }
-    m_pDriver->start(maxPacketFrames);
+    return rc;
+  }
+
+  [[nodiscard]] ResultCode start(uint32_t maxPacketFrames) const override
+  {
+    if (!m_pDriver) {
+      return ResultCode::ERR_AUDIO_NO_OUTPUT_DRIVER_CONFIGURED;
+    }
+    return m_pDriver->start(maxPacketFrames);
     // m_pSink->setVolume(1.0); How to do this with RtAudio???
   }
 
   void stop() const override
   {
-    if (m_pDriver != nullptr) {
+    if (m_pDriver) {
       m_pDriver->stop();
     }
   }
 
   [[nodiscard]] uint32_t getSampleRate() const override
   {
-    if (m_pDriver == nullptr) {
-      throw AudioException("IqAudioOutput not initialised");
+    if (!m_pDriver) {
+      return 0;
     }
 
     return m_pDriver->getSampleRate();
@@ -56,7 +56,7 @@ class AudioOutput : public AudioIo, public AudioSink
 
   uint32_t sinkAudio(const RealSamplesMax& data, uint32_t length, uint32_t numChannels) override
   {
-    if (m_pDriver == nullptr)
+    if (!m_pDriver)
     {
       return 0;
       // throw AudioException("AudioOutput not initialised");
@@ -64,7 +64,7 @@ class AudioOutput : public AudioIo, public AudioSink
     return m_pDriver->addAudioData(data, length, numChannels);
   }
 protected:
-  AudioOutputDriver* m_pDriver;
+  unique_ptr<AudioOutputDriver> m_pDriver;
 
 };
 

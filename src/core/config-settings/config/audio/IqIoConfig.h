@@ -11,16 +11,16 @@ namespace Config::IqIo
 {
   static constexpr auto type = "iqio";
 
-  using IqSourceVariant = etl::variant<AudioSignalIqSource::Fields>;
-  using AudioOutputVariant = etl::variant<Audio::Fields>;
+  using IqSourceConfigVariant = etl::variant<AudioSignalIqSource::Fields, AudioIqSource::Fields>;
+  using AudioOutputConfigVariant = etl::variant<Audio::Fields>;
 
   struct Fields
   {
-    IqSourceVariant iqSource;
-    AudioOutputVariant audioOutput;
+    IqSourceConfigVariant iqSource;
+    AudioOutputConfigVariant audioOutput;
   };
 
-  extern Result fromJson(JsonVariantConst json, Fields& fields);
+  extern ResultCode fromJson(JsonVariantConst json, Fields& fields);
 }
 
-using IqIoConfig = Config::IqIo::Fields;
+// using IqIoConfig = Config::IqIo::Fields;

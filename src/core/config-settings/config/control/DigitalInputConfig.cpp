@@ -2,29 +2,29 @@
 
 namespace Config::DigitalInput
 {
-  Result fromJson(JsonVariantConst json, Fields& fields)
+  ResultCode fromJson(JsonVariantConst json, Fields& fields)
   {
     fields.type = type;
-    Result result = GpioLines::fromJson(json, fields);
-    if (result != Result::OK) return result;
+    ResultCode result = GpioLines::fromJson(json, fields);
+    if (result != ResultCode::OK) return result;
 
-    if (json["settingPath"]) {
+    if (json["settingPath"].is<JsonVariantConst>()) {
       fields.settingPath = json["settingPath"].as<const char *>();
     } else {
-      return Result::MISSING_SETTING_PATH;
+      return ResultCode::ERR_CONFIG_MISSING_SETTING_PATH;
     }
 
-    if (json["activeHigh"]) {
+    if (json["activeHigh"].is<JsonVariantConst>()) {
       fields.activeHigh = json["activeHigh"];
     } else {
       fields.activeHigh = true;
     }
 
-    if (json["debounce"]) {
+    if (json["debounce"].is<JsonVariantConst>()) {
       fields.debounce = json["debounce"];
     } else {
       fields.debounce = false;
     }
-    return Result::OK;
+    return ResultCode::OK;
   }
 }

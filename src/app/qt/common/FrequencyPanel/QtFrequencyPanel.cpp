@@ -1,7 +1,3 @@
-//
-// Created by murray on 28/1/26.
-//
-
 #include "QtFrequencyPanel.h"
 #include "ui_QtFrequencyPanel.h"
 
@@ -302,7 +298,7 @@ QtFrequencyPanel::onCloseRequested(SplitBandId whichBand)
     whichBand == SplitBandId::One ? ActiveBandSettings::SELECT_1 : ActiveBandSettings::SELECT_2;
 
   SettingUpdatePath bandPath({RadioSettings::BAND, static_cast<uint32_t>(select)});
-  SettingUpdate bandSetting(bandPath, "", SettingUpdate::Meaning::VALUE); // Empty band name closes it
+  SettingUpdate bandSetting(bandPath, BandNameString(""), SettingUpdate::Meaning::VALUE); // Empty band name closes it
   m_pSettingsSink->applySettingUpdate(bandSetting);
 }
 

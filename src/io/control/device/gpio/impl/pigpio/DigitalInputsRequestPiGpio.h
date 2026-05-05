@@ -6,16 +6,16 @@
 
 #include <vector>
 
-#include "GpioImplPiGpio.h"
+#include "GpioPiGpio.h"
 #include "../../digital/DigitalInputsRequest.h"
 
 
-class DigitalInputsRequestImplPiGpio : public DigitalInputLinesRequest
+class DigitalInputsRequestPiGpio : public DigitalInputLinesRequest
 {
-  friend GpioImplPiGpio;
+  friend GpioPiGpio;
 public:
-  explicit DigitalInputsRequestImplPiGpio(const char* consumer = "");
-  ~DigitalInputsRequestImplPiGpio() override;
+  explicit DigitalInputsRequestPiGpio(const char* consumer = "");
+  ~DigitalInputsRequestPiGpio() override;
 
   void startCallbacks(Callback* callback) override;
   void stopCallbacks() override;

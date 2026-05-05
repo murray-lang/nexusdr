@@ -32,7 +32,7 @@ public:
   {
   }
 
-  virtual void start(uint32_t maxPacketFrames) = 0;
+  virtual ResultCode start(uint32_t maxPacketFrames) = 0;
   virtual void stop() = 0;
 
   [[nodiscard]] uint32_t getSampleRate() const { return m_format.sampleRate; }

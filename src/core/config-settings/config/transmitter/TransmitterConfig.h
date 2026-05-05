@@ -12,7 +12,7 @@ namespace Config::Transmitter
     IqIo::Fields iqIo;
   };
 
-  extern Result fromJson(JsonVariantConst json, Fields& fields);
+  extern ResultCode fromJson(JsonVariantConst json, Fields& fields);
 }
 
-using TransmitterConfig = Config::Transmitter::Fields;
+// using TransmitterConfig = Config::Transmitter::Fields;

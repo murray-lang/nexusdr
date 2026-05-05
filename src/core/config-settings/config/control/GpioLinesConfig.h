@@ -6,7 +6,7 @@
 
 #include "../base/ConfigBase.h"
 
-#ifdef USE_ETL_COLLECTIONS
+#ifdef USE_ETL
 #include <etl/vector.h>
 #include <etl/string.h>
 #else
@@ -15,11 +15,10 @@
 #endif
 
 #define MAX_STRING_LENGTH_INCL_0 10
-#define MAX_GPIO_LINES_PER_DEVICE 4
 
 namespace Config::GpioLines
 {
-#ifdef USE_ETL_COLLECTIONS
+#ifdef USE_ETL
   using ConfigString = etl::string<MAX_STRING_LENGTH_INCL_0>;
   using LinesVector = etl::vector<uint32_t, MAX_GPIO_LINES_PER_DEVICE>;
 #else
@@ -34,7 +33,7 @@ namespace Config::GpioLines
     ConfigString edge; //"rising", "falling" or "both"
   };
 
-  extern Result fromJson(JsonVariantConst json, Fields& fields);
+  extern ResultCode fromJson(JsonVariantConst json, Fields& fields);
 };
 
 // using GpioLinesConfig = Config::GpioLines::Fields;

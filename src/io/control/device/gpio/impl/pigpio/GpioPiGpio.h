@@ -5,11 +5,11 @@
 #include <pigpio.h>
 #include <memory>
 
-class GpioImplPiGpio: public Gpio::Impl
+class GpioPiGpio: public Gpio::Impl
 {
 public:
-  GpioImplPiGpio();
-  ~GpioImplPiGpio() override;
+  GpioPiGpio();
+  ~GpioPiGpio() override;
     
     static bool isPresent();
     bool open() override;

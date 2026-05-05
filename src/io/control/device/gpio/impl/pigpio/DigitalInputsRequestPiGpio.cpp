@@ -2,22 +2,22 @@
 // Created by murray on 18/9/25.
 //
 
-#include "DigitalInputsRequestImplPiGpio.h"
+#include "DigitalInputsRequestPiGpio.h"
 #include "../../GpioException.h"
 #include <qdebug.h>
 
-DigitalInputsRequestImplPiGpio::DigitalInputsRequestImplPiGpio(const char* consumer) :
+DigitalInputsRequestPiGpio::DigitalInputsRequestPiGpio(const char* consumer) :
   m_pCallback(nullptr),
   m_consumer(consumer)
 {
 }
 
-DigitalInputsRequestImplPiGpio::~DigitalInputsRequestImplPiGpio()
+DigitalInputsRequestPiGpio::~DigitalInputsRequestPiGpio()
 {
 }
 
 int
-DigitalInputsRequestImplPiGpio::getLineValue(uint32_t line)
+DigitalInputsRequestPiGpio::getLineValue(uint32_t line)
 {
     int value = gpioRead(line);
     if (value < 0) {
@@ -27,7 +27,7 @@ DigitalInputsRequestImplPiGpio::getLineValue(uint32_t line)
 }
 
 void
-DigitalInputsRequestImplPiGpio::startCallbacks(Callback* callback)
+DigitalInputsRequestPiGpio::startCallbacks(Callback* callback)
 {
   if (m_pCallback != nullptr) {
     throw GpioException("Line state callback already set");
@@ -37,13 +37,13 @@ DigitalInputsRequestImplPiGpio::startCallbacks(Callback* callback)
 }
 
 void
-DigitalInputsRequestImplPiGpio::stopCallbacks()
+DigitalInputsRequestPiGpio::stopCallbacks()
 {
   m_pCallback = nullptr;
 }
 
 void 
-DigitalInputsRequestImplPiGpio::request(const char * contextId, const std::vector<DigitalInput*>& lines)
+DigitalInputsRequestPiGpio::request(const char * contextId, const std::vector<DigitalInput*>& lines)
 {
   for (auto gpioLines : lines) {
     for (auto lineNo : gpioLines.getLines()) {
@@ -73,7 +73,7 @@ DigitalInputsRequestImplPiGpio::request(const char * contextId, const std::vecto
 
 
 void
-DigitalInputsRequestImplPiGpio::release()
+DigitalInputsRequestPiGpio::release()
 {
   for (const auto& pair : m_lineStates) {
     uint32_t line = pair.first;
@@ -83,7 +83,7 @@ DigitalInputsRequestImplPiGpio::release()
 }
 
 void
-DigitalInputsRequestImplPiGpio::setLineDirection(uint32_t line, GpioLines::Direction direction)
+DigitalInputsRequestPiGpio::setLineDirection(uint32_t line, GpioLines::Direction direction)
 {
     int rc = gpioSetMode(line, direction == GpioLines::Direction::INPUT ? PI_INPUT : PI_OUTPUT);
     if (rc != 0) {
@@ -92,7 +92,7 @@ DigitalInputsRequestImplPiGpio::setLineDirection(uint32_t line, GpioLines::Direc
 }
 
 void
-DigitalInputsRequestImplPiGpio::setLineBias(uint32_t line, GpioLines::Bias bias)
+DigitalInputsRequestPiGpio::setLineBias(uint32_t line, GpioLines::Bias bias)
 {
     int rc = -1;
     if (bias == GpioLines::Bias::PULL_UP) {
@@ -110,9 +110,9 @@ DigitalInputsRequestImplPiGpio::setLineBias(uint32_t line, GpioLines::Bias bias)
 }
 
 void
-DigitalInputsRequestImplPiGpio::gpioCallback(int gpio, int level, uint32_t tick, void* userData)
+DigitalInputsRequestPiGpio::gpioCallback(int gpio, int level, uint32_t tick, void* userData)
 {
-  DigitalInputsRequestImplPiGpio* self = static_cast<DigitalInputsRequestImplPiGpio*>(userData);
+  DigitalInputsRequestPiGpio* self = static_cast<DigitalInputsRequestPiGpio*>(userData);
   if (self->m_pCallback) {
     LineStateMap changes;
     auto stateIter = self->m_lineStates.find(gpio);

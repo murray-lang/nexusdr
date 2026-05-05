@@ -7,7 +7,7 @@
 #include "DigitalOutputConfig.h"
 #include "BandSelectorBandsConfig.h"
 
-#ifdef USE_ETL_COLLECTIONS
+#ifdef USE_ETL
 #include <etl/vector.h>
 #include <etl/optional.h>
 #else
@@ -18,11 +18,11 @@
 
 #define MAX_BAND_SELECTOR_BANDS 13
 
-namespace Config::DigitalOutput::BandSelector
+namespace Config::BandSelector
 {
   static constexpr auto type = "bandselector";
 
-#ifdef USE_ETL_COLLECTIONS
+#ifdef USE_ETL
   using OptionalBandConfig = etl::optional<Band::Fields>;
   using BandsVector = etl::vector<OptionalBandConfig, MAX_BAND_SELECTOR_BANDS>;
 #else
@@ -36,7 +36,7 @@ namespace Config::DigitalOutput::BandSelector
     BandsVector bands;
   };
 
-  extern Result fromJson(JsonVariantConst json, Fields& fields);
+  extern ResultCode fromJson(JsonVariantConst json, Fields& fields);
 }
 
-// using BandSelectorConfig = Config::DigitalOutput::BandSelector::Fields;
+// using BandSelectorConfig = Config::BandSelector::Fields;

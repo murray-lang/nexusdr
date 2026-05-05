@@ -19,7 +19,7 @@ public:
   explicit RadioBase(EventTarget *pEventTarget = nullptr);
   ~RadioBase() override = default;
 
-  virtual ResultCode configure(const RadioConfig* pConfig) = 0;
+  virtual ResultCode configure(const Config::Radio::Fields& config) = 0;
   virtual void start() = 0;
   virtual void stop() = 0;
 
@@ -30,13 +30,14 @@ public:
 
   // void applySettings(const RadioSettings& settings) override;
   // void applySettings(const RadioSettings& settings, BandSettings* pBandSettings) override;
-  void applySettingUpdate(SettingUpdate& setting) override;
-  void applySettingUpdates(SettingUpdate* updates, std::size_t count) override;
+  ResultCode applySettingUpdate(SettingUpdate& setting) override;
+  ResultCode applySettingUpdates(SettingUpdate* updates, std::size_t count) override;
 
   template<typename T>
   void applySetting(const char * dottedString, T value, bool isDelta = false)
   {
-    SettingUpdatePath path = RadioSettings::getSettingUpdatePath(dottedString);
+    SettingUpdatePath path;
+    RadioSettings::getSettingUpdatePath(dottedString, path);
     SettingUpdate update(path, value, isDelta ? SettingUpdate::DELTA : SettingUpdate::VALUE);
     applySettingUpdate(update);
   }
@@ -50,16 +51,16 @@ public:
     m_bandSelector.applyIfSettings(settings);
   }
 
-  void applyBand(const std::string& bandName);
+  void applyBand(const BandNameString& bandName);
 
-  void split(const std::string& bandA, const std::string& bandB);
+  void split(const BandNameString& bandA, const BandNameString& bandB);
 
   void applyAgcSpeed(AgcSpeed speed);
 
   // void setCentreFrequencyDeltas(int32_t fine, int32_t coarse);
 
 
-  const BandSettings* getBandSettings(const std::string& bandName)
+  const BandSettings* getBandSettings(const BandNameString& bandName)
   {
     return m_bandSelector.getBandSettings(bandName);
   }
@@ -67,7 +68,7 @@ public:
   {
     return m_settings.getFocusBandSettings();
   }
-  std::string getFocusBandName() const
+  [[nodiscard]] BandNameString getFocusBandName() const
   {
     return m_settings.getFocusBandName();
   }

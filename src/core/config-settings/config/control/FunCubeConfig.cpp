@@ -2,9 +2,9 @@
 
 namespace Config::FunCube
 {
-  Result fromJson(JsonVariantConst json, Fields& fields)
+  ResultCode fromJson(JsonVariantConst json, Fields& fields)
   {
     fields.type = type;
-    return Result::OK;
+    return ResultCode::OK;
   }
 }

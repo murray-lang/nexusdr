@@ -2,10 +2,15 @@
 // Created by murray on 25/11/25.
 //
 
+#include "CrossPlatformTypes.h"
+#include "DigitalOutputTypes.h"
 #include "DigitalOutput.h"
 
 #include "io/control/device/gpio/Gpio.h"
 #include "core/config-settings/settings/RadioSettings.h"
+#include "core/config-settings/config/control/DigitalOutputConfig.h"
+
+
 
 DigitalOutput::DigitalOutput() :
   GpioLines(Direction::OUTPUT)
@@ -15,19 +20,21 @@ DigitalOutput::DigitalOutput() :
 ResultCode
 DigitalOutput::configure(const Config::DigitalOutput::Fields& config)
 {
-  ResultCode rc = GpioLines::configureLines(config);
-  const std::string& strSettingPath = config.settingPath;
-  m_settingPath = RadioSettings::getSettingUpdatePath(strSettingPath);
-  return rc;
+  ResultCode rc = configureLines(config);
+  if (rc != ResultCode::OK) return rc;
+  const SettingPathString& strSettingPath = config.settingPath;
+  return RadioSettings::getSettingUpdatePath(strSettingPath, m_settingPath);
 }
 
-void
+ResultCode
 DigitalOutput::applySettingUpdate(SettingUpdate& setting)
 {
   if (setting.getPath() == m_settingPath) {
-    bool value = std::get<bool>(setting.getValue());
+    bool value = get<bool>(setting.getValue());
     setValue(value);
+    return ResultCode::OK;
   }
+  return ResultCode::ERR_SETTING_PATH_NOT_MATCHED;
 }
 
 bool
@@ -39,13 +46,17 @@ DigitalOutput::discover()
 ResultCode
 DigitalOutput::open()
 {
-  if (m_pLines != nullptr) {
+  if (m_linesRequest) {
     return ResultCode::OK;
   }
   Gpio& gpio = Gpio::getInstance();
-  DigitalOutputLinesRequest* pLines = gpio.requestDigitalOutputs("digitalOutputs", { this });
-  m_pLines.reset(pLines);
-  if (m_pLines == nullptr) {
+  DigitalOutputVariant thisAsVariant = move(*this);
+  DigitalOutputVariantVector thisInVector(1, thisAsVariant);
+  m_linesRequest.emplace();
+  ResultCode rc = gpio.requestDigitalOutputs("digitalOutputs", thisInVector, *m_linesRequest);
+  if (rc != ResultCode::OK) return rc;
+
+  if (!m_linesRequest) {
     return ResultCode::ERR_DIGITAL_OUTPUT_LINES;
   }
   return ResultCode::OK;
@@ -54,9 +65,9 @@ DigitalOutput::open()
 void
 DigitalOutput::close()
 {
-  if (m_pLines != nullptr) {
-    m_pLines->release();
-    m_pLines.reset();
+  if (m_linesRequest) {
+    m_linesRequest->release();
+    m_linesRequest.reset();
   }
 }
 
@@ -69,5 +80,5 @@ DigitalOutput::exit()
 void
 DigitalOutput::setValue(bool value)
 {
-  m_pLines->setLineValue(m_lines.at(0), value);
+  m_linesRequest->setLineValue(m_lines.at(0), value);
 }

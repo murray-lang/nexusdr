@@ -3,28 +3,34 @@
 //
 
 #pragma once
+#include "ResultCode.h"
 #include "SettingUpdate.h"
 
 class SettingUpdateSink
 {
 public:
   virtual ~SettingUpdateSink() = default;
-  virtual void applySettingUpdate(SettingUpdate& settingDelta) = 0;
+  virtual ResultCode applySettingUpdate(SettingUpdate& settingDelta) = 0;
 
-  virtual void applySettingUpdates(SettingUpdate* updates, std::size_t count)
+  virtual ResultCode applySettingUpdates(SettingUpdate* updates, std::size_t count)
   {
-    if (!updates) return;
+    ResultCode rc = ResultCode::OK;
+    if (!updates) return rc;
     for (std::size_t i = 0; i < count; ++i) {
       updates[i].resetCursor();
-      applySettingUpdate(updates[i]);
+      rc = applySettingUpdate(updates[i]);
+      if (rc != ResultCode::OK) {
+        break;
+      }
     }
+    return rc;
   }
 
   // Convenience for std::array + prefix length (optional)
   template <std::size_t N>
-  void applySettingUpdates(std::array<SettingUpdate, N>& updates, std::size_t count)
+  ResultCode applySettingUpdates(std::array<SettingUpdate, N>& updates, std::size_t count)
   {
     if (count > N) count = N;
-    applySettingUpdates(updates.data(), count);
+    return applySettingUpdates(updates.data(), count);
   }
 };

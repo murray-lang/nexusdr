@@ -4,14 +4,21 @@
 #pragma once
 
 #include "Band.h"
+#include "CrossPlatformTypes.h"
+
+#ifdef USE_ETL
 #include <vector>
-#include <string>
-#include <algorithm>
+
+using BandsVector = etl::vector<Band, MAX_BANDS>;
+#else
+#include <vector>
+using BandsVector = std::vector<Band>;
+#endif
 
 class BandCategory
 {
 public:
-  BandCategory(const std::string& name, const std::string& label, const std::vector<Band>& bands) :
+  BandCategory(const BandCategoryNameString& name, const BandCategoryLabelString& label, const BandsVector& bands) :
     m_name(name), m_label(label), m_bands(bands)
   {}
 
@@ -21,11 +28,11 @@ public:
     return *this;
   }
 
-  const std::string& getName() const { return m_name; }
-  const std::string& getLabel() const { return m_label; }
-  const std::vector<Band>& getBands() const { return m_bands; }
+  [[nodiscard]] const BandCategoryNameString& getName() const { return m_name; }
+  [[nodiscard]] const BandCategoryLabelString& getLabel() const { return m_label; }
+  [[nodiscard]] const BandsVector& getBands() const { return m_bands; }
 
-  const Band* findBand(const std::string& name) const
+  [[nodiscard]] const Band* findBand(const BandNameString& name) const
   {
     for (const auto& band : m_bands) {
       if (band.getName() == name) {
@@ -34,7 +41,7 @@ public:
     }
     return nullptr;
   }
-  const Band* findBand(uint64_t frequency) const
+  [[nodiscard]] const Band* findBand(uint64_t frequency) const
   {
     for (const auto& band : m_bands) {
       if (band.containsFrequency(frequency)) {
@@ -44,14 +51,14 @@ public:
     return nullptr;
   }
 
-  const Band* nextBand(const std::string& name) const
+  [[nodiscard]] const Band* nextBand(const BandNameString& name) const
   {
-    auto it = std::find_if(m_bands.begin(), m_bands.end(), [&](const Band& b) {
+    auto it = find_if(m_bands.begin(), m_bands.end(), [&](const Band& b) {
       return b.getName() == name;
     });
 
     if (it != m_bands.end()) {
-      auto index = std::distance(m_bands.begin(), it);
+      auto index = distance(m_bands.begin(), it);
       if (index + 1 < m_bands.size()) {
         return &m_bands[index + 1];
       } else {
@@ -61,14 +68,14 @@ public:
     return nullptr;
   }
 
-  const Band* prevBand(const std::string& name) const
+  const Band* prevBand(const BandNameString& name) const
   {
-    auto it = std::find_if(m_bands.begin(), m_bands.end(), [&](const Band& b) {
+    auto it = find_if(m_bands.begin(), m_bands.end(), [&](const Band& b) {
       return b.getName() == name;
     });
 
     if (it != m_bands.end()) {
-      auto index = std::distance(m_bands.begin(), it);
+      auto index = distance(m_bands.begin(), it);
       if (index > 0) {
         return &m_bands[index - 1];
       } else {
@@ -79,7 +86,7 @@ public:
   }
 
 protected:
-  std::string m_name;
-  std::string m_label;
-  std::vector<Band> m_bands;
+  BandCategoryNameString m_name;
+  BandCategoryLabelString m_label;
+  BandsVector m_bands;
 };

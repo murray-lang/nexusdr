@@ -13,16 +13,16 @@ void
 BandSelector::initialiseCache()
 {
   // These will eventually be overridden by settings from JSON
-  const std::vector<BandCategory>& categories = m_bands.getCategories();
+  const BandCategoriesVector& categories = m_bands.getCategories();
   for (const auto& category : categories) {
     for (const auto& band : category.getBands()) {
-      m_bandSettingsCache.emplace(band.getName(), BandSettings(band));
+      m_bandSettingsCache.insert({band.getName(), BandSettings(band)});
     }
   }
 }
 
 BandSettings*
-BandSelector::getBandSettings(const std::string& bandName)
+BandSelector::getBandSettings(const BandNameString& bandName)
 {
   if (m_bandSettingsCache.contains(bandName)) {
     return &m_bandSettingsCache.at(bandName);
@@ -31,7 +31,7 @@ BandSelector::getBandSettings(const std::string& bandName)
 }
 
 const BandSettings*
-BandSelector::getBandSettings(const std::string& bandName) const
+BandSelector::getBandSettings(const BandNameString& bandName) const
 {
   if (m_bandSettingsCache.contains(bandName)) {
     return &m_bandSettingsCache.at(bandName);
@@ -67,14 +67,14 @@ BandSelector::applyIfSettings(const IfSettings& settings)
 }
 
 BandSettings*
-BandSelector::getOrCreateBandSettings(const std::string& bandName)
+BandSelector::getOrCreateBandSettings(const BandNameString& bandName)
 {
   BandSettings* bandSettings = getBandSettings(bandName);
   if (bandSettings != nullptr) {
     return bandSettings;
   }
   if (const Band* bandInfo = m_bands.findBand(bandName)) {
-    m_bandSettingsCache.emplace(bandName, BandSettings(*bandInfo));
+    m_bandSettingsCache.insert({bandName, BandSettings(*bandInfo)});
     return &m_bandSettingsCache.at(bandName);
   } else {
     return nullptr;

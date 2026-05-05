@@ -208,7 +208,8 @@ void BandSettings::markAllChanged()
   }
 }
 
-const std::string& BandSettings::getBandName() const
+const BandNameString&
+  BandSettings::getBandName() const
 {
   return m_band.getName();
 }
@@ -264,7 +265,7 @@ void BandSettings::applyIfSettings(const IfSettings& settings)
 bool BandSettings::applyUpdate(SettingUpdate& update)
 {
   if (update.isExhausted()) {
-    throw SettingsException("Invalid setting path");
+    return false;
   }
   uint32_t feature = update.getCurrentFeature();
   const auto& val = update.getValue();
@@ -296,17 +297,17 @@ bool BandSettings::applyUpdate(SettingUpdate& update)
 }
 
 bool BandSettings::getFeaturePath(
-  const std::vector<std::string>& featureStrings,
-  std::vector<uint32_t>& featuresOut,
+  const FeatureStringVector& featureStrings,
+  FeatureNumVector& featuresOut,
   size_t startIndex)
 {
   if (startIndex >= featureStrings.size()) {
-    throw SettingsException("Invalid feature path");
+    return false;
   }
   if (resolvePathForRegisteredSetting<BandSettings>(featureStrings, featuresOut, startIndex)) {
     return true;
   }
-  const std::string& key = featureStrings[startIndex];
+  const FeatureString& key = featureStrings[startIndex];
   // if (key == "split-pipelines") {
   //   featuresOut.push_back(MULTI_PIPELINE);
   //   return RxPipelineSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
@@ -348,19 +349,19 @@ const RfSettings& BandSettings::getTxRfSettings() const
 bool
 BandSettings::applySplitPipelines(const SettingValue& settingValue)
 {
-  return splitPipelines(std::get<bool>(settingValue));
+  return splitPipelines(get<bool>(settingValue));
 }
 
 bool
 BandSettings::applyClosePipeline(const SettingValue& settingValue)
 {
-  return closePipeline(std::get<PipelineId>(settingValue));
+  return closePipeline(get<PipelineId>(settingValue));
 }
 
 bool
 BandSettings::setTxPipeline(const SettingValue& settingValue)
 {
-  PipelineId newTxId = std::get<PipelineId>(settingValue);
+  PipelineId newTxId = get<PipelineId>(settingValue);
   if (newTxId == m_txPipelineId()) {
     return false;
   }
@@ -379,7 +380,7 @@ BandSettings::setTxPipeline(const SettingValue& settingValue)
 bool
 BandSettings::setFocusPipeline(const SettingValue& settingValue)
 {
-  PipelineId newFocusId = std::get<PipelineId>(settingValue);
+  PipelineId newFocusId = get<PipelineId>(settingValue);
   if (newFocusId == m_focusPipelineId()) {
     return false;
   }

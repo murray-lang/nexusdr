@@ -12,15 +12,12 @@
 #include <etl/string.h>
 
 #include "io/control/device/gpio/Gpio.h"
-#include "io/control/device/gpio/GpioException.h"
 #include "io/control/device/gpio/digital/DigitalInputLinesRequest.h"
 
 int main(int argc, char *argv[])
 {
-  etl::string<10> etlString;
-
   // std::this_thread::sleep_for(std::chrono::seconds(5));
-  RadioConfig radioConfig;
+  Config::Radio::Fields radioConfig;
   bool dumpConfig = false;
   bool dumpSchema = false;
   for (int i = 1; i < argc; ++i) {
@@ -61,10 +58,10 @@ int main(int argc, char *argv[])
   //   return 0;
   // }
 #ifdef USE_GPIO
-  try {
-    Gpio::getInstance().open();
-  } catch (GpioException& gpioErr) {
-    qDebug() << gpioErr.what();
+
+  ResultCode rc1 = Gpio::getInstance().open();
+  if (rc1 != ResultCode::OK) {
+    qDebug() << "Error opening GPIO instance.";
   }
 #endif
   //qRegisterMetaType<QSharedPointer<vcomplex>>("SharedFftData");
@@ -107,11 +104,11 @@ int main(int argc, char *argv[])
 
   MainWindow w(radioConfig);
   w.show();
-  int rc = app.exec();
+  int rc2 = app.exec();
 
 #ifdef USE_GPIO
   Gpio::getInstance().close();
 #endif
 
-  return rc;
+  return rc2;
 }

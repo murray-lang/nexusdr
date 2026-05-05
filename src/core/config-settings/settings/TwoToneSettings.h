@@ -49,7 +49,7 @@ public:
   bool applyUpdate(SettingUpdate& update) override
   {
     if (update.isExhausted()) {
-      throw SettingsException("Invalid setting path");
+      return false;
     }
     uint32_t feature = update.getCurrentFeature();
     const auto& val = update.getValue();
@@ -63,8 +63,8 @@ public:
   }
 
   static bool getFeaturePath(
-    const std::vector<std::string>& featureStrings,
-    std::vector<uint32_t>& out,
+    const FeatureStringVector& featureStrings,
+    FeatureNumVector& out,
     size_t startIndex
     )
   {

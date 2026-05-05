@@ -3,8 +3,9 @@
 //
 
 #pragma once
-#include <cstdint>
-#include <string>
+#include "SettingsCrossPlatformTypes.h"
+
+
 #include <utility>
 
 class Mode
@@ -32,7 +33,7 @@ public:
     m_offset(0)
   {}
 
-  Mode(Type type, std::string  name, std::string  label , int32_t loCut, int32_t hiCut, int32_t offset) :
+  Mode(Type type, ModeNameString  name, ModeLabelString   label , int32_t loCut, int32_t hiCut, int32_t offset) :
     m_type(type),
     m_name(std::move(name)),
     m_label(std::move(label)),
@@ -45,16 +46,16 @@ public:
   Mode& operator=(const Mode& rhs) = default;
 
   [[nodiscard]] Type getType() const { return m_type; }
-  [[nodiscard]] const std::string& getName() const { return m_name; }
-  [[nodiscard]] const std::string& getLabel() const { return m_label; }
+  [[nodiscard]] const ModeNameString& getName() const { return m_name; }
+  [[nodiscard]] const ModeLabelString& getLabel() const { return m_label; }
   [[nodiscard]] int32_t getLoCut() const { return m_loCut; }
   [[nodiscard]] int32_t getHiCut() const { return m_hiCut; }
   [[nodiscard]] int32_t getOffset() const { return m_offset; }
 
 protected:
   Type m_type;
-  std::string m_name;
-  std::string m_label;
+  ModeNameString m_name;
+  ModeLabelString m_label;
   int32_t m_loCut{};
   int32_t m_hiCut{};
   int32_t m_offset{};

@@ -2,49 +2,49 @@
 
 namespace Config::IqIo
 {
-  static Result sourceFactory(const TypedJson& json, IqSourceVariant& sourceVariant)
+  static ResultCode sourceFactory(const TypedJson& json, IqSourceConfigVariant& sourceVariant)
   {
-    Result result = Result::OK;
+    ResultCode result = ResultCode::OK;
     if (json.type == AudioSignalIqSource::type) {
       AudioSignalIqSource::Fields fields{};
       result = AudioSignalIqSource::fromJson(json.config, fields);
-      if (result == Result::OK) {
+      if (result == ResultCode::OK) {
         sourceVariant = fields;
       }
       return result;
     }
-    return Result::UNKNOWN_TYPE;
+    return ResultCode::ERR_CONFIG_UNKNOWN_TYPE;
   }
 
-  static Result outputFactory(const TypedJson& json, AudioOutputVariant& outputVariant)
+  static ResultCode outputFactory(const TypedJson& json, AudioOutputConfigVariant& outputVariant)
   {
-    Result result = Result::OK;
+    ResultCode result = ResultCode::OK;
     if (json.type == Audio::type) {
       Audio::Fields fields{};
       result = Audio::fromJson(json.config, fields);
-      if (result == Result::OK) {
+      if (result == ResultCode::OK) {
         outputVariant = fields;
       }
       return result;
     }
-    return Result::UNKNOWN_TYPE;
+    return ResultCode::ERR_CONFIG_UNKNOWN_TYPE;
   }
 
-  Result fromJson(JsonVariantConst json, Fields& fields)
+  ResultCode fromJson(JsonVariantConst json, Fields& fields)
   {
-    if (!json["iqSource"]) return Result::MISSING_IQ_SOURCE;
-    if (!json["audioOutput"]) return Result::MISSING_AUDIO_OUTPUT;
+    if (!json["iqSource"]) return ResultCode::ERR_CONFIG_MISSING_IQ_SOURCE;
+    if (!json["audioOutput"]) return ResultCode::ERR_CONFIG_MISSING_AUDIO_OUTPUT;
 
     TypedJson taggedSourceJson;
-    Result result = taggedSourceJson.fromJson(json["iqSource"]);
-    if (result != Result::OK) return result;
+    ResultCode result = taggedSourceJson.fromJson(json["iqSource"]);
+    if (result != ResultCode::OK) return result;
 
     result = sourceFactory(taggedSourceJson, fields.iqSource);
-    if (result != Result::OK) return result;
+    if (result != ResultCode::OK) return result;
 
     TypedJson taggedOutputJson;
     result = taggedOutputJson.fromJson(json["audioOutput"]);
-    if (result != Result::OK) return result;
+    if (result != ResultCode::OK) return result;
 
     return outputFactory(taggedOutputJson, fields.audioOutput);
   }

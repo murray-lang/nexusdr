@@ -1,7 +1,3 @@
-//
-// Created by murray on 2025-08-24.
-//
-
 #pragma once
 
 
@@ -14,16 +10,16 @@
 #include "ResultCode.h"
 #include "etl/vector.h"
 
-#ifdef USE_ETL_COLLECTIONS
+#ifdef USE_ETL
 #include <etl/vector.h>
 
-using SinkVector = etl::vector<ControlSinkVariant, MAX_CONTROL_SINKS>; //
-using SourceVector = etl::vector<ControlSourceVariant, MAX_CONTROL_SOURCES>;
+using ControlSinkVector = etl::vector<ControlSinkVariant, MAX_CONTROL_SINKS>; //
+using ControlSourceVector = etl::vector<ControlSourceVariant, MAX_CONTROL_SOURCES>;
 #else
 #include <vector>
 
-using SinkVector = std::vector<ControlSinkVariant>;
-using SourceVector = std::vector<ControlSourceVariant>;
+using ControlSinkVector = std::vector<ControlSinkVariant>;
+using ControlSourceVector = std::vector<ControlSourceVariant>;
 #endif
 
 class RadioControl :
@@ -36,13 +32,13 @@ public:
   ~RadioControl() override = default;
 
   ResultCode configure(const Config::Control::Fields& pConfig);
-  void start();
+  ResultCode start();
   void stop();
 
   //RadioSettingsSink methods. Intended for external use, not to be called by internal sources.
-  void applySettings(const RadioSettings& settings) override;
+  ResultCode applySettings(const RadioSettings& settings) override;
   // void applySettings(const RadioSettings& settings, BandSettings* pBandSettings) override;
-  void applySettingUpdate(SettingUpdate& setting) override;
+  ResultCode applySettingUpdate(SettingUpdate& setting) override;
 
   // SettingDeltaSink method.
 
@@ -51,8 +47,8 @@ public:
 
   // RadioSettingsSource methods
   void connect(RadioSettingsSink* pSink) override;
-  void notifySettings(const RadioSettings& radioSettings) override;
-  void notifySettingUpdate(SettingUpdate& settingDelta) override;
+  ResultCode notifySettings(const RadioSettings& radioSettings) override;
+  ResultCode notifySettingUpdate(SettingUpdate& settingDelta) override;
 
 protected:
 
@@ -63,17 +59,19 @@ protected:
   {
   public:
     explicit InternalSink(RadioControl* pControl) : m_pControl(pControl) {}
-    void applySettings(const RadioSettings& settings) override
+    ResultCode applySettings(const RadioSettings& settings) override
     {
       if (m_pControl) {
-        m_pControl->notifySettings(settings); // Notify external sink
+        return m_pControl->notifySettings(settings); // Notify external sink
       }
+      return ResultCode::OK;
     }
-    void applySettingUpdate(SettingUpdate& settingDelta) override
+    ResultCode applySettingUpdate(SettingUpdate& settingDelta) override
     {
       if (m_pControl) {
-        m_pControl->notifySettingUpdate(settingDelta); // Notify external sink
+        return m_pControl->notifySettingUpdate(settingDelta); // Notify external sink
       }
+      return ResultCode::OK;
     }
 
   protected:
@@ -81,6 +79,6 @@ protected:
   };
   InternalSink m_internalSink;
   RadioSettingsSink* m_pExternalSettingsSink;
-  SinkVector m_controlSinks;
-  SourceVector m_controlSources;
+  ControlSinkVector m_controlSinks;
+  ControlSourceVector m_controlSources;
 };

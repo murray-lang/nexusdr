@@ -11,15 +11,33 @@ endif()
 
 if (TARGET_PLATFORM STREQUAL "stm32h745i" )
     add_definitions(
-            -DUSE_ETL_COLLECTIONS
+            -DUSE_ETL
+            -DMAX_GPIO=27
             -DMAX_DIGITAL_INPUTS=8
+            -DMAX_DIGITAL_OUTPUTS=4
             -DMAX_CONTROL_SINKS=4
             -DMAX_CONTROL_SOURCES=4
             -DMAX_ID_LENGTH=16
+            -DMAX_SETTINGS_TYPES=16
             -DMAX_SETTING_DEPTH=8
+            -DMAX_SETTING_NAME_LENGTH=24
             -DMAX_SETTING_PATH_LENGTH=96
+            -DMAX_GPIO_LINES_PER_DEVICE=4
+            -DMAX_BANDS=16
+            -DMAX_BAND_NAME_LENGTH=8
+            -DMAX_BAND_LABEL_LENGTH=8
+            -DMAX_BAND_CATEGORIES=8
+            -DMAX_BAND_CATEGORY_NAME_LENGTH=8
+            -DMAX_BAND_CATEGORY_LABEL_LENGTH=8
+            -DMAX_MODES=8
+            -DMAX_MODE_NAME_LENGTH=5
+            -DMAX_MODE_LABEL_LENGTH=16
+            -DUSE_GPIO
+#            -DUSE_GPIOD
     )
 endif()
+
+set(USE_GPIO ON)
 
 set(APP_DIR ${CMAKE_SOURCE_DIR}/src/app)
 set(CONFIG_SETTINGS_DIR ${CMAKE_SOURCE_DIR}/src/core/config-settings)
@@ -81,7 +99,6 @@ set(SETTINGS_SOURCES
         ${SETTINGS_DIR}/RadioSettingsSink.h
         ${SETTINGS_DIR}/base/SettingUpdatePath.h
         ${SETTINGS_DIR}/base/SettingUpdate.h
-        ${SETTINGS_DIR}/base/SettingsException.h
         ${SETTINGS_DIR}/base/SettingsBase.h
         ${SETTINGS_DIR}/RadioSettingsSource.h
         ${SETTINGS_DIR}/Mode.h
@@ -126,6 +143,7 @@ set (DSP_SOURCES
         src/core/dsp/iq/AudioIqSource.h
         src/core/dsp/iq/IqSourceFactory.cpp
         src/core/dsp/iq/IqSourceFactory.h
+        src/core/dsp/iq/IqSourceTypes.h
         src/core/dsp/iq/AudioSignalIqSource.h
         src/core/dsp/pipeline/oscillators/Oscillator.h
         src/core/dsp/pipeline/oscillators/Oscillator.cpp
@@ -186,10 +204,11 @@ set(IO_SOURCES
         ${USB_API_SOURCES}
         ${GPIO_SOURCES}
         src/io/audio/AudioInput.h
-        src/io/audio/AudioException.h
-        src/io/audio/AudioException.cpp
         src/io/audio/AudioIo.h
         src/io/audio/AudioOutput.h
+        src/io/audio/AudioOutputFactory.h
+        src/io/audio/AudioOutputFactory.cpp
+        src/io/audio/AudioOutputTypes.h
         src/io/audio/AudioSink.h
         src/io/audio/drivers/AudioDriver.h
         src/io/audio/drivers/AudioInputDriver.h
@@ -202,8 +221,6 @@ set(IO_SOURCES
         src/io/control/ControlSinkFactory.h
         src/io/control/ControlSinkFactory.cpp
         src/io/control/device/usb/UsbControl.h
-        src/io/control/device/usb/UsbException.cpp
-        src/io/control/device/usb/UsbException.h
         src/io/control/device/usb/LibUsbControl.h
         src/io/control/device/usb/HidUsbControl.h
         src/io/control/device/FunCubeDongle/FunCubeDongle.cpp

@@ -21,8 +21,8 @@ public:
     void close() override;
     void exit() override;
 
-    int read(unsigned char * data, size_t length) const;
-    int write(const unsigned char * data, size_t length) const;
+    ResultCode read(unsigned char * data, size_t length, size_t* bytesRead) const;
+    ResultCode write(const unsigned char * data, size_t length, size_t* bytesWritten) const;
 
 protected:
     hid_device* m_device;

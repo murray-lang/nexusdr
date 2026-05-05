@@ -15,7 +15,7 @@ namespace Config::Receiver
     IqIo::Fields iqIo;
   };
 
-  extern Result fromJson(JsonVariantConst json, Fields& fields);
+  extern ResultCode fromJson(JsonVariantConst json, Fields& fields);
 }
 
-using ReceiverConfig = Config::Receiver::Fields;
+// using ReceiverConfig = Config::Receiver::Fields;

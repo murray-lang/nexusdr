@@ -1,7 +1,3 @@
-//
-// Created by murray on 2025-08-24.
-//
-
 #include "RadioControl.h"
 
 #include "ControlSinkFactory.h"
@@ -9,7 +5,7 @@
 #include "core/config-settings/settings/RadioSettings.h"
 #include "core/config-settings/settings/base/SettingUpdatePath.h"
 
-// #ifdef USE_ETL_COLLECTIONS
+// #ifdef USE_ETL
 // #include "etl/visitor.h"
 // #else
 #include <variant>
@@ -40,19 +36,19 @@ RadioControl::configure(const Config::Control::Fields& config)
     ControlSourceVariant source;
     rc = ControlSourceFactory::create(controllerConfig, source);
     if (rc == ResultCode::OK) {
-      std::visit([this, rc](auto&& s) {
-        using T = std::decay_t<decltype(s)>;
-        if constexpr (!std::is_same_v<T, std::monostate>) {
+      visit([this, rc](auto&& s) {
+        using T = decay_t<decltype(s)>;
+        if constexpr (!is_same_v<T, monostate>) {
           s.connect(&m_internalSink);
         }
       }, source);
-      if (!std::holds_alternative<std::monostate>(source)) {
+      if (!holds_alternative<monostate>(source)) {
         m_controlSources.emplace_back(source);
       } else {
         return ResultCode::ERR_NO_CONTROL_SOURCES_DEFINED;
       }
     } else {
-      return ResultCode::ERR_CONFIG_CONTROL_SOURCE;
+      return ResultCode::ERR_CONTROL_SOURCE_NOT_FOUND;
     }
   }
   return rc;
@@ -64,57 +60,93 @@ RadioControl::connect(RadioSettingsSink* pSink)
   m_pExternalSettingsSink = pSink;
 }
 
-void
+ResultCode
 RadioControl::notifySettings(const RadioSettings& radioSettings)
 {
   if (m_pExternalSettingsSink) {
-    m_pExternalSettingsSink->applySettings(radioSettings);
+    return m_pExternalSettingsSink->applySettings(radioSettings);
   }
+  return ResultCode::OK;
 }
 
-void
+ResultCode
 RadioControl::notifySettingUpdate(SettingUpdate& settingDelta)
 {
   if (m_pExternalSettingsSink) {
-    m_pExternalSettingsSink->applySettingUpdate(settingDelta);
+    return m_pExternalSettingsSink->applySettingUpdate(settingDelta);
   }
+  return ResultCode::OK;
 }
 
-void
+ResultCode
 RadioControl::applySettings(const RadioSettings& settings)
 {
-  for (RadioSettingsSink* pSink : m_controlSinks) {
-    pSink->applySettings(settings);
+  for (auto& sinkVar : m_controlSinks) {
+    const ResultCode rc = visit([settings] (auto&& sink) -> ResultCode
+    {
+      return sink.applySettings(settings);
+    }, sinkVar);
+    if (rc != ResultCode::OK) {
+      return rc;
+    }
   }
+  return ResultCode::OK;
 }
 
-void
+ResultCode
 RadioControl::applySettingUpdate(SettingUpdate& setting)
 {
-  for (RadioSettingsSink* pSink : m_controlSinks) {
-    pSink->applySettingUpdate(setting);
+  for (auto& sinkVar : m_controlSinks) {
+    const ResultCode rc = visit([&setting] (auto&& sink) -> ResultCode
+    {
+      return sink.applySettingUpdate(setting);
+    }, sinkVar);
+    if (rc != ResultCode::OK) {
+      return rc;
+    }
   }
+  return ResultCode::OK;
 }
 
-void
+ResultCode
 RadioControl::start()
 {
-  for (auto pSink : m_controlSinks) {
-    if (!pSink->discover()) {
-      std::ostringstream oss;
-      oss << "Discovery failed for control sink: '" << pSink->getId() << "'";
-      throw ControlException(oss.str());
+  for (auto& pSink : m_controlSinks) {
+    ResultCode rc = visit([&pSink](auto&& sink) -> ResultCode
+    {
+      using T = decay_t<decltype(sink)>;
+      if constexpr (is_same_v<T, monostate>) {
+        return ResultCode::ERR_CONTROL_NO_SINKS_AVAILABLE;
+      } else {
+        if (sink.discover()) {
+          return sink.open();
+        }
+      }
+      return ResultCode::ERR_CONTROL_SINK_DISCOVER;
+    }, pSink);
+    if (rc != ResultCode::OK) {
+      return rc;
     }
-    pSink->open();
   }
   for (auto pSource : m_controlSources) {
-    if (!pSource->discover()) {
-      std::ostringstream oss;
-      oss << "Discovery failed for control source: '" << pSource->getId() << "'";
-      throw ControlException(oss.str());
+    ResultCode rc = visit([&pSource](auto&& source) -> ResultCode
+    {
+      using T = decay_t<decltype(source)>;
+      if constexpr (is_same_v<T, monostate>) {
+        return ResultCode::ERR_CONTROL_NO_SOURCES_AVAILABLE;
+      } else {
+        if (source.discover()) {
+          return source.open();
+        }
+        return ResultCode::ERR_CONTROL_SOURCE_DISCOVER;
+      }
+    }, pSource);
+    if (rc != ResultCode::OK) {
+      return rc;
     }
-    pSource->open();
-  } 
+
+  }
+  return ResultCode::OK;
 }
 
 void

@@ -1,8 +1,5 @@
-//
-// Created by murray on 5/1/26.
-//
-
 #pragma once
+#include "../SettingsCrossPlatformTypes.h"
 #include "../RfSettings.h"
 #include "../base/SettingsBase.h"
 #include "../ModeSettings.h"
@@ -146,7 +143,7 @@ public:
   bool applyUpdate(SettingUpdate& update) override
   {
     if (update.isExhausted()) {
-      throw SettingsException("Invalid setting path");
+      return false;
     }
     uint32_t feature = update.getCurrentFeature();
 
@@ -176,18 +173,18 @@ public:
   }
 
   static bool getFeaturePath(
-    const std::vector<std::string>& featureStrings,
-    std::vector<uint32_t>& featuresOut,
+    const FeatureStringVector& featureStrings,
+    FeatureNumVector& featuresOut,
     size_t startIndex
     )
   {
     if (startIndex >= featureStrings.size()) {
-      throw SettingsException("Invalid feature path");
+      return false;
     }
     if (resolvePathForRegisteredSetting<PipelineSettings>(featureStrings, featuresOut, startIndex)) {
       return true;
     }
-    const std::string& key = featureStrings[startIndex];
+    const FeatureString& key = featureStrings[startIndex];
     if (key == "rf") {
       featuresOut.push_back(RF);
       return RfSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);
@@ -204,7 +201,7 @@ protected:
   bool applyModeSetting( SettingUpdate& setting)
   {
     if (m_modeSettings.applyUpdate(setting)) {
-      const auto& modeType = std::get<Mode::Type>(setting.getValue());
+      const auto& modeType = get<Mode::Type>(setting.getValue());
       Mode newMode = ModeSettings::getModeByType(modeType);
       if (newMode.getType() != m_mode.getType()) {
         setMode(newMode);

@@ -4,23 +4,33 @@
 
 #pragma once
 
-#include <functional>
-#include <memory>
-#include <unordered_map>
+#include "CrossPlatformTypes.h"
 #include "FaceBase.h"
+#include "core/config-settings/config/ui/UiConfig.h"
+
+#ifdef USE_ETL
+#include "etl/unordered_map.h"
+
+using FaceCreator = std::function<unique_ptr<FaceBase>(QWidget* parent)>;
+using FaceMap = etl::unordered_map<Config::Ui::FaceString, FaceCreator, 3>;
+#else
+using FaceCreator = std::function<unique_ptr<FaceBase>(QWidget* parent)>;
+using FaceMap = std::unordered_map<Config::Ui::FaceString, FaceCreator>;
+#endif
 
 class FaceFactory {
 public:
   static constexpr const char* defaultName = "standard";
 
-  using Creator = std::function<std::unique_ptr<FaceBase>(QWidget* parent)>;
+  // using Creator = std::function<std::unique_ptr<FaceBase>(QWidget* parent)>;
 
+  FaceFactory();
   static FaceFactory& instance();
 
-  void registerFace(const std::string& name, Creator creator);
-  std::unique_ptr<FaceBase> create(const std::string& name, QWidget* parents) const;
+  void registerFace(const Config::Ui::FaceString& name, const FaceCreator& creator);
+  unique_ptr<FaceBase> create(const Config::Ui::FaceString& name, QWidget* parents) const;
 
 
 private:
-  std::unordered_map<std::string, Creator> m_creators;
+  FaceMap m_creators;
 };

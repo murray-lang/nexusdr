@@ -9,7 +9,7 @@
 class SettingUpdateHelpers
 {
 public:
-  static SettingUpdate makeSetBand(const std::string& bandName);
+  static SettingUpdate makeSetBand(const BandNameString& bandName);
   static SettingUpdate makeSetMultiPipeline(SplitBandId whichBand, bool enable);
   static SettingUpdate makeClosePipeline(SplitBandId whichBand, PipelineId whichPipeline);
   static SettingUpdate makeSetTxPipeline(SplitBandId whichBand, PipelineId whichPipeline);

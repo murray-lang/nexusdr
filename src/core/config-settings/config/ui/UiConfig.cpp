@@ -2,13 +2,13 @@
 
 namespace Config::Ui
 {
-  Result fromJson(JsonVariantConst json, Fields& fields)
+  ResultCode fromJson(JsonVariantConst json, Fields& fields)
   {
-    if (json["face"]) {
+    if (json["face"].is<JsonVariantConst>()) {
       fields.face = json["face"].as<const char *>();
     } else {
       fields.face = "default";
     }
-    return Result::OK;
+    return ResultCode::OK;
   }
 }

@@ -2,7 +2,7 @@
 
 namespace Config::Transmitter
 {
-  Result fromJson(JsonVariantConst json, Fields& fields)
+  ResultCode fromJson(JsonVariantConst json, Fields& fields)
   {
     return IqIo::fromJson(json, fields.iqIo);
   }

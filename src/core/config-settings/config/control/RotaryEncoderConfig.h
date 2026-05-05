@@ -12,7 +12,7 @@ namespace Config::RotaryEncoder
 
   struct Fields : DigitalInput::Fields {};
 
-  extern Result fromJson(JsonVariantConst json, Fields& fields);
+  extern ResultCode fromJson(JsonVariantConst json, Fields& fields);
 }
 
 // using RotaryEncoderConfig = Config::RotaryEncoder::Fields;

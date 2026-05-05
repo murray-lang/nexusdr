@@ -26,7 +26,7 @@ public:
   {
     m_agc = agc_crcf_create();
     if (!m_agc) {
-      throw std::runtime_error("agc_crcf_create() failed");
+      // throw std::runtime_error("agc_crcf_create() failed");
     }
     setBandwidth(speed);
   }

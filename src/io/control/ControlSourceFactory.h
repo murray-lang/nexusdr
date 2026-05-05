@@ -1,7 +1,7 @@
 #pragma once
 #include "core/config-settings/config/control/ControlConfig.h"
 
-#ifdef USE_ETL_COLLECTIONS
+#ifdef USE_ETL
 #include <etl/vector.h>
 #include <etl/variant.h>
 #include <etl/optional.h>
@@ -15,7 +15,7 @@
 #include <memory>
 #endif
 
-#ifdef USE_ETL_COLLECTIONS
+#ifdef USE_ETL
 using etl::variant;
 using etl::optional;
 using etl::unique_ptr;
@@ -31,7 +31,7 @@ using std::unique_ptr;
 #ifdef USE_GPIO
 #include "device/gpio/digital/DigitalInputs.h"
 
-using ControlSourceVariant = variant< DigitalInputs>;
+using ControlSourceVariant = variant<DigitalInputs>;
 #else
 using ControlSourceVariant = variant<std::monostate>;
 #endif
@@ -40,6 +40,6 @@ using ControlSourceVariant = variant<std::monostate>;
 class ControlSourceFactory
 {
 public:
-  static ResultCode create(const Config::Control::SourceVariant& config, ControlSourceVariant& source);
+  static ResultCode create(const Config::Control::SourceConfigVariant& config, ControlSourceVariant& source);
 };
 

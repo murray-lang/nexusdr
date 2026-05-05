@@ -9,7 +9,6 @@
 #include "RfSettings.h"
 #include "IfSettings.h"
 #include "IqCorrectionSettings.h"
-#include "base/SettingsException.h"
 #include "Mode.h"
 #include "bands/Band.h"
 #include "bands/Bands.h"
@@ -63,7 +62,7 @@ public:
   bool applyUpdate(SettingUpdate& update) override
   {
     if (update.isExhausted()) {
-      throw SettingsException("Invalid setting path");
+      return false;
     }
     uint32_t feature = update.getCurrentFeature();
 
@@ -80,15 +79,15 @@ public:
   }
 
   static bool getFeaturePath(
-    const std::vector<std::string>& featureStrings,
-    std::vector<uint32_t>& featuresOut,
+    const FeatureStringVector& featureStrings,
+    FeatureNumVector& featuresOut,
     size_t startIndex
     )
   {
     if (startIndex >= featureStrings.size()) {
-      throw SettingsException("Invalid feature path");
+      return false;
     }
-    const std::string& key = featureStrings[startIndex];
+    const FeatureString& key = featureStrings[startIndex];
     if (key == "correction") {
       featuresOut.push_back(CORRECTION);
       return IqCorrectionSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);

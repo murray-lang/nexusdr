@@ -19,7 +19,7 @@ GpioLines::GpioLines(Direction direction) :
 {
 }
 
-GpioLines::GpioLines(const std::vector<uint32_t>& lines) :
+GpioLines::GpioLines(const GpioLinesVector& lines) :
   m_lines(lines),
   m_direction(Direction::AS_IS),
   m_bias(Bias::AS_IS),
@@ -32,13 +32,13 @@ GpioLines::GpioLines(const Config::GpioLines::Fields& config) : GpioLines()
   configureLines(config);
 }
 
-GpioLines::GpioLines(const std::vector<uint32_t>& lines, const Config::GpioLines::Fields& config) : GpioLines()
+GpioLines::GpioLines(const GpioLinesVector& lines, const Config::GpioLines::Fields& config) : GpioLines()
 {
   configureLines(config);
   m_lines = lines;
 }
 
-GpioLines::GpioLines(const std::vector<uint32_t>& lines, Direction direction, Bias bias, Edge edge) :
+GpioLines::GpioLines(const GpioLinesVector& lines, Direction direction, Bias bias, Edge edge) :
   m_lines(lines),
   m_direction(direction),
   m_bias(bias),
@@ -62,7 +62,9 @@ GpioLines::operator=(const GpioLines& other)
 ResultCode
 GpioLines::configureLines(const Config::GpioLines::Fields& config)
 {
-  const std::string& dir = config.direction;
+  using string = Config::GpioLines::ConfigString;
+
+  const string& dir = config.direction;
   if (dir == "input") {
     m_direction = Direction::INPUT;
   } else if (dir == "output") {
@@ -70,7 +72,7 @@ GpioLines::configureLines(const Config::GpioLines::Fields& config)
   } else {
     m_direction = Direction::AS_IS;
   }
-  const std::string& bias = config.bias;
+  const string& bias = config.bias;
   if (bias == "disabled") {
     m_bias = Bias::DISABLED;
   } else if (bias == "pull-up") {
@@ -80,7 +82,7 @@ GpioLines::configureLines(const Config::GpioLines::Fields& config)
   } else {
     m_bias = Bias::AS_IS;
   }
-  const std::string& edge = config.edge;
+  const string& edge = config.edge;
   if (edge == "none") {
     m_edge = Edge::NONE;
   } else if (edge == "rising") {

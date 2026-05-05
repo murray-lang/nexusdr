@@ -10,6 +10,6 @@ class ReceiverSettingsSink
 {
 public:
   virtual ~ReceiverSettingsSink() = default;
-  virtual void apply(const ReceiverSettings& rxSettings) = 0;
+  virtual ResultCode apply(const ReceiverSettings& rxSettings) = 0;
 };
 #endif //RECEIVERSETTINGSSINK_H

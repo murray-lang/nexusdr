@@ -3,7 +3,7 @@
 //
 #include "Bands.h"
 
-static std::vector<BandCategory> bandCategories = {
+static BandCategoriesVector bandCategories = {
   {
     "mw", "MW", {
       {"MW", "MW", 526500, 1875000, 810000, 1000, 9000, Mode::Type::AMW}

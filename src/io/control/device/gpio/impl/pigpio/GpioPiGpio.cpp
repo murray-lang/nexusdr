@@ -1,44 +1,44 @@
 
-#include "GpioImplPiGpio.h"
+#include "GpioPiGpio.h"
 
 #include "DigitalInputsRequestImplPiGpio.h"
 #include "GpioLinesImplPiGpio.h"
 #include "io/control/device/gpio/GpioException.h"
 
 
-GpioImplPiGpio::GpioImplPiGpio()
+GpioPiGpio::GpioPiGpio()
 {
    m_initRc = gpioInitialise(); 
 }
 
-GpioImplPiGpio::~GpioImplPiGpio()
+GpioPiGpio::~GpioPiGpio()
 {
-    GpioImplPiGpio::close();
+    GpioPiGpio::close();
     if (m_initRc >= 0) {
         gpioTerminate();
     }   
 }
     
 bool
-GpioImplPiGpio::isPresent()
+GpioPiGpio::isPresent()
 {
     return true;
 }
 
 bool
-GpioImplPiGpio::open()
+GpioPiGpio::open()
 {
   return m_initRc;
 }
 
 bool
-GpioImplPiGpio::close()
+GpioPiGpio::close()
 {
   return true;
 }
 
 DigitalInputLinesRequest*
-GpioImplPiGpio::requestDigitalInputs(const char * contextId, const std::vector<DigitalInput*>& lines)
+GpioPiGpio::requestDigitalInputs(const char * contextId, const std::vector<DigitalInput*>& lines)
 {
   if (m_initRc < 0) {
     throw GpioException("PiGPIO not initialised");
@@ -55,7 +55,7 @@ GpioImplPiGpio::requestDigitalInputs(const char * contextId, const std::vector<D
 }
 
 DigitalOutputLinesRequest*
-GpioImplPiGpio::requestDigitalOutputs(const char * contextId, const std::vector<DigitalOutput*>& lines)
+GpioPiGpio::requestDigitalOutputs(const char * contextId, const std::vector<DigitalOutput*>& lines)
 {
   throw GpioException("GpioImplPiGpio::requestDigitalOutputs not implemented yet");
 }

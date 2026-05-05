@@ -41,7 +41,7 @@ class TestSettings : public SettingsBase
   bool applyUpdate(SettingUpdate& update) override
   {
     if (update.isExhausted()) {
-      throw SettingsException("Invalid setting path");
+      return false;
     }
     uint32_t feature = update.getCurrentFeature();
 
@@ -57,13 +57,13 @@ class TestSettings : public SettingsBase
   }
 
   static bool getFeaturePath(
-    const std::vector<std::string>& featureStrings,
-    std::vector<uint32_t>& featuresOut,
+    const FeatureStringVector& featureStrings,
+    FeatureNumVector& featuresOut,
     size_t startIndex
     )
   {
     if (startIndex >= featureStrings.size()) {
-      throw SettingsException("Invalid feature path");
+      return false;
     }
     if (featureStrings[startIndex] == "two-tone") {
       featuresOut.push_back(TWO_TONE);

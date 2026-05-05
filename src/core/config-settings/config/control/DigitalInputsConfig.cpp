@@ -2,15 +2,15 @@
 
 namespace Config::DigitalInputs
 {
-  static Result factory(const TypedJson& json, OptionalVariant& optionalVariant)
+  static ResultCode factory(const TypedJson& json, DigitalInputConfigVariant& variant)
   {
-    Result result = Result::OK;
+    ResultCode result = ResultCode::OK;
     if (json.type == DigitalInput::type) {
       DigitalInput::Fields fields{};
       result = DigitalInput::fromJson(json.config, fields);
 
-      if (result == Result::OK) {
-        optionalVariant.emplace(fields);
+      if (result == ResultCode::OK) {
+        variant = fields;
       }
       return result;
     }
@@ -18,36 +18,36 @@ namespace Config::DigitalInputs
       RotaryEncoder::Fields fields{};
       result = RotaryEncoder::fromJson(json.config, fields);
 
-      if (result == Result::OK) {
-        optionalVariant.emplace(fields);
+      if (result == ResultCode::OK) {
+        variant = fields;
       }
       return result;
     }
-    return Result::UNKNOWN_TYPE;
+    return ResultCode::ERR_CONFIG_UNKNOWN_TYPE;
   }
 
-  Result fromJson(const TypedJson& json, Fields& fields)
+  ResultCode fromJson(const TypedJson& json, Fields& fields)
   {
     fields.type = type;
     fields.inputs.clear();
 
-    Result result = Result::OK;
+    ResultCode result = ResultCode::OK;
     if (json.config["inputs"]) {
       for (JsonVariantConst inputJson : json.config["inputs"].as<JsonArrayConst>()) {
         TypedJson typedJson;
         result = typedJson.fromJson(inputJson);
 
-        if (result != Result::OK) return result;
+        if (result != ResultCode::OK) return result;
 
-        OptionalVariant inputOpt;
+        DigitalInputConfigVariant inputOpt;
         result = factory(typedJson, inputOpt);
 
-        if (result != Result::OK) return result;
+        if (result != ResultCode::OK) return result;
 
         fields.inputs.emplace_back(inputOpt);
       }
     }
-    return Result::OK;
+    return ResultCode::OK;
   }
 
 }

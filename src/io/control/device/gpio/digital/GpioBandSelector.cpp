@@ -3,21 +3,23 @@
 //
 
 #include "io/control/device/gpio/Gpio.h"
-#include "io/control/device/gpio/GpioException.h"
 #include "core/config-settings/settings/RadioSettings.h"
 #include "GpioBandSelector.h"
+
+#include "DigitalOutputTypes.h"
 
 
 GpioBandSelector::GpioBandSelector() :
   m_defaultOut(0),
-  m_currentOut(0)
+  m_currentOut(0),
+  m_bands{}
 {
   // m_frequencySettingPath = RadioSettings::getSettingPath("tx.rf.frequency");
   // m_offsetSettingPath = RadioSettings::getSettingPath("tx.rf.offset");
 }
 
 ResultCode
-GpioBandSelector::configure(const Config::DigitalOutput::BandSelector::Fields& config)
+GpioBandSelector::configure(const Config::BandSelector::Fields& config)
 {
   ResultCode rc = DigitalOutput::configure(config);
   if (rc == ResultCode::OK) {
@@ -27,7 +29,7 @@ GpioBandSelector::configure(const Config::DigitalOutput::BandSelector::Fields& c
   return rc;
 }
 
-void
+ResultCode
 GpioBandSelector::applySettings(const RadioSettings& settings)
 {
   if (settings.hasSettingChanged(RadioSettings::BAND)) {
@@ -39,18 +41,21 @@ GpioBandSelector::applySettings(const RadioSettings& settings)
       applyOutput(output);
     }
   }
+  return ResultCode::OK;
 }
 
-void
+ResultCode
 GpioBandSelector::applySettingUpdate(SettingUpdate& setting)
 {
   if (setting.getPath() == m_settingPath) {
-    uint32_t frequency = std::get<uint32_t>(setting.getValue());
+    uint32_t frequency = get<uint32_t>(setting.getValue());
     uint32_t output = getBandOutput(frequency);
     if (output != m_currentOut) { 
-      applyOutput(output);
+      return applyOutput(output);
     }
+    return ResultCode::OK;
   }
+  return ResultCode::ERR_SETTING_PATH_NOT_MATCHED;
 }
 
 uint32_t
@@ -58,20 +63,26 @@ GpioBandSelector::getBandOutput(uint32_t frequency) const
 {
   // Lookup the output for the given frequency
   for ( auto& band : m_bands) {
-    if (frequency >= band.fromFrequency && frequency <= band.toFrequency) {
-      return band.outValue;
+    if (band) {
+      if (frequency >= band->fromFrequency && frequency <= band->toFrequency) {
+        return band->outValue;
+      }
     }
+
   }
   return m_defaultOut;
 }
 
-void
+ResultCode
 GpioBandSelector::applyOutput(uint32_t output)
 {
+  if (!m_linesRequest) {
+    return ResultCode::ERR_DIGITAL_OUTPUT_NO_LINE_REQUEST;
+  }
   m_currentOut = output;
-  std::vector<bool> values(m_lines.size(), false);
+  DigitalOutputVector values(m_lines.size(), false);
   for (size_t i = 0; i < m_lines.size(); ++i) {
     values.at(i) = ((output >> i) & 0x1u) != 0;
   }
-  m_pLines->setLineValues(m_lines, values);
+  return m_linesRequest->setLineValues(m_lines, values);
 }

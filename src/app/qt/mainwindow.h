@@ -31,7 +31,7 @@ class MainWindow : public QMainWindow
   Q_OBJECT
 
 public:
-  explicit MainWindow(RadioConfig& radioConfig, QWidget *parent = nullptr);
+  explicit MainWindow(Config::Radio::Fields& radioConfig, QWidget *parent = nullptr);
   ~MainWindow() override;
 
   void customEvent(QEvent* event) override;
@@ -66,7 +66,7 @@ private:
 
   void initialiseRadio();
 
-  void setFaceByName(const std::string& faceName);
+  void setFaceByName(const Config::Ui::FaceString& faceName);
 
   void addModeButton();
   QMenu* createModeMenu(const Mode& currentMode);
@@ -78,10 +78,10 @@ private:
   void addBandButton();
 
 private:
-  RadioConfig& m_radioConfig;
+  Config::Radio::Fields& m_radioConfig;
   Ui::MainWindow *ui;
 
-  std::unique_ptr<FaceBase> m_pFace;
+  unique_ptr<FaceBase> m_pFace;
   QVBoxLayout* m_pFaceLayout;
 
   Radio* m_pRadio;

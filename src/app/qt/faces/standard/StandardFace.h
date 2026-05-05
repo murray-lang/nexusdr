@@ -64,18 +64,19 @@ protected:
   {
   public:
     InternalSettingUpdateSink(StandardFace* pOwningFace) : m_pOwningFace(pOwningFace) {}
-    void applySettingUpdate(SettingUpdate& settingUpdate) override
+    ResultCode applySettingUpdate(SettingUpdate& settingUpdate) override
     {
       if (m_pOwningFace->m_pRadio != nullptr) {
-        m_pOwningFace->m_pRadio->applySettingUpdate(settingUpdate);
+        return m_pOwningFace->m_pRadio->applySettingUpdate(settingUpdate);
       }
-
+      return ResultCode::OK;
     }
-    void applySettingUpdates(SettingUpdate* updates, std::size_t count) override
+    ResultCode applySettingUpdates(SettingUpdate* updates, std::size_t count) override
     {
       if (m_pOwningFace->m_pRadio != nullptr) {
-        m_pOwningFace->m_pRadio->applySettingUpdates(updates, count);
+        return m_pOwningFace->m_pRadio->applySettingUpdates(updates, count);
       }
+      return ResultCode::OK;
     }
   protected:
     StandardFace* m_pOwningFace;

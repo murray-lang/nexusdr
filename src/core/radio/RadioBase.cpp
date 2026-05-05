@@ -1,6 +1,3 @@
-//
-// Created by murray on 17/3/26.
-//
 #include "RadioBase.h"
 
 #include "core/config-settings/settings/base/SettingUpdateHelpers.h"
@@ -15,29 +12,31 @@ RadioBase::RadioBase(EventTarget *pEventTarget) :
 
 }
 
-void
+ResultCode
 RadioBase::applySettingUpdate(SettingUpdate& update)
 {
   if (m_settings.applyUpdate(update, m_bandSelector)) {
-    applySettings(m_settings);
+    return applySettings(m_settings);
   }
+  return ResultCode::OK;
 }
 
-void
-RadioBase::applySettingUpdates(SettingUpdate* updates, std::size_t count)
+ResultCode
+RadioBase::applySettingUpdates(SettingUpdate* updates, size_t count)
 {
-  if (!updates) return;
+  if (!updates) return ResultCode::OK;
 
   bool anyChanged = false;
 
-  for (std::size_t i = 0; i < count; ++i) {
+  for (size_t i = 0; i < count; ++i) {
     updates[i].resetCursor();
     anyChanged |= m_settings.applyUpdate(updates[i], m_bandSelector);
   }
 
   if (anyChanged) {
-    applySettings(m_settings);
+    return applySettings(m_settings);
   }
+  return ResultCode::OK;
 }
 
 void
@@ -49,7 +48,7 @@ RadioBase::notifyUpdate(const SettingUpdate& update, SettingEventBase::EventSour
 }
 
 void
-RadioBase::applyBand(const std::string& bandName)
+RadioBase::applyBand(const BandNameString& bandName)
 {
   SettingUpdate update = SettingUpdateHelpers::makeSetBand(bandName);
   // qDebug() << "Radio::applyBand(): applying band " << bandName.c_str() << ". Existing band: " << m_settings.bandName.c_str() ;
@@ -57,7 +56,7 @@ RadioBase::applyBand(const std::string& bandName)
 }
 
 void
-RadioBase::split(const std::string& bandA, const std::string& bandB)
+RadioBase::split(const BandNameString& bandA, const BandNameString& bandB)
 {
   SettingUpdatePath splitPath({RadioSettings::BAND, ActiveBandSettings::SPLIT});
   SettingUpdate splitSetting(splitPath, true, SettingUpdate::Meaning::VALUE);

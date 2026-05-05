@@ -1,9 +1,13 @@
-//
-// Created by murray on 27/1/26.
-//
-
 #include "FaceFactory.h"
 #include "FaceBase.h"
+#include "core/config-settings/config/ui/UiConfig.h"
+#ifdef USE_ETL
+#include "etl/utility.h"
+#endif
+
+FaceFactory::FaceFactory() : m_creators{}
+{
+}
 
 FaceFactory&
 FaceFactory::instance() {
@@ -12,12 +16,16 @@ FaceFactory::instance() {
 }
 
 void
-FaceFactory::registerFace(const std::string& name, Creator creator) {
-  m_creators[name] = std::move(creator);
+FaceFactory::registerFace(const Config::Ui::FaceString& name, const FaceCreator& creator) {
+#ifdef USE_ETL
+  m_creators.insert(etl::make_pair(name, creator));
+#else
+  m_creators.insert(std::make_pair(name, creator));
+#endif
 }
 
-std::unique_ptr<FaceBase>
-FaceFactory::create(const std::string& name, QWidget* parent) const {
+unique_ptr<FaceBase>
+FaceFactory::create(const Config::Ui::FaceString& name, QWidget* parent) const {
   if (auto it = m_creators.find(name); it != m_creators.end()) {
     return (it->second)(parent);
   }

@@ -3,8 +3,7 @@
 //
 
 #pragma once
-#include <cstdint>
-#include <string>
+#include "../SettingsCrossPlatformTypes.h"
 
 #include "../Mode.h"
 
@@ -70,8 +69,8 @@ public:
 
   [[nodiscard]] bool isValid() const { return !m_name.empty(); }
 
-  [[nodiscard]] const std::string& getName() const { return m_name; }
-  [[nodiscard]] const std::string& getLabel() const { return m_label; }
+  [[nodiscard]] const BandNameString& getName() const { return m_name; }
+  [[nodiscard]] const BandLabelString& getLabel() const { return m_label; }
   [[nodiscard]] int64_t getLowestFrequency() const { return m_lowestFrequency; }
   [[nodiscard]] int64_t getHighestFrequency() const { return m_highestFrequency; }
   [[nodiscard]] int64_t getLandingFrequency() const { return m_landingFrequency; }
@@ -85,8 +84,8 @@ public:
   }
 
 protected:
-  std::string m_name;
-  std::string m_label;
+  BandNameString m_name;
+  BandLabelString m_label;
   int64_t m_lowestFrequency;
   int64_t m_highestFrequency;
   int64_t m_landingFrequency;

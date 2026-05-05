@@ -9,38 +9,32 @@
 #include "device/gpio/digital/GpioBandSelector.h"
 #include "device/gpio/digital/DigitalOutput.h"
 
-// #ifdef USE_ETL_COLLECTIONS
-//   using etl::visit;
-// #else
-//   using std::visit;
-// #endif
-
 ResultCode
-ControlSinkFactory::create(const Config::Control::SinkVariant& config, ControlSinkVariant& sink)
+ControlSinkFactory::create(const Config::Control::SinkConfigVariant& config, ControlSinkVariant& sink)
 {
   ResultCode result = ResultCode::OK;
-  if (std::holds_alternative<Config::FunCube::Fields>(config)) {
+  if (holds_alternative<Config::FunCube::Fields>(config)) {
     FunCubeDongle funCube;
-    result = funCube.configure(std::get<Config::FunCube::Fields>(config));
+    result = funCube.configure(get<Config::FunCube::Fields>(config));
     if (result == ResultCode::OK) {
       sink.emplace<FunCubeDongle>(funCube);
     }
     return result;
   }
 #ifdef USE_GPIO
-  if (std::holds_alternative<Config::DigitalOutput::Fields>(config)) {
+  if (holds_alternative<Config::DigitalOutput::Fields>(config)) {
     DigitalOutput dout;
-    result = dout.configure(std::get<Config::DigitalOutput::Fields>(config));
+    result = dout.configure(get<Config::DigitalOutput::Fields>(config));
     if (result == ResultCode::OK) {
-      sink.emplace<DigitalOutput>(std::move(dout));
+      sink.emplace<DigitalOutput>(move(dout));
     }
     return result;
   }
-  if (std::holds_alternative<Config::DigitalOutput::BandSelector::Fields>(config)) {
+  if (holds_alternative<Config::BandSelector::Fields>(config)) {
     GpioBandSelector bandSelector;
-    result = bandSelector.configure(std::get<Config::DigitalOutput::BandSelector::Fields>(config));
+    result = bandSelector.configure(get<Config::BandSelector::Fields>(config));
     if (result == ResultCode::OK) {
-      sink.emplace<GpioBandSelector>(std::move(bandSelector));
+      sink.emplace<GpioBandSelector>(move(bandSelector));
     }
     return result;
   }

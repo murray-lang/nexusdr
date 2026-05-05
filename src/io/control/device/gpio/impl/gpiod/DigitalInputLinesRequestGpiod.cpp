@@ -1,33 +1,84 @@
-//
-// Created by murray on 18/9/25.
-//
-
-#include "DigitalInputLinesRequestImplGpiod.h"
-#include "../../digital/DigitalInput.h"
-#include "../../GpioException.h"
-#include <time.h>
+#include "CrossPlatformTypes.h"
+#include "DigitalInputLinesRequestGpiod.h"
+#include "../../digital/DigitalInputTypes.h"
+#include <ctime>
 #include <qdebug.h>
 
-DigitalInputLinesRequestImplGpiod::DigitalInputLinesRequestImplGpiod(gpiod_chip* pChip, const char* consumer) :
-  m_pChip   (pChip),  
-  m_pCallback(nullptr),
-  m_consumer(consumer),
+DigitalInputLinesRequest::DigitalInputLinesRequest() :
+  m_gpio(Gpio::getInstance()),
+  m_lineStates(MAX_GPIO),
+  m_pChip (nullptr),
+  // m_pCallback(nullptr),
   m_pLineRequest(nullptr),
   m_debouncePeriod(5'000'000)
 
 {
   m_pEventBuffer = gpiod_edge_event_buffer_new(64);
-  
+
 }
 
-DigitalInputLinesRequestImplGpiod::~DigitalInputLinesRequestImplGpiod()
+DigitalInputLinesRequest::DigitalInputLinesRequest(DigitalInputLinesRequest&& other) noexcept :
+  m_gpio(other.m_gpio),
+  m_lineStates(std::move(other.m_lineStates)),
+  m_pChip(other.m_pChip),
+  m_pCallback(std::move(other.m_pCallback)),
+  m_consumer(std::move(other.m_consumer)),
+  m_pLineRequest(other.m_pLineRequest),
+  m_pEventBuffer(other.m_pEventBuffer),
+  m_debouncePeriod(other.m_debouncePeriod)
+{
+  // Clear the source object's pointers so destructor doesn't free them
+  other.m_pChip = nullptr;
+  other.m_pLineRequest = nullptr;
+  other.m_pEventBuffer = nullptr;
+  other.m_pCallback = nullopt;
+}
+
+DigitalInputLinesRequest& DigitalInputLinesRequest::operator=(DigitalInputLinesRequest&& other) noexcept
+{
+  if (this != &other) {
+    // Stop any callbacks and wait for thread to finish
+    stopCallbacks();
+
+    // Clean up existing resources
+    if (m_pEventBuffer) {
+      gpiod_edge_event_buffer_free(m_pEventBuffer);
+    }
+    release();
+
+    // Move data from other
+    m_lineStates = std::move(other.m_lineStates);
+    m_pChip = other.m_pChip;
+    m_pCallback = std::move(other.m_pCallback);
+    m_consumer = std::move(other.m_consumer);
+    m_pLineRequest = other.m_pLineRequest;
+    m_pEventBuffer = other.m_pEventBuffer;
+    m_debouncePeriod = other.m_debouncePeriod;
+
+    // Clear the source object's pointers so destructor doesn't free them
+    other.m_pChip = nullptr;
+    other.m_pLineRequest = nullptr;
+    other.m_pEventBuffer = nullptr;
+    other.m_pCallback = nullopt;
+  }
+  return *this;
+}
+
+DigitalInputLinesRequest::~DigitalInputLinesRequest()
 {
   gpiod_edge_event_buffer_free(m_pEventBuffer);
-  DigitalInputLinesRequestImplGpiod::release();
+  release();
+}
+
+void
+DigitalInputLinesRequest::initialise(gpiod_chip* pChip, const char* consumer)
+{
+  m_pChip = pChip;
+  m_consumer = consumer;
 }
 
 bool
-DigitalInputLinesRequestImplGpiod::isDebounced(int line) const
+DigitalInputLinesRequest::isDebounced(int line) const
 {
   gpiod_line_info * li = gpiod_chip_get_line_info(m_pChip, line);
   if (li != nullptr) {
@@ -40,7 +91,7 @@ DigitalInputLinesRequestImplGpiod::isDebounced(int line) const
 }
 
 uint64_t
-DigitalInputLinesRequestImplGpiod::getCurrentTime()
+DigitalInputLinesRequest::getCurrentTime()
 {
   timespec now{};
   clock_gettime(CLOCK_MONOTONIC, &now);
@@ -48,30 +99,31 @@ DigitalInputLinesRequestImplGpiod::getCurrentTime()
 
 }
 
-void
-DigitalInputLinesRequestImplGpiod::startCallbacks(Callback* callback)
+ResultCode
+DigitalInputLinesRequest::startCallbacks(Callback& callback)
 {
-  if (m_pCallback != nullptr) {
-    throw GpioException("Line state callback already set");
+  if (m_pCallback) {
+    return ResultCode::ERR_DIGITAL_INPUT_LINES_CALLBACK_ALREADY_SET;
   }
   // std::lock_guard<std::mutex> lock(m_callbackMutex);
   m_callbackMutex.lock();
-  m_pCallback = callback;
+  m_pCallback.emplace(callback);
   m_callbackMutex.unlock();
-  QThread::start();
+  start();
+  return ResultCode::OK;
 }
 
 void
-DigitalInputLinesRequestImplGpiod::stopCallbacks()
+DigitalInputLinesRequest::stopCallbacks()
 {
   m_callbackMutex.lock();
-  m_pCallback = nullptr;
+  m_pCallback = nullopt;
   m_callbackMutex.unlock();
   wait();
 }
 
-void 
-DigitalInputLinesRequestImplGpiod::request(const char * contextId, const std::vector<DigitalInput*>& inputs)
+ResultCode
+DigitalInputLinesRequest::request(const char * contextId, const DigitalInputVariantVector& inputs)
 {
   // for (auto line : lines) {
   //   if (isDebounced(line)) {
@@ -82,19 +134,21 @@ DigitalInputLinesRequestImplGpiod::request(const char * contextId, const std::ve
   // }
   gpiod_line_config *lcfg = gpiod_line_config_new();
   if (lcfg == nullptr) {
-    throw GpioException("Failed to allocate line config");
+    return ResultCode::ERR_DIGITAL_INPUT_LINE_CONFIG;
   }
   for (const auto& input : inputs) {
-    gpiod_line_settings *ls = gpiod_line_settings_new();
-    gpiod_line_settings_set_direction(ls, GPIOD_LINE_DIRECTION_INPUT);
-    gpiod_line_settings_set_bias(ls, static_cast<gpiod_line_bias>(input->getBias()));
-    gpiod_line_settings_set_edge_detection(ls, static_cast<gpiod_line_edge>(input->getEdge()));
-    // gpiod_line_settings_set_debounce_period_us(ls, 2000);
-    const std::vector<uint32_t>& lineNos = input->getLines();
-    gpiod_line_config_add_line_settings(lcfg, lineNos.data(), lineNos.size(), ls);
-    gpiod_line_settings_free(ls);
+    visit([&](const auto& concreteInput)
+    {
+      gpiod_line_settings *ls = gpiod_line_settings_new();
+      gpiod_line_settings_set_direction(ls, GPIOD_LINE_DIRECTION_INPUT);
+      gpiod_line_settings_set_bias(ls, static_cast<gpiod_line_bias>(concreteInput.getBias()));
+      gpiod_line_settings_set_edge_detection(ls, static_cast<gpiod_line_edge>(concreteInput.getEdge()));
+      // gpiod_line_settings_set_debounce_period_us(ls, 2000);
+      const GpioLinesVector& lineNos = concreteInput.getLines();
+      gpiod_line_config_add_line_settings(lcfg, lineNos.data(), lineNos.size(), ls);
+      gpiod_line_settings_free(ls);
+    }, input);
   }
-
 
   gpiod_request_config *rcfg = gpiod_request_config_new();
   gpiod_request_config_set_consumer(rcfg, contextId);
@@ -103,15 +157,16 @@ DigitalInputLinesRequestImplGpiod::request(const char * contextId, const std::ve
   gpiod_request_config_free(rcfg);
   gpiod_line_config_free(lcfg);
   if (pLineRequest == nullptr) {
-    throw GpioException("Failed to request GPIO digital input lines");
+    return ResultCode::ERR_DIGITAL_INPUT_LINE_REQUEST_FAILED;
   }
   m_pLineRequest = pLineRequest;
   initialiseLineStates(inputs);
+  return ResultCode::OK;
 }
 
 
 void
-DigitalInputLinesRequestImplGpiod::release()
+DigitalInputLinesRequest::release()
 {
   if (m_pLineRequest) {
     gpiod_line_request_release(m_pLineRequest);
@@ -120,25 +175,25 @@ DigitalInputLinesRequestImplGpiod::release()
 }
 
 int
-DigitalInputLinesRequestImplGpiod::getLineValue(uint32_t line)
+DigitalInputLinesRequest::getLineValue(uint32_t line)
 {
   return gpiod_line_request_get_value(m_pLineRequest, line);
 }
 
 int
-DigitalInputLinesRequestImplGpiod::waitEdgeEvents(int64_t timeout_ns) const
+DigitalInputLinesRequest::waitEdgeEvents(int64_t timeout_ns) const
 {
   return gpiod_line_request_wait_edge_events(m_pLineRequest, timeout_ns);
 }
 
 int
-DigitalInputLinesRequestImplGpiod::readEdgeEvents(struct gpiod_edge_event_buffer* buf, size_t max_events) const
+DigitalInputLinesRequest::readEdgeEvents(struct gpiod_edge_event_buffer* buf, size_t max_events) const
 {
   return gpiod_line_request_read_edge_events(m_pLineRequest, buf, max_events);
 }
 
 void
-DigitalInputLinesRequestImplGpiod::run()
+DigitalInputLinesRequest::run()
 {
   // readInitialInputStates();
   // gpiod_edge_event_buffer* eventBuff = gpiod_edge_event_buffer_new(64);
@@ -148,7 +203,7 @@ DigitalInputLinesRequestImplGpiod::run()
 
   // LineStateMap debouncedLines;
 
-  bool haveCallback = m_pCallback != nullptr;
+  bool haveCallback = !!m_pCallback;
   while (haveCallback) {
     constexpr int64_t idleTimeout = 50'000'000;
     int wr = waitEdgeEvents(idleTimeout);
@@ -185,7 +240,7 @@ DigitalInputLinesRequestImplGpiod::run()
 }
 
 bool
-DigitalInputLinesRequestImplGpiod::callbackWithChangedLineStates()
+DigitalInputLinesRequest::callbackWithChangedLineStates()
 {
   // LineStateMap lines;
   // updateLineStates();
@@ -205,14 +260,14 @@ DigitalInputLinesRequestImplGpiod::callbackWithChangedLineStates()
   // }
   std::lock_guard<std::mutex> lock(m_callbackMutex);
   if (m_pCallback) {
-    m_pCallback->callback(m_lineStates);
+    m_pCallback->get().callback(m_lineStates);
     return true;
   }
   return false;
 }
 
 bool
-DigitalInputLinesRequestImplGpiod::callbackWithAnyDebouncedLineStates()
+DigitalInputLinesRequest::callbackWithAnyDebouncedLineStates()
 {
   // uint64_t now = getCurrentTime();
   // LineStateMap debouncedLines;
@@ -244,11 +299,11 @@ DigitalInputLinesRequestImplGpiod::callbackWithAnyDebouncedLineStates()
 
 
 int
-DigitalInputLinesRequestImplGpiod::updateLineStates()
+DigitalInputLinesRequest::updateLineStates()
 {
   int numEvents = readEdgeEvents(m_pEventBuffer, 64);
   if (numEvents < 0) {
-    throw GpioException("Error reading edge events");
+    return 0;;
   }
   for (int i = 0; i < numEvents; ++i) {
     gpiod_edge_event* ev = gpiod_edge_event_buffer_get_event(m_pEventBuffer, i);
@@ -277,7 +332,7 @@ DigitalInputLinesRequestImplGpiod::updateLineStates()
 }
 
 int
-DigitalInputLinesRequestImplGpiod::continueDebouncing()
+DigitalInputLinesRequest::continueDebouncing()
 {
   uint64_t now = getCurrentTime();
   int numDebounced = 0;
@@ -297,8 +352,31 @@ DigitalInputLinesRequestImplGpiod::continueDebouncing()
   return numDebounced;
 }
 
-// int
-// DigitalInputsRequestImplGpiod::debounce(LineStateMap& changes)
-// {
-//   return 0;
-// }
+void
+DigitalInputLinesRequest::initialiseLineStates(const DigitalInputVariantVector& inputs)
+{
+  // m_lineStates.clear();
+
+  for (const auto& input: inputs) {
+    visit([&](const auto& concreteInput)
+    {
+      for (auto lineNo : concreteInput.getLines()) {
+        const int value = getLineValue(lineNo);
+        const LineState info{
+          .line = lineNo,
+          .debounce = concreteInput.getDebounce(),
+          .isDebounced = false,
+          // .candidateValue = static_cast<uint8_t>(value),
+          // .candidateEdgeTime = 0,
+          .firstEdgeTime = 0,
+          .lastRisingTime = 0,
+          .lastFallingTime = 0,
+          .value = static_cast<uint8_t>(value),
+          .changed = false,
+          .processed = false
+        };
+        m_lineStates[lineNo] = info;
+      }
+    }, input);
+  }
+}

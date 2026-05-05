@@ -3,87 +3,91 @@
 namespace Config::Control
 {
 
-  static Result SinkFactory(const TypedJson& json, SinkVariant& sink)
+  static ResultCode SinkFactory(const TypedJson& json, SinkConfigVariant& sink)
   {
-    Result result = Result::OK;
-    if (json.type == DigitalOutput::type) {
-      DigitalOutput::Fields fields{};
-      result = DigitalOutput::fromJson(json.config, fields);
-      if (result == Result::OK) {
+    ResultCode result = ResultCode::OK;
+#ifdef USE_GPIO
+    if (json.type == DigitalOutputs::type) {
+      DigitalOutputs::Fields fields{};
+      result = DigitalOutputs::fromJson(json.config, fields);
+      if (result == ResultCode::OK) {
         sink = fields;
       }
       return result;
     }
+#endif
     if (json.type == FunCube::type) {
       FunCube::Fields fields{};
       result = FunCube::fromJson(json.config, fields);
-      if (result == Result::OK) {
+      if (result == ResultCode::OK) {
         sink = fields;
       }
       return result;
     }
-    if (json.type == DigitalOutput::BandSelector::type) {
-      DigitalOutput::BandSelector::Fields fields{};
-      result = DigitalOutput::BandSelector::fromJson(json.config, fields);
-      if (result == Result::OK) {
-        sink = fields;
-      }
-      return result;
-    }
-    return Result::UNKNOWN_TYPE;
+    // if (json.type == DigitalOutput::BandSelector::type) {
+    //   DigitalOutput::BandSelector::Fields fields{};
+    //   result = DigitalOutput::BandSelector::fromJson(json.config, fields);
+    //   if (result == ResultCode::OK) {
+    //     sink = fields;
+    //   }
+    //   return result;
+    // }
+    return ResultCode::ERR_CONFIG_UNKNOWN_TYPE;
   }
 
-  static Result SourceFactory(const TypedJson& json, SourceVariant& source)
+  static ResultCode SourceFactory(const TypedJson& json, SourceConfigVariant& source)
   {
-    Result result = Result::OK;
+#ifdef USE_GPIO
+    ResultCode result = ResultCode::OK;
     if (json.type == DigitalInputs::type) {
       DigitalInputs::Fields fields{};
       result = DigitalInputs::fromJson(json, fields);
-      if (result == Result::OK) {
+      if (result == ResultCode::OK) {
         source = fields;
       }
       return result;
     }
-    return Result::UNKNOWN_TYPE;
+#endif
+    return ResultCode::ERR_CONFIG_UNKNOWN_TYPE;
   }
 
-  Result fromJson(const TypedJson& json, Fields& fields)
+  ResultCode fromJson(const JsonVariantConst& json, Fields& fields)
   {
     fields.sinks.clear();
     fields.sources.clear();
 
-    Result result = Result::OK;
-    if (json.config["sinks"]) {
-      for (JsonVariantConst sinkJson : json.config["sinks"].as<JsonArrayConst>()) {
+    ResultCode result = ResultCode::OK;
+    if (json["sinks"].is<JsonVariantConst>()) {
+      for (JsonVariantConst sinkJson : json["sinks"].as<JsonArrayConst>()) {
         TypedJson taggedJson;
         result = taggedJson.fromJson(sinkJson);
 
-        if (result != Result::OK) return result;
+        if (result != ResultCode::OK) return result;
 
-        SinkVariant sink;
+        SinkConfigVariant sink;
         result = SinkFactory(taggedJson, sink);
 
-        if (result != Result::OK) return result;
+        if (result != ResultCode::OK) return result;
 
         fields.sinks.emplace_back(sink);
       }
     }
-    if (json.config["sources"]) {
-      for (JsonVariantConst sourceJson : json.config["sources"].as<JsonArrayConst>()) {
+    if (json["sources"].is<JsonVariantConst>()) {
+      for (JsonVariantConst sourceJson : json["sources"].as<JsonArrayConst>()) {
         TypedJson taggedJson;
         result = taggedJson.fromJson(sourceJson);
 
-        if (result != Result::OK) return result;
+        if (result != ResultCode::OK) return result;
 
-        SourceVariant source;
+        SourceConfigVariant source;
         result = SourceFactory(taggedJson, source);
 
-        if (result != Result::OK) return result;
+        if (result != ResultCode::OK) return result;
 
         fields.sources.emplace_back(source);
       }
     }
-    return Result::OK;
+    return ResultCode::OK;
   }
 
 }

@@ -1,24 +1,20 @@
-//
-// Created by murray on 2025-08-24.
-//
-
 #pragma once
 
 #include <io/control/ControlSource.h>
-#include "GpioRotaryEncoder.h"
-#include "../Gpio.h"
 #include "DigitalInputLinesRequest.h"
-#include <QThread>
 #include "core/config-settings/config/control/DigitalInputsConfig.h"
+#include "DigitalInputTypes.h"
+
 
 class DigitalInputs : public ControlSource, public DigitalInputLinesRequest::Callback
 {
 public:
-  explicit DigitalInputs(const char* consumer = "");
-  ~DigitalInputs() override;
 
-  DigitalInputs(DigitalInputs&&) = default;
-  DigitalInputs& operator=(DigitalInputs&&) = default;
+  explicit DigitalInputs(const char* consumer = "");
+  ~DigitalInputs() override = default;
+
+  DigitalInputs(DigitalInputs&& rhs)  noexcept;
+  DigitalInputs& operator=(DigitalInputs&& rhs)  noexcept;
 
   // ControlBase overrides;
   ResultCode configure(const Config::DigitalInputs::Fields& config);
@@ -28,7 +24,7 @@ public:
   void exit() override;
 
   // GpioLines::Callback override
-  void callback(DigitalInputLinesRequest::LineStates& lineStates) override;
+  void callback(DigitalInputLinesRequest::LineStateVector& lineStates) override;
 
 protected:
   ResultCode notifySettings(const RadioSettings& radioSettings) override
@@ -37,7 +33,6 @@ protected:
   }
 
   ResultCode createInputs(const Config::DigitalInputs::Fields& config);
-  void deleteInputs();
 
   void createLineToInputMap();
 
@@ -46,25 +41,20 @@ protected:
   class InternalSink : public SettingUpdateSink
   {
   public:
-    explicit InternalSink(DigitalInputs* pGroup) : m_pGroup(pGroup) {}
-    // void applySettings(const RadioSettings& settings) override
-    // {
-    //   throw ControlException("A DigitalInput should not provide RadioSettings, only a single setting.");
-    // }
-    void applySettingUpdate(SettingUpdate& settingDelta) override
+    explicit InternalSink(DigitalInputs& group) : m_group(group) {}
+
+    ResultCode applySettingUpdate(SettingUpdate& settingDelta) override
     {
-      if (m_pGroup) {
-        m_pGroup->notifySettingUpdate(settingDelta);
-      }
+      return m_group.get().notifySettingUpdate(settingDelta);
     }
 
   protected:
-    DigitalInputs* m_pGroup;
+    reference_wrapper<DigitalInputs> m_group;
   };
 
 protected:
   InternalSink m_internalSink;
-  std::vector<DigitalInput*> m_inputs;
-  std::unique_ptr<DigitalInputLinesRequest> m_pLines;
-  std::unordered_map<uint32_t, DigitalInput*> m_lineToInputMap;
+  DigitalInputVariantVector m_inputs;
+  optional<DigitalInputLinesRequest> m_linesRequest;
+  DigitalInputMap m_lineToInputMap;
 };

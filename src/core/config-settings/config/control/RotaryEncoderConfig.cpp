@@ -2,9 +2,9 @@
 
 namespace Config::RotaryEncoder
 {
-  Result fromJson(JsonVariantConst json, Fields& fields)
+  ResultCode fromJson(JsonVariantConst json, Fields& fields)
   {
-    Result result = DigitalInput::fromJson(json, fields);
+    ResultCode result = DigitalInput::fromJson(json, fields);
     fields.type = type;
     return result;
   }

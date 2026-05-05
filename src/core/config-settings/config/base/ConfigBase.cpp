@@ -3,12 +3,12 @@
 
 namespace Config
 {
-  Result fromJson(JsonVariantConst json, Alternative& fields)
+  ResultCode fromJson(JsonVariantConst json, Alternative& fields)
   {
-    if (json["type"]) {
+    if (json["type"].is<JsonVariantConst>()) {
       fields.type = json["type"].as<const char *>();
-      return Result::OK;
+      return ResultCode::OK;
     }
-    return Result::MISSING_TYPE_FOR_CONFIG;
+    return ResultCode::ERR_CONFIG_MISSING_TYPE;
   }
 }

@@ -89,16 +89,20 @@ uint32_t
 IqRxPipeline::getMaxFramesPerOutputPacket() const
 {
   uint32_t inputMaxFrames = getMaxFramesPerInputPacket();
+  if (m_inputSampleRate == 0) {
+    return 0;
+  }
   return inputMaxFrames * m_outputSampleRate / m_inputSampleRate;
 }
 
-void
+ResultCode
 IqRxPipeline::apply(const ReceiverSettings& settings)
 {
   std::lock_guard<std::mutex> lock(m_settingsMutex);
   if (settings.hasSettingChanged(ReceiverSettings::CORRECTION)) {
     m_iqCorrection.apply(settings.getCorrectionSettings());
   }
+  return ResultCode::OK;
 }
 
 void
@@ -154,7 +158,7 @@ IqRxPipeline::setDemodulator(const Mode& mode)
     break;
   default:
     m_pDemodulator = nullptr;
-    throw SettingsException("Unknown mode type");
+    // throw SettingsException("Unknown mode type");
     break;
   }
   if (m_pDemodulator != nullptr) {

@@ -1,9 +1,14 @@
 #include "ReceiverConfig.h"
 
+#include "ResultCode.h"
+
 namespace Config::Receiver
 {
-  Result fromJson(JsonVariantConst json, Fields& fields)
+  ResultCode fromJson(JsonVariantConst json, Fields& fields)
   {
-    return IqIo::fromJson(json, fields.iqIo);
+    if (json["iqIo"].is<JsonVariantConst>()) {
+      return IqIo::fromJson(json["iqIo"], fields.iqIo);
+    }
+    return ResultCode::ERR_CONFIG_RX_NO_IQ_IO;
   }
 }

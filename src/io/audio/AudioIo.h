@@ -15,15 +15,13 @@ public:
 
   virtual ~AudioIo() = default;
 
-  virtual void configure(const AudioConfig* pConfig) = 0;
-
-  virtual void start(uint32_t maxPacketFrames) const = 0;
+  virtual ResultCode start(uint32_t maxPacketFrames) const = 0;
   virtual void stop() const = 0;
 
   [[nodiscard]] virtual uint32_t getSampleRate() const = 0;
 
 protected:
-  AudioConfig m_config;
+  Config::Audio::Fields m_config;
   // AudioDevice* m_pDevice;
   // AudioDevice::Format m_format;
 };
