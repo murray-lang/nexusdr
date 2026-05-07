@@ -1,7 +1,3 @@
-//
-// Created by murray on 23/2/26.
-//
-
 #include "SettingUpdateHelpers.h"
 
 #include "core/config-settings/settings/RadioSettings.h"
@@ -13,11 +9,11 @@ uint32_t SettingUpdateHelpers::toWithBandFeature(SplitBandId whichBand)
   case SplitBandId::Two: return ActiveBandSettings::WITH_2;
   default: break;
   }
-  throw SettingsException("Invalid SplitBandId for band-scoped update");
+  return false;
 }
 
 SettingUpdate
-SettingUpdateHelpers::makeSetBand(const std::string& bandName)
+SettingUpdateHelpers::makeSetBand(const BandNameString& bandName)
 {
   SettingUpdatePath path({RadioSettings::BAND, ActiveBandSettings::REPLACE_FOCUS});
   return { path, bandName, SettingUpdate::Meaning::VALUE};

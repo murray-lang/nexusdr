@@ -1,39 +1,25 @@
-//
-// Created by murray on 2025-09-04.
-//
-
 #include "DigitalInputFactory.h"
 
-#include "DigitalInputs.h"
-#include "core/util/StringUtils.h"
 
-DigitalInput*
-DigitalInputFactory::create(const DigitalInputConfig* pConfig)
+ResultCode
+DigitalInputFactory::create(const Config::DigitalInputs::DigitalInputConfigVariant& config, DigitalInputVariant& input)
 {
-  DigitalInput* result = create(pConfig->getType());
-  if (result)  {
-    result->configure(pConfig);
+  ResultCode result = ResultCode::OK;
+  if (holds_alternative<Config::DigitalInput::Fields>(config)) {
+    DigitalInput di;
+    result = di.configure(get<Config::DigitalInput::Fields>(config));
+    if (result == ResultCode::OK) {
+      input.emplace<DigitalInput>(std::move(di));
+    }
+    return result;
   }
-  return result;
-}
-
-DigitalInput*
-DigitalInputFactory::create(const std::string& type)
-{
-  std::string typeAslower = StringUtils::toLowerCase(type);
-  bool gpioPresent = Gpio::isPresent();
-  if(typeAslower == "rotaryencoder" && gpioPresent)
-  {
-    return new GpioRotaryEncoder();
+  if (holds_alternative<Config::RotaryEncoder::Fields>(config)) {
+    GpioRotaryEncoder encoder;
+    result = encoder.configure(get<Config::RotaryEncoder::Fields>(config));
+    if (result == ResultCode::OK) {
+      input.emplace<GpioRotaryEncoder>(std::move(encoder));
+    }
+    return result;
   }
-  if(typeAslower == "digitalinput" && gpioPresent)
-  {
-    return new DigitalInput();
-  }
-
-  // if(typeAslower == "gpiorotaryencoder" && gpioPresent)
-  // {
-  //   return new GpioRotaryEncoder();
-  // }
-  return nullptr;
+  return ResultCode::ERR_UNKNOWN_DIGITAL_INPUT;
 }

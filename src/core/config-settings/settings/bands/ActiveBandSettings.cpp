@@ -1,6 +1,3 @@
-//
-// Created by murray on 25/3/26.
-//
 #include "ActiveBandSettings.h"
 
 ActiveBandSettings::ActiveBandSettings() :
@@ -15,7 +12,7 @@ ActiveBandSettings::ActiveBandSettings() :
 BandSettings*
 ActiveBandSettings::getBandSettings(SplitBandId idx)
 {
-  std::optional<BandSettings>& bandOpt = m_activeBands[toSplitIndex(idx)];
+  optional<BandSettings>& bandOpt = m_activeBands[toSplitIndex(idx)];
   if (bandOpt.has_value()){
     return &bandOpt.value();
   }
@@ -25,7 +22,7 @@ ActiveBandSettings::getBandSettings(SplitBandId idx)
 [[nodiscard]] const BandSettings*
 ActiveBandSettings::getBandSettings(SplitBandId idx) const
 {
-  const std::optional<BandSettings>& bandOpt = m_activeBands[toSplitIndex(idx)];
+  const optional<BandSettings>& bandOpt = m_activeBands[toSplitIndex(idx)];
   if (bandOpt.has_value()){
     return &bandOpt.value();
   }
@@ -57,7 +54,7 @@ bool
 ActiveBandSettings::applyUpdate(SettingUpdate& update, BandSelector& bandSelector)
 {
   if (update.isExhausted()) {
-    throw SettingsException("Invalid setting path");
+    return false;
   }
   switch (update.getCurrentFeature()) {
   case REPLACE_FOCUS: return replaceFocusBand(update, bandSelector);
@@ -90,15 +87,15 @@ ActiveBandSettings::applyUpdate(SettingUpdate& update)
 
 bool
 ActiveBandSettings::getFeaturePath(
-  const std::vector<std::string>& featureStrings,
-  std::vector<uint32_t>& out,
+  const FeatureStringVector& featureStrings,
+  FeatureNumVector& out,
   size_t startIndex
   )
 {
   if (startIndex >= featureStrings.size()) {
-    throw SettingsException("Invalid feature path");
+    return false;
   }
-  const std::string& key = featureStrings[startIndex];
+  const FeatureString& key = featureStrings[startIndex];
   if (key == "with-focus") {
     out.push_back(WITH_FOCUS);
     return BandSettings::getFeaturePath(featureStrings, out, startIndex + 1);
@@ -143,7 +140,7 @@ ActiveBandSettings::getFeaturePath(
 }
 
 [[nodiscard]] SplitBandId
-ActiveBandSettings::getSplitBandId(const std::string& bandName) const
+ActiveBandSettings::getSplitBandId(const BandNameString& bandName) const
 {
   if (m_activeBands[0].has_value() && m_activeBands[0].value().getBandName() == bandName) {
     return SplitBandId::One;
@@ -155,11 +152,11 @@ ActiveBandSettings::getSplitBandId(const std::string& bandName) const
 }
 
 [[nodiscard]] bool
-ActiveBandSettings::isBandNameInSelected(const std::string& bandName) const {
-  return std::any_of(m_activeBands.begin(), m_activeBands.end(),
-    [&](const std::optional<BandSettings>& bandSettings) {
-      if (bandSettings.has_value()) {
-        return bandSettings.value().getBandName() == bandName;
+ActiveBandSettings::isBandNameInSelected(const BandNameString& bandName) const {
+  return any_of(m_activeBands.begin(), m_activeBands.end(),
+    [&](const optional<BandSettings>& bandSettings) {
+      if (bandSettings) {
+        return bandSettings->getBandName() == bandName;
       }
       return false;
     });
@@ -169,7 +166,7 @@ bool
 ActiveBandSettings::replaceFocusBand(SettingUpdate& update, BandSelector& bandSelector)
 {
   const auto& value = update.getValue();
-  const std::string replacementBandName = std::get<std::string>(value);
+  const BandNameString replacementBandName = get<BandNameString>(value);
   if (replacementBandName.empty()) {
     return false;
   }
@@ -190,10 +187,10 @@ ActiveBandSettings::selectBand(SplitBandId idx, SettingUpdate& update, BandSelec
     return false;
   }
   const auto& value = update.getValue();
-  std::optional<std::string> currBandNameOpt = getSplitBandName(idx);
+  optional<BandNameString> currBandNameOpt = getSplitBandName(idx);
 
   if (update.getMeaning() == SettingUpdate::VALUE) {
-    if (const std::string* pBandName = std::get_if<std::string>(&value)) {
+    if (const BandNameString* pBandName = get_if<BandNameString>(&value)) {
       if (pBandName->empty()) {
         return closeBand(idx);
       } else {
@@ -202,7 +199,7 @@ ActiveBandSettings::selectBand(SplitBandId idx, SettingUpdate& update, BandSelec
     }
   } else if (update.getMeaning() == SettingUpdate::DELTA && currBandNameOpt.has_value()) {
     const Bands& bands = bandSelector.getAllBands();
-    if (const int32_t* pDelta = std::get_if<int32_t>(&value)) {
+    if (const int32_t* pDelta = get_if<int32_t>(&value)) {
       if (*pDelta > 0) {
         const Band* nextBand = bands.nextBandInOwnCategory(currBandNameOpt.value());
         if (nextBand != nullptr) {
@@ -220,12 +217,12 @@ ActiveBandSettings::selectBand(SplitBandId idx, SettingUpdate& update, BandSelec
 }
 
 bool
-ActiveBandSettings::selectBand(SplitBandId idx, const std::string& bandName, BandSelector& bandSelector)
+ActiveBandSettings::selectBand(SplitBandId idx, const BandNameString& bandName, BandSelector& bandSelector)
 {
   if (idx == SplitBandId::None) {
     return false;
   }
-  std::optional<std::string> currBandNameOpt = getSplitBandName(idx);
+  optional<BandNameString> currBandNameOpt = getSplitBandName(idx);
   bool isReplacement = currBandNameOpt.has_value();
   if (isReplacement && bandName == currBandNameOpt.value()) {
     return false; // i.e. No change
@@ -233,7 +230,7 @@ ActiveBandSettings::selectBand(SplitBandId idx, const std::string& bandName, Ban
 
   BandSettings* bandSettings = bandSelector.getOrCreateBandSettings(bandName);
   if (bandSettings == nullptr) {
-    throw SettingsException("Invalid band name");
+    return false;
   }
   selectBand(idx, *bandSettings);
   // Dirty all the band settings so that external users know to update themselves
@@ -268,43 +265,51 @@ bool
 ActiveBandSettings::applyToFocusedBand(SettingUpdate& setting)
 {
   if (setting.isExhausted()) {
-    throw SettingsException("Invalid setting path");
+    return false;
   }
   if (m_focusBandId == SplitBandId::None) {
-    throw SettingsException("No band with focus");
+    return false;
   }
   BandSettings* bandSettings = getBandSettings(m_focusBandId);
   if (bandSettings == nullptr) {
-    throw SettingsException("Focused band has been removed");
+    return false;
   }
-  return bandSettings->applyUpdate(setting);
+  if (bandSettings->applyUpdate(setting)) {
+    m_changed |= WITH_FOCUS;
+    return true;
+  }
+  return false;
 }
 
 bool
 ActiveBandSettings::applyToBand(SplitBandId id, SettingUpdate& setting)
 {
   if (setting.isExhausted()) {
-    throw SettingsException("Invalid setting path");
+    return false;
   }
   BandSettings* bandSettings = getBandSettings(id);
   if (bandSettings == nullptr) {
     return false;
   }
-  return bandSettings->applyUpdate(setting);
+  if (bandSettings->applyUpdate(setting)) {
+    m_changed |= id == SplitBandId::One ? WITH_1 : WITH_2;
+    return true;
+  }
+  return false;
 }
 
 bool
 ActiveBandSettings::applySplit(const SettingValue& value)
 {
-  const bool* pNewSplit = std::get_if<bool>(&value);
+  const bool* pNewSplit = get_if<bool>(&value);
   if (pNewSplit == nullptr) {
-    throw SettingsException("split setting should be a boolean");
+    return false;
   }
   if (m_split == *pNewSplit) {
     return false;
   }
-  std::optional<BandSettings>& band1Opt = m_activeBands[0];
-  std::optional<BandSettings>& band2Opt = m_activeBands[1];
+  optional<BandSettings>& band1Opt = m_activeBands[0];
+  optional<BandSettings>& band2Opt = m_activeBands[1];
   if (*pNewSplit) {
     if (!band2Opt.has_value()) {
       // Start with both the same
@@ -337,12 +342,12 @@ bool
 ActiveBandSettings::setTxBand(const SettingValue& value)
 {
   SplitBandId newTxBandId;
-  if (const std::string* pBandName = std::get_if<std::string>(&value)) {
+  if (const auto pBandName = get_if<BandNameString>(&value)) {
     newTxBandId = getSplitBandId(*pBandName);
-  } else if (const SplitBandId* pTxBandId = std::get_if<SplitBandId>(&value)) {
+  } else if (const SplitBandId* pTxBandId = get_if<SplitBandId>(&value)) {
     newTxBandId = *pTxBandId;
   } else {
-    throw SettingsException("tx-band setting should be a string or split-band-id");
+    return false;
   }
 
   if (newTxBandId != SplitBandId::None) {
@@ -363,12 +368,12 @@ bool
 ActiveBandSettings::setRxBand(const SettingValue& value)
 {
   SplitBandId newRxBandId;
-  if (const std::string* pBandName = std::get_if<std::string>(&value)) {
+  if (const auto pBandName = get_if<BandNameString>(&value)) {
     newRxBandId = getSplitBandId(*pBandName);
-  } else if (const SplitBandId* pRxBandId = std::get_if<SplitBandId>(&value)) {
+  } else if (const SplitBandId* pRxBandId = get_if<SplitBandId>(&value)) {
     newRxBandId = *pRxBandId;
   } else {
-    throw SettingsException("rx-band setting should be a string or split-band-id");
+    return false;
   }
 
   if (newRxBandId != SplitBandId::None) {
@@ -389,12 +394,12 @@ bool
 ActiveBandSettings::setFocusBand(const SettingValue& value)
 {
   SplitBandId newFocusBandId;
-  if (const std::string* pBandName = std::get_if<std::string>(&value)) {
+  if (const BandNameString* pBandName = get_if<BandNameString>(&value)) {
     newFocusBandId = getSplitBandId(*pBandName);
-  } else if (const SplitBandId* pFocusBandId = std::get_if<SplitBandId>(&value)) {
+  } else if (const SplitBandId* pFocusBandId = get_if<SplitBandId>(&value)) {
     newFocusBandId = *pFocusBandId;
   } else {
-    throw SettingsException("rx-band setting should be a string or split-band-id");
+    return false;
   }
 
   if (newFocusBandId != SplitBandId::None) {

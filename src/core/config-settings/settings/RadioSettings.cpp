@@ -6,14 +6,15 @@
 
 #include "core/util/StringUtils.h"
 
+#ifdef USE_ETL
+#include "etl/string_utilities.h"
+#endif
+
 
 BandSettings*
 RadioSettings::getFocusBandSettings()
 {
   BandSettings* pBandSettings = m_activeBandSettings.getFocusBandSettings();
-  // if (pBandSettings == nullptr) {
-  //   throw SettingsException("No band selected");
-  // }
   return pBandSettings;
 }
 
@@ -21,9 +22,6 @@ const BandSettings*
 RadioSettings::getFocusBandSettings() const
 {
  const BandSettings* pBandSettings = m_activeBandSettings.getFocusBandSettings();
-  // if (pBandSettings == nullptr) {
-  //   throw SettingsException("No band selected");
-  // }
   return pBandSettings;
 }
 
@@ -101,7 +99,7 @@ bool
 RadioSettings::applyUpdate(SettingUpdate& update, BandSelector& bandSelector)
 {
   if (update.isExhausted()) {
-    throw SettingsException("Invalid setting path");
+    return false;
   }
   uint32_t feature = update.getCurrentFeature();
   if (feature == BAND) {
@@ -143,34 +141,47 @@ RadioSettings::applyUpdate(SettingUpdate& update)
   }
 }
 
-SettingUpdatePath
-RadioSettings::getSettingUpdatePath(const std::string& strDottedFeatures)
+ResultCode
+RadioSettings::getSettingUpdatePath(const SettingPathString& strDottedFeatures, SettingUpdatePath& path)
 {
-  std::string featuresLower = StringUtils::toLowerCase(strDottedFeatures);
-  std::vector<std::string> featureStrings = StringUtils::split(featuresLower, '.');
-  std::vector<uint32_t> features;
-  if (!getFeaturePath(featureStrings, features)) {
-    throw SettingsException("Unknown RadioSettings setting: " + strDottedFeatures);
+#ifdef USE_ETL
+  SettingPathString featuresLower = strDottedFeatures;
+  etl::to_lower_case(featuresLower);
+  etl::vector<etl::string_view, MAX_SETTING_DEPTH> featureStringsView;
+  etl::get_token_list(featuresLower, featureStringsView, ".", true, MAX_SETTING_DEPTH);
+  FeatureStringVector featureStrings;
+  for (auto& fsv : featureStringsView) {
+    featureStrings.emplace_back(fsv);
   }
-  return SettingUpdatePath(features);
+#else
+  SettingPathString featuresLower = StringUtils::toLowerCase(strDottedFeatures);
+  FeatureStringVector featureStrings = StringUtils::split(featuresLower, '.');
+#endif
+
+  FeatureVector features;
+  if (!getFeaturePath(featureStrings, features)) {
+    return ResultCode::ERR_UNKNOWN_SETTING_PATH;
+  }
+  path.setFeatures(features);
+  return ResultCode::OK;
 }
 
 bool
 RadioSettings::getFeaturePath(
-  const std::vector<std::string>& featureStrings,
-  std::vector<uint32_t>& featuresOut,
+  const FeatureStringVector& featureStrings,
+  FeatureNumVector& featuresOut,
   size_t startIndex
   )
 {
   if (startIndex >= featureStrings.size()) {
-    throw SettingsException("Invalid feature path");
+    return false;
   }
 
   if (resolvePathForRegisteredSetting<RadioSettings>(featureStrings, featuresOut, startIndex)) {
     return true;
   }
 
-  const std::string& key = featureStrings[startIndex];
+  const FeatureString& key = featureStrings[startIndex];
   if (key == "band") {
     featuresOut.push_back(BAND);
     return ActiveBandSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);

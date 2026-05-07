@@ -5,7 +5,7 @@
 #pragma once
 #include "IqSource.h"
 #include "../../SampleTypes.h"
-#include "core/config-settings/config/AudioIqSourceConfig.h"
+#include "../../config-settings/config/audio/AudioIqSourceConfig.h"
 #include "core/dsp/utils/HilbertTransform.h"
 #include "io/audio/AudioInput.h"
 #include "qdebug.h"
@@ -30,18 +30,17 @@ public:
   ~AudioIqSource() override = default;
 
 
-  void configure(const ConfigBase* pConfig) override
+  ResultCode configure(const Config::AudioIqSource::Fields& config)
   {
-    const auto * config = dynamic_cast<const AudioIqSourceConfig*>(pConfig);
-    m_audioInput.configure(&config->getAudioInput());
-    qDebug() << "AudioIqSource max channels:" << m_audioInput.getMaxChannels() << ", num channels:" << m_audioInput.getNumChannels();
+    return m_audioInput.configure(config.audioInput);
   }
 
-  void start(uint32_t maxPacketFrames) override
+  ResultCode start(uint32_t maxPacketFrames) override
   {
     // m_lastTime =  std::chrono::steady_clock::now(); 
-    m_audioInput.start(maxPacketFrames);
+    return m_audioInput.start(maxPacketFrames);
   }
+
   void stop() override
   {
     m_audioInput.stop();

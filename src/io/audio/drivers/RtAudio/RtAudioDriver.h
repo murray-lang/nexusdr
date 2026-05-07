@@ -4,7 +4,7 @@
 
 #pragma once
 #include <rtaudio/RtAudio.h>
-#include "core/config-settings/config/AudioConfig.h"
+#include "../../../../core/config-settings/config/audio/AudioConfig.h"
 #include "../AudioDriver.h"
 
 

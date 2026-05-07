@@ -1,36 +1,47 @@
-//
-// Created by murray on 2025-08-24.
-//
-
 #include "DigitalInputs.h"
-#include "core/config-settings/config/ConfigException.h"
-#include "core/config-settings/config/DigitalInputsConfig.h"
-#include "../../../ControlSource.h"
 #include "../../../ControlSourceFactory.h"
-#include <poll.h>
 #include <qdebug.h>
 
 #include "DigitalInputFactory.h"
-#include "io/control/device/gpio/GpioException.h"
 #include "io/control/device/gpio/GpioLines.h"
 
 DigitalInputs::DigitalInputs(const char* consumer) :
-  m_internalSink(this)
+  m_internalSink(*this)
 {
 
 }
 
 DigitalInputs::~DigitalInputs()
 {
-  deleteInputs();
-
+  m_lineToInputMap.clear();
 }
 
-void
-DigitalInputs::configure(const ConfigBase* pConfig)
+DigitalInputs::DigitalInputs(DigitalInputs&& rhs) noexcept :
+  ControlSource(move(rhs)),
+  m_internalSink(*this),  // Reference to new object
+  m_inputs(move(rhs.m_inputs)),
+  m_linesRequest(move(rhs.m_linesRequest)),
+  m_lineToInputMap(move(rhs.m_lineToInputMap))
 {
-  const auto* config = dynamic_cast<const DigitalInputsConfig*>(pConfig);
-  createInputs(config);
+  reconnectInputSinks();
+}
+
+DigitalInputs& DigitalInputs::operator=(DigitalInputs&& rhs) noexcept
+{
+  if (this != &rhs) {
+    ControlSource::operator=(move(rhs));
+    m_inputs = move(rhs.m_inputs);
+    m_linesRequest = move(rhs.m_linesRequest);
+    m_lineToInputMap = move(rhs.m_lineToInputMap);
+    reconnectInputSinks();
+  }
+  return *this;
+}
+
+ResultCode
+DigitalInputs::configure(const Config::DigitalInputs::Fields& config)
+{
+  return createInputs(config);
 }
 
 bool
@@ -39,28 +50,31 @@ DigitalInputs::discover()
     return Gpio::isPresent();
 }
 
-void
+ResultCode
 DigitalInputs::open()
 {
-  if (m_pLines != nullptr) {
-    throw GpioException("DigitalInputs already open");
+  if (!m_linesRequest.has_value()) {
+    createLineToInputMap();
+    Gpio& gpio = Gpio::getInstance();
+    // DigitalInputLinesRequest lines;
+    m_linesRequest.emplace();
+    ResultCode rc  = gpio.requestDigitalInputs("digitalInputs", m_inputs, *m_linesRequest);
+    if (rc != ResultCode::OK) {
+      return ResultCode::ERR_DIGITAL_INPUT_LINES;
+    }
+    m_linesRequest->startCallbacks(*this);
   }
-  createLineToInputMap();
-  Gpio& gpio = Gpio::getInstance();
-  DigitalInputLinesRequest* pLines = gpio.requestDigitalInputs("digitalInputs", m_inputs);
-  m_pLines.reset(pLines);
-  m_pLines->startCallbacks(this);
+  return ResultCode::OK;
 }
 
 void
 DigitalInputs::close()
 {
-  if (m_pLines == nullptr) {
-    throw GpioException("DigitalInputs not open");
+  if (m_linesRequest) {
+    m_linesRequest->stopCallbacks();
+    m_linesRequest->release();
+    m_linesRequest.reset();
   }
-  m_pLines->stopCallbacks();
-  m_pLines->release();
-  m_pLines.reset();
 }
 
 void
@@ -69,38 +83,52 @@ DigitalInputs::exit()
 
 }
 
-void
-DigitalInputs::createInputs(const DigitalInputsConfig* pConfig)
+ResultCode
+DigitalInputs::createInputs(const Config::DigitalInputs::Fields& config)
 {
-  deleteInputs();
-  for (const auto& pInputConfig : pConfig->getInputs()) {
-    DigitalInput* input = DigitalInputFactory::create(pInputConfig);
-    if (input == nullptr) {
-      throw ConfigException("digitalInputs input has unknown input type: " + pConfig->getType());
-    }
-    input->connectSettingUpdateSink(&m_internalSink);
-    m_inputs.push_back(input);
-  }
-}
-
-void
-DigitalInputs::deleteInputs()
-{
-  for (auto input : m_inputs) {
-    delete input;
-  }
   m_inputs.clear();
+  ResultCode rc = ResultCode::OK;
+  for (const auto& inputConfig : config.inputs) {
+    DigitalInputVariant digitalInput;
+    rc = DigitalInputFactory::create(inputConfig, digitalInput);
+    if (rc == ResultCode::OK) {
+      visit([this, rc](auto&& di) {
+        di.connectSettingUpdateSink(m_internalSink);
+      }, digitalInput);
+      m_inputs.emplace_back(move(digitalInput));
+    } else {
+      break;
+    }
+  }
+  return rc;
 }
 
 void
 DigitalInputs::createLineToInputMap()
 {
   m_lineToInputMap.clear();
-  for (const auto input : m_inputs) {
-    const std::vector<uint32_t>& lineNos = input->getLines();
-    for (const auto& lineNo : lineNos) {
-      m_lineToInputMap[lineNo] = input;
-    }
+  for (auto& input : m_inputs) {
+    visit([this, &input](auto&& di) {
+      const GpioLinesVector& lineNos = di.getLines();
+      for (const auto& lineNo : lineNos) {
+        m_lineToInputMap.insert(make_pair(lineNo, ref(input)));
+// #ifdef USE_ETL
+//         m_lineToInputMap.insert(make_pair(lineNo, ref(input)));
+// #else
+//         m_lineToInputMap[lineNo] = move(input);
+// #endif
+      }
+    }, input);
+  }
+}
+
+void
+DigitalInputs::reconnectInputSinks()
+{
+  for (auto& input : m_inputs) {
+    visit([this](auto&& di) {
+      di.connectSettingUpdateSink(m_internalSink);
+    }, input);
   }
 }
 
@@ -113,9 +141,11 @@ DigitalInputs::readInitialInputStates()
 }
 
 void
-DigitalInputs::callback(DigitalInputLinesRequest::LineStates& lineStates)
+DigitalInputs::callback(DigitalInputLinesRequest::LineStateVector& lineStates)
 {
   for (auto& input : m_inputs) {
-    input->handleLineChange(lineStates);
+    visit([&lineStates](auto&& di) {
+      di.handleLineChange(lineStates);
+    }, input);
   }
 }

@@ -1,7 +1,3 @@
-//
-// Created by murray on 23/3/26.
-//
-
 #include "Radio.h"
 #include "receiver/IqReceiver.h"
 #include "transmitter/IqTransmitter.h"
@@ -9,73 +5,65 @@
 
 #include "core/config-settings/settings/events/RadioSettingsEvent.h"
 
+
+
+using RadioConfig = Config::Radio::Fields;
+
 Radio::Radio(EventTarget *pEventTarget) :
   RadioBase(pEventTarget),
-  m_pReceiver(nullptr),
-  m_pTransmitter(nullptr),
-  m_pControl(nullptr)
+  m_receiver(nullopt),
+  m_transmitter(nullopt)
 {
 
 }
 
 Radio::~Radio()
 {
-  delete m_pReceiver;
-  delete m_pTransmitter;
-  delete m_pControl;
 }
 
-void
-Radio::configure(const RadioConfig* pConfig)
+ResultCode
+Radio::configure(const Config::Radio::Fields& config)
 {
-  const ControlConfig* pControlConfig = pConfig->getControl();
-  if (pControlConfig != nullptr) {
-    m_pControl = new RadioControl();
-    m_pControl->configure(pControlConfig);
-  }
-  const ReceiverConfig* pRxConfig = pConfig->getReceiver();
-  if (pRxConfig != nullptr) {
-    m_pReceiver = new IqReceiver(m_pEventTarget);
-    m_pReceiver->configure(pRxConfig);
-  }
+  ResultCode rc = m_control.configure(config.control);
 
-  const TransmitterConfig* pTxConfig = pConfig->getTransmitter();
-  if (pTxConfig != nullptr) {
-    m_pTransmitter = new IqTransmitter(m_pEventTarget);
-    m_pTransmitter->configure(pTxConfig);
+  if (rc != ResultCode::OK) return rc;
+
+  if (config.receiver) {
+    m_receiver.emplace(m_pEventTarget);
+    rc = m_receiver->configure(*config.receiver);
+    if (rc != ResultCode::OK) return rc;
   }
+  if (config.transmitter) {
+    m_transmitter.emplace(m_pEventTarget);
+    rc = m_transmitter->configure(*config.transmitter);
+  }
+  return rc;
 }
 
 void
 Radio::start()
 {
-  if (m_pControl != nullptr) {
-    m_pControl->connect(this);
+  m_control.connect(this);
+  if (m_receiver) {
+    m_receiver->start();
   }
-  if (m_pReceiver != nullptr) {
-    m_pReceiver->start();
-  }
-  if (m_pControl != nullptr) {
-    m_pControl->start();
-  }
+  m_control.start();
 }
 
 void
 Radio::stop()
 {
-  if (m_pControl != nullptr) {
-    m_pControl->stop();
-    m_pControl->connect(nullptr);
+  m_control.stop();
+  m_control.connect(nullptr);
+  if (m_receiver) {
+    m_receiver->stop();
   }
-  if (m_pReceiver != nullptr) {
-    m_pReceiver->stop();
-  }
-  if (m_pTransmitter != nullptr) {
-    m_pTransmitter->stop();
+  if (m_transmitter) {
+    m_transmitter->stop();
   }
 }
 
-void
+ResultCode
 Radio::applySettings(const RadioSettings& settings)
 {
   if (&settings != &m_settings) {
@@ -84,35 +72,33 @@ Radio::applySettings(const RadioSettings& settings)
   if (settings.hasSettingChanged(RadioSettings::PTT)) {
     ptt(m_settings.getPtt());
     m_settings.clearChanged();
-    return; // Don't try to do anything else concurrently with PTT.
+    return ResultCode::OK; // Don't try to do anything else concurrently with PTT.
   }
 
   if (m_settings.hasSettingChanged(RadioSettings::BAND)) {
 
     BandSettings* pBandSettings = m_settings.getFocusBandSettings();
     // RxPipelineSettings* rxPipelineSettings = pBandSettings->getFocusPipeline();
-    if (m_pReceiver != nullptr) {
+    if (m_receiver) {
       // m_pReceiver->adjustRfSettingsToLimits(rxPipelineSettings->getRfSettings());
-      m_pReceiver->apply(pBandSettings);
+      m_receiver->apply(pBandSettings);
     }
     TxPipelineSettings* txPipelineSettings = pBandSettings->getTxPipeline();
-    if (m_pTransmitter != nullptr) {
-      m_pTransmitter->adjustRfSettingsToLimits(txPipelineSettings->getRfSettings());
-      m_pTransmitter->apply(txPipelineSettings);
+    if (m_transmitter) {
+      m_transmitter->adjustRfSettingsToLimits(txPipelineSettings->getRfSettings());
+      m_transmitter->apply(txPipelineSettings);
     }
   }
-  if (m_pControl != nullptr) {
-    m_pControl->applySettings(m_settings);
-  }
+  m_control.applySettings(m_settings);
 
   if (settings.hasSettingChanged(RadioSettings::RX)) {
-    if (m_pReceiver != nullptr) {
-      m_pReceiver->apply(m_settings.getRxSettings());
+    if (m_receiver) {
+      m_receiver->apply(m_settings.getRxSettings());
     }
   }
   if (settings.hasSettingChanged(RadioSettings::TX)) {
-    if (m_pTransmitter != nullptr) {
-      m_pTransmitter->apply(m_settings.getTxSettings());
+    if (m_transmitter) {
+      m_transmitter->apply(m_settings.getTxSettings());
     }
   }
   if (m_pEventTarget != nullptr) {
@@ -120,12 +106,19 @@ Radio::applySettings(const RadioSettings& settings)
     EventDispatcher::postEvent(m_pEventTarget, rse);
   }
   m_settings.clearChanged();
+  return ResultCode::OK;
+}
+
+ResultCode
+Radio::applySettingUpdate(SettingUpdate& update)
+{
+  return RadioBase::applySettingUpdate(update);
 }
 
 void
-Radio::applySettingUpdate(SettingUpdate& update)
+Radio::markAllSettingsUnchanged()
 {
-  RadioBase::applySettingUpdate(update);
+  m_settings.clearChanged();
 }
 
 void
@@ -141,27 +134,24 @@ Radio::ptt(bool on)
 void
 Radio::pttOn()
 {
-  if (m_pReceiver != nullptr) {
-    m_pReceiver->ptt(true);
+  if (m_receiver) {
+    m_receiver->ptt(true);
   }
-  if (m_pControl != nullptr) {
-    m_pControl->ptt(true);
-  }
-  if (m_pTransmitter != nullptr) {
-    m_pTransmitter->ptt(true);
+  m_control.ptt(true);
+
+  if (m_transmitter) {
+    m_transmitter->ptt(true);
   }
 }
 
 void
 Radio::pttOff()
 {
-  if (m_pTransmitter != nullptr) {
-    m_pTransmitter->ptt(false);
+  if (m_transmitter) {
+    m_transmitter->ptt(true);
   }
-  if (m_pControl != nullptr) {
-    m_pControl->ptt(false);
+  if (m_receiver) {
+    m_receiver->ptt(true);
   }
-  if (m_pReceiver != nullptr) {
-    m_pReceiver->ptt(false);
-  }
+  m_control.ptt(true);
 }

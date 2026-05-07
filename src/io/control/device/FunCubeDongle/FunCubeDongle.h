@@ -8,8 +8,8 @@
 #include "../../ControlSink.h"
 #include "../usb/HidUsbControl.h"
 #include "core/config-settings/settings/RadioSettings.h"
+#include "core/config-settings/config/control/FunCubeConfig.h"
 #include "FCDHidCmd.h"
-#include "io/control/ControlException.h"
 
 class FunCubeDongle : public ControlSink {
 public:
@@ -19,31 +19,31 @@ public:
     // void applySettings(const RadioSettings& radioSettings) override;
     // void readSettings(RadioSettings& radioSettings) override;
   // void applySettings(const RadioSettings& radioSettings, BandSettings* pBandSettings) override;
-  void applySettings(const RadioSettings& radioSettings) override;
-  void applySettingUpdate(SettingUpdate& settingDelta) override
+  ResultCode applySettings(const RadioSettings& radioSettings) override;
+  ResultCode applySettingUpdate(SettingUpdate& settingDelta) override
   {
-    // throw ControlException("FunCubeDongle::applySingleSetting() not implemented.");
+    return ResultCode::OK;
   }
 
   void ptt(bool on) override;
 
   // void initialise(JsonVariantConst json) override;
-  void configure(const ConfigBase* pConfig) override;
+  ResultCode configure(const Config::FunCube::Fields& config);
   bool discover() override;
-  void open() override;
+  ResultCode open() override;
   void close() override;
   void exit() override;
 
 protected:
-  void transactReport(uint8_t buf[65]);
-  uint32_t setFrequency(uint32_t freqHz);
-  void setRfFilter(TUNERRFFILTERENUM eFilter);
-  void setRfFilter(uint32_t freqHz);
-  void setIfFilter(TUNERIFFILTERENUM eFilter);
-  void setIfFilter(uint32_t bandwidthHz);
-  void setLnaGain(float gain);
-  void setIfGain(uint8_t ifGain);
-  void setIfGain(float ifGain);
+  ResultCode transactReport(uint8_t buf[65]);
+  ResultCode setFrequency(uint32_t freqHz);
+  ResultCode setRfFilter(TUNERRFFILTERENUM eFilter);
+  ResultCode setRfFilter(uint32_t freqHz);
+  ResultCode setIfFilter(TUNERIFFILTERENUM eFilter);
+  ResultCode setIfFilter(uint32_t bandwidthHz);
+  ResultCode setLnaGain(float gain);
+  ResultCode setIfGain(uint8_t ifGain);
+  ResultCode setIfGain(float ifGain);
 
 protected:
   HidUsbControl m_control;

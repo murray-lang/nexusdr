@@ -5,7 +5,6 @@
 #include "GpioRotaryEncoder.h"
 #include <qdebug.h>
 
-#include "io/control/device/gpio/GpioException.h"
 #include "core/config-settings/settings/base/SettingUpdate.h"
 
 GpioRotaryEncoder::GpioRotaryEncoder() : DigitalInput()
@@ -13,11 +12,11 @@ GpioRotaryEncoder::GpioRotaryEncoder() : DigitalInput()
   m_detectEdge = true;
 }
 
-void
-GpioRotaryEncoder::configure(const DigitalInputConfig* pConfig)
+ResultCode
+GpioRotaryEncoder::configure(const Config::RotaryEncoder::Fields& config)
 {
-  DigitalInput::configure(pConfig);
-  setEdge(GpioLines::Edge::BOTH);
+  setEdge(Edge::BOTH);
+  return DigitalInput::configure(config);
 }
 
 void
@@ -28,7 +27,7 @@ GpioRotaryEncoder::notifyMovement(const int movement)
 }
 
 bool
-GpioRotaryEncoder::handleLineChange(DigitalInputLinesRequest::LineStates& changedLines)
+GpioRotaryEncoder::handleLineChange(DigitalInputLinesRequest::LineStateVector& changedLines)
 {
   DigitalInputLinesRequest::LineState& a = changedLines.at(m_lines[0]);
   DigitalInputLinesRequest::LineState& b = changedLines.at(m_lines[1]);

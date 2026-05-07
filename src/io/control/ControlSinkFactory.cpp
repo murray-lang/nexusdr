@@ -3,49 +3,42 @@
 //
 #include "ControlSinkFactory.h"
 
-#include "core/config-settings/config/BandSelectorConfig.h"
-#include "core/config-settings/config/FunCubeConfig.h"
+#include "core/config-settings/config/control/BandSelectorConfig.h"
+#include "core/config-settings/config/control/FunCubeConfig.h"
 #include "device/FunCubeDongle/FunCubeDongle.h"
 #include "device/gpio/digital/GpioBandSelector.h"
 #include "device/gpio/digital/DigitalOutput.h"
-#include "core/util/StringUtils.h"
+#include "device/gpio/digital/DigitalOutputs.h"
 
-ControlSink*
-ControlSinkFactory::create(const ConfigBase* pConfig)
+ResultCode
+ControlSinkFactory::create(const Config::Control::SinkConfigVariant& config, ControlSinkVariant& sink)
 {
-  ControlSink* result = create(pConfig->getType());
-  if (result)
-  {
-    result->setId(pConfig->getType());
-    result->configure(pConfig);
-  }
-  return result;
-}
-
-ControlSink*
-ControlSinkFactory::create(const std::string& type)
-{
-  std::string typeAsLower = StringUtils::toLowerCase(type);
-  if(typeAsLower == FunCubeConfig::type) {
-    return new FunCubeDongle();
+  ResultCode result = ResultCode::OK;
+  if (holds_alternative<Config::FunCube::Fields>(config)) {
+    FunCubeDongle funCube;
+    result = funCube.configure(get<Config::FunCube::Fields>(config));
+    if (result == ResultCode::OK) {
+      sink.emplace<FunCubeDongle>(funCube);
+    }
+    return result;
   }
 #ifdef USE_GPIO
-  if(typeAsLower == DigitalOutputConfig::type) {
-    return new DigitalOutput();
+  if (holds_alternative<Config::DigitalOutputs::Fields>(config)) {
+    DigitalOutputs douts;
+    result = douts.configure(get<Config::DigitalOutputs::Fields>(config));
+    if (result == ResultCode::OK) {
+      sink.emplace<DigitalOutputs>(move(douts));
+    }
+    return result;
   }
-  if (typeAsLower == BandSelectorConfig::type) {
-    return new GpioBandSelector();
-  }
+  // if (holds_alternative<Config::BandSelector::Fields>(config)) {
+  //   GpioBandSelector bandSelector;
+  //   result = bandSelector.configure(get<Config::BandSelector::Fields>(config));
+  //   if (result == ResultCode::OK) {
+  //     sink.emplace<GpioBandSelector>(move(bandSelector));
+  //   }
+  //   return result;
+  // }
 #endif
-  return nullptr;
+  return ResultCode::ERR_CONTROL_SINK;
 }
-
-// std::string
-// ControlSinkFactory::toLowerCase(const std::string& str)
-// {
-//   std::string output = str;
-//   std::transform(output.begin(), output.end(), output.begin(),
-//                  [](unsigned char c){ return std::tolower(c); });
-//   return output;
-//
-// }

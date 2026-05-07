@@ -1,12 +1,7 @@
-//
-// Created by murray on 6/10/25.
-//
-
 #include "ModeSettings.h"
 
-#include <vector>
 
-static std::vector<Mode> modes{
+static ModeVector modes{
   {Mode::AMN, "AM",  "AM (Narrow)",    -3000,  3000,    0},
   {Mode::AMW, "AMW", "AM (Wide)",      -9000,  9000,    0},
   {Mode::LSB, "LSB", "Lower Sideband", -4000,  -200,    0},
@@ -15,7 +10,6 @@ static std::vector<Mode> modes{
   {Mode::FMW, "FMW", "FM (Wide)",     -15000, 15000,    0},
   {Mode::CWL, "CWL", "CW (Lower)",      -1000,   -50, -700},
   {Mode::CWU, "CWU", "CW (Upper)",        50,   1000,  700}
-
 };
 
 ModeSettings::ModeSettings() :
@@ -27,7 +21,7 @@ ModeSettings::ModeSettings() :
 
 }
 
-const std::vector<Mode>&
+const ModeVector&
 ModeSettings::getAll()
 {
   return modes;
@@ -51,7 +45,7 @@ ModeSettings::applyUpdate(SettingUpdate& setting)
   bool settingChange = false;
   if (setting.getMeaning() == SettingUpdate::DELTA) {
     if (setting.isInt()) {
-      auto delta = std::get<int32_t>(setting.getValue());
+      auto delta = get<int32_t>(setting.getValue());
       if (delta > 0) {
         settingChange = increment();
       } else {
@@ -62,13 +56,13 @@ ModeSettings::applyUpdate(SettingUpdate& setting)
     }
   } else if (setting.getMeaning() == SettingUpdate::VALUE) {
     if (setting.isUInt()) {
-      auto type = static_cast<Mode::Type>(std::get<uint32_t>(setting.getValue()));
+      auto type = static_cast<Mode::Type>(get<uint32_t>(setting.getValue()));
       settingChange = setCurrentMode(type);
     } else if (setting.isMode()) {
-      auto type = std::get<Mode::Type>(setting.getValue());
+      auto type = get<Mode::Type>(setting.getValue());
       settingChange = setCurrentMode(type);
-    }else if (setting.isString()) {
-      auto name = std::get<std::string>(setting.getValue());
+    } else if (setting.isModeName()) {
+      auto name = get<ModeNameString>(setting.getValue());
       settingChange = setCurrentMode(name);
     }
   }
@@ -87,7 +81,7 @@ ModeSettings::getIndexByType(const Mode::Type type)
 }
 
 int
-ModeSettings::getIndexByName(const std::string& name)
+ModeSettings::getIndexByName(const ModeNameString& name)
 {
   for (int i = 0; i < modes.size(); i++) {
     if (modes[i].getName() == name) {
@@ -105,7 +99,7 @@ ModeSettings::getModeByType(Mode::Type type)
 }
 
 const Mode&
-ModeSettings::getModeByName(const std::string& name)
+ModeSettings::getModeByName(const ModeNameString& name)
 {
   int index = getIndexByName(name);
   return modes.at(index);
@@ -165,7 +159,7 @@ ModeSettings::setCurrentMode(Mode::Type type)
 }
 
 bool
-ModeSettings::setCurrentMode(const std::string& name)
+ModeSettings::setCurrentMode(const ModeNameString& name)
 {
   int index = getIndexByName(name);
   if (index!= m_currentIndex) {

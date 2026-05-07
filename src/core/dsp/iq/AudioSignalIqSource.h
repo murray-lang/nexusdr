@@ -4,7 +4,8 @@
 
 #pragma once
 #include "IqSource.h"
-#include "core/config-settings/config/AudioSignalIqSourceConfig.h"
+#include "ResultCode.h"
+#include "../../config-settings/config/audio/AudioSignalIqSourceConfig.h"
 #include "io/audio/AudioInput.h"
 #include "io/audio/AudioSink.h"
 
@@ -13,26 +14,29 @@ class AudioSignalIqSource : public IqSource, private AudioSink
 public:
   AudioSignalIqSource() :
     IqSource(nullptr),
-    m_audioInput(dynamic_cast<AudioSink*>(this)),
+    m_audioInput(static_cast<AudioSink*>(this)),
     m_reverse(false)
   {}
   explicit AudioSignalIqSource(IqSink* pIqSink) :
     IqSource(pIqSink),
-    m_audioInput(dynamic_cast<AudioSink*>(this)),
+    m_audioInput(static_cast<AudioSink*>(this)),
     m_reverse(false)
   {}
+
+  // AudioSignalIqSource(const AudioSignalIqSource&&) = default;
+  // AudioSignalIqSource& operator=(const AudioSignalIqSource&&) = default;
+
   ~AudioSignalIqSource() override = default;
 
-  void configure(const ConfigBase* pConfig) override
+  ResultCode configure(const Config::AudioSignalIqSource::Fields& config)
   {
-    const auto* config = dynamic_cast<const AudioSignalIqSourceConfig*>(pConfig);
-    m_audioInput.configure(&config->getAudioInput());
-    m_reverse = config->getReverse();
+    m_reverse = config.reverse;
+    return m_audioInput.configure(config.audioInput);
   }
 
-  void start(uint32_t maxPacketFrames) override
+  ResultCode start(uint32_t maxPacketFrames)
   {
-    m_audioInput.start(maxPacketFrames);
+    return m_audioInput.start(maxPacketFrames);
   }
   void stop() override
   {
@@ -41,6 +45,7 @@ public:
 
   [[nodiscard]] uint32_t getSampleRate() const override { return m_audioInput.getSampleRate(); }
 
+private:
   uint32_t sinkAudio(const RealSamplesMax& audioSamples, uint32_t length, uint32_t numChannels) override
   {
     uint32_t numFrames = length/2; // Assume numChannels == 2

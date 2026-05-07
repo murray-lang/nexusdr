@@ -3,14 +3,23 @@
 //
 
 #pragma once
-#include "core/config-settings/config/DigitalOutputConfig.h"
+
+
+#include "core/config-settings/config/control/DigitalOutputConfig.h"
 #include "io/control/ControlSink.h"
 #include "io/control/device/gpio/GpioLines.h"
 #include "core/config-settings/settings/RadioSettingsSink.h"
 #include "core/config-settings/settings/base/SettingUpdatePath.h"
+#include "DigitalOutputLinesRequest.h"
 
+#ifdef USE_ETL
+#include "etl/memory.h"
+using etl::unique_ptr;
+#else
+#include <memory>
+using std::unique_ptr;
+#endif
 
-class DigitalOutputLinesRequest;
 
 class DigitalOutput : public GpioLines, public ControlSink
 {
@@ -18,10 +27,12 @@ public:
   DigitalOutput();
   ~DigitalOutput() override = default;
 
-  // GpioLines overrides
-  void configure(const ConfigBase* pConfig) override;
+  DigitalOutput(DigitalOutput&&)  noexcept = default;
+  DigitalOutput& operator=(DigitalOutput&&)  noexcept = default;
+
+  virtual ResultCode configure(const Config::DigitalOutput::Fields& config);
   bool discover() override;
-  void open() override;
+  ResultCode open() override;
   void close() override;
   void exit() override;
 
@@ -31,13 +42,13 @@ public:
   // to respond here as well would be circular.
   void ptt(bool on) override {};
 
-  void applySettingUpdate( SettingUpdate& setting) override;
-  void applySettings(const RadioSettings& radioSettings) override {}
+  ResultCode applySettingUpdate( SettingUpdate& setting) override;
+  ResultCode applySettings(const RadioSettings& radioSettings) override { return ResultCode::OK; }
 
   void setValue(bool value);
 
 protected:
   SettingUpdatePath m_settingPath;
-  std::unique_ptr<DigitalOutputLinesRequest> m_pLines;
+  optional<DigitalOutputLinesRequest> m_linesRequest;
 
 };

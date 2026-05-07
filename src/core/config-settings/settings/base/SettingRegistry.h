@@ -1,10 +1,5 @@
-//
-// Created by murray on 9/1/26.
-//
-
 #pragma once
-#include <map>
-#include <string>
+#include "../SettingsCrossPlatformTypes.h"
 #include <cstdint>
 
 // This will be used by classes derived from SettingsBase.
@@ -16,5 +11,5 @@
 
 template<typename DerivedSettingsClass>
 struct SettingRegistry {
-  static inline std::map<std::string, uint32_t> mapping;
+  static inline FeatureStringMap mapping;
 };

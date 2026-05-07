@@ -1,15 +1,10 @@
-//
-// Created by murray on 2025-09-04.
-//
-
 #pragma once
 
-#include "core/config-settings/config/DigitalInputConfig.h"
-#include "DigitalInput.h"
+#include "DigitalInputTypes.h"
+#include "core/config-settings/config/control/DigitalInputsConfig.h"
 
 class DigitalInputFactory
 {
 public:
-  static DigitalInput* create(const DigitalInputConfig* pConfig);
-  static DigitalInput* create(const std::string& type);
+  static ResultCode create(const Config::DigitalInputs::DigitalInputConfigVariant& config, DigitalInputVariant& input);
 };

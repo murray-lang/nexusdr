@@ -7,7 +7,7 @@
 
 #include "events/ReceiverAudioEvent.h"
 #include "events/ReceiverIqEvent.h"
-#include "core/config-settings/config/ReceiverConfig.h"
+#include "../../config-settings/config/receiver/ReceiverConfig.h"
 
 #include "core/config-settings/settings/bands/BandSettings.h"
 
@@ -30,24 +30,27 @@ IqReceiver::IqReceiver(QObject* eventTarget) :
 {
 }
 
-void
-IqReceiver::configure(const ReceiverConfig* pConfig)
+ResultCode
+IqReceiver::configure(const Config::Receiver::Fields& config)
 {
-  if (pConfig != nullptr) {
-    m_iqIo.configure(&pConfig->iqIo);
-
-    m_iqPipelineA.initialise(&m_iqIo, &m_audioTapA);
-    m_iqPipelineB.initialise(&m_iqIo, &m_audioTapB);
-    // This class also intercepts the received IQ so that it can be forwarded to multiple pipelines.
-    m_iqIo.setIqSink(this);
+  ResultCode rc = m_iqIo.configure(config.iqIo);
+  if (rc != ResultCode::OK) {
+    return rc;
   }
+
+  m_iqPipelineA.initialise(&m_iqIo, &m_audioTapA);
+  m_iqPipelineB.initialise(&m_iqIo, &m_audioTapB);
+  // This class also intercepts the received IQ so that it can be forwarded to multiple pipelines.
+  m_iqIo.setIqSink(this);
+  return ResultCode::OK;
 }
 
-void
+ResultCode
 IqReceiver::apply(const ReceiverSettings& settings)
 {
   m_iqPipelineA.apply(settings);
   m_iqPipelineB.apply(settings);
+  return ResultCode::OK;
 }
 
 void
@@ -110,13 +113,12 @@ bool IqReceiver::adjustRfSettingsToLimits(RxPipelineSettings* rxPipelineSettings
   return pipeline.adjustRfSettingsToLimits(rfSettings);
 }
 
-void
+ResultCode
 IqReceiver::start()
 {
-
   uint32_t framesPerOutputPacket = m_iqPipelineA.getMaxFramesPerOutputPacket();
   uint32_t framesPerInputPacket = m_iqPipelineA.getMaxFramesPerInputPacket();
-  m_iqIo.start(framesPerInputPacket, framesPerOutputPacket);
+  return m_iqIo.start(framesPerInputPacket, framesPerOutputPacket);
 }
 
 void

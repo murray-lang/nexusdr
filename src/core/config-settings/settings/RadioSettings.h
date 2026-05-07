@@ -10,14 +10,12 @@
 #include "TransmitterSettings.h"
 #include "base/SettingUpdatePath.h"
 #include <cstdint>
-#include <string>
-#include <vector>
 
+
+#include "ResultCode.h"
 #include "bands/BandSettings.h"
 #include "bands/ActiveBandSettings.h"
 #include "bands/BandSelector.h"
-#include "base/SettingsException.h"
-
 
 class RadioSettings : public SettingsBase {
 public:
@@ -35,7 +33,7 @@ public:
     m_activeBandSettings(),
     m_ptt(this, "ptt", false)
   {
-    RadioSettings::markAllChanged();
+    // RadioSettings::markAllChanged();
   };
 
   RadioSettings(const RadioSettings& rhs) :
@@ -68,7 +66,8 @@ public:
   // void setCentreFrequencyDeltas(int32_t fine, int32_t coarse);
   BandSettings* getFocusBandSettings();
   [[nodiscard]] const BandSettings* getFocusBandSettings() const;
-  [[nodiscard]] std::string getFocusBandName() const
+
+  [[nodiscard]] BandNameString getFocusBandName() const
   {
     const BandSettings* focusBandSettings = m_activeBandSettings.getFocusBandSettings();
 
@@ -86,6 +85,7 @@ public:
     SettingsBase::clearChanged();
     m_rxSettings.clearChanged();
     m_txSettings.clearChanged();
+    m_activeBandSettings.clearChanged();
   }
 
   void markAllChanged() override
@@ -103,13 +103,11 @@ public:
   [[nodiscard]] const TxPipelineSettings* getTxPipelineSettings() const;
   [[nodiscard]] const Mode* getFocusRxPipelineMode() const;
 
-  static SettingUpdatePath getSettingUpdatePath(const std::string& strDottedFeatures);
-
-
+  static ResultCode getSettingUpdatePath(const SettingPathString& strDottedFeatures, SettingUpdatePath& path);
 
   static bool getFeaturePath(
-    const std::vector<std::string>& featureStrings,
-    std::vector<uint32_t>& featuresOut,
+    const FeatureStringVector& featureStrings,
+    FeatureNumVector& featuresOut,
     size_t startIndex = 0
     );
 protected:

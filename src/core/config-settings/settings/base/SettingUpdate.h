@@ -1,7 +1,3 @@
-//
-// Created by murray on 2025-08-24.
-//
-
 #pragma once
 
 #include "SettingUpdatePath.h"
@@ -17,7 +13,7 @@ public:
   SettingUpdate() : m_value(0), m_meaning(NONE), m_cursor(0), m_alt(false) {}
   SettingUpdate(const SettingUpdatePath& settingPath, SettingValue value, const Meaning meaning, bool alt = false) :
     m_settingPath(settingPath),
-    m_value(std::move(value)),
+    m_value(move(value)),
     m_meaning(meaning),
     m_cursor(0),
     m_alt(alt)
@@ -69,13 +65,14 @@ public:
   [[nodiscard]] const SettingValue& getValue() const { return m_value; }
   [[nodiscard]] Meaning getMeaning() const { return m_meaning; }
 
-  [[nodiscard]] bool isInt() const { return std::holds_alternative<int32_t>(m_value); }
-  [[nodiscard]] bool isUInt() const { return std::holds_alternative<uint32_t>(m_value); }
-  [[nodiscard]] bool isDouble() const { return std::holds_alternative<double>(m_value); }
-  [[nodiscard]] bool isFloat() const { return std::holds_alternative<float>(m_value); }
-  [[nodiscard]] bool isString() const { return std::holds_alternative<std::string>(m_value); }
-  [[nodiscard]] bool isBool() const { return std::holds_alternative<bool>(m_value); }
-  [[nodiscard]] bool isMode() const { return std::holds_alternative<Mode::Type>(m_value); }
+  [[nodiscard]] bool isInt() const { return holds_alternative<int32_t>(m_value); }
+  [[nodiscard]] bool isUInt() const { return holds_alternative<uint32_t>(m_value); }
+  [[nodiscard]] bool isDouble() const { return holds_alternative<double>(m_value); }
+  [[nodiscard]] bool isFloat() const { return holds_alternative<float>(m_value); }
+  [[nodiscard]] bool isModeName() const { return holds_alternative<ModeNameString>(m_value); }
+  [[nodiscard]] bool isBandName() const { return holds_alternative<BandNameString>(m_value); }
+  [[nodiscard]] bool isBool() const { return holds_alternative<bool>(m_value); }
+  [[nodiscard]] bool isMode() const { return holds_alternative<Mode::Type>(m_value); }
 
 
 protected:

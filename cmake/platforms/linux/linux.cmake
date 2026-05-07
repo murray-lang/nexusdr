@@ -3,7 +3,8 @@ cmake_minimum_required(VERSION 3.15)
 project(nexusdr-linux VERSION 0.1 LANGUAGES CXX)
 
 set(USE_GUI ON)
-set(USE_GPIO OFF)
+#set(USE_GPIO OFF)
+
 
 set(IS_LINUX ON)
 set(IS_QT ON)
@@ -41,7 +42,6 @@ if(USE_GPIO)
         message(FATAL_ERROR "USE_GPIO is set to true, but libgpiod not found")
     endif()
     set(USE_PIGPIO OFF) #PIGPIO causes problems with modern RPi distros. Keeping reference just in case
-    add_definitions(-DMAX_GPIO=27)
 endif()
 
 include(${CMAKE_CURRENT_LIST_DIR}/CMakeLists_AudioLibs.txt)
@@ -121,6 +121,7 @@ set (CORE_SOURCES
         ${UTIL_SOURCES}
         ${USB_API_SOURCES}
         src/core/SampleTypes.h
+        ${INCLUDE_DIR}/ResultCode.h
 )
 if(USE_GUI)
     set(QT_GUI_SOURCES
@@ -177,10 +178,44 @@ if(USE_GUI)
 endif()
 set(APP_SOURCES ${QT_GUI_SOURCES} ${QT_APP_SOURCES})
 
+set(TEMP_DEVICE_SOURCES
+        src/io/control/device/gpio/digital/DigitalInput.h
+        src/io/control/device/gpio/digital/DigitalInput.cpp
+        src/io/control/device/gpio/digital/DigitalInputFactory.h
+        src/io/control/device/gpio/digital/DigitalInputFactory.cpp
+        src/io/control/device/gpio/digital/DigitalInputLinesRequest.h
+        src/io/control/device/gpio/digital/DigitalInputs.cpp
+        src/io/control/device/gpio/digital/DigitalInputs.h
+        src/io/control/device/gpio/digital/DigitalInputTypes.h
+        src/io/control/device/gpio/digital/DigitalOutput.cpp
+        src/io/control/device/gpio/digital/DigitalOutput.h
+        src/io/control/device/gpio/digital/DigitalOutputFactory.h
+        src/io/control/device/gpio/digital/DigitalOutputFactory.cpp
+        src/io/control/device/gpio/digital/DigitalOutputLinesRequest.h
+        src/io/control/device/gpio/digital/DigitalOutputs.cpp
+        src/io/control/device/gpio/digital/DigitalOutputs.h
+        src/io/control/device/gpio/digital/DigitalOutputTypes.h
+        src/io/control/device/gpio/digital/GpioBandSelector.cpp
+        src/io/control/device/gpio/digital/GpioBandSelector.h
+        src/io/control/device/gpio/digital/GpioRotaryEncoder.cpp
+        src/io/control/device/gpio/digital/GpioRotaryEncoder.h
+
+        src/io/control/device/gpio/impl/gpiod/DigitalInputLinesRequestGpiod.h
+        src/io/control/device/gpio/impl/gpiod/DigitalInputLinesRequestGpiod.cpp
+        src/io/control/device/gpio/impl/gpiod/DigitalOutputLinesRequestGpiod.h
+        src/io/control/device/gpio/impl/gpiod/DigitalOutputLinesRequestGpiod.cpp
+        src/io/control/device/gpio/impl/gpiod/GpioGpiod.h
+        src/io/control/device/gpio/impl/gpiod/GpioGpiod.cpp
+
+        src/io/control/device/gpio/GpioLines.cpp
+        src/io/control/device/gpio/GpioLines.h
+        src/io/control/device/gpio/Gpio.h
+)
+
 set(PROJECT_SOURCES
         ${CORE_SOURCES}
         ${APP_SOURCES}
-
+#        ${TEMP_DEVICE_SOURCES}
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -203,12 +238,13 @@ else()
 endif()
 
 set(INCLUDE_DIRS
+        ${INCLUDE_DIR}
         ${CMAKE_SOURCE_DIR}
         ${CMAKE_SOURCE_DIR}/src
         ${AUDIO_DRIVER_INCLUDE_DIRS}
         ${LIQUID_INCLUDE_DIR}
         /usr/include/hidapi/
-        ${ETL_DIR}
+        ${ETL_DIR}/include
         ${ARDUINO_JSON_DIR}
 )
 

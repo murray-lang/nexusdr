@@ -5,8 +5,9 @@
 #pragma once
 #include <QObject>
 
+#include "ResultCode.h"
 #include "core/SampleTypes.h"
-#include "core/config-settings/config/TransmitterConfig.h"
+#include "../../config-settings/config/transmitter/TransmitterConfig.h"
 #include "io/audio/AudioInput.h"
 #include "io/audio/AudioOutput.h"
 #include "core/dsp/pipeline/IqTxPipeline.h"
@@ -24,9 +25,9 @@ public:
 
   ~IqTransmitter() override = default;
 
-  void configure(const TransmitterConfig* pConfig);
-  void start() const;
-  void stop() const;
+  ResultCode configure(const Config::Transmitter::Fields& config);
+  ResultCode start();
+  void stop();
   void apply(const TransmitterSettings& settings) override;
   void apply(const TxPipelineSettings* settings);
   void ptt(bool on) override;

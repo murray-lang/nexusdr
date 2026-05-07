@@ -3,8 +3,9 @@
 //
 
 #pragma once
+#include "ResultCode.h"
 #include "IqSink.h"
-#include "core/config-settings/config/ConfigBase.h"
+#include "../../config-settings/config/base/ConfigBase.h"
 
 class IqSource
 {
@@ -13,9 +14,9 @@ public:
   explicit IqSource(IqSink* iqSink) : m_pIqSink(iqSink) {};
   virtual ~IqSource() = default;
 
-  virtual void configure(const ConfigBase* pConfig) = 0;
+  // virtual ResultCode configure(const ConfigBase* pConfig) = 0;
 
-  virtual void start(uint32_t maxPacketFrames) = 0;
+  virtual ResultCode start(uint32_t maxPacketFrames) = 0;
   virtual void stop() = 0;
 
   void setIqSink(IqSink* pIqSink) { m_pIqSink = pIqSink; }

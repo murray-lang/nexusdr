@@ -1,10 +1,5 @@
-//
-// Created by murray on 15/04/23.
-//
-
 #include "FunCubeDongle.h"
 #include "FCDHidCmd.h"
-#include "../../ControlException.h"
 
 #include <cmath>
 
@@ -21,7 +16,7 @@ FunCubeDongle::FunCubeDongle() :
 
 FunCubeDongle::~FunCubeDongle() = default;
 
-void
+ResultCode
 FunCubeDongle::applySettings(const RadioSettings& radioSettings)
 {
     // qDebug() << "FunCubeDongle::applySettings called";
@@ -55,10 +50,10 @@ FunCubeDongle::applySettings(const RadioSettings& radioSettings)
       }
     }
 
-
     //setRfFilter(TRFE_8_16);
     //setIfFilter(TIFE_200KHZ);
   }
+  return ResultCode::OK;
 }
 
 
@@ -81,10 +76,10 @@ void FunCubeDongle::ptt(bool on)
 //
 // }
 
-void
-FunCubeDongle::configure(const ConfigBase* pConfig)
+ResultCode
+FunCubeDongle::configure(const Config::FunCube::Fields& config)
 {
-    m_control.initialise();
+    return m_control.initialise();
 }
 
 bool
@@ -93,10 +88,10 @@ FunCubeDongle::discover()
     return m_control.discover();
 }
 
-void
+ResultCode
 FunCubeDongle::open()
 {
-    m_control.open();
+    return m_control.open();
 }
 
 void
@@ -111,38 +106,42 @@ FunCubeDongle::exit()
     m_control.exit();
 }
 
-void
+ResultCode
 FunCubeDongle::transactReport(uint8_t buf[65])
 {
-    m_control.write(buf, 65);
-    buf[1] = 0;
-    m_control.read(buf, 65);
+  size_t bytesRW;
+  ResultCode rc = m_control.write(buf, 65, &bytesRW);
+  if (rc != ResultCode::OK) return rc;
+  buf[1] = 0;
+  return m_control.read(buf, 65, &bytesRW);
 }
 
-uint32_t
+ResultCode
 FunCubeDongle::setFrequency(uint32_t freqHz)
 {
-    uint8_t buf[65] = {
-            0,
-            FCD_HID_CMD_SET_FREQUENCY_HZ,
-            (uint8_t)(freqHz & 0xff),
-            (uint8_t)((freqHz>>8) & 0xff),
-            (uint8_t)((freqHz>>16) & 0xff),
-            (uint8_t)((freqHz>>24) & 0xff)
-    };
-    transactReport(buf);
-    if (buf[0] != FCD_HID_CMD_SET_FREQUENCY_HZ || buf[1]!=1) {
-        throw ControlException("Set Frequency failed");
-    }
-    auto result = (uint32_t) buf[2];
-    result += (uint32_t) (buf[3] << 8);
-    result += (uint32_t) (buf[4] << 16);
-    result += (uint32_t) (buf[5] << 24);
-    return result;
-
+  uint8_t buf[65] = {
+          0,
+          FCD_HID_CMD_SET_FREQUENCY_HZ,
+          (uint8_t)(freqHz & 0xff),
+          (uint8_t)((freqHz>>8) & 0xff),
+          (uint8_t)((freqHz>>16) & 0xff),
+          (uint8_t)((freqHz>>24) & 0xff)
+  };
+  transactReport(buf);
+  if (buf[0] != FCD_HID_CMD_SET_FREQUENCY_HZ || buf[1]!=1) {
+     return ResultCode::ERR_CONTROL_SET_RF_FREQUENCY;
+  }
+  auto result = (uint32_t) buf[2];
+  result += (uint32_t) (buf[3] << 8);
+  result += (uint32_t) (buf[4] << 16);
+  result += (uint32_t) (buf[5] << 24);
+  if (result != freqHz) {
+    return ResultCode::ERR_CONTROL_SET_RF_FREQUENCY;
+  }
+  return ResultCode::OK;
 }
 
-void
+ResultCode
 FunCubeDongle::setRfFilter(uint32_t freqHz) {
     TUNERRFFILTERENUM filter;
     if (freqHz < 4000000) {
@@ -168,36 +167,40 @@ FunCubeDongle::setRfFilter(uint32_t freqHz) {
     } else {
         filter = TRFE_875_2000;
     }
-    setRfFilter(filter);
+    return setRfFilter(filter);
 }
 
-void
+ResultCode
 FunCubeDongle::setRfFilter(TUNERRFFILTERENUM eFilter) {
-    uint8_t buf[65] = {
-            0,
-            FCD_HID_CMD_SET_RF_FILTER,
-            (uint8_t)eFilter
-    };
-    transactReport(buf);
-    if(buf[0] != FCD_HID_CMD_SET_RF_FILTER) {
-        throw ControlException("Error setting RF filter");
-    }
+  uint8_t buf[65] = {
+          0,
+          FCD_HID_CMD_SET_RF_FILTER,
+          (uint8_t)eFilter
+  };
+  ResultCode rc = transactReport(buf);
+  if (rc != ResultCode::OK) return rc;
+  if(buf[0] != FCD_HID_CMD_SET_RF_FILTER) {
+    return ResultCode::ERR_CONTROL_SET_RF_FILTER;
+  }
+  return ResultCode::OK;
 }
 
-void
+ResultCode
 FunCubeDongle::setIfFilter(TUNERIFFILTERENUM eFilter) {
-    uint8_t buf[65] = {
-            0,
-            FCD_HID_CMD_SET_IF_FILTER,
-            (uint8_t)eFilter
-    };
-    transactReport(buf);
-    if(buf[0] != FCD_HID_CMD_SET_IF_FILTER) {
-        throw ControlException("Error setting IF filter");
-    }
+  uint8_t buf[65] = {
+          0,
+          FCD_HID_CMD_SET_IF_FILTER,
+          (uint8_t)eFilter
+  };
+  ResultCode rc = transactReport(buf);
+  if (rc != ResultCode::OK) return rc;
+  if(buf[0] != FCD_HID_CMD_SET_IF_FILTER) {
+    return ResultCode::ERR_CONTROL_SET_IF_FILTER;
+  }
+  return ResultCode::OK;
 }
 
-void
+ResultCode
 FunCubeDongle::setIfFilter(uint32_t bandwidthHz) {
     TUNERIFFILTERENUM filter;
     if (bandwidthHz <= 200000) {
@@ -217,77 +220,82 @@ FunCubeDongle::setIfFilter(uint32_t bandwidthHz) {
     } else {
         filter = TIFE_8MHZ;
     }
-    setIfFilter(filter);
+    return setIfFilter(filter);
 }
 
-void
+ResultCode
 FunCubeDongle::setIfGain(float ifGain) {
-    setIfGain((uint8_t) std::lround(ifGain));
+  return setIfGain((uint8_t) std::lround(ifGain));
 }
 
-void
+ResultCode
 FunCubeDongle::setIfGain(uint8_t ifGain) {
-    uint8_t buf[65] = {
-            0,
-            FCD_HID_CMD_SET_IF_GAIN,
-            ifGain
-    };
-    transactReport(buf);
-    if(buf[0] != FCD_HID_CMD_SET_IF_GAIN) {
-        throw ControlException("Error setting IF gain");
-    }
+  uint8_t buf[65] = {
+          0,
+          FCD_HID_CMD_SET_IF_GAIN,
+          ifGain
+  };
+  ResultCode rc =transactReport(buf);
+  if (rc != ResultCode::OK) return rc;
+  if(buf[0] != FCD_HID_CMD_SET_IF_GAIN) {
+    return ResultCode::ERR_CONTROL_SET_IF_GAIN;
+  }
+  return ResultCode::OK;
 }
 
-void FunCubeDongle::setLnaGain(float gain) {
-    uint8_t g;
+ResultCode
+FunCubeDongle::setLnaGain(float gain) {
+  uint8_t g;
 
-    /* convert to nearest discrete value */
-    if(gain > 27.5) {
-        g = 14;              // 30.0 dB
-    }
-    else if(gain > 22.5) {
-        g = 13;              // 25.0 dB
-    }
-    else if(gain > 18.75) {
-        g = 12;              // 20.0 dB
-    }
-    else if(gain > 16.25) {
-        g = 11;              // 17.5 dB
-    }
-    else if(gain > 13.75) {
-        g = 10;              // 15.0 dB
-    }
-    else if(gain > 11.25) {
-        g = 9;               // 12.5 dB
-    }
-    else if(gain > 8.75) {
-        g = 8;               // 10.0 dB
-    }
-    else if(gain > 6.25) {
-        g = 7;               // 7.5 dB
-    }
-    else if(gain > 3.75) {
-        g = 6;               // 5.0 dB
-    }
-    else if(gain > 1.25) {
-        g = 5;               // 2.5 dB
-    }
-    else if(gain > -1.25) {
-        g = 4;               // 0.0 dB
-    }
-    else if(gain > -3.75) {
-        g = 1;               // -2.5 dB
-    }
-    else {
-        g = 0;               // -5.0 dB
-    }
-    uint8_t buf[65] = {
-        0,
-        FCD_HID_CMD_SET_LNA_GAIN,
-        g
-    };
-    transactReport(buf);
-    if(buf[0] != FCD_HID_CMD_SET_LNA_GAIN) {
-        throw ControlException("Error setting LNA gain");
-    }
+  /* convert to nearest discrete value */
+  if(gain > 27.5) {
+      g = 14;              // 30.0 dB
+  }
+  else if(gain > 22.5) {
+      g = 13;              // 25.0 dB
+  }
+  else if(gain > 18.75) {
+      g = 12;              // 20.0 dB
+  }
+  else if(gain > 16.25) {
+      g = 11;              // 17.5 dB
+  }
+  else if(gain > 13.75) {
+      g = 10;              // 15.0 dB
+  }
+  else if(gain > 11.25) {
+      g = 9;               // 12.5 dB
+  }
+  else if(gain > 8.75) {
+      g = 8;               // 10.0 dB
+  }
+  else if(gain > 6.25) {
+      g = 7;               // 7.5 dB
+  }
+  else if(gain > 3.75) {
+      g = 6;               // 5.0 dB
+  }
+  else if(gain > 1.25) {
+      g = 5;               // 2.5 dB
+  }
+  else if(gain > -1.25) {
+      g = 4;               // 0.0 dB
+  }
+  else if(gain > -3.75) {
+      g = 1;               // -2.5 dB
+  }
+  else {
+      g = 0;               // -5.0 dB
+  }
+  uint8_t buf[65] = {
+      0,
+      FCD_HID_CMD_SET_LNA_GAIN,
+      g
+  };
+  ResultCode rc =transactReport(buf);
+  if (rc != ResultCode::OK) return rc;
+  if(buf[0] != FCD_HID_CMD_SET_LNA_GAIN) {
+    return ResultCode::ERR_CONTROL_SET_RF_GAIN;
+  }
+  return ResultCode::OK;
 }

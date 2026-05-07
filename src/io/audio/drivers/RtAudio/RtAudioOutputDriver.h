@@ -43,7 +43,7 @@ public:
     RtAudioOutputDriverT::stop();
   };
 
-  void start(uint32_t maxPacketFrames) override
+  ResultCode start(uint32_t maxPacketFrames) override
   {
     m_maxPacketFrames = maxPacketFrames;
     if (!m_running) {
@@ -75,7 +75,14 @@ public:
         &m_maxPacketFrames, rtCallback, this /*, &options*/);
 
       rc = m_rtAudio.startStream();
+      if (rc != RTAUDIO_NO_ERROR) {
+        return ResultCode::ERR_AUDIO_INPUT_DRIVER_START_FAILED;
+      }
+      return ResultCode::OK;
+    } else {
+      return ResultCode::ERR_AUDIO_OUTPUT_DRIVER_ALREADY_STARTED;
     }
+
   }
 
   void stop() override

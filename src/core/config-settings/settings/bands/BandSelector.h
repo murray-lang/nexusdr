@@ -1,11 +1,17 @@
-//
-// Created by murray on 17/3/26.
-//
-
 #pragma once
 #include "Bands.h"
 #include <unordered_map>
 #include "BandSettings.h"
+
+#ifdef USE_ETL
+#include <etl/unordered_map.h>
+
+using BandSettingsMap = etl::unordered_map<BandNameString, BandSettings, MAX_BANDS>;
+#else
+#include <unordered_map>
+
+using BandSettingsMap = std::unordered_map<BandNameString, BandSettings>;
+#endif
 
 class BandSelector
 {
@@ -14,17 +20,17 @@ public:
 
   void initialiseCache();
 
-  const Bands& getAllBands() const { return m_bands; }
-  BandSettings* getBandSettings(const std::string& bandName);
-  const BandSettings* getBandSettings(const std::string& bandName) const;
+  [[nodiscard]] const Bands& getAllBands() const { return m_bands; }
+  BandSettings* getBandSettings(const BandNameString& bandName);
+  [[nodiscard]] const BandSettings* getBandSettings(const BandNameString& bandName) const;
   void setCentreFrequencyDeltas(int32_t fine, int32_t coarse);
   void applyRfSettings(const RfSettings& settings, bool onlyChanged);
   void applyIfSettings(const IfSettings& settings);
 
-  BandSettings* getOrCreateBandSettings(const std::string& bandName);
+  BandSettings* getOrCreateBandSettings(const BandNameString& bandName);
 
 protected:
   Bands m_bands;
-  std::unordered_map<std::string, BandSettings> m_bandSettingsCache;
+  BandSettingsMap m_bandSettingsCache;
 };
 

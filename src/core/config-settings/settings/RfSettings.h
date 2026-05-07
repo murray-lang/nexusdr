@@ -9,7 +9,6 @@
 
 #include "bands/Bands.h"
 #include "base/SettingsBase.h"
-#include "base/SettingsException.h"
 #include <QDebug>
 #include "base/SteppableSetting.h"
 
@@ -200,7 +199,7 @@ public:
   bool applyUpdate(SettingUpdate& update) override
   {
     if (update.isExhausted()) {
-      throw SettingsException("Invalid setting path");
+      return false;
     }
     uint32_t feature = update.getCurrentFeature();
     const auto& val = update.getValue();
@@ -234,13 +233,13 @@ public:
   }
 
   static bool getFeaturePath(
-    const std::vector<std::string>& featureStrings,
-    std::vector<uint32_t>& out,
+    const FeatureStringVector& featureStrings,
+    FeatureNumVector& out,
     size_t startIndex
     )
   {
     if (startIndex >= featureStrings.size()) {
-      throw SettingsException("Invalid feature path");
+      return false;
     }
     if (resolvePathForRegisteredSetting<RfSettings>(featureStrings, out, startIndex)) {
       if (CentreFrequencyType::getFeaturePath(featureStrings, out, startIndex + 1)) {

@@ -3,17 +3,13 @@
 //
 
 #pragma once
-#include <string>
-
-#include "IqSource.h"
-#include "core/config-settings/config/ConfigBase.h"
-
+#include "IqSourceTypes.h"
+#include "core/config-settings/config/audio/IqIoConfig.h"
 
 class IqSourceFactory
 {
 public:
-  static IqSource* create(const ConfigBase* pConfig);
-  static IqSource* create(const std::string& type);
+  static ResultCode create(const Config::IqIo::IqSourceConfigVariant& config, IqSourceVariant& source);
 
 
 };

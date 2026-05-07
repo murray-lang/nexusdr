@@ -94,7 +94,7 @@ public:
       return true;
     }
     if (update.isExhausted()) {
-      throw SettingsException("Invalid setting path");
+      return false;
     }
     uint32_t feature = update.getCurrentFeature();
     const auto& val = update.getValue();
@@ -115,8 +115,8 @@ public:
   }
 
   static bool getFeaturePath(
-    const std::vector<std::string>& featureStrings,
-    std::vector<uint32_t>& featuresOut,
+    const FeatureStringVector& featureStrings,
+    FeatureNumVector& featuresOut,
     size_t startIndex
     )
   {
@@ -124,14 +124,14 @@ public:
       return true;
     }
     if (startIndex >= featureStrings.size()) {
-      throw SettingsException("Invalid feature path");
+      return false;
     }
 
     if (resolvePathForRegisteredSetting<RxPipelineSettings>(featureStrings, featuresOut, startIndex)) {
       return true;
     }
 
-    const std::string& key = featureStrings[startIndex];
+    const FeatureString& key = featureStrings[startIndex];
     if (key == "if") {
       featuresOut.push_back(IF);
       return RfSettings::getFeaturePath(featureStrings, featuresOut, startIndex + 1);

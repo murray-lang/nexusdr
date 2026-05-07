@@ -39,7 +39,7 @@ public:
 
   void monitor(bool monitor);
 
-  void apply(const ReceiverSettings& settings) override;
+  ResultCode apply(const ReceiverSettings& settings) override;
 
   void apply(const RxPipelineSettings* settings);
 

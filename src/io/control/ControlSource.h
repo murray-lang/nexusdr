@@ -20,18 +20,20 @@ public:
     m_pSettingsSink = pSink;
   }
 protected:
-  void notifySettings(const RadioSettings& radioSettings) override
+  ResultCode notifySettings(const RadioSettings& radioSettings) override
   {
     if (m_pSettingsSink) {
-      m_pSettingsSink->applySettings(radioSettings);
+      return m_pSettingsSink->applySettings(radioSettings);
     }
+    return ResultCode::OK;
   }
 
-  void notifySettingUpdate(SettingUpdate& delta) override
+  ResultCode notifySettingUpdate(SettingUpdate& delta) override
   {
     if (m_pSettingsSink) {
       m_pSettingsSink->applySettingUpdate(delta);
     }
+    return ResultCode::OK;
   }
 
 protected:

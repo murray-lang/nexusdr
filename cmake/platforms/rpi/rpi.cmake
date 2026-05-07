@@ -8,6 +8,7 @@ set(USE_GPIO ON)
 set(IS_RPI ON)
 
 add_definitions(-DUSE_GPIO)
+add_definitions(-DARDUINOJSON_DEFAULT_NESTING_LIMIT=12)
 
 set(IS_LINUX ON)
 set(IS_QT ON)
@@ -17,6 +18,9 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 list(APPEND CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/cmake")
+
+#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --enable-threads")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --enable-threads")
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
 
@@ -47,6 +51,7 @@ if(USE_GPIO)
 endif()
 
 include(${CMAKE_CURRENT_LIST_DIR}/CMakeLists_AudioLibs.txt)
+
 message(STATUS "${AUDIO_LINK_LIBS}")
 
 find_library(HIDAPI_LIBRARY hidapi-libusb)
@@ -85,12 +90,12 @@ if(USE_PIGPIO)
 
 elseif(USE_GPIOD)
     set (GPIO_IMPL_SOURCES
-            src/io/control/device/gpio/impl/gpiod/GpioImplGpiod.h
-            src/io/control/device/gpio/impl/gpiod/GpioImplGpiod.cpp
-            src/io/control/device/gpio/impl/gpiod/DigitalInputLinesRequestImplGpiod.h
-            src/io/control/device/gpio/impl/gpiod/DigitalInputLinesRequestImplGpiod.cpp
-            src/io/control/device/gpio/impl/gpiod/DigitalOutputLinesRequestImplGpiod.cpp
-            src/io/control/device/gpio/impl/gpiod/DigitalOutputLinesRequestImplGpiod.h
+        src/io/control/device/gpio/impl/gpiod/DigitalInputLinesRequestGpiod.h
+        src/io/control/device/gpio/impl/gpiod/DigitalInputLinesRequestGpiod.cpp
+        src/io/control/device/gpio/impl/gpiod/DigitalOutputLinesRequestGpiod.h
+        src/io/control/device/gpio/impl/gpiod/DigitalOutputLinesRequestGpiod.cpp
+        src/io/control/device/gpio/impl/gpiod/GpioGpiod.h
+        src/io/control/device/gpio/impl/gpiod/GpioGpiod.cpp
     )
 endif()
 
@@ -118,29 +123,31 @@ set(USB_API_SOURCES
 
 set(GPIO_SOURCES
         ${GPIO_IMPL_SOURCES}
-        src/io/control/device/gpio/Gpio.cpp
-        src/io/control/device/gpio/Gpio.h
-        src/io/control/device/gpio/GpioException.cpp
-        src/io/control/device/gpio/GpioException.h
-        src/io/control/device/gpio/digital/DigitalInputLinesRequest.cpp
-        src/io/control/device/gpio/digital/DigitalInputLinesRequest.h
-        src/io/control/device/gpio/digital/GpioRotaryEncoder.cpp
-        src/io/control/device/gpio/digital/GpioRotaryEncoder.h
-        src/io/control/device/gpio/digital/DigitalInputs.cpp
-        src/io/control/device/gpio/digital/DigitalInputs.h
         src/io/control/device/gpio/digital/DigitalInput.h
         src/io/control/device/gpio/digital/DigitalInput.cpp
-        src/io/control/device/gpio/digital/DigitalInputFactory.cpp
         src/io/control/device/gpio/digital/DigitalInputFactory.h
         src/io/control/device/gpio/digital/DigitalInputFactory.cpp
-        src/io/control/device/gpio/GpioLines.cpp
-        src/io/control/device/gpio/GpioLines.h
+        src/io/control/device/gpio/digital/DigitalInputLinesRequest.h
+        src/io/control/device/gpio/digital/DigitalInputs.cpp
+        src/io/control/device/gpio/digital/DigitalInputs.h
+        src/io/control/device/gpio/digital/DigitalInputTypes.h
         src/io/control/device/gpio/digital/DigitalOutput.cpp
         src/io/control/device/gpio/digital/DigitalOutput.h
+        src/io/control/device/gpio/digital/DigitalOutputs.cpp
+        src/io/control/device/gpio/digital/DigitalOutputs.h
+        src/io/control/device/gpio/digital/DigitalOutputFactory.h
+        src/io/control/device/gpio/digital/DigitalOutputFactory.cpp
         src/io/control/device/gpio/digital/DigitalOutputLinesRequest.h
-        src/io/control/device/gpio/digital/DigitalOutputLinesRequest.cpp
+        src/io/control/device/gpio/digital/DigitalOutputs.cpp
+        src/io/control/device/gpio/digital/DigitalOutputs.h
+        src/io/control/device/gpio/digital/DigitalOutputTypes.h
         src/io/control/device/gpio/digital/GpioBandSelector.cpp
         src/io/control/device/gpio/digital/GpioBandSelector.h
+        src/io/control/device/gpio/digital/GpioRotaryEncoder.cpp
+        src/io/control/device/gpio/digital/GpioRotaryEncoder.h
+        src/io/control/device/gpio/GpioLines.cpp
+        src/io/control/device/gpio/GpioLines.h
+        src/io/control/device/gpio/Gpio.h
 )
 
 set(EVENT_SOURCES
@@ -157,11 +164,7 @@ set(EVENT_SOURCES
 )
 
 set (RADIO_SOURCES
-        ${RADIO_BASE_SOURCES}
-        ${RADIO_MASTER_SOURCES}
-        ${RADIO_ENGINE_SOURCES}
-        src/core/radio/Radio.cpp
-        src/core/radio/Radio.h
+    ${RADIO_CORE_SOURCES}
 )
 
 set (CORE_SOURCES
@@ -174,6 +177,7 @@ set (CORE_SOURCES
         ${UTIL_SOURCES}
         ${USB_API_SOURCES}
         src/core/SampleTypes.h
+        ${INCLUDE_DIR}/ResultCode.h
 )
 
 if(USE_GUI)
@@ -231,6 +235,12 @@ if(USE_GUI)
 endif()
 set(APP_SOURCES ${QT_GUI_SOURCES} ${QT_APP_SOURCES})
 
+set(PROJECT_SOURCES
+        ${CORE_SOURCES}
+        ${APP_SOURCES}
+        ${GPIO_SOURCES}
+)
+
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(nexusdr
             MANUAL_FINALIZATION
@@ -264,13 +274,14 @@ elseif(USE_GPIOD)
 endif()
 
 set(INCLUDE_DIRS
+        ${INCLUDE_DIR}
         ${CMAKE_SOURCE_DIR}
         ${CMAKE_SOURCE_DIR}/src
         ${AUDIO_DRIVER_INCLUDE_DIRS}
         ${LIQUID_INCLUDE_DIR}
         /usr/include/hidapi/
         ${GPIO_INCLUDE_DIRS}
-        ${ETL_DIR}
+        ${ETL_DIR}/include
         ${ARDUINO_JSON_DIR}
 )
 
@@ -284,6 +295,7 @@ set(PROJECT_LIBRARIES
         usb-1.0
         hidapi-libusb
         Qt${QT_VERSION_MAJOR}::Core
+        etl::etl
         ${GPIO_LIBRARIES}
 )
 
@@ -306,6 +318,7 @@ set_target_properties(nexusdr PROPERTIES
         WIN32_EXECUTABLE TRUE
         AUTOUIC_SEARCH_PATHS "${CMAKE_CURRENT_SOURCE_DIR}"
 )
+
 install(TARGETS nexusdr
         BUNDLE DESTINATION .
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})

@@ -9,84 +9,136 @@ if(POLICY CMP0167)
     cmake_policy(SET CMP0167 NEW)
 endif()
 
+if (TARGET_PLATFORM STREQUAL "stm32h745i" )
+    add_definitions(
+            -DUSE_ETL
+            -DMAX_GPIO=27
+            -DMAX_GPIO_LINES_PER_DEVICE=4
+            -DMAX_DIGITAL_INPUT_HANDLERS=8
+#            -DMAX_DIGITAL_INPUT_LINES_PER_DEVICE=4
+            -DMAX_DIGITAL_INPUT_LINES_TOTAL=10
+            -DMAX_DIGITAL_OUTPUT_HANDLERS=4
+#            -DMAX_DIGITAL_OUTPUT_LINES_PER_DEVICE=4
+            -DMAX_CONTROL_SINKS=4
+            -DMAX_CONTROL_SOURCES=4
+            -DMAX_ID_LENGTH=16
+            -DMAX_SETTINGS_TYPES=16
+            -DMAX_SETTING_DEPTH=8
+            -DMAX_SETTING_NAME_LENGTH=24
+            -DMAX_SETTING_PATH_LENGTH=96
+            -DMAX_BANDS=34
+            -DMAX_BAND_NAME_LENGTH=8
+            -DMAX_BAND_LABEL_LENGTH=8
+            -DMAX_BAND_CATEGORIES=8
+            -DMAX_BAND_CATEGORY_NAME_LENGTH=8
+            -DMAX_BAND_CATEGORY_LABEL_LENGTH=8
+            -DMAX_MODES=8
+            -DMAX_MODE_NAME_LENGTH=5
+            -DMAX_MODE_LABEL_LENGTH=16
+            -DUSE_GPIO
+#            -DUSE_GPIOD
+    )
+endif()
+
+set(USE_GPIO ON)
+
 set(APP_DIR ${CMAKE_SOURCE_DIR}/src/app)
+set(CONFIG_SETTINGS_DIR ${CMAKE_SOURCE_DIR}/src/core/config-settings)
+set(CONFIG_DIR ${CONFIG_SETTINGS_DIR}/config)
+set(SETTINGS_DIR ${CONFIG_SETTINGS_DIR}/settings)
 set(THIRD_PARTY_DIR ${CMAKE_SOURCE_DIR}/src/third-party)
 set(ETL_DIR ${THIRD_PARTY_DIR}/etl)
 set(ARDUINO_JSON_DIR ${THIRD_PARTY_DIR}/ArduinoJson/src)
+set(INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
 
 
 set (CONFIG_SOURCES
-        src/core/config-settings/config/RadioConfig.h
-        src/core/config-settings/config/ReceiverConfig.h
-        src/core/config-settings/config/TransmitterConfig.h
-        src/core/config-settings/config/AudioConfig.h
-        src/core/config-settings/config/ConfigBase.h
-        src/core/config-settings/config/ConfigException.h
-        src/core/config-settings/config/ControlConfig.h
-        src/core/config-settings/config/VariantConfig.h
-        src/core/config-settings/config/ConfigFactory.cpp
-        src/core/config-settings/config/ConfigFactory.h
-        src/core/config-settings/config/DigitalInputsConfig.h
-        src/core/config-settings/config/RotaryEncoderConfig.h
-        src/core/config-settings/config/DigitalInputConfig.h
-        src/core/config-settings/config/FunCubeConfig.h
-        src/core/config-settings/config/GpioLinesConfig.h
-        src/core/config-settings/config/AudioIqSourceConfig.h
-        src/core/config-settings/config/AudioSignalIqSourceConfig.h
-        src/core/config-settings/config/IqIoConfig.h
-        src/core/config-settings/config/DigitalOutputConfig.h
-        src/core/config-settings/config/BandSelectorConfig.h
-        src/core/config-settings/config/BandSelectorLookupItemConfig.h
-        src/core/config-settings/config/UiConfig.h
+        ${CONFIG_DIR}/RadioConfig.h
+        ${CONFIG_DIR}/RadioConfig.cpp
+        ${CONFIG_DIR}/receiver/ReceiverConfig.h
+        ${CONFIG_DIR}/receiver/ReceiverConfig.cpp
+        ${CONFIG_DIR}/transmitter/TransmitterConfig.h
+        ${CONFIG_DIR}/transmitter/TransmitterConfig.cpp
+        ${CONFIG_DIR}/audio/AudioConfig.h
+        ${CONFIG_DIR}/audio/AudioConfig.cpp
+        ${CONFIG_DIR}/base/ConfigBase.h
+        ${CONFIG_DIR}/base/ConfigBase.cpp
+        ${CONFIG_DIR}/control/ControlConfig.h
+        ${CONFIG_DIR}/control/ControlConfig.cpp
+        ${CONFIG_DIR}/control/DigitalInputsConfig.h
+        ${CONFIG_DIR}/control/DigitalInputsConfig.cpp
+        ${CONFIG_DIR}/control/RotaryEncoderConfig.h
+        ${CONFIG_DIR}/control/RotaryEncoderConfig.cpp
+        ${CONFIG_DIR}/control/DigitalInputConfig.h
+        ${CONFIG_DIR}/control/DigitalInputConfig.cpp
+        ${CONFIG_DIR}/control/FunCubeConfig.h
+        ${CONFIG_DIR}/control/FunCubeConfig.cpp
+        ${CONFIG_DIR}/control/GpioLinesConfig.h
+        ${CONFIG_DIR}/control/GpioLinesConfig.cpp
+        ${CONFIG_DIR}/audio/AudioIqSourceConfig.h
+        ${CONFIG_DIR}/audio/AudioIqSourceConfig.cpp
+        ${CONFIG_DIR}/audio/AudioSignalIqSourceConfig.h
+        ${CONFIG_DIR}/audio/AudioSignalIqSourceConfig.cpp
+        ${CONFIG_DIR}/audio/IqIoConfig.h
+        ${CONFIG_DIR}/audio/IqIoConfig.cpp
+        ${CONFIG_DIR}/control/DigitalOutputConfig.h
+        ${CONFIG_DIR}/control/DigitalOutputConfig.cpp
+        ${CONFIG_DIR}/control/DigitalOutputsConfig.h
+        ${CONFIG_DIR}/control/DigitalOutputsConfig.cpp
+        ${CONFIG_DIR}/control/BandSelectorConfig.h
+        ${CONFIG_DIR}/control/BandSelectorConfig.cpp
+        ${CONFIG_DIR}/control/BandSelectorConfig.cpp
+        ${CONFIG_DIR}/control/BandSelectorBandsConfig.h
+        ${CONFIG_DIR}/control/BandSelectorBandsConfig.cpp
+        ${CONFIG_DIR}/ui/UiConfig.h
+        ${CONFIG_DIR}/ui/UiConfig.cpp
 )
 
 set(SETTINGS_SOURCES
-        src/core/config-settings/settings/RfSettings.h
-        src/core/config-settings/settings/IfSettings.h
-        src/core/config-settings/settings/ReceiverSettings.h
-        src/core/config-settings/settings/RadioSettings.h
-        src/core/config-settings/settings/TransmitterSettings.h
-        src/core/config-settings/settings/ReceiverSettingsSink.h
-        src/core/config-settings/settings/RadioSettingsSink.h
-        src/core/config-settings/settings/base/SettingUpdatePath.h
-        src/core/config-settings/settings/base/SettingUpdate.h
-        src/core/config-settings/settings/base/SettingsException.h
-        src/core/config-settings/settings/base/SettingsBase.h
-        src/core/config-settings/settings/RadioSettingsSource.h
-
-        src/core/config-settings/settings/Mode.h
-        src/core/config-settings/settings/ModeSettings.h
-        src/core/config-settings/settings/ModeSettings.cpp
-        src/core/config-settings/settings/TransmitterSettingsSink.h
-        src/core/config-settings/settings/IqCorrectionSettings.h
-        src/core/config-settings/settings/MicSettings.h
-        src/core/config-settings/settings/TestSettings.h
-        src/core/config-settings/settings/TwoToneSettings.h
-        src/core/config-settings/settings/bands/Band.h
-        src/core/config-settings/settings/bands/BandCategory.h
-        src/core/config-settings/settings/bands/Bands.h
-        src/core/config-settings/settings/bands/Bands.cpp
-        src/core/config-settings/settings/bands/BandSelector.h
-        src/core/config-settings/settings/bands/BandSelector.cpp
-        src/core/config-settings/settings/bands/BandSettings.h
-        src/core/config-settings/settings/bands/BandSettings.cpp
-        src/core/config-settings/settings/bands/ActiveBandSettings.h
-        src/core/config-settings/settings/bands/ActiveBandSettings.cpp
-        src/core/config-settings/settings/pipeline/PipelineSettings.h
-        src/core/config-settings/settings/pipeline/RxPipelineSettings.h
-        src/core/config-settings/settings/pipeline/TxPipelineSettings.h
-        src/core/config-settings/settings/base/SettingUpdateSink.h
-        src/core/config-settings/settings/base/SettingUpdateSource.h
-        src/core/config-settings/settings/base/SettingValue.h
-        src/core/config-settings/settings/base/Setting.h
-        src/core/config-settings/settings/base/SettingRegistry.h
-        src/core/config-settings/settings/pipeline/PipelineId.h
-        src/core/config-settings/settings/bands/SplitBandId.h
-        src/core/config-settings/settings/base/SteppableSetting.h
-        src/core/config-settings/settings/RadioSettings.cpp
-        src/core/config-settings/settings/AgcSpeed.h
-        src/core/config-settings/settings/base/SettingUpdateHelpers.cpp
-        src/core/config-settings/settings/base/SettingUpdateHelpers.h
+        ${SETTINGS_DIR}/RfSettings.h
+        ${SETTINGS_DIR}/IfSettings.h
+        ${SETTINGS_DIR}/ReceiverSettings.h
+        ${SETTINGS_DIR}/RadioSettings.h
+        ${SETTINGS_DIR}/TransmitterSettings.h
+        ${SETTINGS_DIR}/ReceiverSettingsSink.h
+        ${SETTINGS_DIR}/RadioSettingsSink.h
+        ${SETTINGS_DIR}/base/SettingUpdatePath.h
+        ${SETTINGS_DIR}/base/SettingUpdate.h
+        ${SETTINGS_DIR}/base/SettingsBase.h
+        ${SETTINGS_DIR}/RadioSettingsSource.h
+        ${SETTINGS_DIR}/Mode.h
+        ${SETTINGS_DIR}/ModeSettings.h
+        ${SETTINGS_DIR}/ModeSettings.cpp
+        ${SETTINGS_DIR}/TransmitterSettingsSink.h
+        ${SETTINGS_DIR}/IqCorrectionSettings.h
+        ${SETTINGS_DIR}/MicSettings.h
+        ${SETTINGS_DIR}/TestSettings.h
+        ${SETTINGS_DIR}/TwoToneSettings.h
+        ${SETTINGS_DIR}/bands/Band.h
+        ${SETTINGS_DIR}/bands/BandCategory.h
+        ${SETTINGS_DIR}/bands/Bands.h
+        ${SETTINGS_DIR}/bands/Bands.cpp
+        ${SETTINGS_DIR}/bands/BandSelector.h
+        ${SETTINGS_DIR}/bands/BandSelector.cpp
+        ${SETTINGS_DIR}/bands/BandSettings.h
+        ${SETTINGS_DIR}/bands/BandSettings.cpp
+        ${SETTINGS_DIR}/bands/ActiveBandSettings.h
+        ${SETTINGS_DIR}/bands/ActiveBandSettings.cpp
+        ${SETTINGS_DIR}/pipeline/PipelineSettings.h
+        ${SETTINGS_DIR}/pipeline/RxPipelineSettings.h
+        ${SETTINGS_DIR}/pipeline/TxPipelineSettings.h
+        ${SETTINGS_DIR}/base/SettingUpdateSink.h
+        ${SETTINGS_DIR}/base/SettingUpdateSource.h
+        ${SETTINGS_DIR}/base/SettingValue.h
+        ${SETTINGS_DIR}/base/Setting.h
+        ${SETTINGS_DIR}/base/SettingRegistry.h
+        ${SETTINGS_DIR}/pipeline/PipelineId.h
+        ${SETTINGS_DIR}/bands/SplitBandId.h
+        ${SETTINGS_DIR}/base/SteppableSetting.h
+        ${SETTINGS_DIR}/RadioSettings.cpp
+        ${SETTINGS_DIR}/AgcSpeed.h
+        ${SETTINGS_DIR}/base/SettingUpdateHelpers.cpp
+        ${SETTINGS_DIR}/base/SettingUpdateHelpers.h
 )
 
 set (DSP_SOURCES
@@ -96,6 +148,7 @@ set (DSP_SOURCES
         src/core/dsp/iq/AudioIqSource.h
         src/core/dsp/iq/IqSourceFactory.cpp
         src/core/dsp/iq/IqSourceFactory.h
+        src/core/dsp/iq/IqSourceTypes.h
         src/core/dsp/iq/AudioSignalIqSource.h
         src/core/dsp/pipeline/oscillators/Oscillator.h
         src/core/dsp/pipeline/oscillators/Oscillator.cpp
@@ -156,17 +209,16 @@ set(IO_SOURCES
         ${USB_API_SOURCES}
         ${GPIO_SOURCES}
         src/io/audio/AudioInput.h
-        src/io/audio/AudioException.h
-        src/io/audio/AudioException.cpp
         src/io/audio/AudioIo.h
         src/io/audio/AudioOutput.h
+        src/io/audio/AudioOutputFactory.h
+        src/io/audio/AudioOutputFactory.cpp
+        src/io/audio/AudioOutputTypes.h
         src/io/audio/AudioSink.h
         src/io/audio/drivers/AudioDriver.h
         src/io/audio/drivers/AudioInputDriver.h
         src/io/audio/drivers/AudioOutputDriver.h
         src/io/control/ControlBase.h
-        src/io/control/ControlException.h
-        src/io/control/ControlSink.cpp
         src/io/control/ControlSink.h
         src/io/control/ControlSource.h
         src/io/control/ControlSourceFactory.cpp
@@ -174,8 +226,6 @@ set(IO_SOURCES
         src/io/control/ControlSinkFactory.h
         src/io/control/ControlSinkFactory.cpp
         src/io/control/device/usb/UsbControl.h
-        src/io/control/device/usb/UsbException.cpp
-        src/io/control/device/usb/UsbException.h
         src/io/control/device/usb/LibUsbControl.h
         src/io/control/device/usb/HidUsbControl.h
         src/io/control/device/FunCubeDongle/FunCubeDongle.cpp
@@ -208,8 +258,8 @@ set(EVENT_SOURCES
         src/core/events/EventBase.h
         src/core/events/EventTarget.h
         src/core/events/EventType.h
-        src/core/config-settings/settings/events/RadioSettingsEvent.h
-        src/core/config-settings/settings/events/SettingUpdateEvent.h
+        ${SETTINGS_DIR}/events/RadioSettingsEvent.h
+        ${SETTINGS_DIR}/events/SettingUpdateEvent.h
         src/core/radio/receiver/events/ReceiverMeterEvent.h
         src/core/radio/receiver/events/ReceiverIqEvent.h
         src/core/radio/receiver/events/ReceiverAudioEvent.h

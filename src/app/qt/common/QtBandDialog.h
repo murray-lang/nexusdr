@@ -24,14 +24,14 @@ public:
   ~QtBandDialog() override;
 
   void addCategoryTabs(Radio* pRadio);
-  void addCategoryTab(const BandCategory& category, bool isSelected, const std::string& selectedBandName);
+  void addCategoryTab(const BandCategory& category, bool isSelected, const BandNameString& selectedBandName);
 
 
   // void applySettings(const RadioSettings& settings, BandSettings* pBandSettings) override;
 
   // These two satisfy the inheritance, but are of no use here. Empty implementations
-  void applySettings(const RadioSettings& settings) override;
-  void applySettingUpdate(SettingUpdate& settingDelta) override {}
+  ResultCode applySettings(const RadioSettings& settings) override;
+  ResultCode applySettingUpdate(SettingUpdate& settingDelta) override { return ResultCode::OK;}
 
 protected:
   void updateTabs(const Band& band);

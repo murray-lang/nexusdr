@@ -1,24 +1,19 @@
-//
-// Created by murray on 20/11/25.
-//
-
 #pragma once
-#include "core/config-settings/config/IqIoConfig.h"
+#include "ResultCode.h"
+#include "../../core/config-settings/config/audio/IqIoConfig.h"
+#include "core/dsp/iq/AudioIqSource.h"
+#include "core/dsp/iq/AudioSignalIqSource.h"
 #include "core/dsp/iq/IqSource.h"
-#include "io/audio/AudioOutput.h"
-
+#include "core/dsp/iq/IqSourceTypes.h"
+#include "io/audio/AudioOutputTypes.h"
 
 class IqIo: public AudioSink
 {
 public:
-  IqIo() : m_pIqSource(nullptr), m_pAudioOutput(nullptr) {}
-  virtual ~IqIo()
-  {
-    delete m_pIqSource;
-    delete m_pAudioOutput;
-  }
+  IqIo() = default;
+  ~IqIo() override = default;
 
-  void configure(const IqIoConfig* pConfig);
+  ResultCode configure(const Config::IqIo::Fields& config);
 
   void setIqSink(IqSink* pIqSink);
   uint32_t sinkAudio(const RealSamplesMax& samples, uint32_t length, uint32_t numChannels) override;
@@ -26,13 +21,16 @@ public:
   [[nodiscard]] uint32_t getInputSampleRate() const;
   [[nodiscard]] uint32_t getOutputSampleRate() const;
 
-  void start(uint32_t maxFramesPerInputPacket, uint32_t maxFramesPerOutputPacket) const;
-  void stop() const;
-
-
-
+  [[nodiscard]] ResultCode start(uint32_t maxFramesPerInputPacket, uint32_t maxFramesPerOutputPacket);
+  void stop();
 
 protected:
-  IqSource* m_pIqSource;
-  AudioOutput* m_pAudioOutput;
+  ResultCode startInput(uint32_t maxFramesPerInputPacket);
+  ResultCode startOutput(uint32_t maxFramesPerOutputPacket);
+  void stopInput();
+  void stopOutput();
+
+protected:
+  IqSourceVariant m_iqSource;
+  AudioOutputVariant m_audioOutput;
 };

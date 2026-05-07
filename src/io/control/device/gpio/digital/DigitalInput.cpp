@@ -1,7 +1,3 @@
-//
-// Created by murray on 2025-08-24.
-//
-
 #include "DigitalInput.h"
 #include "core/config-settings/settings/RadioSettings.h"
 
@@ -11,38 +7,40 @@ DigitalInput::DigitalInput() :
   GpioLines(Direction::INPUT),
   m_activeHigh(true),
   m_debounce(false),
-  m_detectEdge(false),
-  m_pSink(nullptr)
+  m_detectEdge(false)
 {
 }
 
-void
-DigitalInput::configure(const DigitalInputConfig* pConfig)
+ResultCode
+DigitalInput::configure(const Config::DigitalInput::Fields& config)
 {
-  GpioLines::configure(pConfig);
-  m_activeHigh = pConfig->getActiveHigh();
-  m_debounce = pConfig->getDebounce();
-  const std::string& strSettingPath = pConfig->getSettingPath();
+  ResultCode rc = GpioLines::configureLines(config);
+  if (rc != ResultCode::OK) return rc;
+
+  m_activeHigh = config.activeHigh;
+  m_debounce = config.debounce;
+  const SettingPathString& strSettingPath = config.settingPath;
   m_id = strSettingPath;
-  m_settingPath = RadioSettings::getSettingUpdatePath(strSettingPath);
   setEdge(GpioLines::Edge::BOTH);
+  return RadioSettings::getSettingUpdatePath(strSettingPath, m_settingPath);
 }
 
 void
-DigitalInput::connectSettingUpdateSink(SettingUpdateSink* pSink)
+DigitalInput::connectSettingUpdateSink(SettingUpdateSink& pSink)
 {
-  m_pSink = pSink;
+  m_pSink.emplace(pSink);
 }
-void
+ResultCode
 DigitalInput::notifySettingUpdate(SettingUpdate& settingDelta)
 {
   if (m_pSink) {
-    m_pSink->applySettingUpdate(settingDelta);
+    m_pSink->get().applySettingUpdate(settingDelta);
   }
+  return ResultCode::OK;
 }
 
 bool 
-DigitalInput::handleLineChange(DigitalInputLinesRequest::LineStates& changedLines)
+DigitalInput::handleLineChange(DigitalInputLinesRequest::LineStateVector& changedLines)
 {
   DigitalInputLinesRequest::LineState& line = changedLines.at(m_lines[0]);
   if (!line.changed) {

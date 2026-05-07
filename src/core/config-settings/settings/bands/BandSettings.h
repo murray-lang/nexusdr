@@ -66,7 +66,7 @@ public:
   void clearChanged() override;
   void markAllChanged() override;
 
-  [[nodiscard]] const std::string& getBandName() const;
+  [[nodiscard]] const BandNameString& getBandName() const;
 
   void applyBandDefaults(const Band& band);
   bool setMode(const Mode& mode);
@@ -76,8 +76,8 @@ public:
   bool applyUpdate(SettingUpdate& update) override;
 
   static bool getFeaturePath(
-    const std::vector<std::string>& featureStrings,
-    std::vector<uint32_t>& featuresOut,
+    const FeatureStringVector& featureStrings,
+    FeatureNumVector& featuresOut,
     size_t startIndex
     );
 
@@ -99,7 +99,7 @@ protected:
 
   Band m_band;
   RxPipelineSettings m_pipelineA;
-  std::optional<RxPipelineSettings> m_pipelineB;
+  optional<RxPipelineSettings> m_pipelineB;
   TxPipelineSettings m_txPipeline;
 
   Setting<bool, MULTI_PIPELINE, BandSettings> m_isMultiPipeline;

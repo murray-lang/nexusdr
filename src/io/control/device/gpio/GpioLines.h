@@ -6,13 +6,21 @@
 
 #include <cstdint>
 
-#include "core/config-settings/config/GpioLinesConfig.h"
+#include "core/config-settings/config/control/GpioLinesConfig.h"
+#include "ResultCode.h"
+
+#ifdef USE_ETL
+#include <etl/vector.h>
+using GpioLinesVector = etl::vector<uint32_t, MAX_GPIO_LINES_PER_DEVICE>;
+#else
+#include <vector>
+using GpioLinesVector = std::vector<uint32_t>;
+#endif
 
 
 class GpioLines
 {
 public:
-
 
   enum class Direction {
     AS_IS = 1,
@@ -37,29 +45,32 @@ public:
 
   GpioLines();
   explicit GpioLines(Direction direction);
-  explicit GpioLines(const std::vector<uint32_t>& lines);
-  explicit GpioLines(const GpioLinesConfig* pConfig);
-  GpioLines(const std::vector<uint32_t>& lines, const GpioLinesConfig* pConfig);
-  GpioLines(const std::vector<uint32_t>& lines, Direction direction, Bias bias, Edge edge);
-  GpioLines(const GpioLines& other) = default;
+  explicit GpioLines(const GpioLinesVector& lines);
+  explicit GpioLines(const Config::GpioLines::Fields& config);
+  GpioLines(const GpioLinesVector& lines, const Config::GpioLines::Fields& config);
+  GpioLines(const GpioLinesVector& lines, Direction direction, Bias bias, Edge edge);
+  // GpioLines(const GpioLines& other) = default;
   virtual ~GpioLines() = default;
+
+  GpioLines(GpioLines&&)  noexcept = default;
+  GpioLines& operator=(GpioLines&&)  noexcept = default;
 
   GpioLines& operator=(const GpioLines& other);
 
-  [[nodiscard]] const std::vector<uint32_t>& getLines() const { return m_lines; }
+  [[nodiscard]] const GpioLinesVector& getLines() const { return m_lines; }
   [[nodiscard]] Direction getDirection() const { return m_direction; }
   [[nodiscard]] Bias getBias() const { return m_bias; }
   [[nodiscard]] Edge getEdge() const { return m_edge; }
 
-  void setLineNo(std::vector<uint32_t> lines) { m_lines = lines; }
+  // void setLineNo(std::vector<uint32_t> lines) { m_lines = lines; }
   void setDirection(Direction direction) { m_direction = direction; }
   void setBias(Bias bias) { m_bias = bias; }
   void setEdge(Edge edge) { m_edge = edge; }
 
-  void configure(const GpioLinesConfig* pConfig);
+  ResultCode configureLines(const Config::GpioLines::Fields& config);
 
 protected:
-  std::vector<uint32_t> m_lines;
+  GpioLinesVector m_lines;
   Direction m_direction;
   Bias m_bias;
   Edge m_edge;

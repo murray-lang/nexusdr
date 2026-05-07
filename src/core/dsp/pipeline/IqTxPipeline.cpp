@@ -172,7 +172,7 @@ IqTxPipeline::setModulator(const Mode& mode)
     break;
   default:
     m_pModulator = nullptr;
-    throw SettingsException("Unknown mode type");
+    // throw SettingsException("Unknown mode type");
     break;
   }
   if (m_pModulator != nullptr) {

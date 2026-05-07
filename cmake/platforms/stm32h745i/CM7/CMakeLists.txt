@@ -73,6 +73,7 @@ set(CM7_SOURCES
     ${LVGL_DEMO_SOURCES}
     ${SOURCE_DIR_CM7}/lv_conf.h
     ${TINYUSB_SOURCES}
+    ${CONFIG_SOURCES}
 )
 
 if(USE_FREERTOS)
@@ -123,8 +124,11 @@ set(INCLUDE_DIRS
         ${TINYUSB_DIR}
         ${TINYUSB_DIR}/hw/bsp/stm32h7
         ${ARDUINO_JSON_DIR}
-        ${ETL_DIR}
+        ${ETL_DIR}/include
+        ${CONFIG_SETTINGS_DIR}
 )
+
+message(STATUS "[CM7] ETL directory: ${ETL_DIR}")
 
 if(USE_FREERTOS)
     set(INCLUDE_DIRS

@@ -28,19 +28,20 @@ public:
   void initialise(RadioSettings* pRadioSettings);
   void applyRadioSettings(RadioSettings* pRadioSettings, bool onlyIfChanged = true);
 
-  void connectSettingUpdateSink(SettingUpdateSink* pSink) override
+  void connectSettingUpdateSink(SettingUpdateSink& sink) override
   {
-    m_pSettingsSink = pSink;
-    if (m_band1Readout) m_band1Readout->connectSettingUpdateSink(pSink);
-    if (m_band2Readout) m_band2Readout->connectSettingUpdateSink(pSink);
+    m_pSettingsSink = &sink;
+    if (m_band1Readout) m_band1Readout->connectSettingUpdateSink(&sink);
+    if (m_band2Readout) m_band2Readout->connectSettingUpdateSink(&sink);
   };
 
 protected:
-  void notifySettingUpdate(SettingUpdate& settingUpdate) override
+  ResultCode notifySettingUpdate(SettingUpdate& settingUpdate) override
   {
     if (m_pSettingsSink != nullptr) {
-      m_pSettingsSink->applySettingUpdate(settingUpdate);
+      return m_pSettingsSink->applySettingUpdate(settingUpdate);
     }
+    return ResultCode::OK;
   }
 
 private slots:

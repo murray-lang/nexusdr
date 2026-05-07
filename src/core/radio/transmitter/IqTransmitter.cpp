@@ -19,22 +19,17 @@ IqTransmitter::IqTransmitter(QObject* eventTarget) :
 {
 }
 
-void
-IqTransmitter::configure(const TransmitterConfig* pConfig)
+ResultCode
+IqTransmitter::configure(const Config::Transmitter::Fields& config)
 {
-  // if (pConfig != nullptr) {
-  //   m_iqIo.configure(&pConfig->iqIo);
-  //   m_iqPipeline.initialise(&m_iqIo, &m_iqIo);
-  //   m_iqIo.setIqSink(&m_iqPipeline);
-  // }
-  if (pConfig != nullptr) {
-    m_iqIo.configure(&pConfig->iqIo);
+  ResultCode rc = m_iqIo.configure(config.iqIo);
+  if (rc != ResultCode::OK) return rc;
     // The AudioSink provided here could be m_pPipelineIo, but...
     // this class intercepts the audio out for display purposes.
-    m_iqPipeline.initialise(&m_iqIo, dynamic_cast<AudioSink*>(this));
+  m_iqPipeline.initialise(&m_iqIo, dynamic_cast<AudioSink*>(this));
     // This class also intercepts the received IQ for display purposes.
-    m_iqIo.setIqSink(this);
-  }
+  m_iqIo.setIqSink(this);
+  return ResultCode::OK;
 }
 void
 IqTransmitter::apply(const TransmitterSettings& settings)
@@ -63,16 +58,16 @@ IqTransmitter::adjustRfSettingsToLimits(RfSettings& rfSettings, bool onlyIfChang
   return m_iqPipeline.adjustRfSettingsToLimits(rfSettings);
 }
 
-void
-IqTransmitter::start() const
+ResultCode
+IqTransmitter::start()
 {
   uint32_t framesPerOutputPacket = m_iqPipeline.getMaxFramesPerOutputPacket();
   uint32_t framesPerInputPacket = m_iqPipeline.getMaxFramesPerInputPacket();
-  m_iqIo.start(framesPerInputPacket, framesPerOutputPacket);
+  return m_iqIo.start(framesPerInputPacket, framesPerOutputPacket);
 }
 
 void
-IqTransmitter::stop() const
+IqTransmitter::stop()
 {
   m_iqIo.stop();
 }

@@ -9,6 +9,7 @@
 #include <qdebug.h>
 #include <etl/deque.h>
 
+#include "ResultCode.h"
 #include "io/audio/drivers/AudioInputDriver.h"
 
 
@@ -46,7 +47,7 @@ public:
     return m_format.channelCount;
   }
 
-  void start(uint32_t maxPacketFrames) override {
+  ResultCode start(uint32_t maxPacketFrames) override {
     m_maxPacketFrames = maxPacketFrames;
     if (!m_running) {
       // unsigned int bufferFrames = DEFAULT_BUFFER_SIZE;
@@ -61,10 +62,13 @@ public:
           this
       );
       rc = m_rtAudio.startStream();
+      if (rc != RTAUDIO_NO_ERROR) {
+        return ResultCode::ERR_AUDIO_INPUT_DRIVER_START_FAILED;
+      }
       m_running = true;
       QThread::start();
     }
-
+    return ResultCode::ERR_AUDIO_INPUT_DRIVER_ALREADY_STARTED;
   }
   void stop() override {
     if (m_running) {

@@ -1,10 +1,4 @@
-//
-// Created by murray on 19/1/26.
-//
-
 #pragma once
-#include <unordered_set>
-
 #include "../base/SettingsBase.h"
 #include "Bands.h"
 #include "BandSelector.h"
@@ -12,6 +6,15 @@
 #include "BandSettings.h"
 
 #define MAX_ACTIVE_BANDS 2
+
+#ifdef USE_ETL
+#include "etl/array.h"
+using ActiveBandSettingsArray = etl::array<etl::optional<BandSettings>, MAX_ACTIVE_BANDS>;
+#else
+#include <array>
+
+using ActiveBandSettingsArray = std::array<std::optional<BandSettings>, MAX_ACTIVE_BANDS>;
+#endif
 
 class ActiveBandSettings : public SettingsBase
 {
@@ -36,8 +39,18 @@ public:
   ActiveBandSettings(const ActiveBandSettings& rhs) = default;
   ~ActiveBandSettings() override = default;
 
-  static constexpr std::size_t toSplitIndex(SplitBandId b) noexcept {
-    return static_cast<std::size_t>(b);
+  void clearChanged() override
+  {
+    SettingsBase::clearChanged();
+    for (auto& bandSettings : m_activeBands) {
+      if (bandSettings) {
+        bandSettings->clearChanged();
+      }
+    }
+  }
+
+  static constexpr size_t toSplitIndex(SplitBandId b) noexcept {
+    return static_cast<size_t>(b);
   }
 
   // [[nodiscard]] const Bands& getAllBands() const
@@ -52,19 +65,19 @@ public:
 
   [[nodiscard]] bool isSplit() const { return m_split; }
 
-  [[nodiscard]] std::optional<std::string> getSplitBandName(SplitBandId idx) const
+  [[nodiscard]] optional<BandNameString> getSplitBandName(SplitBandId idx) const
   {
-    std::optional<BandSettings> bandSettings = m_activeBands.at(toSplitIndex(idx));
-    if (bandSettings.has_value()) {
-      return bandSettings.value().getBandName();
+    optional<BandSettings> bandSettings = m_activeBands.at(toSplitIndex(idx));
+    if (bandSettings) {
+      return bandSettings->getBandName();
     }
     return {};
   }
 
-  [[nodiscard]] std::optional<std::string> getFocusBandName() { return getSplitBandName(m_focusBandId); }
-  [[nodiscard]] std::optional<std::string> getFocusBandName() const { return getSplitBandName(m_focusBandId); }
-  [[nodiscard]] std::optional<std::string> getTxBandName() const { return getSplitBandName(m_txBandId); }
-  [[nodiscard]] std::optional<std::string> getRxBandName() const { return getSplitBandName(m_rxBandId); }
+  [[nodiscard]] optional<BandNameString> getFocusBandName() { return getSplitBandName(m_focusBandId); }
+  [[nodiscard]] optional<BandNameString> getFocusBandName() const { return getSplitBandName(m_focusBandId); }
+  [[nodiscard]] optional<BandNameString> getTxBandName() const { return getSplitBandName(m_txBandId); }
+  [[nodiscard]] optional<BandNameString> getRxBandName() const { return getSplitBandName(m_rxBandId); }
 
   [[nodiscard]] SplitBandId getFocusBandId() const { return m_focusBandId; }
   [[nodiscard]] SplitBandId getTxBandId() const { return m_txBandId; }
@@ -80,17 +93,17 @@ public:
   bool applyUpdate(SettingUpdate& update, BandSelector& bandSelector);
   bool applyUpdate(SettingUpdate& update) override;
   static bool getFeaturePath(
-    const std::vector<std::string>& featureStrings,
-    std::vector<uint32_t>& out,
+    const FeatureStringVector& featureStrings,
+    FeatureNumVector& out,
     size_t startIndex
     );
 
 protected:
-  [[nodiscard]] SplitBandId getSplitBandId(const std::string& bandName) const;
-  [[nodiscard]] bool isBandNameInSelected(const std::string& bandName) const ;
+  [[nodiscard]] SplitBandId getSplitBandId(const BandNameString& bandName) const;
+  [[nodiscard]] bool isBandNameInSelected(const BandNameString& bandName) const ;
   bool replaceFocusBand(SettingUpdate& update, BandSelector& bandSelector);
   bool selectBand(SplitBandId idx, SettingUpdate& update, BandSelector& bandSelector);
-  bool selectBand(SplitBandId idx, const std::string& bandName, BandSelector& bandSelector);
+  bool selectBand(SplitBandId idx, const BandNameString& bandName, BandSelector& bandSelector);
   bool selectBand(SplitBandId idx, BandSettings& bandSettings);
   bool applyToFocusedBand(SettingUpdate& setting);
   bool applyToBand(SplitBandId id, SettingUpdate& setting);
@@ -106,7 +119,7 @@ protected:
   // std::string m_txBandName;
   // std::string m_rxBandName;
   // std::string m_focusBandName;
-  std::array<std::optional<BandSettings>, MAX_ACTIVE_BANDS> m_activeBands;
+  ActiveBandSettingsArray m_activeBands;
   SplitBandId m_focusBandId;
   SplitBandId m_txBandId;
   SplitBandId m_rxBandId;

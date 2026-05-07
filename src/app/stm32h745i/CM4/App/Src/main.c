@@ -82,7 +82,6 @@ static void FS_FileOperations(void);
 static void prvBlinkTask( void *pvParameters );
 /* Private functions ---------------------------------------------------------*/
 
-
 /**
   * @brief  Main program
   * @param  None
