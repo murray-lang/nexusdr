@@ -38,9 +38,8 @@ RadioControl::configure(const Config::Control::Fields& config)
     if (rc == ResultCode::OK) {
       rc = visit([this](auto&& s) -> ResultCode {
         using T = decay_t<decltype(s)>;
-        if (!is_same_v<T, monostate>) {
+        if constexpr (!is_same_v<T, monostate>) {
           s.connect(&m_internalSink);
-          m_controlSources.emplace_back(move(s));
           return ResultCode::OK;
         } else
         {
@@ -48,6 +47,7 @@ RadioControl::configure(const Config::Control::Fields& config)
         }
       }, source);
       if (rc != ResultCode::OK) {
+        m_controlSources.emplace_back(move(source));
         break;
       }
     } else {
