@@ -24,7 +24,7 @@ namespace Config::DigitalOutputs
   using DigitalOutputConfigVariant = variant<DigitalOutput::Fields, BandSelector::Fields>;
 
 #ifdef USE_ETL
-  using DigitalOutputConfigVector  = etl::vector<DigitalOutputConfigVariant, MAX_DIGITAL_OUTPUTS>;
+  using DigitalOutputConfigVector  = etl::vector<DigitalOutputConfigVariant, MAX_DIGITAL_OUTPUT_HANDLERS>;
 #else
   using DigitalOutputConfigVector  = std::vector<DigitalOutputConfigVariant>;
 #endif

@@ -35,8 +35,8 @@ public:
   };
 
 #ifdef USE_ETL
-  using LineStateMap = etl::unordered_map<uint32_t, LineState, MAX_GPIO_LINES_PER_DEVICE>;
-  using LineStateVector = etl::vector<LineState, MAX_GPIO_LINES_PER_DEVICE>;
+  using LineStateMap = etl::unordered_map<uint32_t, LineState, MAX_GPIO>;
+  using LineStateVector = etl::vector<LineState, MAX_GPIO>;
 #else
   using LineStateMap = std::unordered_map<uint32_t, LineState>;
   using LineStateVector = std::vector<LineState>;
@@ -85,10 +85,9 @@ protected:
 
   [[nodiscard]] bool isDebounced(int line) const;
   // int getLineStateChanges(DigitalInputLineStateMap& changes);
-  int updateLineStates();
-  int continueDebouncing();
+  bool updateLineStates(int* numEvents);
+  bool continueDebouncing(int* numDebounced);
   bool callbackWithChangedLineStates();
-  bool callbackWithAnyDebouncedLineStates();
 
   static uint64_t getCurrentTime();
   // Wait for edge events with a timeout in nanoseconds.

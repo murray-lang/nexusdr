@@ -51,7 +51,8 @@ DigitalOutput::open()
   }
   Gpio& gpio = Gpio::getInstance();
   DigitalOutputVariant thisAsVariant = move(*this);
-  DigitalOutputVariantVector thisInVector(1, thisAsVariant);
+  DigitalOutputVariantVector thisInVector;
+  thisInVector.emplace_back(move(thisAsVariant));
   m_linesRequest.emplace();
   ResultCode rc = gpio.requestDigitalOutputs("digitalOutputs", thisInVector, *m_linesRequest);
   if (rc != ResultCode::OK) return rc;

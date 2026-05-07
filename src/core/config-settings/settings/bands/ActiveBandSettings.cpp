@@ -274,7 +274,11 @@ ActiveBandSettings::applyToFocusedBand(SettingUpdate& setting)
   if (bandSettings == nullptr) {
     return false;
   }
-  return bandSettings->applyUpdate(setting);
+  if (bandSettings->applyUpdate(setting)) {
+    m_changed |= WITH_FOCUS;
+    return true;
+  }
+  return false;
 }
 
 bool
@@ -287,7 +291,11 @@ ActiveBandSettings::applyToBand(SplitBandId id, SettingUpdate& setting)
   if (bandSettings == nullptr) {
     return false;
   }
-  return bandSettings->applyUpdate(setting);
+  if (bandSettings->applyUpdate(setting)) {
+    m_changed |= id == SplitBandId::One ? WITH_1 : WITH_2;
+    return true;
+  }
+  return false;
 }
 
 bool

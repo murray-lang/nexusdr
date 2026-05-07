@@ -4,6 +4,8 @@
     <mapping directory="" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/third-party/ArduinoJson" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/third-party/FreeRTOS-Kernel" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/third-party/FreeRTOS-Kernel/portable/ThirdParty/Community-Supported-Ports" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/third-party/FreeRTOS-Kernel/portable/ThirdParty/Partner-Supported-Ports" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/third-party/etl" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/third-party/lvgl/lvgl" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/third-party/tinyusb_src" vcs="Git" />

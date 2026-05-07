@@ -11,6 +11,11 @@ DigitalInputs::DigitalInputs(const char* consumer) :
 
 }
 
+DigitalInputs::~DigitalInputs()
+{
+  m_lineToInputMap.clear();
+}
+
 DigitalInputs::DigitalInputs(DigitalInputs&& rhs) noexcept :
   ControlSource(move(rhs)),
   m_internalSink(*this),  // Reference to new object
@@ -18,6 +23,7 @@ DigitalInputs::DigitalInputs(DigitalInputs&& rhs) noexcept :
   m_linesRequest(move(rhs.m_linesRequest)),
   m_lineToInputMap(move(rhs.m_lineToInputMap))
 {
+  reconnectInputSinks();
 }
 
 DigitalInputs& DigitalInputs::operator=(DigitalInputs&& rhs) noexcept
@@ -27,6 +33,7 @@ DigitalInputs& DigitalInputs::operator=(DigitalInputs&& rhs) noexcept
     m_inputs = move(rhs.m_inputs);
     m_linesRequest = move(rhs.m_linesRequest);
     m_lineToInputMap = move(rhs.m_lineToInputMap);
+    reconnectInputSinks();
   }
   return *this;
 }
@@ -88,9 +95,10 @@ DigitalInputs::createInputs(const Config::DigitalInputs::Fields& config)
       visit([this, rc](auto&& di) {
         di.connectSettingUpdateSink(m_internalSink);
       }, digitalInput);
-      m_inputs.emplace_back(digitalInput);
+      m_inputs.emplace_back(move(digitalInput));
+    } else {
+      break;
     }
-    return rc;
   }
   return rc;
 }
@@ -104,7 +112,22 @@ DigitalInputs::createLineToInputMap()
       const GpioLinesVector& lineNos = di.getLines();
       for (const auto& lineNo : lineNos) {
         m_lineToInputMap.insert(make_pair(lineNo, ref(input)));
+// #ifdef USE_ETL
+//         m_lineToInputMap.insert(make_pair(lineNo, ref(input)));
+// #else
+//         m_lineToInputMap[lineNo] = move(input);
+// #endif
       }
+    }, input);
+  }
+}
+
+void
+DigitalInputs::reconnectInputSinks()
+{
+  for (auto& input : m_inputs) {
+    visit([this](auto&& di) {
+      di.connectSettingUpdateSink(m_internalSink);
     }, input);
   }
 }

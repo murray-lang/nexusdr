@@ -8,6 +8,7 @@
 #include "device/FunCubeDongle/FunCubeDongle.h"
 #include "device/gpio/digital/GpioBandSelector.h"
 #include "device/gpio/digital/DigitalOutput.h"
+#include "device/gpio/digital/DigitalOutputs.h"
 
 ResultCode
 ControlSinkFactory::create(const Config::Control::SinkConfigVariant& config, ControlSinkVariant& sink)
@@ -22,22 +23,22 @@ ControlSinkFactory::create(const Config::Control::SinkConfigVariant& config, Con
     return result;
   }
 #ifdef USE_GPIO
-  if (holds_alternative<Config::DigitalOutput::Fields>(config)) {
-    DigitalOutput dout;
-    result = dout.configure(get<Config::DigitalOutput::Fields>(config));
+  if (holds_alternative<Config::DigitalOutputs::Fields>(config)) {
+    DigitalOutputs douts;
+    result = douts.configure(get<Config::DigitalOutputs::Fields>(config));
     if (result == ResultCode::OK) {
-      sink.emplace<DigitalOutput>(move(dout));
+      sink.emplace<DigitalOutputs>(move(douts));
     }
     return result;
   }
-  if (holds_alternative<Config::BandSelector::Fields>(config)) {
-    GpioBandSelector bandSelector;
-    result = bandSelector.configure(get<Config::BandSelector::Fields>(config));
-    if (result == ResultCode::OK) {
-      sink.emplace<GpioBandSelector>(move(bandSelector));
-    }
-    return result;
-  }
+  // if (holds_alternative<Config::BandSelector::Fields>(config)) {
+  //   GpioBandSelector bandSelector;
+  //   result = bandSelector.configure(get<Config::BandSelector::Fields>(config));
+  //   if (result == ResultCode::OK) {
+  //     sink.emplace<GpioBandSelector>(move(bandSelector));
+  //   }
+  //   return result;
+  // }
 #endif
   return ResultCode::ERR_CONTROL_SINK;
 }

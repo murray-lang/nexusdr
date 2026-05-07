@@ -3,6 +3,7 @@
 //
 
 #pragma once
+#include "device/gpio/digital/DigitalOutputs.h"
 #ifdef USE_ETL
 #include <etl/vector.h>
 #include <etl/variant.h>
@@ -36,7 +37,7 @@ using std::unique_ptr;
 #include "ResultCode.h"
 
 #ifdef USE_GPIO
-using ControlSinkVariant = variant< FunCubeDongle, GpioBandSelector, DigitalOutput>;
+using ControlSinkVariant = variant< FunCubeDongle, DigitalOutputs>;
 #else
 using ControlSinkVariant = variant<FunCubeDongle>;
 #endif

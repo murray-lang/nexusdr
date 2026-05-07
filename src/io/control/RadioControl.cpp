@@ -26,7 +26,7 @@ RadioControl::configure(const Config::Control::Fields& config)
     ControlSinkVariant sink;
     rc = ControlSinkFactory::create(controllerConfig, sink);
     if (rc == ResultCode::OK) {
-      m_controlSinks.emplace_back(sink);
+      m_controlSinks.emplace_back(move(sink));
     } else {
       return rc;
     }
@@ -36,19 +36,22 @@ RadioControl::configure(const Config::Control::Fields& config)
     ControlSourceVariant source;
     rc = ControlSourceFactory::create(controllerConfig, source);
     if (rc == ResultCode::OK) {
-      visit([this, rc](auto&& s) {
+      rc = visit([this](auto&& s) -> ResultCode {
         using T = decay_t<decltype(s)>;
-        if constexpr (!is_same_v<T, monostate>) {
+        if (!is_same_v<T, monostate>) {
           s.connect(&m_internalSink);
+          m_controlSources.emplace_back(move(s));
+          return ResultCode::OK;
+        } else
+        {
+          return ResultCode::ERR_NO_CONTROL_SOURCES_DEFINED;
         }
       }, source);
-      if (!holds_alternative<monostate>(source)) {
-        m_controlSources.emplace_back(source);
-      } else {
-        return ResultCode::ERR_NO_CONTROL_SOURCES_DEFINED;
+      if (rc != ResultCode::OK) {
+        break;
       }
     } else {
-      return ResultCode::ERR_CONTROL_SOURCE_NOT_FOUND;
+      return rc ; //ResultCode::ERR_CONTROL_SOURCE_NOT_FOUND;
     }
   }
   return rc;
@@ -82,7 +85,7 @@ ResultCode
 RadioControl::applySettings(const RadioSettings& settings)
 {
   for (auto& sinkVar : m_controlSinks) {
-    const ResultCode rc = visit([settings] (auto&& sink) -> ResultCode
+    const ResultCode rc = visit([&settings] (auto&& sink) -> ResultCode
     {
       return sink.applySettings(settings);
     }, sinkVar);
@@ -128,7 +131,7 @@ RadioControl::start()
       return rc;
     }
   }
-  for (auto pSource : m_controlSources) {
+  for (auto& pSource : m_controlSources) {
     ResultCode rc = visit([&pSource](auto&& source) -> ResultCode
     {
       using T = decay_t<decltype(source)>;

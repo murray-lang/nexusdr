@@ -455,7 +455,7 @@ MainWindow::initialiseRadio()
   m_pRadio->start();
 
   m_pRadio->applyBand("20m");
-  m_pRadio->applyAgcSpeed(AgcSpeed::FAST);
+  m_pRadio->applyAgcSpeed(AgcSpeed::OFF);
   //m_pRadio->split("40m", "20m");
   // m_pRadio->addPipeline();
 
@@ -472,6 +472,8 @@ MainWindow::initialiseRadio()
   ifSettings.setGain(0.0);
   ifSettings.setBandwidth(200000);
   m_pRadio->applyIfSettings(ifSettings);
+
+  m_pRadio->markAllSettingsUnchanged();
 }
 
 //#include "moc_mainwindow.cpp"

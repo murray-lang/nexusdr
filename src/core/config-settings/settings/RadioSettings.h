@@ -33,7 +33,7 @@ public:
     m_activeBandSettings(),
     m_ptt(this, "ptt", false)
   {
-    RadioSettings::markAllChanged();
+    // RadioSettings::markAllChanged();
   };
 
   RadioSettings(const RadioSettings& rhs) :
@@ -85,6 +85,7 @@ public:
     SettingsBase::clearChanged();
     m_rxSettings.clearChanged();
     m_txSettings.clearChanged();
+    m_activeBandSettings.clearChanged();
   }
 
   void markAllChanged() override

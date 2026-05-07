@@ -27,7 +27,7 @@ namespace Config::BandSelector
   using BandsVector = etl::vector<OptionalBandConfig, MAX_BAND_SELECTOR_BANDS>;
 #else
   using OptionalBandConfig = std::optional<Band::Fields>;
-  using BandsVector = std::vector<Band::Fields>;
+  using BandsVector = std::vector<OptionalBandConfig>;
 #endif
 
   struct Fields : DigitalOutput::Fields

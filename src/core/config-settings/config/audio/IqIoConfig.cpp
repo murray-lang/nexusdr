@@ -13,6 +13,14 @@ namespace Config::IqIo
       }
       return result;
     }
+    if (json.type == AudioIqSource::type) {
+      AudioIqSource::Fields fields{};
+      result = AudioIqSource::fromJson(json.config, fields);
+      if (result == ResultCode::OK) {
+        sourceVariant = fields;
+      }
+      return result;
+    }
     return ResultCode::ERR_CONFIG_UNKNOWN_TYPE;
   }
 
@@ -32,8 +40,8 @@ namespace Config::IqIo
 
   ResultCode fromJson(JsonVariantConst json, Fields& fields)
   {
-    if (!json["iqSource"]) return ResultCode::ERR_CONFIG_MISSING_IQ_SOURCE;
-    if (!json["audioOutput"]) return ResultCode::ERR_CONFIG_MISSING_AUDIO_OUTPUT;
+    if (!json["iqSource"].is<JsonVariantConst>()) return ResultCode::ERR_CONFIG_MISSING_IQ_SOURCE;
+    if (!json["audioOutput"].is<JsonVariantConst>()) return ResultCode::ERR_CONFIG_MISSING_AUDIO_OUTPUT;
 
     TypedJson taggedSourceJson;
     ResultCode result = taggedSourceJson.fromJson(json["iqSource"]);

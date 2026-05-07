@@ -19,7 +19,7 @@ namespace Config::DigitalInputs
   using DigitalInputConfigVariant = variant<DigitalInput::Fields, RotaryEncoder::Fields>;
 
 #ifdef USE_ETL
-  using DigitalInputConfigVector  = etl::vector<DigitalInputConfigVariant, MAX_DIGITAL_INPUTS>;
+  using DigitalInputConfigVector  = etl::vector<DigitalInputConfigVariant, MAX_DIGITAL_INPUT_HANDLERS>;
 #else
   using DigitalInputConfigVector  = std::vector<DigitalInputConfigVariant>;
 #endif

@@ -39,6 +39,16 @@ public:
   ActiveBandSettings(const ActiveBandSettings& rhs) = default;
   ~ActiveBandSettings() override = default;
 
+  void clearChanged() override
+  {
+    SettingsBase::clearChanged();
+    for (auto& bandSettings : m_activeBands) {
+      if (bandSettings) {
+        bandSettings->clearChanged();
+      }
+    }
+  }
+
   static constexpr size_t toSplitIndex(SplitBandId b) noexcept {
     return static_cast<size_t>(b);
   }

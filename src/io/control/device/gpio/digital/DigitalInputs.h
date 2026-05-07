@@ -11,7 +11,7 @@ class DigitalInputs : public ControlSource, public DigitalInputLinesRequest::Cal
 public:
 
   explicit DigitalInputs(const char* consumer = "");
-  ~DigitalInputs() override = default;
+  ~DigitalInputs() override;
 
   DigitalInputs(DigitalInputs&& rhs)  noexcept;
   DigitalInputs& operator=(DigitalInputs&& rhs)  noexcept;
@@ -37,6 +37,8 @@ protected:
   void createLineToInputMap();
 
   void readInitialInputStates();
+
+  void reconnectInputSinks();
 
   class InternalSink : public SettingUpdateSink
   {

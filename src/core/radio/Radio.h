@@ -27,6 +27,8 @@ public:
 
   ResultCode applySettingUpdate(SettingUpdate& update) override;
 
+  void markAllSettingsUnchanged();
+
   void ptt(bool on) override;
 
 protected:

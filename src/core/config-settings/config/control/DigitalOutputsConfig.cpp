@@ -14,16 +14,16 @@ namespace Config::DigitalOutputs
       }
       return result;
     }
-    if (json.type == DigitalOutput::BandSelector::type) {
-      DigitalOutput::BandSelector::Fields fields{};
-      result = DigitalOutput::BandSelector::fromJson(json.config, fields);
+    if (json.type == BandSelector::type) {
+      BandSelector::Fields fields{};
+      result = BandSelector::fromJson(json.config, fields);
 
       if (result == ResultCode::OK) {
         variant = fields;
       }
       return result;
     }
-    return ResultCode::UNKNOWN_TYPE;
+    return ResultCode::ERR_CONFIG_UNKNOWN_TYPE;
   }
 
   ResultCode fromJson(const JsonDocument& json, Fields& fields)

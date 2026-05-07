@@ -10,7 +10,7 @@ DigitalInputLinesRequest::DigitalInputLinesRequest() :
   m_pChip (nullptr),
   // m_pCallback(nullptr),
   m_pLineRequest(nullptr),
-  m_debouncePeriod(5'000'000)
+  m_debouncePeriod(2'000'000)
 
 {
   m_pEventBuffer = gpiod_edge_event_buffer_new(64);
@@ -66,6 +66,7 @@ DigitalInputLinesRequest& DigitalInputLinesRequest::operator=(DigitalInputLinesR
 
 DigitalInputLinesRequest::~DigitalInputLinesRequest()
 {
+  stopCallbacks();
   gpiod_edge_event_buffer_free(m_pEventBuffer);
   release();
 }
@@ -117,6 +118,10 @@ void
 DigitalInputLinesRequest::stopCallbacks()
 {
   m_callbackMutex.lock();
+  if (!m_pCallback.has_value()) {
+    m_callbackMutex.unlock();
+    return;
+  }
   m_pCallback = nullopt;
   m_callbackMutex.unlock();
   wait();
@@ -195,69 +200,38 @@ DigitalInputLinesRequest::readEdgeEvents(struct gpiod_edge_event_buffer* buf, si
 void
 DigitalInputLinesRequest::run()
 {
-  // readInitialInputStates();
-  // gpiod_edge_event_buffer* eventBuff = gpiod_edge_event_buffer_new(64);
-  // if (!eventBuff) {
-  //   return; //TODO: flag the error
-  // }
-
+  constexpr int64_t idleTimeout = 100'000'000;
+  constexpr int64_t debouncingTimeout = 1'000'000;
   // LineStateMap debouncedLines;
-
-  bool haveCallback = !!m_pCallback;
+  bool debouncing = false;
+  bool haveCallback = m_pCallback.has_value();
   while (haveCallback) {
-    constexpr int64_t idleTimeout = 50'000'000;
-    int wr = waitEdgeEvents(idleTimeout);
+
+    int wr = waitEdgeEvents(debouncing ? debouncingTimeout : idleTimeout);
     if (wr < 0) {
-      // error; consider logging and continuing or breaking
+      // error!
       continue;
     }
-    
-    if (wr == 0) {
-      // haveCallback = callbackWithAnyDebouncedLineStates();
-      // int numDebounced = updateDebouncingStates();
-      // if (numDebounced == 0) {
-      //   continue;
-      // }
-    }
-    
     int numEvents = 0;
     int numDebounced = 0;
     if (wr > 0) {
       // qDebug() <<"--------------";
-      numEvents = updateLineStates();
+      debouncing = updateLineStates(&numEvents);
     } else {
-      numDebounced = continueDebouncing();
+      debouncing = continueDebouncing(&numDebounced);
     }
      
-    // if (numEvents == 0) {
-    //   numEvents = updateDebouncingStates();
-    // }
     if (numEvents > 0 || numDebounced > 0) {
       // qDebug() << "Events: " << numEvents << " Debounced: " << numDebounced;
-      haveCallback = callbackWithChangedLineStates();
+      callbackWithChangedLineStates();
     }
+    haveCallback = m_pCallback.has_value();
   }
 }
 
 bool
 DigitalInputLinesRequest::callbackWithChangedLineStates()
 {
-  // LineStateMap lines;
-  // updateLineStates();
-  // for ( auto& lineState : m_lineStates) {
-  //   if (lineState.changed) {
-  //     lines[lineState.line] = lineState;
-  //     lineState.changed = false;
-  //     if (lineState.debounce) {
-  //       lineState.firstEdgeTime = 0;
-  //       lineState.isDebounced = false;
-  //     }
-      
-  //   }
-  // }
-  // if (lines.empty()) {
-  //   return true;
-  // }
   std::lock_guard<std::mutex> lock(m_callbackMutex);
   if (m_pCallback) {
     m_pCallback->get().callback(m_lineStates);
@@ -267,44 +241,15 @@ DigitalInputLinesRequest::callbackWithChangedLineStates()
 }
 
 bool
-DigitalInputLinesRequest::callbackWithAnyDebouncedLineStates()
-{
-  // uint64_t now = getCurrentTime();
-  // LineStateMap debouncedLines;
-  // updateLineStates();
-  // for ( auto& lineState : m_lineStates) {
-  //   if (lineState.debounce
-  //     && !lineState.isDebounced
-  //     && lineState.firstEdgeTime > 0
-  //     && now - lineState.firstEdgeTime > m_debouncePeriod
-  //     ) {
-  //     lineState.isDebounced = true;
-  //     lineState.firstEdgeTime = 0;
-  //     lineState.changed = false;
-  //     debouncedLines[lineState.line] = lineState;
-  //     qDebug() << "callbackWithAnyDebouncedLineStates(): Line " << lineState.line << " debounced to " << (int)lineState.value;
-  //   }
-  // }
-  // if (debouncedLines.empty()) {
-  //   return true;
-  // }
-  // // qDebug() << "Found " << debouncedLines.size() << " debounced lines";
-  // std::lock_guard<std::mutex> lock(m_callbackMutex);
-  // if (m_pCallback) {
-  //   m_pCallback->callback(debouncedLines);
-  //   return true;
-  // }
-  return false;
-}
-
-
-int
-DigitalInputLinesRequest::updateLineStates()
+DigitalInputLinesRequest::updateLineStates(int* nEvents)
 {
   int numEvents = readEdgeEvents(m_pEventBuffer, 64);
   if (numEvents < 0) {
-    return 0;;
+    *nEvents = 0;
+    return false;
   }
+  bool debouncing = false;
+  // qDebug() << numEvents << " edge events read";
   for (int i = 0; i < numEvents; ++i) {
     gpiod_edge_event* ev = gpiod_edge_event_buffer_get_event(m_pEventBuffer, i);
     uint32_t line = gpiod_edge_event_get_line_offset(ev);
@@ -323,33 +268,62 @@ DigitalInputLinesRequest::updateLineStates()
       lineState.value = 0;
     }
     if (lineState.debounce && !lineState.isDebounced) {
-      lineState.isDebounced = timestamp - lineState.firstEdgeTime > m_debouncePeriod;
+      uint64_t period = timestamp - lineState.firstEdgeTime;
+      lineState.isDebounced = period > m_debouncePeriod;
+      if (lineState.isDebounced) {
+        // lineState.value = getLineValue(lineState.line);
+      } else {
+        debouncing = true;
+        // qDebug() << "Line " << lineState.line << ": Measured = " <<  measured << " Expected = " << lineState.value;
+      }
       // qDebug() << "updateLineStates(): Line " << lineState.line << " changed to " << (int)lineState.value
-      //          << (lineState.isDebounced ? " (debounced)" : " (not debounced)");
+      //          << "Period: "  << period << "Debounce period: " << m_debouncePeriod << (lineState.isDebounced ? " (debounced)" : " (not debounced)");
     }
   }
-  return numEvents;
+  *nEvents = numEvents;
+  return debouncing;
 }
 
-int
-DigitalInputLinesRequest::continueDebouncing()
+bool
+DigitalInputLinesRequest::continueDebouncing(int* numDebounced)
 {
   uint64_t now = getCurrentTime();
-  int numDebounced = 0;
+  bool keepDebouncing = false;
+  int debounced = 0;
   for ( auto& lineState : m_lineStates) {
-    if (lineState.debounce
-      && !lineState.isDebounced
-      && lineState.firstEdgeTime > 0
-      && now - lineState.firstEdgeTime > m_debouncePeriod
-      ) {
+    if (lineState.changed && lineState.debounce && !lineState.isDebounced) {
+      if (now - lineState.firstEdgeTime > m_debouncePeriod) {
         lineState.isDebounced = true;
-        lineState.firstEdgeTime = 0;
-        lineState.changed = true;
-        ++numDebounced;
-        // qDebug() << "updateDebouncingStates(): Line " << lineState.line << " debounced to " << (int)lineState.value;
+        lineState.value = getLineValue(lineState.line);
+        ++debounced;
+      } else {
+        keepDebouncing = true;
       }
+    }
+    // if (lineState.debounce && lineState.firstEdgeTime > 0) {
+    //   if (lineState.isDebounced) {
+    //     numDebounced++;
+    //   } else if (now - lineState.firstEdgeTime > m_debouncePeriod) {
+    //     lineState.isDebounced = true;
+    //     lineState.firstEdgeTime = 0;
+    //     lineState.changed = true;
+    //     ++numDebounced;
+    //   }
+    // }
+    // if (lineState.debounce
+      // && !lineState.isDebounced
+      // && lineState.firstEdgeTime > 0
+      // && now - lineState.firstEdgeTime > m_debouncePeriod
+      // ) {
+      //   lineState.isDebounced = true;
+      //   lineState.firstEdgeTime = 0;
+      //   lineState.changed = true;
+      //   ++numDebounced;
+      //   qDebug() << "updateDebouncingStates(): Line " << lineState.line << " debounced to " << (int)lineState.value;
+      // }
   }
-  return numDebounced;
+  *numDebounced = debounced;
+  return keepDebouncing;
 }
 
 void

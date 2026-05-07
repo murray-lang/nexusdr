@@ -116,6 +116,12 @@ Radio::applySettingUpdate(SettingUpdate& update)
 }
 
 void
+Radio::markAllSettingsUnchanged()
+{
+  m_settings.clearChanged();
+}
+
+void
 Radio::ptt(bool on)
 {
   if (on) {

@@ -201,8 +201,9 @@ protected:
   bool applyModeSetting( SettingUpdate& setting)
   {
     if (m_modeSettings.applyUpdate(setting)) {
-      const auto& modeType = get<Mode::Type>(setting.getValue());
-      Mode newMode = ModeSettings::getModeByType(modeType);
+      // const auto& modeType = get<Mode::Type>(setting.getValue());
+      // Mode newMode = ModeSettings::getModeByType(modeType);
+      Mode newMode = m_modeSettings.getCurrentMode();
       if (newMode.getType() != m_mode.getType()) {
         setMode(newMode);
         return true;

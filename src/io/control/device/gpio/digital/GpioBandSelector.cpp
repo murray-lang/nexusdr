@@ -63,12 +63,9 @@ GpioBandSelector::getBandOutput(uint32_t frequency) const
 {
   // Lookup the output for the given frequency
   for ( auto& band : m_bands) {
-    if (band) {
-      if (frequency >= band->fromFrequency && frequency <= band->toFrequency) {
-        return band->outValue;
-      }
+    if (frequency >= band->fromFrequency && frequency <= band->toFrequency) {
+      return band->outValue;
     }
-
   }
   return m_defaultOut;
 }
@@ -80,7 +77,7 @@ GpioBandSelector::applyOutput(uint32_t output)
     return ResultCode::ERR_DIGITAL_OUTPUT_NO_LINE_REQUEST;
   }
   m_currentOut = output;
-  DigitalOutputVector values(m_lines.size(), false);
+  DigitalOutputValueVector values(m_lines.size(), false);
   for (size_t i = 0; i < m_lines.size(); ++i) {
     values.at(i) = ((output >> i) & 0x1u) != 0;
   }

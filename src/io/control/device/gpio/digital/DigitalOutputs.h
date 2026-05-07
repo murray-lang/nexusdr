@@ -20,6 +20,11 @@ public:
   void close() override;
   void exit() override;
 
+  ResultCode applySettings(const RadioSettings& settings) override;
+  ResultCode applySettingUpdate(SettingUpdate& settingDelta) override;
+
+  void ptt(bool on) override;
+
 protected:
   ResultCode createOutputs(const Config::DigitalOutputs::Fields& config);
 

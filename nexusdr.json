@@ -97,7 +97,7 @@
                           "lines": [8, 7],
                           "bias": "pull-up",
                           "debounce": true,
-                          "settingPath": "band.selected.rx-pipeline.mode"
+                          "settingPath": "band.with-focus.rx-pipeline.mode"
                       }
                   },
                   {
@@ -107,7 +107,7 @@
                           "lines": [13, 12],
                           "bias": "pull-up",
                           "debounce": true,
-                          "settingPath": "band.select"
+                          "settingPath": "band.replace-focus"
                       }
                   },
                   {
@@ -117,7 +117,7 @@
                           "lines": [26, 16],
                           "bias": "pull-up",
                           "debounce": true,
-                          "settingPath": "band.selected.rx-pipeline.rf.center-frequency.value.coarse"
+                          "settingPath": "band.with-focus.rx-pipeline.rf.center-frequency.value.coarse"
                       }
                   },
                   {
@@ -127,7 +127,7 @@
                           "lines": [15, 14],
                           "bias": "none",
                           "debounce": false,
-                          "settingPath": "band.selected.rx-pipeline.rf.vfo.value"
+                          "settingPath": "band.with-focus.rx-pipeline.rf.vfo.value"
                       }
                   }
               ]

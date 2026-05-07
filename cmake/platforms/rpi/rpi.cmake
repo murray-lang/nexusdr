@@ -8,6 +8,7 @@ set(USE_GPIO ON)
 set(IS_RPI ON)
 
 add_definitions(-DUSE_GPIO)
+add_definitions(-DARDUINOJSON_DEFAULT_NESTING_LIMIT=12)
 
 set(IS_LINUX ON)
 set(IS_QT ON)
@@ -132,6 +133,8 @@ set(GPIO_SOURCES
         src/io/control/device/gpio/digital/DigitalInputTypes.h
         src/io/control/device/gpio/digital/DigitalOutput.cpp
         src/io/control/device/gpio/digital/DigitalOutput.h
+        src/io/control/device/gpio/digital/DigitalOutputs.cpp
+        src/io/control/device/gpio/digital/DigitalOutputs.h
         src/io/control/device/gpio/digital/DigitalOutputFactory.h
         src/io/control/device/gpio/digital/DigitalOutputFactory.cpp
         src/io/control/device/gpio/digital/DigitalOutputLinesRequest.h

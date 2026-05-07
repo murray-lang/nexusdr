@@ -33,15 +33,26 @@ public:
     m_offset(0)
   {}
 
-  Mode(Type type, ModeNameString  name, ModeLabelString   label , int32_t loCut, int32_t hiCut, int32_t offset) :
+  Mode(Type type, ModeNameString  name, ModeLabelString label , int32_t loCut, int32_t hiCut, int32_t offset) :
     m_type(type),
-    m_name(std::move(name)),
-    m_label(std::move(label)),
+    m_name(move(name)),
+    m_label(move(label)),
     m_loCut(loCut),
     m_hiCut(hiCut),
     m_offset(offset)
   {}
-  Mode(const Mode& rhs) = default;
+  Mode(const Mode& rhs)
+  {
+    if (this != &rhs)
+    {
+      m_type = rhs.m_type;
+      m_name = move(rhs.m_name);
+      m_label = move(rhs.m_label);
+      m_loCut = rhs.m_loCut;
+      m_hiCut = rhs.m_hiCut;
+      m_offset = rhs.m_offset;
+    }
+  }
   virtual ~Mode() = default;
   Mode& operator=(const Mode& rhs) = default;
 

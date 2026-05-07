@@ -11,12 +11,12 @@ using DigitalOutputVariant = variant<DigitalOutput, GpioBandSelector>;
 // #include "etl/variant.h"
 
 // This is declared as a class to facilitate forward declarations
-class DigitalOutputVariantVector : public etl::vector<DigitalOutputVariant, MAX_DIGITAL_OUTPUTS> {
+class DigitalOutputVariantVector : public etl::vector<DigitalOutputVariant, MAX_DIGITAL_OUTPUT_HANDLERS> {
 public:
-  using etl::vector<DigitalOutputVariant, MAX_DIGITAL_OUTPUTS>::vector;
+  using etl::vector<DigitalOutputVariant, MAX_DIGITAL_OUTPUT_HANDLERS>::vector;
 };
 
-using DigitalOutputVector = etl::vector<bool, MAX_DIGITAL_OUTPUTS>;
+using DigitalOutputValueVector = etl::vector<bool, MAX_GPIO_LINES_PER_DEVICE>;
 
 #else
 #include <vector>
@@ -28,6 +28,6 @@ public:
   using std::vector<DigitalOutputVariant>::vector;
 };
 
-using DigitalOutputVector = etl::vector<bool>;
+using DigitalOutputValueVector = std::vector<bool>;
 
 #endif

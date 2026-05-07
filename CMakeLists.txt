@@ -13,8 +13,12 @@ if (TARGET_PLATFORM STREQUAL "stm32h745i" )
     add_definitions(
             -DUSE_ETL
             -DMAX_GPIO=27
-            -DMAX_DIGITAL_INPUTS=8
-            -DMAX_DIGITAL_OUTPUTS=4
+            -DMAX_GPIO_LINES_PER_DEVICE=4
+            -DMAX_DIGITAL_INPUT_HANDLERS=8
+#            -DMAX_DIGITAL_INPUT_LINES_PER_DEVICE=4
+            -DMAX_DIGITAL_INPUT_LINES_TOTAL=10
+            -DMAX_DIGITAL_OUTPUT_HANDLERS=4
+#            -DMAX_DIGITAL_OUTPUT_LINES_PER_DEVICE=4
             -DMAX_CONTROL_SINKS=4
             -DMAX_CONTROL_SOURCES=4
             -DMAX_ID_LENGTH=16
@@ -22,8 +26,7 @@ if (TARGET_PLATFORM STREQUAL "stm32h745i" )
             -DMAX_SETTING_DEPTH=8
             -DMAX_SETTING_NAME_LENGTH=24
             -DMAX_SETTING_PATH_LENGTH=96
-            -DMAX_GPIO_LINES_PER_DEVICE=4
-            -DMAX_BANDS=16
+            -DMAX_BANDS=34
             -DMAX_BAND_NAME_LENGTH=8
             -DMAX_BAND_LABEL_LENGTH=8
             -DMAX_BAND_CATEGORIES=8
@@ -80,6 +83,8 @@ set (CONFIG_SOURCES
         ${CONFIG_DIR}/audio/IqIoConfig.cpp
         ${CONFIG_DIR}/control/DigitalOutputConfig.h
         ${CONFIG_DIR}/control/DigitalOutputConfig.cpp
+        ${CONFIG_DIR}/control/DigitalOutputsConfig.h
+        ${CONFIG_DIR}/control/DigitalOutputsConfig.cpp
         ${CONFIG_DIR}/control/BandSelectorConfig.h
         ${CONFIG_DIR}/control/BandSelectorConfig.cpp
         ${CONFIG_DIR}/control/BandSelectorConfig.cpp

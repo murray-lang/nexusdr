@@ -13,7 +13,6 @@ HidUsbControl::HidUsbControl(uint16_t vendorId, uint16_t productId)
 
 HidUsbControl::~HidUsbControl()
 {
-    hid_exit();
 }
 
 ResultCode HidUsbControl::initialise() {
