@@ -20,7 +20,7 @@ namespace Config::Audio
   static constexpr auto type = "audio";
 
 #ifdef USE_ETL
-  using ShortString = etl::string<TYPE_LENGTH_INCL_0>;
+  using ShortString = etl::string<SHORT_STRING_LENGTH_INCL_0>;
   using LongString = etl::string<LONG_STRING_LENGTH_INCL_0>;
 #else
   using ShortString = std::string;
