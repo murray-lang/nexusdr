@@ -3,12 +3,9 @@
 //
 
 #pragma once
-
-#include "Band.h"
-#include "../pipeline/TxPipelineSettings.h"
 #include "../pipeline/RxPipelineSettings.h"
-#include "../base/SettingsBase.h"
-#include <QDebug>
+#include "../pipeline/TxPipelineSettings.h"
+#include "../pipeline/PipelineId.h"
 
 #define MAX_PIPELINES 2
 

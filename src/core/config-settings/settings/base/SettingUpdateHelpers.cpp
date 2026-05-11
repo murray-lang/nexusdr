@@ -1,6 +1,6 @@
 #include "SettingUpdateHelpers.h"
 
-#include "core/config-settings/settings/RadioSettings.h"
+#include "../RadioSettings.h"
 
 uint32_t SettingUpdateHelpers::toWithBandFeature(SplitBandId whichBand)
 {

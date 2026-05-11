@@ -9,7 +9,6 @@
 
 #include "bands/Bands.h"
 #include "base/SettingsBase.h"
-#include <QDebug>
 #include "base/SteppableSetting.h"
 
 class RfSettings : public SettingsBase

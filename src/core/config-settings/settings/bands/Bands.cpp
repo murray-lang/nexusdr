@@ -1,6 +1,3 @@
-//
-// Created by murray on 30/12/25.
-//
 #include "Bands.h"
 
 static BandCategoriesVector bandCategories = {
@@ -67,7 +64,7 @@ static BandCategoriesVector bandCategories = {
   }
 };
 
-Bands::Bands() :
-  m_categories(bandCategories)
+Bands::Bands()
+  : m_categories(bandCategories)
 {
 }

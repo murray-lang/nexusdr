@@ -74,6 +74,7 @@ set(CM7_SOURCES
     ${SOURCE_DIR_CM7}/lv_conf.h
     ${TINYUSB_SOURCES}
     ${CONFIG_SOURCES}
+    ${SETTINGS_SOURCES}
 )
 
 if(USE_FREERTOS)

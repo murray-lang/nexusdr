@@ -1,12 +1,11 @@
 #pragma once
 
 #include <cstdint>
-#include "CrossPlatformTypes.h"
+#include <CrossPlatformTypes.h>
 #include "../Mode.h"
-#include "core/config-settings/settings/bands/SplitBandId.h"
-#include "core/config-settings/settings/pipeline/PipelineId.h"
-#include "core/config-settings/settings/AgcSpeed.h"
-#include "core/config-settings/settings/SettingsCrossPlatformTypes.h"
+#include "../AgcSpeed.h"
+#include "../bands/SplitBandId.h"
+#include "../pipeline/PipelineId.h"
 
 /**
  * The unified variant type for all setting data in the system.
