@@ -4,10 +4,10 @@
 
 #include "RadioSettings.h"
 
-#include "core/util/StringUtils.h"
-
 #ifdef USE_ETL
 #include "etl/string_utilities.h"
+#else
+#include "core/util/StringUtils.h"
 #endif
 
 

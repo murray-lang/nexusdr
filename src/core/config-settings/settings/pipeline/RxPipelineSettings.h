@@ -5,7 +5,6 @@
 #pragma once
 #include "../IfSettings.h"
 #include "PipelineSettings.h"
-#include <QDebug>
 
 class RxPipelineSettings : public PipelineSettings
 {

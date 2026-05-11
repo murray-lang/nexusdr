@@ -1,10 +1,5 @@
-//
-// Created by murray on 5/10/25.
-//
-
 #pragma once
 #include "SettingsCrossPlatformTypes.h"
-
 
 #include <utility>
 

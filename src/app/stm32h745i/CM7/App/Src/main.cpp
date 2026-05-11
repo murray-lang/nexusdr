@@ -39,7 +39,6 @@
 #include <device/usbd.h>
 #include <ArduinoJson.h>
 
-
 #ifdef USE_FREERTOS
 #ifdef __cplusplus
  extern "C" {
@@ -54,6 +53,7 @@
 #endif // USE_FREERTOS
 
 #include "config/RadioConfig.h"
+#include "settings/RadioSettings.h"
 
 /* USER CODE END Includes */
 
@@ -126,6 +126,8 @@
 /* USER CODE END 0 */
 
 Config::Radio::Fields radioConfig;
+
+RadioSettings radioSettings;
 
 char MMCPath[4]; /* SD card logical drive path */
 

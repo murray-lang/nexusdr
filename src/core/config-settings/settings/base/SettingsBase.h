@@ -1,6 +1,6 @@
 #pragma once
 #include "../SettingsCrossPlatformTypes.h"
-#include "SettingValue.h"
+// #include "SettingValue.h"
 #include "SettingUpdate.h"
 #include "SettingRegistry.h"
 #include "Setting.h"

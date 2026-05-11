@@ -1,16 +1,15 @@
 #pragma once
 
-#include "SettingUpdatePath.h"
 #include "SettingValue.h"
-#include <variant>
-#include "../Mode.h"
+
+#include "SettingUpdatePath.h"
 
 class SettingUpdate
 {
 public:
   enum Meaning { NONE = 0, VALUE, DELTA };
 
-  SettingUpdate() : m_value(0), m_meaning(NONE), m_cursor(0), m_alt(false) {}
+  SettingUpdate() : m_value(static_cast<uint32_t>(0)), m_meaning(NONE), m_cursor(0), m_alt(false) {}
   SettingUpdate(const SettingUpdatePath& settingPath, SettingValue value, const Meaning meaning, bool alt = false) :
     m_settingPath(settingPath),
     m_value(move(value)),
@@ -59,7 +58,7 @@ public:
   [[nodiscard]] bool isAlt() const { return m_alt; }
 
 
-  SettingUpdate& setValue(SettingValue value) { m_value = std::move(value); return *this; }
+  SettingUpdate& setValue(SettingValue value) { m_value = move(value); return *this; }
   [[nodiscard]] const SettingUpdatePath& getPath() const { return m_settingPath; }
   SettingUpdate& setPath(const SettingUpdatePath& path) { m_settingPath = path; return *this; }
   [[nodiscard]] const SettingValue& getValue() const { return m_value; }
