@@ -88,11 +88,6 @@ StandardFace::initialise(RadioSettings* pRadioSettings)
   }
 }
 
-
-void StandardFace::setRadio(Radio* radio) {
-  FaceBase::setRadio(radio);
-}
-
 void StandardFace::handleReceiverMeter(float rssiDbFs, uint32_t sampleRate, std::optional<float> agcGainDb)
 {
   (void)sampleRate;

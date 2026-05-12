@@ -26,6 +26,17 @@ public:
     BAND = 0x02,
     TX = 0x04,
     RX = 0x08,
+    // This is a fudge to trigger the notification of all settings to all ControlSinks.
+    // The motivation is to have the settings sent to a control interface, which has a
+    // separate lifecycle to the Radio and needs to get the latest settings.
+    // It's not a stored setting, just a flag, primarily for a SettingUpdateEvent.
+    NOTIFY_CONTROL_SINKS   = 0x10,
+
+    // This is another flag without an actual setting associated with it.
+    // It means that the consumer needs to treat this as a whole new set of settings,
+    // possibly as the result of a complete change of Radio.
+    // For now just rely on markAllChanged() to set this
+    REFRESH = 0x20,
     ALL = static_cast<uint32_t>(~0U)
   };
 
@@ -91,6 +102,7 @@ public:
   void markAllChanged() override
   {
     SettingsBase::markAllChanged();
+    m_activeBandSettings.markAllChanged();
     m_rxSettings.markAllChanged();
     m_txSettings.markAllChanged();
     // Not PTT! That being set will short-circuit all other changes

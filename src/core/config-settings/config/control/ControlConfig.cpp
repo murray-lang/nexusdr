@@ -16,6 +16,16 @@ namespace Config::Control
       return result;
     }
 #endif
+#ifdef IS_QT
+    if (json.type == QtControlSink::type) {
+      QtControlSink::Fields fields{};
+      result = QtControlSink::fromJson(json.config, fields);
+      if (result == ResultCode::OK) {
+        sink = fields;
+      }
+      return result;
+    }
+#endif
     if (json.type == FunCube::type) {
       FunCube::Fields fields{};
       result = FunCube::fromJson(json.config, fields);
@@ -37,11 +47,21 @@ namespace Config::Control
 
   static ResultCode SourceFactory(const TypedJson& json, SourceConfigVariant& source)
   {
-#ifdef USE_GPIO
     ResultCode result = ResultCode::OK;
+#ifdef USE_GPIO
     if (json.type == DigitalInputs::type) {
       DigitalInputs::Fields fields{};
       result = DigitalInputs::fromJson(json, fields);
+      if (result == ResultCode::OK) {
+        source = fields;
+      }
+      return result;
+    }
+#endif
+#ifdef IS_QT
+    if (json.type == QtControlSource::type) {
+      QtControlSource::Fields fields{};
+      result = QtControlSource::fromJson(json.config, fields);
       if (result == ResultCode::OK) {
         source = fields;
       }

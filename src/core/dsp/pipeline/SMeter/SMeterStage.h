@@ -78,8 +78,9 @@ public:
       if (m_agcGainDbProvider) {
         agcGainDb = m_agcGainDbProvider();
       }
-
-      EventDispatcher::postEvent(m_eventTarget, new ReceiverMeterEvent(rssiDbFs, fs, agcGainDb));
+      if (m_eventTarget != nullptr) {
+        EventDispatcher::postEvent(m_eventTarget, new ReceiverMeterEvent(rssiDbFs, fs, agcGainDb));
+      }
     }
     buffers.flip();
     return inputLength;

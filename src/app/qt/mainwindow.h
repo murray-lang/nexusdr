@@ -15,6 +15,7 @@
 #include "core/radio/Radio.h"
 #include "core/config-settings/config/RadioConfig.h"
 #include "common/QtPanadapter.h"
+#include "core/radio/qt/QtRadioClient.h"
 #include "faces/FaceBase.h"
 // #include "settings/RadioSettingsEventPublisher.h"
 
@@ -42,6 +43,7 @@ public slots:
   void on_actionBand_triggered();
   // void on_actionMode_triggered();
   // void on_actionLevels_triggered();
+  void handleRadioSettingsFromClient(const RadioSettings& settings, uint64_t sequence);
 
 protected:
   // void handleReceiverIqEvent(const vsdrcomplex* data, uint32_t length, uint32_t sampleRate);
@@ -52,7 +54,7 @@ protected:
 
   void closeActiveToolbarPopups();
 
-
+  void handleRefreshedSettings();
 
 //private slots:
 //    void toggleMode();
@@ -64,11 +66,11 @@ private:
   void initializeWindow();
   void initializeAudio();
 
-  void initialiseRadio();
+  // void initialiseRadio();
 
   void setFaceByName(const Config::Ui::FaceString& faceName);
 
-  void addModeButton();
+  void setModeButton();
   QMenu* createModeMenu(const Mode& currentMode);
   void updateModeButton(const Mode& mode);
   void updateBandButton(const Band& band);
@@ -81,10 +83,12 @@ private:
   Config::Radio::Fields& m_radioConfig;
   Ui::MainWindow *ui;
 
+  QtRadioClient m_radioClient;
+
   unique_ptr<FaceBase> m_pFace;
   QVBoxLayout* m_pFaceLayout;
 
-  Radio* m_pRadio;
+  // Radio* m_pRadio;
 
   uint32_t m_reportedIqSampleRate;
   RadioSettings m_radioSettingsCopy;

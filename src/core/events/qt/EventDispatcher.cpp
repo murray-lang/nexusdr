@@ -1,7 +1,3 @@
-//
-// Created by murray on 26/2/26.
-//
-
 #include "../EventDispatcher.h"
 
 #include <qcoreapplication.h>

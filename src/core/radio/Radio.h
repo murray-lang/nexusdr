@@ -17,10 +17,10 @@ class Radio : public RadioBase
 {
 public:
   Radio(EventTarget *pEventTarget = nullptr);
-  ~Radio() override;
+  ~Radio() override = default;
 
   ResultCode configure(const Config::Radio::Fields& config) override;
-  void start() override;
+  ResultCode start(EventTarget* pEventTarget) override;
   void stop() override;
 
   ResultCode applySettings(const RadioSettings& settings) override;
@@ -30,6 +30,8 @@ public:
   void markAllSettingsUnchanged();
 
   void ptt(bool on) override;
+
+  ResultCode applySettingsToControlSinks();
 
 protected:
   void pttOn();

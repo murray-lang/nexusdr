@@ -32,15 +32,19 @@ constexpr const char * toolbarPopupPropertyName = "isToolbarPopup";
 MainWindow::MainWindow(Config::Radio::Fields& radioConfig, QWidget *parent)
   : QMainWindow(parent)
   , m_radioConfig(radioConfig)
-  , m_pRadio(nullptr)
+  , m_radioClient(this)
+  // , m_pRadio(nullptr)
   , ui(new Ui::MainWindow)
   , m_pFaceLayout(new QVBoxLayout)
   , m_reportedIqSampleRate(0)
   ,m_modeButton(nullptr)
   ,m_bandButton(nullptr)
 {
+  m_radioClient.configure(radioConfig);
 
-  initialiseRadio();
+  connect(&m_radioClient, &QtRadioClient::radioSettingsReceived,
+        this, &MainWindow::handleRadioSettingsFromClient);
+  // initialiseRadio();
   initializeWindow();
 
   initializeAudio();
@@ -49,14 +53,12 @@ MainWindow::MainWindow(Config::Radio::Fields& radioConfig, QWidget *parent)
     // This filter has been added to help manage popup behaviour associated with the toolbar buttons.
     this->installEventFilter(this);
   }
+  m_radioClient.start(this);
 }
 
 MainWindow::~MainWindow()
 {
-  if (m_pRadio) {
-    m_pRadio->stop();
-    delete m_pRadio;
-  }
+  m_radioClient.stop();
   delete ui;
 }
 
@@ -79,11 +81,6 @@ MainWindow::customEvent(QEvent* event)
       auto* meterEvent = dynamic_cast<ReceiverMeterEvent*>(event);
       m_pFace->handleReceiverMeter(meterEvent->rssiDbFs(), meterEvent->sampleRate(), meterEvent->agcGainDb());
 
-    } else if (event->type() == RadioSettingsEvent::RadioSettingsEventType) {
-
-      auto* radioSettingsEvent = dynamic_cast<RadioSettingsEvent*>(event);
-      handleRadioSettingsEvent(radioSettingsEvent->getRadioSettings(), radioSettingsEvent->getSequence());
-
     } else if (event->type() == TransmitterIqEvent::TxIqEvent) {
 
       auto* iqEvent = dynamic_cast<TransmitterIqEvent*>(event);
@@ -98,10 +95,19 @@ MainWindow::customEvent(QEvent* event)
 }
 
 void
+MainWindow::handleRadioSettingsFromClient(const RadioSettings& radioSettings, uint64_t sequence)
+{
+  handleRadioSettingsEvent(radioSettings, sequence);
+}
+
+void
 MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings, uint64_t sequence)
 {
-  uint64_t currentSequence = m_pRadio->getUpdateSequenceNo();
+  uint64_t currentSequence = sequence; //m_pRadio->getUpdateSequenceNo();
   m_radioSettingsCopy = radioSettings;
+  if (m_radioSettingsCopy.hasSettingChanged(RadioSettings::REFRESH)) {
+    handleRefreshedSettings();
+  }
   auto* bandDialog = findChild<QtBandDialog*>("bandPanel");
   if (bandDialog != nullptr) {
     bandDialog->applySettings(m_radioSettingsCopy);
@@ -125,6 +131,12 @@ MainWindow::handleRadioSettingsEvent(const RadioSettings& radioSettings, uint64_
 }
 
 void
+MainWindow::handleRefreshedSettings()
+{
+  setModeButton();
+}
+
+void
 MainWindow::on_actionBand_triggered()
 {
   if (m_bandButton != nullptr) {
@@ -134,7 +146,7 @@ MainWindow::on_actionBand_triggered()
       existing->close();
       return;
     }
-    auto* panel = new QtBandDialog(m_pRadio, this);
+    auto* panel = new QtBandDialog(&m_radioClient, this);
     panel->setAttribute(Qt::WA_DeleteOnClose);
     panel->setObjectName("bandPanel");
     panel->setProperty(toolbarPopupPropertyName, true);
@@ -229,7 +241,7 @@ void MainWindow::initializeWindow()
   spacer1->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   ui->toolBar->addWidget(spacer1);
 
-  addModeButton();
+  setModeButton();
   addLevelsButton();
 }
 
@@ -251,18 +263,18 @@ MainWindow::setFaceByName(const Config::Ui::FaceString& faceName)
 
   // m_pFace = move(newFace);
   m_pFaceLayout->addWidget(m_pFace.get());
-  m_pFace->setRadio(m_pRadio);
+  m_pFace->connectSettingsSink(&m_radioClient);
   m_pFace->initialise(&m_radioSettingsCopy);
 }
 
 void
-MainWindow::addModeButton()
+MainWindow::setModeButton()
 {
-  if (m_pRadio == nullptr) {
-    throw std::runtime_error("No radio instance");
+  RadioSettings& radioSettings = m_radioSettingsCopy; //m_radioClient.getRadioSettings();
+  const BandSettings* bandSettings = radioSettings.getFocusBandSettings();
+  if (bandSettings == nullptr) {
+    return;
   }
-  RadioSettings& radioSettings = m_pRadio->getRadioSettings();
-  const BandSettings* bandSettings = m_pRadio->getFocusBandSettings();
   const RxPipelineSettings* rxPipelineSettings = bandSettings->getFocusPipeline();
   // if (rxPipelineSettings == nullptr) {
   //   throw SettingsException("Radio pipeline settings not found for selected band");
@@ -323,7 +335,8 @@ MainWindow::createModeMenu(const Mode& currentMode)
     QAction* action = modeMenu->addAction(mode.getName().c_str(), this, [this, mode, settingPath]()
     {
       SettingUpdate setting(settingPath, mode.getType(), SettingUpdate::Meaning::VALUE);
-      m_pRadio->applySettingUpdate(setting);
+      // m_pRadio->applySettingUpdate(setting);
+      m_radioClient.applySettingUpdate(setting);
     });
     action->setCheckable(true);
     action->setActionGroup(actionGroup);
@@ -420,61 +433,61 @@ void MainWindow::initializeAudio()
 //    m_audioInput->setVolume(linearVolume);
 //}
 
-void
-MainWindow::initialiseRadio()
-{
-  // const QList<QAudioDevice> inputs = QMediaDevices::audioOutputs();
-  // for (const QAudioDevice &device : inputs) {
-  //   qDebug() << "Device:" << device.description() << device.id();
-  //
-  //   qDebug() << "  Minimum sample rate:" << device.minimumSampleRate();
-  //   qDebug() << "  Maximum sample rate:" << device.maximumSampleRate();
-  //
-  //   qDebug() << "  Minimum channel count:" << device.minimumChannelCount();
-  //   qDebug() << "  Maximum channel count:" << device.maximumChannelCount();
-  //   qDebug() << "  Channel Config:" << device.channelConfiguration();
-  //
-  //   qDebug() << "  Sample formats supported:";
-  //   for (auto format : device.supportedSampleFormats()) {
-  //     qDebug() << "    " << format;
-  //   }
-  // }
-
-  if (m_pRadio != nullptr) {
-    m_pRadio->stop();
-    delete m_pRadio;
-    m_pRadio = nullptr;
-  }
-
-  m_pRadio = new Radio(this);
-  ResultCode rc = m_pRadio->configure(m_radioConfig);
-  if (rc != ResultCode::OK) {
-    qDebug() << "Error configuring radio: " << (uint32_t)rc;
-    return;
-  }
-  m_pRadio->start();
-
-  m_pRadio->applyBand("20m");
-  m_pRadio->applyAgcSpeed(AgcSpeed::OFF);
-  //m_pRadio->split("40m", "20m");
-  // m_pRadio->addPipeline();
-
-  RfSettings rfSettings;
-  rfSettings.setGain(30.0);
-  rfSettings.setGainCoarseStep(1.0);
-  rfSettings.setGainFineStep(0.1);
-  m_pRadio->applyRfSettings(rfSettings, true);
-
-  // int32_t centreFreqStepCoarse = 50000;
-  // m_pRadio->applySetting("pipeline.rx-pipeline.rf.centre-frequency.coarse-step", centreFreqStepCoarse);
-
-  IfSettings ifSettings;
-  ifSettings.setGain(0.0);
-  ifSettings.setBandwidth(200000);
-  m_pRadio->applyIfSettings(ifSettings);
-
-  m_pRadio->markAllSettingsUnchanged();
-}
+// void
+// MainWindow::initialiseRadio()
+// {
+//   // const QList<QAudioDevice> inputs = QMediaDevices::audioOutputs();
+//   // for (const QAudioDevice &device : inputs) {
+//   //   qDebug() << "Device:" << device.description() << device.id();
+//   //
+//   //   qDebug() << "  Minimum sample rate:" << device.minimumSampleRate();
+//   //   qDebug() << "  Maximum sample rate:" << device.maximumSampleRate();
+//   //
+//   //   qDebug() << "  Minimum channel count:" << device.minimumChannelCount();
+//   //   qDebug() << "  Maximum channel count:" << device.maximumChannelCount();
+//   //   qDebug() << "  Channel Config:" << device.channelConfiguration();
+//   //
+//   //   qDebug() << "  Sample formats supported:";
+//   //   for (auto format : device.supportedSampleFormats()) {
+//   //     qDebug() << "    " << format;
+//   //   }
+//   // }
+//
+//   if (m_pRadio != nullptr) {
+//     m_pRadio->stop();
+//     delete m_pRadio;
+//     m_pRadio = nullptr;
+//   }
+//
+//   m_pRadio = new Radio(this);
+//   ResultCode rc = m_pRadio->configure(m_radioConfig);
+//   if (rc != ResultCode::OK) {
+//     qDebug() << "Error configuring radio: " << (uint32_t)rc;
+//     return;
+//   }
+//   m_pRadio->start(this);
+//
+//   m_pRadio->applyBand("20m");
+//   m_pRadio->applyAgcSpeed(AgcSpeed::OFF);
+//   //m_pRadio->split("40m", "20m");
+//   // m_pRadio->addPipeline();
+//
+//   RfSettings rfSettings;
+//   rfSettings.setGain(30.0);
+//   rfSettings.setGainCoarseStep(1.0);
+//   rfSettings.setGainFineStep(0.1);
+//   m_pRadio->applyRfSettings(rfSettings, true);
+//
+//   // int32_t centreFreqStepCoarse = 50000;
+//   // m_pRadio->applySetting("pipeline.rx-pipeline.rf.centre-frequency.coarse-step", centreFreqStepCoarse);
+//
+//   IfSettings ifSettings;
+//   ifSettings.setGain(0.0);
+//   ifSettings.setBandwidth(200000);
+//   m_pRadio->applyIfSettings(ifSettings);
+//
+//   m_pRadio->markAllSettingsUnchanged();
+// }
 
 //#include "moc_mainwindow.cpp"
 

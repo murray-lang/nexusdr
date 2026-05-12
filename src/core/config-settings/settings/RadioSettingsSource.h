@@ -12,7 +12,7 @@ class RadioSettingsSource : public SettingUpdateSource
 {
 public:
   ~RadioSettingsSource() override = default;
-  virtual void connect(RadioSettingsSink* pSink) = 0;
+  virtual void connectSink(RadioSettingsSink* pSink) = 0;
 protected:
   virtual ResultCode notifySettings(const RadioSettings& radioSettings) = 0;
 };

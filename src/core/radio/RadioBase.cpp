@@ -12,6 +12,14 @@ RadioBase::RadioBase(EventTarget *pEventTarget) :
 
 }
 
+void
+RadioBase::setEventTarget(EventTarget* pEventTarget)
+{
+  m_eventTargetMutex.lock();
+  m_pEventTarget = pEventTarget;
+  m_eventTargetMutex.unlock();
+}
+
 ResultCode
 RadioBase::applySettingUpdate(SettingUpdate& update)
 {
@@ -42,6 +50,7 @@ RadioBase::applySettingUpdates(SettingUpdate* updates, size_t count)
 void
 RadioBase::notifyUpdate(const SettingUpdate& update, SettingEventBase::EventSource source)
 {
+  std::lock_guard<std::mutex> lock(m_eventTargetMutex);
   if (m_pEventTarget != nullptr) {
     EventDispatcher::postEvent(m_pEventTarget, new SettingUpdateEvent(update, source));
   }

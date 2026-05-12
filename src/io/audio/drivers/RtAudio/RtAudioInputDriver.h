@@ -1,6 +1,5 @@
 #pragma once
 
-#include <QThread>
 #include "RtAudioDriver.h"
 // #include "../../../radio/iq/PingPongBufferSink.h"
 #include "../../AudioSink.h"
@@ -10,16 +9,18 @@
 #include <etl/deque.h>
 
 #include "ResultCode.h"
+#include "core/thread/Thread.h"
 #include "io/audio/drivers/AudioInputDriver.h"
 
 
 
 // template<typename T>
-class RtAudioInputDriver : public AudioInputDriver, public RtAudioDriver, public QThread
+class RtAudioInputDriver : public AudioInputDriver, public RtAudioDriver, public Runnable//, public QThread
 {
 
 public:
   RtAudioInputDriver(const RtAudio::DeviceInfo& deviceInfo, const Format& format, AudioSink* pSink) :
+   m_thread(this),
    AudioInputDriver(format, pSink),
    RtAudioDriver(deviceInfo),
     m_running(false),
@@ -36,7 +37,7 @@ public:
   ~RtAudioInputDriver() override
   {
     RtAudioInputDriver::stop();
-    wait();
+    // m_thread.join();
   }
 
   [[nodiscard]] uint32_t getMaxChannels() const override {
@@ -66,7 +67,8 @@ public:
         return ResultCode::ERR_AUDIO_INPUT_DRIVER_START_FAILED;
       }
       m_running = true;
-      QThread::start();
+      m_thread.start();
+      return ResultCode::OK;
     }
     return ResultCode::ERR_AUDIO_INPUT_DRIVER_ALREADY_STARTED;
   }
@@ -76,7 +78,7 @@ public:
       m_rtAudio.stopStream();
       m_rtAudio.closeStream();
       m_dataAvailable.wakeOne();
-      wait();
+      m_thread.join();
     }
   }
 
@@ -156,6 +158,7 @@ public:
   }
 
 private:
+  Thread m_thread;
   std::atomic<bool> m_running;
   // std::mutex m_mutex;
   etl::deque<float, PIPELINE_BUFFER_LENGTH*2> m_queue;
@@ -168,5 +171,4 @@ private:
   QMutex m_mutex;
   QWaitCondition m_dataAvailable;
   // bool m_stopped;
-
 };

@@ -13,9 +13,9 @@
 #include "ui_QtBandDialog.h"
 #include "core/config-settings/settings/bands/Bands.h"
 #include "core/config-settings/settings/RadioSettings.h"
-#include "core/radio/Radio.h"
+#include "core/radio/qt/QtRadioClient.h"
 
-QtBandDialog::QtBandDialog(Radio* pRadio, QWidget *parent) :
+QtBandDialog::QtBandDialog(QtRadioClient* pRadio, QWidget *parent) :
   QWidget(parent), // Set flags here
   ui(new Ui::QtBandDialog),
   m_pRadio(pRadio)
@@ -69,7 +69,7 @@ QtBandDialog::updateBandButtons(const Band& band)
 }
 
 void
-QtBandDialog::addCategoryTabs(Radio* pRadio)
+QtBandDialog::addCategoryTabs(QtRadioClient* pRadio)
 {
   if (pRadio != nullptr) {
     const RadioSettings& settings = pRadio->getRadioSettings();

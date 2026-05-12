@@ -4,6 +4,8 @@
 
 #pragma once
 #include "device/gpio/digital/DigitalOutputs.h"
+
+
 #ifdef USE_ETL
 #include <etl/vector.h>
 #include <etl/variant.h>
@@ -29,17 +31,33 @@ using std::unique_ptr;
 #endif
 
 #include <string>
-
-#include "device/FunCubeDongle/FunCubeDongle.h"
+#ifdef USE_GPIO
+#include "device/gpio/digital/DigitalOutputs.h"
 #include "device/gpio/digital/GpioBandSelector.h"
 #include "device/gpio/digital/DigitalOutput.h"
+#endif
+
+#ifdef IS_QT
+#include "qt/QtControlSink.h"
+#endif
+
+#include "device/FunCubeDongle/FunCubeDongle.h"
+
 #include "core/config-settings/config/control/ControlConfig.h"
 #include "ResultCode.h"
 
 #ifdef USE_GPIO
-using ControlSinkVariant = variant< FunCubeDongle, DigitalOutputs>;
+  #ifdef IS_QT
+    using ControlSinkVariant = variant<FunCubeDongle, DigitalOutputs, QtControlSink>;
+  #else
+    using ControlSinkVariant = variant<FunCubeDongle, DigitalOutputs>;
+  #endif
 #else
-using ControlSinkVariant = variant<FunCubeDongle>;
+#ifdef IS_QT
+  using ControlSinkVariant = variant<FunCubeDongle, QtControlSink>;
+#else
+  using ControlSinkVariant = variant<FunCubeDongle>;
+#endif
 #endif
 
 

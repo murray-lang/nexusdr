@@ -17,10 +17,6 @@ Radio::Radio(EventTarget *pEventTarget) :
 
 }
 
-Radio::~Radio()
-{
-}
-
 ResultCode
 Radio::configure(const Config::Radio::Fields& config)
 {
@@ -40,27 +36,41 @@ Radio::configure(const Config::Radio::Fields& config)
   return rc;
 }
 
-void
-Radio::start()
+ResultCode
+Radio::start(EventTarget* pEventTarget)
 {
-  m_control.connect(this);
+  setEventTarget(pEventTarget);
+  
+  m_control.connectSink(this);
+
+  ResultCode rc = ResultCode::OK;
   if (m_receiver) {
-    m_receiver->start();
+    rc = m_receiver->start();
+    if (rc != ResultCode::OK) return rc;
   }
-  m_control.start();
+  return m_control.start();
 }
 
 void
 Radio::stop()
 {
   m_control.stop();
-  m_control.connect(nullptr);
+  m_control.connectSink(nullptr);
   if (m_receiver) {
     m_receiver->stop();
   }
   if (m_transmitter) {
     m_transmitter->stop();
   }
+}
+
+ResultCode
+Radio::applySettingsToControlSinks()
+{
+  RadioSettings settings = m_settings;
+  settings.markAllChanged();
+  ResultCode rc = m_control.applySettings(settings);
+  return rc;
 }
 
 ResultCode
@@ -112,6 +122,9 @@ Radio::applySettings(const RadioSettings& settings)
 ResultCode
 Radio::applySettingUpdate(SettingUpdate& update)
 {
+  if (update.getCurrentFeature() == RadioSettings::NOTIFY_CONTROL_SINKS) {
+    return applySettingsToControlSinks();
+  }
   return RadioBase::applySettingUpdate(update);
 }
 

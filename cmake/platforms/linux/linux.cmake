@@ -175,8 +175,30 @@ if(USE_GUI)
             src/app/qt/mainwindow-1024x600.ui
             src/app/qt/resources.qrc
     )
+
+    set(QT_THREAD_SOURCES
+            ${THREAD_SOURCES}
+            src/core/thread/qt/QtRunnable.h
+            src/core/thread/qt/QtThread.h
+            src/core/thread/qt/QtThread.cpp
+    )
+    set(QT_CONTROL_SOURCES
+            src/io/control/qt/QtControlSource.h
+            src/io/control/qt/QtControlSource.cpp
+            src/io/control/qt/QtControlSink.h
+            src/io/control/qt/QtControlSink.cpp
+            src/io/control/qt/QtControlGlobalEventTargets.h
+            src/io/control/qt/QtControlGlobalEventTargets.cpp
+    )
 endif()
-set(APP_SOURCES ${QT_GUI_SOURCES} ${QT_APP_SOURCES})
+set(APP_SOURCES
+        ${QT_GUI_SOURCES}
+        ${QT_APP_SOURCES}
+        ${QT_THREAD_SOURCES}
+        ${QT_CONTROL_SOURCES}
+        src/core/radio/qt/QtRadioClient.h
+        src/core/radio/qt/QtRadioClient.cpp
+)
 
 set(TEMP_DEVICE_SOURCES
         src/io/control/device/gpio/digital/DigitalInput.h

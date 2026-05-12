@@ -25,10 +25,12 @@ public:
   uint32_t processSamples(ComplexPingPongBuffers& buffers, uint32_t inputLength) override
   {
     ComplexSamplesMax& samples = buffers.input();
-    if (m_type == ReceiverIqEvent::RxIqEvent) {
-      EventDispatcher::postEvent(m_eventTarget, new ReceiverIqEvent(samples, inputLength, m_sampleRateProvider()));
-    } else if (m_type == TransmitterIqEvent::TxIqEvent) {
-      EventDispatcher::postEvent(m_eventTarget, new TransmitterIqEvent(samples, inputLength, m_sampleRateProvider()));
+    if (m_eventTarget != nullptr) {
+      if (m_type == ReceiverIqEvent::RxIqEvent) {
+        EventDispatcher::postEvent(m_eventTarget, new ReceiverIqEvent(samples, inputLength, m_sampleRateProvider()));
+      } else if (m_type == TransmitterIqEvent::TxIqEvent) {
+        EventDispatcher::postEvent(m_eventTarget, new TransmitterIqEvent(samples, inputLength, m_sampleRateProvider()));
+      }
     }
     buffers.flip();
     return inputLength;

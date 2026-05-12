@@ -5,6 +5,7 @@
 #include <qdebug.h>
 
 DigitalInputLinesRequest::DigitalInputLinesRequest() :
+  m_thread(this),
   m_gpio(Gpio::getInstance()),
   m_lineStates(MAX_GPIO),
   m_pChip (nullptr),
@@ -18,10 +19,11 @@ DigitalInputLinesRequest::DigitalInputLinesRequest() :
 }
 
 DigitalInputLinesRequest::DigitalInputLinesRequest(DigitalInputLinesRequest&& other) noexcept :
+  m_thread(this),
   m_gpio(other.m_gpio),
-  m_lineStates(std::move(other.m_lineStates)),
+  m_lineStates(move(other.m_lineStates)),
   m_pChip(other.m_pChip),
-  m_pCallback(std::move(other.m_pCallback)),
+  m_pCallback(move(other.m_pCallback)),
   m_consumer(std::move(other.m_consumer)),
   m_pLineRequest(other.m_pLineRequest),
   m_pEventBuffer(other.m_pEventBuffer),
@@ -47,10 +49,10 @@ DigitalInputLinesRequest& DigitalInputLinesRequest::operator=(DigitalInputLinesR
     release();
 
     // Move data from other
-    m_lineStates = std::move(other.m_lineStates);
+    m_lineStates = move(other.m_lineStates);
     m_pChip = other.m_pChip;
-    m_pCallback = std::move(other.m_pCallback);
-    m_consumer = std::move(other.m_consumer);
+    m_pCallback = move(other.m_pCallback);
+    m_consumer = move(other.m_consumer);
     m_pLineRequest = other.m_pLineRequest;
     m_pEventBuffer = other.m_pEventBuffer;
     m_debouncePeriod = other.m_debouncePeriod;
@@ -110,7 +112,7 @@ DigitalInputLinesRequest::startCallbacks(Callback& callback)
   m_callbackMutex.lock();
   m_pCallback.emplace(callback);
   m_callbackMutex.unlock();
-  start();
+  m_thread.start();
   return ResultCode::OK;
 }
 
@@ -124,7 +126,7 @@ DigitalInputLinesRequest::stopCallbacks()
   }
   m_pCallback = nullopt;
   m_callbackMutex.unlock();
-  wait();
+  m_thread.join();
 }
 
 ResultCode

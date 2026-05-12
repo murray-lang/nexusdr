@@ -46,7 +46,7 @@ public:
   void ptt(bool on) override;
 
   // RadioSettingsSource methods
-  void connect(RadioSettingsSink* pSink) override;
+  void connectSink(RadioSettingsSink* pSink) override;
   ResultCode notifySettings(const RadioSettings& radioSettings) override;
   ResultCode notifySettingUpdate(SettingUpdate& settingDelta) override;
 

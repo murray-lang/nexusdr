@@ -49,6 +49,8 @@ public:
     }
   }
 
+  void markAllChanged() override;
+
   static constexpr size_t toSplitIndex(SplitBandId b) noexcept {
     return static_cast<size_t>(b);
   }

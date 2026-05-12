@@ -13,5 +13,5 @@ public:
   static const EventType SettingUpdateEventType;
   explicit SettingUpdateEvent(const SettingUpdate& setting, EventSource source);
 
-  const SettingUpdate m_setting;
+  SettingUpdate m_setting;
 };
