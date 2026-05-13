@@ -8,6 +8,8 @@
 #include "DigitalInputsConfig.h"
 #include "DigitalOutputConfig.h"
 #include "DigitalOutputsConfig.h"
+#include "QtControlSourceConfig.h"
+#include "QtControlSinkConfig.h"
 
 // #ifdef USE_ETL
 // #include <etl/vector.h>
@@ -31,17 +33,36 @@ namespace Config::Control
 {
   static constexpr auto type = "control";
 #ifdef USE_GPIO
-  using SinkConfigVariant = variant<
-    DigitalOutputs::Fields,
-    FunCube::Fields,
-    GpioLines::Fields
-  >;
-  using SourceConfigVariant = variant<DigitalInputs::Fields>;
+  #ifdef IS_QT
+    using SinkConfigVariant = variant<
+      DigitalOutputs::Fields,
+      FunCube::Fields,
+      GpioLines::Fields,
+      QtControlSink::Fields
+    >;
+
+    using SourceConfigVariant = variant<DigitalInputs::Fields, QtControlSource::Fields>;
+  #else
+    using SinkConfigVariant = variant<
+      DigitalOutputs::Fields,
+      FunCube::Fields,
+      GpioLines::Fields
+    >;
+    using SourceConfigVariant = variant<DigitalInputs::Fields>;
+  #endif // IS_QT
 #else
-  using SinkConfigVariant = variant<
-    FunCube::Fields
-  >;
-  using SourceConfigVariant = variant<std::monostate>;
+  #ifdef IS_QT
+    using SinkConfigVariant = variant<
+      FunCube::Fields,
+      QtControlSink::Fields
+    >;
+    using SourceConfigVariant = variant<QtControlSource::Fields>;
+  #else
+    using SinkConfigVariant = variant<
+      FunCube::Fields
+    >;
+    using SourceConfigVariant = variant<std::monostate>;
+  #endif // IS_QT
 #endif
 
 

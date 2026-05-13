@@ -8,24 +8,24 @@
 #include "core/config-settings/settings/ModeSettings.h"
 #include "core/config-settings/settings/pipeline/RxPipelineSettings.h"
 
-IqRxPipeline::IqRxPipeline(QObject* eventTarget) :
-  IqPipeline(eventTarget),
-  m_sMeterStage(eventTarget,
+IqRxPipeline::IqRxPipeline(MeteringSink* pMeteringSink, MonitorSink* pMonitorSink)
+  : IqPipeline()
+  , m_sMeterStage(pMeteringSink,
     [this]() { return this->m_outputSampleRate; },
     [this]() -> std::optional<float> { return this->m_iqAgcStage.getGainDb(); }
-    ),
-  m_iqAgcStage(),
-  m_amDemodulator(ModeSettings::getModeByType(Mode::AMN), DEFAULT_SAMPLE_RATE),
-  m_fmnDemodulator(ModeSettings::getModeByType(Mode::FMN),DEFAULT_SAMPLE_RATE),
-  m_fmwDemodulator(ModeSettings::getModeByType(Mode::FMW),DEFAULT_SAMPLE_RATE),
-  m_ssbDemodulator(ModeSettings::getModeByType(Mode::USB),DEFAULT_SAMPLE_RATE),
-  m_cwDemodulator(ModeSettings::getModeByType(Mode::CWU),DEFAULT_SAMPLE_RATE),
-  m_pDemodulator(nullptr),
-  m_audioBuffer(),
-  m_pMonitoringStage(nullptr),
-  m_monitoring(false)
+    )
+  , m_iqAgcStage()
+  , m_amDemodulator(ModeSettings::getModeByType(Mode::AMN), DEFAULT_SAMPLE_RATE)
+  , m_fmnDemodulator(ModeSettings::getModeByType(Mode::FMN),DEFAULT_SAMPLE_RATE)
+  , m_fmwDemodulator(ModeSettings::getModeByType(Mode::FMW),DEFAULT_SAMPLE_RATE)
+  , m_ssbDemodulator(ModeSettings::getModeByType(Mode::USB),DEFAULT_SAMPLE_RATE)
+  , m_cwDemodulator(ModeSettings::getModeByType(Mode::CWU),DEFAULT_SAMPLE_RATE)
+  , m_pDemodulator(nullptr)
+  , m_audioBuffer()
+  , m_pMonitoringStage(nullptr)
+  , m_monitoring(false)
 {
-  m_pMonitoringStage = new MonitoringStage(eventTarget, ReceiverIqEvent::RxIqEvent, [this]() { return this->m_inputSampleRate; });
+  m_pMonitoringStage = new MonitoringStage(pMonitorSink, ReceiverIqEvent::RxIqEvent, [this]() { return this->m_inputSampleRate; });
 
   // appendStage(m_pMonitoringStage);
   appendStage(&m_iqCorrection);
@@ -60,7 +60,7 @@ void
 IqRxPipeline::monitor(bool monitor)
 {
   if (monitor != m_monitoring) {
-    std::lock_guard<std::mutex> lock(m_settingsMutex);
+    lock_guard<mutex> lock(m_settingsMutex);
     m_monitoring = monitor;
     if (m_monitoring) {
       prependStage(m_pMonitoringStage);
@@ -98,7 +98,7 @@ IqRxPipeline::getMaxFramesPerOutputPacket() const
 ResultCode
 IqRxPipeline::apply(const ReceiverSettings& settings)
 {
-  std::lock_guard<std::mutex> lock(m_settingsMutex);
+  lock_guard<mutex> lock(m_settingsMutex);
   if (settings.hasSettingChanged(ReceiverSettings::CORRECTION)) {
     m_iqCorrection.apply(settings.getCorrectionSettings());
   }
@@ -111,7 +111,7 @@ IqRxPipeline::apply(const RxPipelineSettings* settings)
   IqPipeline::apply(settings);
   if (settings->hasSettingChanged(RxPipelineSettings::AGC)) {
     const AgcSpeed agcSpeed = settings->getAgcSpeed();
-    std::lock_guard<std::mutex> lock(m_settingsMutex);
+    lock_guard<mutex> lock(m_settingsMutex);
     m_iqAgcStage.setSpeed(agcSpeed);
   }
 }
@@ -172,8 +172,8 @@ IqRxPipeline::sinkIq(const ComplexSamplesMax& samples, uint32_t length)
   uint32_t outputLength = length;
 
   ComplexSamplesMax& input = m_buffers.input();
-  std::copy_n(samples.begin(), length, input.begin());
-  std::lock_guard<std::mutex> lock(m_settingsMutex);
+  copy_n(samples.begin(), length, input.begin());
+  lock_guard<mutex> lock(m_settingsMutex);
   for (auto stage : m_stages) {
     outputLength = stage->processSamples(m_buffers, outputLength);
     m_buffers.flip();

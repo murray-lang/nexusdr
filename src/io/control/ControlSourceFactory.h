@@ -15,6 +15,8 @@
 #include <memory>
 #endif
 
+
+
 #ifdef USE_ETL
 using etl::variant;
 using etl::optional;
@@ -26,14 +28,27 @@ using std::unique_ptr;
 #endif
 
 #include "ControlSource.h"
+#ifdef USE_GPIO
+#include "device/gpio/digital/DigitalInputs.h"
+#endif
+
+#ifdef IS_QT
+#include "qt/QtControlSource.h"
+#endif
 // #include "core/config-settings/config/base/ConfigBase.h"
 
 #ifdef USE_GPIO
-#include "device/gpio/digital/DigitalInputs.h"
-
-using ControlSourceVariant = variant<DigitalInputs>;
+  #ifdef IS_QT
+    using ControlSourceVariant = variant<QtControlSource, DigitalInputs>;
+  #else
+    using ControlSourceVariant = variant<DigitalInputs>;
+  #endif // IS_QT
 #else
-using ControlSourceVariant = variant<std::monostate>;
+  #ifdef IS_QT
+    using ControlSourceVariant = variant<QtControlSource>;
+  #else
+    using ControlSourceVariant = variant<std::monostate>;
+  #endif
 #endif
 
 

@@ -1,9 +1,10 @@
 #pragma once
 
-#include <QThread>
 
 #include "GpioGpiod.h"
 #include <mutex>
+
+#include "core/thread/Thread.h"
 
 #ifdef USE_ETL
 #include "etl/vector.h"
@@ -15,7 +16,7 @@
 #endif
 
 
-class DigitalInputLinesRequest : public QThread
+class DigitalInputLinesRequest : public Runnable
 {
 
 public:
@@ -102,13 +103,14 @@ protected:
   int readEdgeEvents(struct gpiod_edge_event_buffer* buf, size_t max_events) const;
 
 protected:
+  Thread m_thread;
   Gpio& m_gpio;
   // LineStateMap m_lineStates;
   LineStateVector m_lineStates;
 
   gpiod_chip* m_pChip;
   optional<reference_wrapper<Callback>> m_pCallback;
-  std::mutex m_callbackMutex;
+  mutex m_callbackMutex;
   std::string m_consumer;
   gpiod_line_request *m_pLineRequest;
   gpiod_edge_event_buffer* m_pEventBuffer;

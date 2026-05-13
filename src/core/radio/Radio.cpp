@@ -9,16 +9,14 @@
 
 using RadioConfig = Config::Radio::Fields;
 
-Radio::Radio(EventTarget *pEventTarget) :
-  RadioBase(pEventTarget),
-  m_receiver(nullopt),
-  m_transmitter(nullopt)
+Radio::Radio(MeteringSink* pMeteringSink, MonitorSink* pMonitorSink)
+  : RadioBase()
+  , m_pMeteringSink(pMeteringSink)
+  , m_pMonitorSink(pMonitorSink)
+  , m_receiver(nullopt)
+  , m_transmitter(nullopt)
 {
 
-}
-
-Radio::~Radio()
-{
 }
 
 ResultCode
@@ -29,38 +27,55 @@ Radio::configure(const Config::Radio::Fields& config)
   if (rc != ResultCode::OK) return rc;
 
   if (config.receiver) {
-    m_receiver.emplace(m_pEventTarget);
+    m_receiver.emplace(m_pMeteringSink, m_pMonitorSink);
     rc = m_receiver->configure(*config.receiver);
     if (rc != ResultCode::OK) return rc;
   }
   if (config.transmitter) {
-    m_transmitter.emplace(m_pEventTarget);
+    m_transmitter.emplace(m_pMeteringSink, m_pMonitorSink);
     rc = m_transmitter->configure(*config.transmitter);
   }
   return rc;
 }
 
-void
+ResultCode
 Radio::start()
 {
-  m_control.connect(this);
+  ResultCode rc = ResultCode::OK;
   if (m_receiver) {
-    m_receiver->start();
+    rc = m_receiver->start();
+    if (rc != ResultCode::OK) {
+      return rc;
+    }
   }
-  m_control.start();
+  m_control.connectSink(this);
+  rc = m_control.start();
+  if (rc != ResultCode::OK) {
+    m_control.connectSink(nullptr);
+  }
+  return rc;
 }
 
 void
 Radio::stop()
 {
   m_control.stop();
-  m_control.connect(nullptr);
+  m_control.connectSink(nullptr);
   if (m_receiver) {
     m_receiver->stop();
   }
   if (m_transmitter) {
     m_transmitter->stop();
   }
+}
+
+ResultCode
+Radio::applySettingsToControlSinks()
+{
+  RadioSettings settings = m_settings;
+  settings.markAllChanged();
+  ResultCode rc = m_control.applySettings(settings);
+  return rc;
 }
 
 ResultCode
@@ -101,10 +116,10 @@ Radio::applySettings(const RadioSettings& settings)
       m_transmitter->apply(m_settings.getTxSettings());
     }
   }
-  if (m_pEventTarget != nullptr) {
-    auto* rse = new RadioSettingsEvent(m_settings, ++m_updateSequenceNo, SettingEventBase::BACK_END);
-    EventDispatcher::postEvent(m_pEventTarget, rse);
-  }
+  // if (m_pEventTarget != nullptr) {
+  //   auto* rse = new RadioSettingsEvent(m_settings, ++m_updateSequenceNo, SettingEventBase::BACK_END);
+  //   EventDispatcher::postEvent(m_pEventTarget, rse);
+  // }
   m_settings.clearChanged();
   return ResultCode::OK;
 }
@@ -112,6 +127,9 @@ Radio::applySettings(const RadioSettings& settings)
 ResultCode
 Radio::applySettingUpdate(SettingUpdate& update)
 {
+  if (update.getCurrentFeature() == RadioSettings::NOTIFY_CONTROL_SINKS) {
+    return applySettingsToControlSinks();
+  }
   return RadioBase::applySettingUpdate(update);
 }
 

@@ -14,6 +14,8 @@
 #include <qcoreevent.h>
 
 #include "core/config-settings/settings/RfSettings.h"
+#include "core/radio/MeteringSource.h"
+#include "core/radio/MonitorSource.h"
 
 #define MAX_PIPELINE_STAGES 8
 
@@ -25,7 +27,7 @@ class ModeSettings;
 class IqPipeline : public IqSink, public PttSink
 {
 public:
-  explicit IqPipeline(QObject* eventTarget);
+  explicit IqPipeline();
   ~IqPipeline() override = default;
 
   virtual void initialise(IqIo* pIo, AudioSink* pAudioOutSink)
@@ -72,10 +74,10 @@ protected:
   }
 
 protected:
-  // const ModeSettings& m_modeSettings;
-  QObject* m_eventTarget;
+  // MeteringSource m_meteringSource;
+  // MonitorSource m_monitorSource;
   Mode m_mode;
-  std::mutex m_settingsMutex;
+  mutex m_settingsMutex;
   // IqPipelineIo* m_pIo;
   // IqSource* m_pInput;
   PipelineStages m_stages;
@@ -84,4 +86,5 @@ protected:
   uint32_t m_outputSampleRate;
   AudioSink* m_pAudioOutSink;
   OscillatorMixer m_oscillatorMixer;
+
 };

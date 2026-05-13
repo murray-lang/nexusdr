@@ -55,14 +55,18 @@ set(INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
 set (CONFIG_SOURCES
         ${CONFIG_DIR}/RadioConfig.h
         ${CONFIG_DIR}/RadioConfig.cpp
-        ${CONFIG_DIR}/receiver/ReceiverConfig.h
-        ${CONFIG_DIR}/receiver/ReceiverConfig.cpp
-        ${CONFIG_DIR}/transmitter/TransmitterConfig.h
-        ${CONFIG_DIR}/transmitter/TransmitterConfig.cpp
+        ${CONFIG_DIR}/audio/AudioIqSourceConfig.h
+        ${CONFIG_DIR}/audio/AudioIqSourceConfig.cpp
+        ${CONFIG_DIR}/audio/AudioSignalIqSourceConfig.h
+        ${CONFIG_DIR}/audio/AudioSignalIqSourceConfig.cpp
+        ${CONFIG_DIR}/audio/IqIoConfig.h
         ${CONFIG_DIR}/audio/AudioConfig.h
         ${CONFIG_DIR}/audio/AudioConfig.cpp
+        ${CONFIG_DIR}/audio/IqIoConfig.cpp
+
         ${CONFIG_DIR}/base/ConfigBase.h
         ${CONFIG_DIR}/base/ConfigBase.cpp
+
         ${CONFIG_DIR}/control/ControlConfig.h
         ${CONFIG_DIR}/control/ControlConfig.cpp
         ${CONFIG_DIR}/control/DigitalInputsConfig.h
@@ -75,12 +79,6 @@ set (CONFIG_SOURCES
         ${CONFIG_DIR}/control/FunCubeConfig.cpp
         ${CONFIG_DIR}/control/GpioLinesConfig.h
         ${CONFIG_DIR}/control/GpioLinesConfig.cpp
-        ${CONFIG_DIR}/audio/AudioIqSourceConfig.h
-        ${CONFIG_DIR}/audio/AudioIqSourceConfig.cpp
-        ${CONFIG_DIR}/audio/AudioSignalIqSourceConfig.h
-        ${CONFIG_DIR}/audio/AudioSignalIqSourceConfig.cpp
-        ${CONFIG_DIR}/audio/IqIoConfig.h
-        ${CONFIG_DIR}/audio/IqIoConfig.cpp
         ${CONFIG_DIR}/control/DigitalOutputConfig.h
         ${CONFIG_DIR}/control/DigitalOutputConfig.cpp
         ${CONFIG_DIR}/control/DigitalOutputsConfig.h
@@ -90,6 +88,16 @@ set (CONFIG_SOURCES
         ${CONFIG_DIR}/control/BandSelectorConfig.cpp
         ${CONFIG_DIR}/control/BandSelectorBandsConfig.h
         ${CONFIG_DIR}/control/BandSelectorBandsConfig.cpp
+        ${CONFIG_DIR}/control/QtControlSinkConfig.h
+        ${CONFIG_DIR}/control/QtControlSinkConfig.cpp
+        ${CONFIG_DIR}/control/QtControlSourceConfig.h
+        ${CONFIG_DIR}/control/QtControlSourceConfig.cpp
+
+        ${CONFIG_DIR}/receiver/ReceiverConfig.h
+        ${CONFIG_DIR}/receiver/ReceiverConfig.cpp
+        ${CONFIG_DIR}/transmitter/TransmitterConfig.h
+        ${CONFIG_DIR}/transmitter/TransmitterConfig.cpp
+
         ${CONFIG_DIR}/ui/UiConfig.h
         ${CONFIG_DIR}/ui/UiConfig.cpp
 )
@@ -239,13 +247,20 @@ set(IO_SOURCES
 )
 
 set(RADIO_CORE_SOURCES
-        src/core/radio/RadioBase.h
-        src/core/radio/RadioBase.cpp
-        src/core/radio/receiver/IqReceiver.h src/core/radio/receiver/IqReceiver.cpp
-        src/core/radio/transmitter/IqTransmitter.cpp
-        src/core/radio/transmitter/IqTransmitter.h
         src/core/radio/Radio.cpp
         src/core/radio/Radio.h
+        src/core/radio/RadioBase.h
+        src/core/radio/RadioBase.cpp
+        src/core/radio/MeteringSink.h
+        src/core/radio/MeteringSource.h
+        src/core/radio/MonitorSink.h
+        src/core/radio/MonitorSource.h
+        src/core/radio/receiver/IqReceiver.h
+        src/core/radio/receiver/IqReceiver.cpp
+        src/core/radio/receiver/IqReceiverMetering.h
+        src/core/radio/transmitter/IqTransmitter.cpp
+        src/core/radio/transmitter/IqTransmitter.h
+
 )
 
 set(RADIO_PROXY_SOURCES
@@ -271,6 +286,8 @@ set(UTIL_SOURCES
         src/core/util/StringUtils.cpp
         src/core/util/StringUtils.h
 )
+
+set(THREAD_SOURCES src/core/thread/Thread.h src/core/thread/Runnable.h)
 
 set(GIT_DIR_LOOKUP_POLICY ALLOW_LOOKING_ABOVE_CMAKE_SOURCE_DIR)
 add_subdirectory(${ETL_DIR})

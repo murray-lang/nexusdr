@@ -8,6 +8,7 @@
 #include "core/config-settings/settings/bands/BandCategory.h"
 #include "core/config-settings/settings/RadioSettingsSink.h"
 
+class QtRadioClient;
 class Bands;
 
 namespace Ui
@@ -20,10 +21,10 @@ class Radio;
 class QtBandDialog : public QWidget, public RadioSettingsSink {
   Q_OBJECT
 public:
-  explicit QtBandDialog(Radio* pRadio, QWidget *parent = nullptr);
+  explicit QtBandDialog(QtRadioClient* pRadio, QWidget *parent = nullptr);
   ~QtBandDialog() override;
 
-  void addCategoryTabs(Radio* pRadio);
+  void addCategoryTabs(QtRadioClient* pRadio);
   void addCategoryTab(const BandCategory& category, bool isSelected, const BandNameString& selectedBandName);
 
 
@@ -39,7 +40,7 @@ protected:
 
 private:
   Ui::QtBandDialog *ui;
-  Radio* m_pRadio;
+  QtRadioClient* m_pRadio;
 
   QList<QPushButton*> m_bandButtons;
 };

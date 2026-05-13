@@ -98,7 +98,7 @@ public:
 
   int pullSamples(void *outputBuffer, unsigned int nFrames)
   {
-    std::lock_guard<std::mutex> lock(m_mutex);
+    lock_guard<mutex> lock(m_mutex);
 
     unsigned int samplesNeeded = nFrames * m_format.channelCount;
     unsigned int samplesToCopy = std::min(static_cast<unsigned int>(m_audioBuffer.size()), samplesNeeded);
@@ -122,7 +122,7 @@ public:
 
   uint32_t addAudioData(const RealSamplesMax& data, uint32_t length, uint32_t numChannels) override
   {
-    std::lock_guard<std::mutex> lock(m_mutex);
+    lock_guard<mutex> lock(m_mutex);
     if (!m_running) return 0;
 
     double scale = std::is_integral_v<T>
@@ -145,8 +145,8 @@ public:
   }
 
 private:
-  std::atomic<bool> m_running;
+  atomic<bool> m_running;
   std::deque<T> m_audioBuffer;
-  std::mutex m_mutex;
+  mutex m_mutex;
   uint32_t m_maxPacketFrames;
 };

@@ -1,12 +1,24 @@
 #include "ActiveBandSettings.h"
 
-ActiveBandSettings::ActiveBandSettings() :
-    SettingsBase()
-    ,m_focusBandId(SplitBandId::None)
-    ,m_txBandId(SplitBandId::None)
-    ,m_rxBandId(SplitBandId::None)
-    ,m_split(false)
+ActiveBandSettings::ActiveBandSettings()
+  : SettingsBase()
+  , m_focusBandId(SplitBandId::None)
+  , m_txBandId(SplitBandId::None)
+  , m_rxBandId(SplitBandId::None)
+  , m_split(false)
 {
+}
+
+void
+ActiveBandSettings::markAllChanged()
+{
+  SettingsBase::markAllChanged();
+  if (m_activeBands[0].has_value()) {
+    m_activeBands[0].value().markAllChanged();
+  }
+  if (m_activeBands[1].has_value()) {
+    m_activeBands[1].value().markAllChanged();
+  }
 }
 
 BandSettings*

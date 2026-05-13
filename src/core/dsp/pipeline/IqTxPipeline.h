@@ -23,7 +23,7 @@
 class IqTxPipeline: public IqPipeline, public TransmitterSettingsSink
 {
 public:
-  explicit IqTxPipeline(QObject* eventTarget);
+  explicit IqTxPipeline(MeteringSink* pMeteringSink, MonitorSink* pMonitorSink);
   ~IqTxPipeline() override;
 
   void initialise(IqIo* pIo, AudioSink* pAudioSink) override;

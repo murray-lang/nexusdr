@@ -4,9 +4,9 @@
 
 #include "../SettingUpdateEvent.h"
 
-const EventType SingleSettingEventType = static_cast<QEvent::Type>(QEvent::registerEventType());
+const EventType SettingUpdateEvent::SettingUpdateEventType = static_cast<QEvent::Type>(QEvent::registerEventType());
 
 SettingUpdateEvent::SettingUpdateEvent(const SettingUpdate& setting, EventSource source) :
-  SettingEventBase(SingleSettingEventType, source),
+  SettingEventBase(SettingUpdateEventType, source),
   m_setting(setting)
 {}

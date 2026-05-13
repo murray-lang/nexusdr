@@ -3,12 +3,20 @@
 //
 #include "ControlSinkFactory.h"
 
+#ifdef USE_GPIO
 #include "core/config-settings/config/control/BandSelectorConfig.h"
-#include "core/config-settings/config/control/FunCubeConfig.h"
-#include "device/FunCubeDongle/FunCubeDongle.h"
 #include "device/gpio/digital/GpioBandSelector.h"
 #include "device/gpio/digital/DigitalOutput.h"
 #include "device/gpio/digital/DigitalOutputs.h"
+#endif
+
+#ifdef IS_QT
+#include "qt/QtControlSink.h"
+#endif
+
+#include "core/config-settings/config/control/FunCubeConfig.h"
+#include "device/FunCubeDongle/FunCubeDongle.h"
+
 
 ResultCode
 ControlSinkFactory::create(const Config::Control::SinkConfigVariant& config, ControlSinkVariant& sink)
@@ -39,6 +47,17 @@ ControlSinkFactory::create(const Config::Control::SinkConfigVariant& config, Con
   //   }
   //   return result;
   // }
+#endif
+
+#ifdef IS_QT
+  if (holds_alternative<Config::QtControlSink::Fields>(config)) {
+    QtControlSink qtcs;
+    result = qtcs.configure(get<Config::QtControlSink::Fields>(config));
+    if (result == ResultCode::OK) {
+      sink.emplace<QtControlSink>(move(qtcs));
+    }
+    return result;
+  }
 #endif
   return ResultCode::ERR_CONTROL_SINK;
 }

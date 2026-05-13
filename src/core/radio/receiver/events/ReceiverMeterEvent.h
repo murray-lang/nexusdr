@@ -1,9 +1,5 @@
-//
-// Created by murray on 17/2/26.
-//
-
 #pragma once
-
+#include "../IqReceiverMetering.h"
 
 #include <cstdint>
 
@@ -16,13 +12,13 @@ class ReceiverMeterEvent : public EventBase
 public:
   static const EventType RxMeterEvent;
   ReceiverMeterEvent(float rssiDbFs, uint32_t sampleRate, std::optional<float> agcGainDb = std::nullopt);
+  ReceiverMeterEvent(const IqReceiverMetering& metering);
 
-  [[nodiscard]] float rssiDbFs() const { return m_rssiDbFs; }
-  [[nodiscard]] uint32_t sampleRate() const { return m_sampleRate; }
-  [[nodiscard]] const std::optional<float>& agcGainDb() const { return m_agcGainDb; }
+  [[nodiscard]] float rssiDbFs() const { return m_metering.rssiDbFs; }
+  [[nodiscard]] uint32_t sampleRate() const { return m_metering.sampleRate; }
+  [[nodiscard]] const std::optional<float>& agcGainDb() const { return m_metering.agcGainDb; }
+  [[nodiscard]] const IqReceiverMetering& metering() const { return m_metering; }
 
 private:
-  float m_rssiDbFs;
-  uint32_t m_sampleRate;
-  std::optional<float> m_agcGainDb;
+  IqReceiverMetering m_metering;
 };

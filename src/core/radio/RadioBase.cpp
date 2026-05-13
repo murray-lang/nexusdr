@@ -4,10 +4,8 @@
 #include "core/config-settings/settings/events/SettingUpdateEvent.h"
 #include "core/events/EventDispatcher.h"
 
-RadioBase::RadioBase(EventTarget *pEventTarget) :
-     m_pEventTarget(pEventTarget)
-    , m_settings()
-    ,m_updateSequenceNo(0)
+RadioBase::RadioBase()
+  : m_updateSequenceNo(0)
 {
 
 }
@@ -37,14 +35,6 @@ RadioBase::applySettingUpdates(SettingUpdate* updates, size_t count)
     return applySettings(m_settings);
   }
   return ResultCode::OK;
-}
-
-void
-RadioBase::notifyUpdate(const SettingUpdate& update, SettingEventBase::EventSource source)
-{
-  if (m_pEventTarget != nullptr) {
-    EventDispatcher::postEvent(m_pEventTarget, new SettingUpdateEvent(update, source));
-  }
 }
 
 void

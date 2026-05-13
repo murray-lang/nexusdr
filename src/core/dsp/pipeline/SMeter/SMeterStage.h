@@ -16,31 +16,33 @@
 
 // Pass-through stage that estimates RSSI from complex IQ and posts meter updates.
 // Intended placement: after channel filter + decimator, before any AGC.
-class SMeterStage : public IqPipelineStage
+class SMeterStage : public IqPipelineStage, public MeteringSource
 {
 public:
-  SMeterStage(QObject* eventTarget,
+  SMeterStage(MeteringSink* pMeteringSink,
               std::function<uint32_t()> sampleRateProvider,
               std::function<std::optional<float>()> agcGainDbProvider = nullptr,
               float smoothingTauSeconds = 0.20f,
-              float uiUpdateHz = 20.0f) :
-    m_eventTarget(eventTarget),
-    m_sampleRateProvider(std::move(sampleRateProvider)),
-  m_agcGainDbProvider(std::move(agcGainDbProvider)),
-    m_tau(std::max(0.01f, smoothingTauSeconds)),
-    m_minUpdatePeriod(std::chrono::duration<double>(1.0 / std::max(1.0f, uiUpdateHz)))
+              float uiUpdateHz = 20.0f)
+    : MeteringSource(pMeteringSink)
+    , m_sampleRateProvider(std::move(sampleRateProvider))
+    , m_agcGainDbProvider(std::move(agcGainDbProvider))
+    , m_tau(std::max(0.01f, smoothingTauSeconds))
+    , m_minUpdatePeriod(std::chrono::duration<double>(1.0 / std::max(1.0f, uiUpdateHz)))
   {
   }
 
   uint32_t processSamples(ComplexPingPongBuffers& buffers, uint32_t inputLength) override
   {
-    if (m_eventTarget == nullptr || inputLength == 0) {
+    if (m_pSink == nullptr || inputLength == 0) {
       return inputLength;
     }
+    IqReceiverMetering metering{};
+
     const ComplexSamplesMax& in = buffers.input();
 
-    const uint32_t fs = m_sampleRateProvider ? m_sampleRateProvider() : 0;
-    if (fs == 0) {
+    metering.sampleRate = m_sampleRateProvider ? m_sampleRateProvider() : 0;
+    if (metering.sampleRate == 0) {
       return inputLength;
     }
 
@@ -55,7 +57,7 @@ public:
     const double pInst = acc / static_cast<double>(inputLength);
 
     // Exponential smoothing with time-constant tau
-    const double dt = static_cast<double>(inputLength) / static_cast<double>(fs);
+    const double dt = static_cast<double>(inputLength) / static_cast<double>(metering.sampleRate);
     const double a = 1.0 - std::exp(-dt / static_cast<double>(m_tau));
 
     if (!m_haveAvg) {
@@ -72,21 +74,22 @@ public:
 
       constexpr double eps = 1e-20;
       const double p = std::max(m_pAvg, eps);
-      const auto rssiDbFs = static_cast<float>(10.0 * std::log10(p));
+      metering.rssiDbFs = static_cast<float>(10.0 * std::log10(p));
 
       std::optional<float> agcGainDb;
       if (m_agcGainDbProvider) {
-        agcGainDb = m_agcGainDbProvider();
+        metering.agcGainDb = m_agcGainDbProvider();
       }
-
-      EventDispatcher::postEvent(m_eventTarget, new ReceiverMeterEvent(rssiDbFs, fs, agcGainDb));
+      // if (m_eventTarget != nullptr) {
+      //   EventDispatcher::postEvent(m_eventTarget, new ReceiverMeterEvent(rssiDbFs, fs, agcGainDb));
+      // }
+      notifyRxMetering(metering);
     }
     buffers.flip();
     return inputLength;
   }
 
 private:
-  QObject* m_eventTarget;
   std::function<uint32_t()> m_sampleRateProvider;
   std::function<std::optional<float>()> m_agcGainDbProvider;
 

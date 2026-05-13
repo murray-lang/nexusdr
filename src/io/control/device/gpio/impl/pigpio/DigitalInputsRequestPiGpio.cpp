@@ -32,7 +32,7 @@ DigitalInputsRequestPiGpio::startCallbacks(Callback* callback)
   if (m_pCallback != nullptr) {
     throw GpioException("Line state callback already set");
   }
-  // std::lock_guard<std::mutex> lock(m_callbackMutex);
+  // lock_guard<mutex> lock(m_callbackMutex);
   m_pCallback = callback;
 }
 

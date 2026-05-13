@@ -1,19 +1,18 @@
 //
 // Created by murray on 18/11/25.
 //
+#include <CrossPlatformTypes.h>
 #include "IqPipeline.h"
 #include "core/config-settings/settings/pipeline/PipelineSettings.h"
 
 class RfSettings;
 class ModeSettings;
 
-IqPipeline::IqPipeline(QObject* eventTarget) :
-  // m_modeSettings(modeSettings),
-  m_eventTarget(eventTarget),
-  m_mode(),
-  m_inputSampleRate(0),
-  m_outputSampleRate(0),
-  m_pAudioOutSink(nullptr)
+IqPipeline::IqPipeline()
+  : m_mode()
+  , m_inputSampleRate(0)
+  , m_outputSampleRate(0)
+  , m_pAudioOutSink(nullptr)
 {
 }
 
@@ -21,7 +20,7 @@ void
 IqPipeline::apply(const PipelineSettings* settings)
 {
   if (settings != nullptr) {
-    std::lock_guard<std::mutex> lock(m_settingsMutex);
+    lock_guard<mutex> lock(m_settingsMutex);
     if (settings->hasSettingChanged(PipelineSettings::RF)) {
       const RfSettings& rfSettings = settings->getRfSettings();
       if (rfSettings.hasSettingChanged(RfSettings::CENTER_FREQUENCY)

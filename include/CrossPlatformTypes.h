@@ -7,6 +7,7 @@
 #include "etl/vector.h"
 #include "etl/algorithm.h"
 #include "etl/functional.h"
+#include "etl/mutex.h"
 using etl::variant;
 using etl::holds_alternative;
 using etl::get;
@@ -21,12 +22,17 @@ using etl::is_same_v;
 using etl::get_if;
 using etl::reference_wrapper;
 using etl::is_arithmetic_v;
+using etl::is_integral_v;
 using etl::find_if;
 using etl::distance;
 using etl::any_of;
 using etl::ref;
 using etl::make_pair;
 using etl::function;
+using etl::mutex;
+using etl::lock_guard;
+using etl::copy_n;
+using etl::atomic;
 // using etl::size_t
 
 #else
@@ -36,6 +42,8 @@ using etl::function;
 #include <vector>
 #include <algorithm>
 #include <functional>
+#include <mutex>
+
 using std::variant;
 using std::holds_alternative;
 using std::get;
@@ -50,11 +58,16 @@ using std::is_same_v;
 using std::get_if;
 using std::reference_wrapper;
 using std::is_arithmetic_v;
+using std::is_integral_v;
 using std::find_if;
 using std::distance;
 using std::any_of;
 using std::ref;
 using std::make_pair;
 using std::function;
+using std::mutex;
+using std::lock_guard;
+using std::copy_n;
+using std::atomic;
 // using std::size_t;
 #endif

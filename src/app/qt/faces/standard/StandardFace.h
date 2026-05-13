@@ -29,7 +29,7 @@ public:
   // void connect(SettingUpdateSink* pSink) override { m_pExternalSettingsSink = pSink; }
   // void applySettingUpdate(SettingUpdate& settingDelta) override;
 
-  void setRadio(Radio* radio) override;
+  // void setRadio(Radio* radio) override;
   void handleRadioSettingsChanged(RadioSettings* pRadioSettings) override;
 
   void handleReceiverIq(
@@ -37,15 +37,15 @@ public:
     const ComplexSamplesMax* data,
     uint32_t length,
     uint32_t sampleRate) override;
-  void handleReceiverAudio(const RealSamplesMax* data, uint32_t length) override;
-  void handleReceiverMeter(float rssiDbFs, uint32_t sampleRate, std::optional<float> agcGainDb) override;
+  void handleReceiverAudio(const RealSamplesMax* data, uint32_t length, uint32_t sampleRate) override;
+  void handleReceiverMeter(const IqReceiverMetering& metering) override;
 
   void handleTransmitterIq(
     RadioSettings* pRadioSettings,
     const ComplexSamplesMax* data,
     uint32_t length,
     uint32_t sampleRate) override;
-  void handleTransmitterAudio(const RealSamplesMax* data, uint32_t length) override;
+  void handleTransmitterAudio(const RealSamplesMax* data, uint32_t length, uint32_t sampleRate) override;
 
 protected:
 
@@ -66,15 +66,15 @@ protected:
     InternalSettingUpdateSink(StandardFace* pOwningFace) : m_pOwningFace(pOwningFace) {}
     ResultCode applySettingUpdate(SettingUpdate& settingUpdate) override
     {
-      if (m_pOwningFace->m_pRadio != nullptr) {
-        return m_pOwningFace->m_pRadio->applySettingUpdate(settingUpdate);
+      if (m_pOwningFace->m_pSettingUpdateSink != nullptr) {
+        return m_pOwningFace->m_pSettingUpdateSink->applySettingUpdate(settingUpdate);
       }
       return ResultCode::OK;
     }
     ResultCode applySettingUpdates(SettingUpdate* updates, std::size_t count) override
     {
-      if (m_pOwningFace->m_pRadio != nullptr) {
-        return m_pOwningFace->m_pRadio->applySettingUpdates(updates, count);
+      if (m_pOwningFace->m_pSettingUpdateSink != nullptr) {
+        return m_pOwningFace->m_pSettingUpdateSink->applySettingUpdates(updates, count);
       }
       return ResultCode::OK;
     }
@@ -88,7 +88,7 @@ private:
   InternalSettingUpdateSink m_internalSettingsSink;
   QtTimeSeriesChart* m_pTimeSeriesChart;
   QtPanadapter* m_pPanadapter;
-  QtFrequencyPanel* m_pFrequencyPanel;
+  QtFrequencyPanel* m_pFrequencyPanel{};
   uint32_t m_reportedIqSampleRate;
 
   QtSMeter* m_pSmeter;

@@ -13,9 +13,11 @@ public:
   ControlSource() : ControlBase(), m_pSettingsSink(nullptr)
   {
   }
+  ControlSource(ControlSource&& rhs) noexcept = default;
   ~ControlSource() override = default;
+  ControlSource& operator=(ControlSource&& rhs) noexcept = default;
 
-  void connect(RadioSettingsSink* pSink) override
+  void connectSink(RadioSettingsSink* pSink) override
   {
     m_pSettingsSink = pSink;
   }

@@ -1,7 +1,3 @@
-//
-// Created by murray on 17/3/26.
-//
-
 #pragma once
 
 #include "core/config-settings/settings/RadioSettings.h"
@@ -12,15 +8,20 @@
 #include "core/events/EventTarget.h"
 #include "io/control/PttSink.h"
 #include "ResultCode.h"
+#include <mutex>
 
-class RadioBase : public RadioSettingsSink, PttSink
+#include "MeteringSink.h"
+#include "MonitorSink.h"
+
+
+class RadioBase : public RadioSettingsSink, public PttSink
 {
 public:
-  explicit RadioBase(EventTarget *pEventTarget = nullptr);
+  explicit RadioBase();
   ~RadioBase() override = default;
 
   virtual ResultCode configure(const Config::Radio::Fields& config) = 0;
-  virtual void start() = 0;
+  virtual ResultCode start() = 0;
   virtual void stop() = 0;
 
   RadioSettings& getRadioSettings() { return m_settings; }
@@ -79,11 +80,7 @@ public:
   }
 
 protected:
-  virtual void notifyUpdate(const SettingUpdate& update, SettingEventBase::EventSource source);
-
-protected:
   BandSelector m_bandSelector;
-  EventTarget* m_pEventTarget;
   RadioSettings m_settings;
   uint64_t m_updateSequenceNo;
 };

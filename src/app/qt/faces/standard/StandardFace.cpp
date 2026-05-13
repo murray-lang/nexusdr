@@ -88,17 +88,10 @@ StandardFace::initialise(RadioSettings* pRadioSettings)
   }
 }
 
-
-void StandardFace::setRadio(Radio* radio) {
-  FaceBase::setRadio(radio);
-}
-
-void StandardFace::handleReceiverMeter(float rssiDbFs, uint32_t sampleRate, std::optional<float> agcGainDb)
+void StandardFace::handleReceiverMeter(const IqReceiverMetering& metering)
 {
-  (void)sampleRate;
-
   if (m_pSmeter) {
-    m_pSmeter->setReading(rssiDbFs, agcGainDb);
+    m_pSmeter->setReading(metering.rssiDbFs, metering.agcGainDb);
   }
 }
 
@@ -182,7 +175,7 @@ StandardFace::handleReceiverIq(
 }
 
 void
-StandardFace::handleReceiverAudio(const RealSamplesMax* data, uint32_t length)
+StandardFace::handleReceiverAudio(const RealSamplesMax* data, uint32_t length, uint32_t sampleRate)
 {
   m_pTimeSeriesChart->plot(*data, length);
 }
@@ -210,7 +203,7 @@ StandardFace::handleTransmitterIq(
 }
 
 void
-StandardFace::handleTransmitterAudio(const RealSamplesMax* data, uint32_t length)
+StandardFace::handleTransmitterAudio(const RealSamplesMax* data, uint32_t length, uint32_t sampleRate)
 {
   m_pTimeSeriesChart->plot(*data, length);
 }
