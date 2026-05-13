@@ -13,7 +13,9 @@ void
 ActiveBandSettings::markAllChanged()
 {
   SettingsBase::markAllChanged();
-  m_activeBands[0]->markAllChanged();
+  if (m_activeBands[0].has_value()) {
+    m_activeBands[0].value().markAllChanged();
+  }
   if (m_activeBands[1].has_value()) {
     m_activeBands[1].value().markAllChanged();
   }
