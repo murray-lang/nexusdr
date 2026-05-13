@@ -110,7 +110,7 @@ protected:
 
   gpiod_chip* m_pChip;
   optional<reference_wrapper<Callback>> m_pCallback;
-  std::mutex m_callbackMutex;
+  mutex m_callbackMutex;
   std::string m_consumer;
   gpiod_line_request *m_pLineRequest;
   gpiod_edge_event_buffer* m_pEventBuffer;

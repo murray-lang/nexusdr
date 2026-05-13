@@ -1,5 +1,5 @@
 #include "QtControlSource.h"
-#include "QtControlGlobalEventTargets.h"
+#include "core/radio/qt/QtGlobalEventTargets.h"
 
 #include <qeventloop.h>
 

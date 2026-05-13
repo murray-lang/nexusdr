@@ -247,13 +247,20 @@ set(IO_SOURCES
 )
 
 set(RADIO_CORE_SOURCES
-        src/core/radio/RadioBase.h
-        src/core/radio/RadioBase.cpp
-        src/core/radio/receiver/IqReceiver.h src/core/radio/receiver/IqReceiver.cpp
-        src/core/radio/transmitter/IqTransmitter.cpp
-        src/core/radio/transmitter/IqTransmitter.h
         src/core/radio/Radio.cpp
         src/core/radio/Radio.h
+        src/core/radio/RadioBase.h
+        src/core/radio/RadioBase.cpp
+        src/core/radio/MeteringSink.h
+        src/core/radio/MeteringSource.h
+        src/core/radio/MonitorSink.h
+        src/core/radio/MonitorSource.h
+        src/core/radio/receiver/IqReceiver.h
+        src/core/radio/receiver/IqReceiver.cpp
+        src/core/radio/receiver/IqReceiverMetering.h
+        src/core/radio/transmitter/IqTransmitter.cpp
+        src/core/radio/transmitter/IqTransmitter.h
+
 )
 
 set(RADIO_PROXY_SOURCES

@@ -27,7 +27,7 @@ class RxPipelineSettings;
 class IqRxPipeline : public IqPipeline, public ReceiverSettingsSink
 {
 public:
-  explicit IqRxPipeline(QObject* eventTarget);
+  explicit IqRxPipeline(MeteringSink* pMeteringSink, MonitorSink* pMonitorSink);
   ~IqRxPipeline() override;
 
   void initialise(IqIo* pIo, AudioSink* pAudioSink) override;

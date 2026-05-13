@@ -11,6 +11,9 @@
 
 #include <etl/string.h>
 
+#include "core/radio/qt/QtGlobalEventTargets.h"
+#include "core/radio/qt/QtMeteringDispatcher.h"
+#include "core/radio/qt/QtMonitorDispatcher.h"
 #include "io/control/device/gpio/Gpio.h"
 #include "io/control/device/gpio/digital/DigitalInputLinesRequest.h"
 
@@ -93,7 +96,7 @@ ResultCode initialiseRadio(const Config::Radio::Fields& radioConfig, Radio& radi
     qDebug() << "Error configuring radio: " << (uint32_t)rc;
     return rc;
   }
-  radio.start(nullptr);
+  radio.start();
 
   radio.applyBand("20m");
   radio.applyAgcSpeed(AgcSpeed::OFF);
@@ -118,7 +121,10 @@ ResultCode initialiseRadio(const Config::Radio::Fields& radioConfig, Radio& radi
   return ResultCode::OK;
 }
 
-Radio radio;
+QtMeteringDispatcher m_meteringDispatcher([]() { return globalMeteringClientEventTarget;} );
+QtMonitorDispatcher m_monitorDispatcher([]() { return globalMonitorClientEventTarget;} );
+
+Radio radio(&m_meteringDispatcher, &m_monitorDispatcher);
 
 int main(int argc, char *argv[])
 {
@@ -158,10 +164,12 @@ int main(int argc, char *argv[])
 
   MainWindow w(radioConfig);
 
-  radio.setEventTarget(&w);
+  // radio.setEventTarget(&w);
 
   w.show();
   int rc2 = app.exec();
+
+  radio.stop();
 
 #ifdef USE_GPIO
   Gpio::getInstance().close();

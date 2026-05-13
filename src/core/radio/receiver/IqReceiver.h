@@ -20,7 +20,7 @@ class IqReceiver :
   public RxPipelineAudioRouter
 {
 public:
-  explicit IqReceiver(QObject *eventTarget = nullptr);
+  explicit IqReceiver(MeteringSink* pMeteringSink, MonitorSink* pMonitorSink);
 
   ~IqReceiver() override = default;
 
@@ -45,7 +45,7 @@ public:
 
   void setMode(const Mode& mode);
 
-  bool adjustRfSettingsToLimits(RxPipelineSettings* rxPipelineSettings, IqRxPipeline& pipeline, bool onlyIfChanged = true) const;
+  bool clampRfSettingsToLimits(RxPipelineSettings* rxPipelineSettings, IqRxPipeline& pipeline, bool onlyIfChanged = true) const;
 
 protected:
   static uint32_t downmixToMono(const RealSamplesMax& in,
@@ -60,13 +60,11 @@ protected:
   void outputStereoDuplicate(const RealSamplesMax& mono, uint32_t frames);
 
 protected:
-  // const ModeSettings& m_modeSettings;
   IqIo m_iqIo;
-  std::string m_bandName;
+  BandNameString m_bandName;
   IqRxPipeline m_iqPipelineA;
   IqRxPipeline m_iqPipelineB;
   PipelineId m_focusPipelineId;
-  QObject* m_eventTarget;
 
   RxPipelineAudioTap m_audioTapA;
   RxPipelineAudioTap m_audioTapB;

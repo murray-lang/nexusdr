@@ -14,19 +14,18 @@
 // #define FFT_SIZE 2048
 
 
-IqReceiver::IqReceiver(QObject* eventTarget) :
-  m_iqPipelineA(eventTarget),
-  m_iqPipelineB(eventTarget),
-  m_focusPipelineId(PipelineId::A),
-  m_eventTarget(eventTarget),
-  m_audioTapA(*this, PipelineId::A),
-  m_audioTapB(*this, PipelineId::B),
-  m_pipelineBEnabled(false),
-  m_havePendingA(false),
-  m_havePendingB(false),
-  m_pendingA(0.0),
-  m_pendingB(0.0),
-  m_stereoOutInterleaved(0.0)
+IqReceiver::IqReceiver(MeteringSink* pMeteringSink, MonitorSink* pMonitorSink)
+  : m_iqPipelineA(pMeteringSink, pMonitorSink)
+  , m_iqPipelineB(pMeteringSink, pMonitorSink)
+  , m_focusPipelineId(PipelineId::A)
+  , m_audioTapA(*this, PipelineId::A)
+  , m_audioTapB(*this, PipelineId::B)
+  , m_pipelineBEnabled(false)
+  , m_havePendingA(false)
+  , m_havePendingB(false)
+  , m_pendingA(0.0)
+  , m_pendingB(0.0)
+  , m_stereoOutInterleaved(0.0)
 {
 }
 
@@ -69,18 +68,18 @@ IqReceiver::apply(BandSettings* bandSettings)
   }
   if (multiPipelineChanged) {
     RxPipelineSettings* rxPipelineASettings = bandSettings->getRxPipeline(PipelineId::A);
-    adjustRfSettingsToLimits(rxPipelineASettings, m_iqPipelineA);
+    clampRfSettingsToLimits(rxPipelineASettings, m_iqPipelineA);
     m_iqPipelineA.apply(rxPipelineASettings);
 
     if (m_pipelineBEnabled) {
       RxPipelineSettings* rxPipelineBSettings = bandSettings->getRxPipeline(PipelineId::B);
-      adjustRfSettingsToLimits(rxPipelineBSettings, m_iqPipelineB);
+      clampRfSettingsToLimits(rxPipelineBSettings, m_iqPipelineB);
       m_iqPipelineB.apply(rxPipelineBSettings);
     }
   } else if (bandSettings->hasSettingChanged(BandSettings::WITH_FOCUS_PIPELINE)) {
     IqRxPipeline* focusPipeline = m_focusPipelineId == PipelineId::A ? &m_iqPipelineA : &m_iqPipelineB;
     RxPipelineSettings* focusPipelineSettings = bandSettings->getFocusPipeline();
-    adjustRfSettingsToLimits(focusPipelineSettings, *focusPipeline);
+    clampRfSettingsToLimits(focusPipelineSettings, *focusPipeline);
     focusPipeline->apply(focusPipelineSettings);
   }
  
@@ -96,7 +95,7 @@ IqReceiver::apply(BandSettings* bandSettings)
   }
 }
 
-bool IqReceiver::adjustRfSettingsToLimits(RxPipelineSettings* rxPipelineSettings, IqRxPipeline& pipeline, bool onlyIfChanged) const
+bool IqReceiver::clampRfSettingsToLimits(RxPipelineSettings* rxPipelineSettings, IqRxPipeline& pipeline, bool onlyIfChanged) const
 {
   if (rxPipelineSettings == nullptr) {
     return false;

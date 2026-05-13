@@ -10,18 +10,18 @@
 #include "ResultCode.h"
 #include <mutex>
 
+#include "MeteringSink.h"
+#include "MonitorSink.h"
 
 
 class RadioBase : public RadioSettingsSink, public PttSink
 {
 public:
-  explicit RadioBase(EventTarget *pEventTarget = nullptr);
+  explicit RadioBase();
   ~RadioBase() override = default;
 
-  void setEventTarget(EventTarget* pEventTarget);
-
   virtual ResultCode configure(const Config::Radio::Fields& config) = 0;
-  virtual ResultCode start(EventTarget* pEventTarget) = 0;
+  virtual ResultCode start() = 0;
   virtual void stop() = 0;
 
   RadioSettings& getRadioSettings() { return m_settings; }
@@ -80,12 +80,7 @@ public:
   }
 
 protected:
-  virtual void notifyUpdate(const SettingUpdate& update, SettingEventBase::EventSource source);
-
-protected:
   BandSelector m_bandSelector;
-  EventTarget* m_pEventTarget;
-  std::mutex m_eventTargetMutex;
   RadioSettings m_settings;
   uint64_t m_updateSequenceNo;
 };

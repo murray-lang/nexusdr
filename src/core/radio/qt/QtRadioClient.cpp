@@ -2,13 +2,17 @@
 
 #include <qcoreapplication.h>
 
+#include "QtGlobalEventTargets.h"
 #include "core/config-settings/settings/events/RadioSettingsEvent.h"
 #include "core/config-settings/settings/events/SettingUpdateEvent.h"
-#include "io/control/qt/QtControlGlobalEventTargets.h"
+#include "core/radio/receiver/events/ReceiverAudioEvent.h"
+#include "core/radio/receiver/events/ReceiverIqEvent.h"
+#include "core/radio/receiver/events/ReceiverMeterEvent.h"
+#include "core/radio/transmitter/events/TransmitterAudioEvent.h"
+#include "core/radio/transmitter/events/TransmitterIqEvent.h"
 
 QtRadioClient::QtRadioClient(QObject* parent)
-  : RadioBase(this)
-  , m_pParent(parent)
+  : m_pParent(parent)
 {
 
 }
@@ -20,9 +24,11 @@ QtRadioClient::configure(const Config::Radio::Fields& config)
 }
 
 ResultCode
-QtRadioClient::start(EventTarget* pEventTarget)
+QtRadioClient::start()
 {
   globalControlClientEventTarget = this;
+  globalMeteringClientEventTarget = this;
+  globalMonitorClientEventTarget = this;
   return requestCurrentSettings();
 }
 
@@ -30,21 +36,47 @@ void
 QtRadioClient::stop()
 {
   globalControlClientEventTarget = nullptr;
+  globalMeteringClientEventTarget = nullptr;
+  globalMonitorClientEventTarget = nullptr;
 }
 
 void
 QtRadioClient::customEvent(QEvent* event)
 {
   if (event->type() == RadioSettingsEvent::RadioSettingsEventType) {
-    auto* settingsEvent = dynamic_cast<RadioSettingsEvent*>(event);
-    if (settingsEvent) {
-      emit radioSettingsReceived(settingsEvent->getRadioSettings(), settingsEvent->getSequence());
-    }
+
+    const auto* settingsEvent = dynamic_cast<RadioSettingsEvent*>(event);
+    emit radioSettingsReceived(settingsEvent->getRadioSettings(), settingsEvent->getSequence());
+
   } else if (event->type() == SettingUpdateEvent::SettingUpdateEventType) {
-    auto* updateEvent = dynamic_cast<SettingUpdateEvent*>(event);
-    if (updateEvent) {
-      emit settingUpdateReceived(updateEvent->m_setting);
-    }
+
+    const auto* updateEvent = dynamic_cast<SettingUpdateEvent*>(event);
+    emit settingUpdateReceived(updateEvent->m_setting);
+
+  } else if (event->type() == ReceiverIqEvent::RxIqEvent) {
+
+    const auto* iqEvent = dynamic_cast<ReceiverIqEvent*>(event);
+    emit receiverIqReceived(iqEvent->buffer.get(), iqEvent->dataLength, iqEvent->sampleRate);
+
+  } else if (event->type() == ReceiverAudioEvent::RxAudioEvent) {
+
+    const auto* audioEvent = dynamic_cast<ReceiverAudioEvent*>(event);
+    emit receiverAudioReceived(audioEvent->buffer.get(), audioEvent->dataLength, audioEvent->sampleRate);
+
+  } else if (event->type() == ReceiverMeterEvent::RxMeterEvent) {
+
+    const auto* meterEvent = dynamic_cast<ReceiverMeterEvent*>(event);
+    emit meteringReceived(meterEvent->metering());
+
+  } else if (event->type() == TransmitterIqEvent::TxIqEvent) {
+
+    const auto* iqEvent = dynamic_cast<TransmitterIqEvent*>(event);
+    emit transmitterIqReceived(iqEvent->buffer.get(), iqEvent->dataLength, iqEvent->sampleRate);
+
+  } else if (event->type() == TransmitterAudioEvent::TxAudioEvent) {
+
+    const auto* audioEvent = dynamic_cast<TransmitterAudioEvent*>(event);
+    emit transmitterAudioReceived(audioEvent->buffer.get(), audioEvent->dataLength, audioEvent->sampleRate);
   }
 }
 

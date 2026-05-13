@@ -13,9 +13,8 @@
 
 class ModeSettings;
 
-IqTransmitter::IqTransmitter(QObject* eventTarget) :
-  m_iqPipeline(eventTarget),
-  m_eventTarget(eventTarget)
+IqTransmitter::IqTransmitter(MeteringSink* pMeteringSink, MonitorSink* pMonitorSink)
+  : m_iqPipeline(pMeteringSink, pMonitorSink)
 {
 }
 

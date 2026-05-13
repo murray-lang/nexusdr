@@ -93,7 +93,7 @@ public:
   {
     if (inputBuffer) {
       auto* in = static_cast<float*>(inputBuffer);
-      // std::lock_guard<std::mutex> lock(m_mutex);
+      // lock_guard<mutex> lock(m_mutex);
       QMutexLocker locker(&m_mutex);
       size_t queueSize = m_queue.size();
       if (queueSize / m_format.channelCount + nframes > PIPELINE_BUFFER_LENGTH) {
@@ -160,7 +160,7 @@ public:
 private:
   Thread m_thread;
   std::atomic<bool> m_running;
-  // std::mutex m_mutex;
+  // mutex m_mutex;
   etl::deque<float, PIPELINE_BUFFER_LENGTH*2> m_queue;
   RtAudio::StreamParameters m_params;
 

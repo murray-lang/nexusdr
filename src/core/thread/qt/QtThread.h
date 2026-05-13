@@ -1,19 +1,22 @@
 #pragma once
 #include <QThread>
+#include <memory>
 
 #include "QtRunnable.h"
 
-class Thread : public QObject
+class Thread
 {
-  Q_OBJECT
 public:
   explicit Thread(Runnable* runnable);
-  ~Thread() override = default;
+  Thread(Thread&& other) noexcept;
+  ~Thread();
+
+  Thread& operator=(Thread&& other) noexcept;
 
   void start();
   void join();
 
 private:
-  QThread m_workerThread;
+  std::unique_ptr<QThread> m_workerThread;
   Runnable* m_runnable;
 };

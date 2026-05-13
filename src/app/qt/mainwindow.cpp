@@ -42,8 +42,14 @@ MainWindow::MainWindow(Config::Radio::Fields& radioConfig, QWidget *parent)
 {
   m_radioClient.configure(radioConfig);
 
-  connect(&m_radioClient, &QtRadioClient::radioSettingsReceived,
-        this, &MainWindow::handleRadioSettingsFromClient);
+  connect(&m_radioClient, &QtRadioClient::radioSettingsReceived, this, &MainWindow::handleRadioSettings);
+  // connect(&m_radioClient, &QtRadioClient::settingUpdateReceived, this, &MainWindow::handleSettingUpdate);
+  connect(&m_radioClient, &QtRadioClient::receiverAudioReceived, this, &MainWindow::handleReceiverAudio);
+  connect(&m_radioClient, &QtRadioClient::receiverIqReceived, this, &MainWindow::handleReceiverIq);
+  connect(&m_radioClient, &QtRadioClient::meteringReceived, this, &MainWindow::handleReceiverMeter);
+  connect(&m_radioClient, &QtRadioClient::transmitterAudioReceived, this, &MainWindow::handleTransmitterAudio);
+  connect(&m_radioClient, &QtRadioClient::transmitterIqReceived, this, &MainWindow::handleTransmitterIq);
+
   // initialiseRadio();
   initializeWindow();
 
@@ -53,7 +59,7 @@ MainWindow::MainWindow(Config::Radio::Fields& radioConfig, QWidget *parent)
     // This filter has been added to help manage popup behaviour associated with the toolbar buttons.
     this->installEventFilter(this);
   }
-  m_radioClient.start(this);
+  m_radioClient.start();
 }
 
 MainWindow::~MainWindow()
@@ -62,40 +68,82 @@ MainWindow::~MainWindow()
   delete ui;
 }
 
+// void
+// MainWindow::customEvent(QEvent* event)
+// {
+//   if (event->type() == ReceiverIqEvent::RxIqEvent) {
+//
+//     auto* iqEvent = dynamic_cast<ReceiverIqEvent*>(event);
+//     handleReceiverIq(&m_radioSettingsCopy,iqEvent->buffer.get(), iqEvent->dataLength, iqEvent->sampleRate);
+//
+//   } else if (event->type() == ReceiverAudioEvent::RxAudioEvent) {
+//
+//     auto* audioEvent = dynamic_cast<ReceiverAudioEvent*>(event);
+//     handleReceiverAudio(audioEvent->buffer.get(), audioEvent->dataLength, audioEvent->sampleRate);
+//
+//   } else if (event->type() == ReceiverMeterEvent::RxMeterEvent) {
+//
+//     auto* meterEvent = dynamic_cast<ReceiverMeterEvent*>(event);
+//     handleReceiverMeter(meterEvent->rssiDbFs(), meterEvent->sampleRate(), meterEvent->agcGainDb());
+//
+//   } else if (event->type() == TransmitterIqEvent::TxIqEvent) {
+//
+//     auto* iqEvent = dynamic_cast<TransmitterIqEvent*>(event);
+//     handleTransmitterIq(&m_radioSettingsCopy, iqEvent->buffer.get(), iqEvent->dataLength, iqEvent->sampleRate);
+//
+//   } else if (event->type() == TransmitterAudioEvent::TxAudioEvent) {
+//
+//     auto* audioEvent = dynamic_cast<TransmitterAudioEvent*>(event);
+//     handleTransmitterAudio(audioEvent->buffer.get(), audioEvent->dataLength, audioEvent->sampleRate);
+//   }
+// }
+
 void
-MainWindow::customEvent(QEvent* event)
+MainWindow::handleReceiverIq(const ComplexSamplesMax* data, uint32_t length, uint32_t sampleRate)
 {
   if (m_pFace) {
-    if (event->type() == ReceiverIqEvent::RxIqEvent) {
-
-      auto* iqEvent = dynamic_cast<ReceiverIqEvent*>(event);
-      m_pFace->handleReceiverIq(&m_radioSettingsCopy,iqEvent->buffer.get(), iqEvent->dataLength, iqEvent->sampleRate);
-
-    } else if (event->type() == ReceiverAudioEvent::RxAudioEvent) {
-
-      auto* audioEvent = dynamic_cast<ReceiverAudioEvent*>(event);
-      m_pFace->handleReceiverAudio(audioEvent->buffer.get(), audioEvent->dataLength);
-
-    } else if (event->type() == ReceiverMeterEvent::RxMeterEvent) {
-
-      auto* meterEvent = dynamic_cast<ReceiverMeterEvent*>(event);
-      m_pFace->handleReceiverMeter(meterEvent->rssiDbFs(), meterEvent->sampleRate(), meterEvent->agcGainDb());
-
-    } else if (event->type() == TransmitterIqEvent::TxIqEvent) {
-
-      auto* iqEvent = dynamic_cast<TransmitterIqEvent*>(event);
-      m_pFace->handleTransmitterIq(&m_radioSettingsCopy, iqEvent->buffer.get(), iqEvent->dataLength, iqEvent->sampleRate);
-
-    } else if (event->type() == TransmitterAudioEvent::TxAudioEvent) {
-
-      auto* audioEvent = dynamic_cast<TransmitterAudioEvent*>(event);
-      m_pFace->handleTransmitterAudio(audioEvent->buffer.get(), audioEvent->dataLength);
-    }
+    m_pFace->handleReceiverIq(&m_radioSettingsCopy, data, length, sampleRate);
   }
 }
 
 void
-MainWindow::handleRadioSettingsFromClient(const RadioSettings& radioSettings, uint64_t sequence)
+MainWindow::handleReceiverAudio(const RealSamplesMax* data, uint32_t length, uint32_t sampleRate)
+{
+  if (m_pFace) {
+    m_pFace->handleReceiverAudio(data, length, sampleRate);
+  }
+}
+
+void
+MainWindow::handleReceiverMeter(const IqReceiverMetering& metering)
+{
+  if (m_pFace) {
+    m_pFace->handleReceiverMeter(metering);
+  }
+}
+
+void
+MainWindow::handleTransmitterIq(
+  const ComplexSamplesMax* data,
+  uint32_t length,
+  uint32_t sampleRate
+  )
+{
+  if (m_pFace) {
+    m_pFace->handleTransmitterIq(&m_radioSettingsCopy, data, length, sampleRate);
+  }
+}
+
+void
+MainWindow::handleTransmitterAudio(const RealSamplesMax* data, uint32_t length, uint32_t sampleRate)
+{
+  if (m_pFace) {
+    m_pFace->handleTransmitterAudio(data, length, sampleRate);
+  }
+}
+
+void
+MainWindow::handleRadioSettings(const RadioSettings& radioSettings, uint64_t sequence)
 {
   handleRadioSettingsEvent(radioSettings, sequence);
 }

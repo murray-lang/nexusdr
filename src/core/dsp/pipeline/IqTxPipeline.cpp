@@ -14,8 +14,8 @@
 
 #define DEFAULT_SAMPLE_RATE 48000
 
-IqTxPipeline::IqTxPipeline(QObject* eventTarget) :
-  IqPipeline(eventTarget),
+IqTxPipeline::IqTxPipeline(MeteringSink* pMeteringSink, MonitorSink* pMonitorSink) :
+  IqPipeline(),
   m_ssbModulator(ModeSettings::getModeByType(Mode::USB), DEFAULT_SAMPLE_RATE),
   m_cwModulator(ModeSettings::getModeByType(Mode::CWU), DEFAULT_SAMPLE_RATE),
   m_fmModulator(ModeSettings::getModeByType(Mode::FMN), DEFAULT_SAMPLE_RATE),
@@ -27,7 +27,7 @@ IqTxPipeline::IqTxPipeline(QObject* eventTarget) :
   m_twoToneSignal()
 {
   m_pMonitoringStage = new MonitoringStage(
-    eventTarget,
+    pMonitorSink,
     TransmitterIqEvent::TxIqEvent,
     [this]() { return m_outputSampleRate; }
   );
@@ -100,7 +100,7 @@ IqTxPipeline::calcNyquistOffsetsLimits(int32_t* maxNegative, int32_t* maxPositiv
 void
 IqTxPipeline::apply(const TransmitterSettings& settings)
 {
-  std::lock_guard<std::mutex> lock(m_settingsMutex);
+  lock_guard<mutex> lock(m_settingsMutex);
   if (settings.hasSettingChanged(TransmitterSettings::CORRECTION)) {
     m_iqCorrection.apply(settings.getCorrectionSettings());
   }
@@ -117,7 +117,7 @@ IqTxPipeline::apply(const TxPipelineSettings* settings)
 {
   IqPipeline::apply(settings);
   // if (settings != nullptr) {
-  //   std::lock_guard<std::mutex> lock(m_settingsMutex);
+  //   lock_guard<mutex> lock(m_settingsMutex);
   //   if (settings->hasSettingChanged(PipelineSettings::RF)) {
   //     const RfSettings& rfSettings = settings->getRfSettings();
   //     if (rfSettings.hasSettingChanged(RfSettings::CENTER_FREQUENCY)
@@ -190,7 +190,7 @@ IqTxPipeline::sinkIq(const ComplexSamplesMax& samples, uint32_t length)
   // qDebug() << "IqTxPipeline::sinkIq(): received" << length << "samples in" << duration << "ms";
 
   uint32_t outputLength = 0;
-  std::lock_guard<std::mutex> lock(m_settingsMutex);
+  lock_guard<mutex> lock(m_settingsMutex);
   if (m_pModulator) {
     if (m_twoToneSignal.getEnabled()) {
       outputLength = m_twoToneSignal.processSamples(samples, m_buffers.input(), length);

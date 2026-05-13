@@ -35,7 +35,7 @@ public:
   explicit MainWindow(Config::Radio::Fields& radioConfig, QWidget *parent = nullptr);
   ~MainWindow() override;
 
-  void customEvent(QEvent* event) override;
+  // void customEvent(QEvent* event) override;
   bool eventFilter(QObject *watched, QEvent *event) override;
 
 public slots:
@@ -43,14 +43,16 @@ public slots:
   void on_actionBand_triggered();
   // void on_actionMode_triggered();
   // void on_actionLevels_triggered();
-  void handleRadioSettingsFromClient(const RadioSettings& settings, uint64_t sequence);
+  void handleRadioSettings(const RadioSettings& settings, uint64_t sequence);
+  void handleRadioSettingsEvent(const RadioSettings& radioSettings, uint64_t sequence);
+  void handleReceiverIq(const ComplexSamplesMax* data, uint32_t length, uint32_t sampleRate ) ;
+  void handleReceiverAudio(const RealSamplesMax* data, uint32_t length, uint32_t sampleRate);
+  void handleReceiverMeter(const IqReceiverMetering& metering);
+  void handleTransmitterIq( const ComplexSamplesMax* data, uint32_t length, uint32_t sampleRate );
+  void handleTransmitterAudio(const RealSamplesMax* data, uint32_t length, uint32_t sampleRate);
 
 protected:
-  // void handleReceiverIqEvent(const vsdrcomplex* data, uint32_t length, uint32_t sampleRate);
-  // void handleReceiverAudioEvent(const vsdrreal* data, uint32_t length);
-  // void handleTransmitterIqEvent(const vsdrcomplex* data, uint32_t length, uint32_t sampleRate);
-  // void handleTransmitterAudioEvent(const vsdrreal* data, uint32_t length);
-  void handleRadioSettingsEvent(const RadioSettings& radioSettings, uint64_t sequence);
+
 
   void closeActiveToolbarPopups();
 

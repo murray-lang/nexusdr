@@ -97,18 +97,33 @@ set(USB_API_SOURCES
 set(EVENT_SOURCES
         ${EVENT_SOURCES}
         src/core/events/qt/EventDispatcher.cpp
+
         src/core/config-settings/settings/events/qt/RadioSettingsEvent.cpp
         src/core/config-settings/settings/events/qt/SettingUpdateEvent.cpp
-        src/core/radio/receiver/events/qt/ReceiverMeterEvent.cpp
 
         src/core/radio/transmitter/events/qt/TransmitterAudioEvent.cpp
+        src/core/radio/transmitter/events/qt/TransmitterIqEvent.cpp
+
+        src/core/radio/receiver/events/qt/ReceiverMeterEvent.cpp
         src/core/radio/receiver/events/qt/ReceiverIqEvent.cpp
         src/core/radio/receiver/events/qt/ReceiverAudioEvent.cpp
-        src/core/radio/transmitter/events/qt/TransmitterIqEvent.cpp
+
+        src/core/radio/qt/QtGlobalEventTargets.h
+        src/core/radio/qt/QtGlobalEventTargets.cpp
+
+        src/core/radio/qt/QtGlobalEventTargets.h
+        src/core/radio/qt/QtGlobalEventTargets.cpp
+        src/core/radio/qt/QtMeteringDispatcher.h
+        src/core/radio/qt/QtMeteringDispatcher.cpp
+        src/core/radio/qt/QtMonitorDispatcher.h
+        src/core/radio/qt/QtMonitorDispatcher.cpp
 )
 
 set (RADIO_SOURCES
     ${RADIO_CORE_SOURCES}
+    src/core/radio/qt/QtRadioClient.h
+    src/core/radio/qt/QtRadioClient.cpp
+
 )
 
 set (CORE_SOURCES
@@ -187,8 +202,7 @@ if(USE_GUI)
             src/io/control/qt/QtControlSource.cpp
             src/io/control/qt/QtControlSink.h
             src/io/control/qt/QtControlSink.cpp
-            src/io/control/qt/QtControlGlobalEventTargets.h
-            src/io/control/qt/QtControlGlobalEventTargets.cpp
+
     )
 endif()
 set(APP_SOURCES

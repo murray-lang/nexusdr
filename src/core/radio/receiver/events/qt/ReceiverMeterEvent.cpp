@@ -7,10 +7,15 @@
 
 const EventType ReceiverMeterEvent::RxMeterEvent = static_cast<EventType>(QEvent::registerEventType());
 
-ReceiverMeterEvent::ReceiverMeterEvent(float rssiDbFs, uint32_t sampleRate, std::optional<float> agcGainDb) :
-    EventBase(RxMeterEvent),
-    m_rssiDbFs(rssiDbFs),
-    m_sampleRate(sampleRate),
-    m_agcGainDb(agcGainDb)
+ReceiverMeterEvent::ReceiverMeterEvent(float rssiDbFs, uint32_t sampleRate, std::optional<float> agcGainDb)
+  : EventBase(RxMeterEvent)
+  , m_metering{rssiDbFs, sampleRate, agcGainDb}
 {
+}
+
+ReceiverMeterEvent::ReceiverMeterEvent(const IqReceiverMetering& metering)
+  : EventBase(RxMeterEvent)
+  , m_metering{metering}
+{
+
 }

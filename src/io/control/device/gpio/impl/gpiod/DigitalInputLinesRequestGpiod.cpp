@@ -108,7 +108,7 @@ DigitalInputLinesRequest::startCallbacks(Callback& callback)
   if (m_pCallback) {
     return ResultCode::ERR_DIGITAL_INPUT_LINES_CALLBACK_ALREADY_SET;
   }
-  // std::lock_guard<std::mutex> lock(m_callbackMutex);
+  // lock_guard<mutex> lock(m_callbackMutex);
   m_callbackMutex.lock();
   m_pCallback.emplace(callback);
   m_callbackMutex.unlock();
@@ -234,7 +234,7 @@ DigitalInputLinesRequest::run()
 bool
 DigitalInputLinesRequest::callbackWithChangedLineStates()
 {
-  std::lock_guard<std::mutex> lock(m_callbackMutex);
+  lock_guard<mutex> lock(m_callbackMutex);
   if (m_pCallback) {
     m_pCallback->get().callback(m_lineStates);
     return true;

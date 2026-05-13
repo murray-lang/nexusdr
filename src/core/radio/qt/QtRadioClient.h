@@ -11,7 +11,7 @@ public:
   QtRadioClient(QObject* parent);
 
   ResultCode configure(const Config::Radio::Fields& config) override;
-  ResultCode start(EventTarget* pEventTarget) override;
+  ResultCode start() override;
   void stop() override;
 
   ResultCode applySettings(const RadioSettings& settings) override
@@ -28,6 +28,11 @@ public:
 signals:
   void radioSettingsReceived(const RadioSettings& settings, uint64_t sequence);
   void settingUpdateReceived(const SettingUpdate& update);
+  void meteringReceived(const IqReceiverMetering& metering);
+  void receiverIqReceived(const ComplexSamplesMax* iq, uint32_t length, uint32_t sampleRate);
+  void transmitterIqReceived(const ComplexSamplesMax* iq, uint32_t length, uint32_t sampleRate);
+  void receiverAudioReceived(const RealSamplesMax* audio, uint32_t length, uint32_t sampleRate);
+  void transmitterAudioReceived(const RealSamplesMax* audio, uint32_t length, uint32_t sampleRate);
 
 protected:
   ResultCode requestCurrentSettings();

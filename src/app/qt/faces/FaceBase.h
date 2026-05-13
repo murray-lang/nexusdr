@@ -8,6 +8,7 @@
 #include "core/SampleTypes.h"
 #include "core/config-settings/settings/RadioSettingsSink.h"
 #include "core/config-settings/settings/base/SettingUpdateSource.h"
+#include "core/radio/receiver/IqReceiverMetering.h"
 
 
 class Radio;
@@ -44,21 +45,16 @@ public:
     uint32_t length,
     uint32_t sampleRate) = 0;
 
-  virtual void handleReceiverAudio(const RealSamplesMax* data, uint32_t length) = 0;
+  virtual void handleReceiverAudio(const RealSamplesMax* data, uint32_t length, uint32_t sampleRate) = 0;
 
-  virtual void handleReceiverMeter(float rssiDbFs, uint32_t sampleRate, std::optional<float> agcGainDb)
-  {
-    (void)rssiDbFs;
-    (void)sampleRate;
-    (void)agcGainDb;
-  }
+  virtual void handleReceiverMeter(const IqReceiverMetering& metering) = 0;
 
   virtual void handleTransmitterIq(
     RadioSettings* pRadioSettings,
     const ComplexSamplesMax* data,
     uint32_t length,
     uint32_t sampleRate) = 0;
-  virtual void handleTransmitterAudio(const RealSamplesMax* data, uint32_t length) = 0;
+  virtual void handleTransmitterAudio(const RealSamplesMax* data, uint32_t length, uint32_t sampleRate) = 0;
 
 
 protected:

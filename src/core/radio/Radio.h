@@ -4,6 +4,10 @@
 
 #pragma once
 #include "CrossPlatformTypes.h"
+#include "MeteringSink.h"
+#include "MeteringSource.h"
+#include "MonitorSink.h"
+#include "MonitorSource.h"
 #include "RadioBase.h"
 #include "receiver/IqReceiver.h"
 #include "transmitter/IqTransmitter.h"
@@ -16,11 +20,11 @@
 class Radio : public RadioBase
 {
 public:
-  Radio(EventTarget *pEventTarget = nullptr);
+  Radio(MeteringSink* pMeteringSink, MonitorSink* pMonitorSink);
   ~Radio() override = default;
 
   ResultCode configure(const Config::Radio::Fields& config) override;
-  ResultCode start(EventTarget* pEventTarget) override;
+  ResultCode start() override;
   void stop() override;
 
   ResultCode applySettings(const RadioSettings& settings) override;
@@ -38,6 +42,8 @@ protected:
   void pttOff();
 
 private:
+  MeteringSink* m_pMeteringSink;
+  MonitorSink* m_pMonitorSink;
   optional<IqReceiver> m_receiver;
   optional<IqTransmitter> m_transmitter;
   RadioControl m_control;

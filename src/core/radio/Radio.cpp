@@ -9,10 +9,12 @@
 
 using RadioConfig = Config::Radio::Fields;
 
-Radio::Radio(EventTarget *pEventTarget) :
-  RadioBase(pEventTarget),
-  m_receiver(nullopt),
-  m_transmitter(nullopt)
+Radio::Radio(MeteringSink* pMeteringSink, MonitorSink* pMonitorSink)
+  : RadioBase()
+  , m_pMeteringSink(pMeteringSink)
+  , m_pMonitorSink(pMonitorSink)
+  , m_receiver(nullopt)
+  , m_transmitter(nullopt)
 {
 
 }
@@ -25,22 +27,20 @@ Radio::configure(const Config::Radio::Fields& config)
   if (rc != ResultCode::OK) return rc;
 
   if (config.receiver) {
-    m_receiver.emplace(m_pEventTarget);
+    m_receiver.emplace(m_pMeteringSink, m_pMonitorSink);
     rc = m_receiver->configure(*config.receiver);
     if (rc != ResultCode::OK) return rc;
   }
   if (config.transmitter) {
-    m_transmitter.emplace(m_pEventTarget);
+    m_transmitter.emplace(m_pMeteringSink, m_pMonitorSink);
     rc = m_transmitter->configure(*config.transmitter);
   }
   return rc;
 }
 
 ResultCode
-Radio::start(EventTarget* pEventTarget)
+Radio::start()
 {
-  setEventTarget(pEventTarget);
-  
   m_control.connectSink(this);
 
   ResultCode rc = ResultCode::OK;
@@ -111,10 +111,10 @@ Radio::applySettings(const RadioSettings& settings)
       m_transmitter->apply(m_settings.getTxSettings());
     }
   }
-  if (m_pEventTarget != nullptr) {
-    auto* rse = new RadioSettingsEvent(m_settings, ++m_updateSequenceNo, SettingEventBase::BACK_END);
-    EventDispatcher::postEvent(m_pEventTarget, rse);
-  }
+  // if (m_pEventTarget != nullptr) {
+  //   auto* rse = new RadioSettingsEvent(m_settings, ++m_updateSequenceNo, SettingEventBase::BACK_END);
+  //   EventDispatcher::postEvent(m_pEventTarget, rse);
+  // }
   m_settings.clearChanged();
   return ResultCode::OK;
 }

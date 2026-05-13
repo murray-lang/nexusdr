@@ -21,7 +21,7 @@ class ModeSettings;
 class IqTransmitter : public TransmitterSettingsSink, public IqSink, public AudioSink, public PttSink
 {
 public:
-  explicit IqTransmitter(QObject *eventTarget = nullptr);
+  explicit IqTransmitter(MeteringSink* pMeteringSink, MonitorSink* pMonitorSink);
 
   ~IqTransmitter() override = default;
 
@@ -42,5 +42,4 @@ protected:
   // const ModeSettings& m_modeSettings;
   IqIo m_iqIo;
   IqTxPipeline m_iqPipeline;
-  QObject* m_eventTarget;
 };
