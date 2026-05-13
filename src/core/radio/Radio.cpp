@@ -41,14 +41,19 @@ Radio::configure(const Config::Radio::Fields& config)
 ResultCode
 Radio::start()
 {
-  m_control.connectSink(this);
-
   ResultCode rc = ResultCode::OK;
   if (m_receiver) {
     rc = m_receiver->start();
-    if (rc != ResultCode::OK) return rc;
+    if (rc != ResultCode::OK) {
+      return rc;
+    }
   }
-  return m_control.start();
+  m_control.connectSink(this);
+  rc = m_control.start();
+  if (rc != ResultCode::OK) {
+    m_control.connectSink(nullptr);
+  }
+  return rc;
 }
 
 void

@@ -111,8 +111,6 @@ set(EVENT_SOURCES
         src/core/radio/qt/QtGlobalEventTargets.h
         src/core/radio/qt/QtGlobalEventTargets.cpp
 
-        src/core/radio/qt/QtGlobalEventTargets.h
-        src/core/radio/qt/QtGlobalEventTargets.cpp
         src/core/radio/qt/QtMeteringDispatcher.h
         src/core/radio/qt/QtMeteringDispatcher.cpp
         src/core/radio/qt/QtMonitorDispatcher.h
@@ -121,9 +119,6 @@ set(EVENT_SOURCES
 
 set (RADIO_SOURCES
     ${RADIO_CORE_SOURCES}
-    src/core/radio/qt/QtRadioClient.h
-    src/core/radio/qt/QtRadioClient.cpp
-
 )
 
 set (CORE_SOURCES
